@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&family=Poppins:wght@100;300&family=Roboto:ital,wght@1,300&display=swap" rel="stylesheet">
+    <title>{{ appName }}</title>
+  </head>
+  <body style="display: flex; align-items:center; justify-content:center;font-family: 'Roboto', sans-serif;">
+    <div style="display: flex;  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;padding:2rem;">
+      <!-- <div style="text-align: center">
+        <img
+          style="max-width: 100%; height: auto"
+          width="175px"
+          height="175px"
+          src="cid:aplogo"
+        />
+        <h4 style="text-align: center; margin:0;">{{ appName }}</h4>
+      </div> -->
+
+      <div >  
+        <div style="line-height: normal; font-size: 14px; text-align: start; font-size:1rem;">
+            <h3 style="font-weight: bold">Hi {{applicant}},</h3>
+
+            <p>We are excited to inform you that your account has been approved! You can now log in to our website and proceed with the enrollment process.</p>
+            <p>Please follow the steps below to get started:</p>
+            <p>1. Go to our login page: <a href="{{ link }}">{{ link }}</a> </p>
+            <p>2. Enter your credentials to log in.</p>
+            <p>3. Navigate to the enrollment section and follow the instructions to complete your enrollment.</p>
+            <p>
+              If you encounter any issues or have any questions, don't hesitate to reach out to our support team at <bold>rdpajarillaga596@gmail.com</bold>
+            </p>
+            <p>Thank you for joining us, and we look forward to assisting you with your enrollment at {{ appName }} </p>
+        </div>
+    </div>
+  </body>
+</html>

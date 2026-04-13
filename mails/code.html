@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&family=Poppins:wght@100;300&family=Roboto:ital,wght@1,300&display=swap" rel="stylesheet">
+    <title>{{ appName }}</title>
+  </head>
+  <body style="display: flex; align-items:center; justify-content:center;font-family: 'Roboto', sans-serif;">
+    <div style="display: flex;  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;padding:2rem;">
+     
+      <div style="margin-left: 2rem;">  
+        <div style="line-height: normal; font-size: 14px; text-align: left; font-size:1rem;">
+            <h3 style="font-weight: bold">Dear {{ username }},</h3>
+            <p>You requested to reset your password for your account at Leonor M. Bautista National High School. </p>
+            <p>Please use the following verification code to proceed:</p>
+            <p style="font-size:2rem;letter-spacing:10px;background-color: lightgray; width: fit-content;padding:0.5rem 2rem;margin:0;color: rgb(49, 48, 48);">
+                <i>{{ code }}</i>
+            </p>
+            <p>
+              If you didn't request for this code. Please disregard this message.
+            </p>
+            <p>Thanks,<br/>The {{ appName }} </p>
+
+        </div>
+    </div>
+  </body>
+</html>

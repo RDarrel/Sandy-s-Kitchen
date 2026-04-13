@@ -1,0 +1,10 @@
+@font-face {
+  font-family: "DS-Digital";
+  src: url("../../../../assets/fonts/DS-DIGIB.TTF") format("truetype");
+  font-style: normal;
+}
+
+.digital-texts {
+  font-family: "DS-Digital", sans-serif;
+  texttransform: capitalize;
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "_id": {
+      "$oid": "65bfb4e7a11d62d6eab9c7e6"
+    },
+    "fullName": {
+      "fname": "jasper",
+      "mname": "vaguchay",
+      "lname": "lorenzo",
+      "suffix": ""
+    },
+    "address": {
+      "street": "MOLAVE",
+      "barangay": "PIAS",
+      "city": "GENERAL TINIO",
+      "province": "3",
+      "region": "3"
+    },
+    "dob": "2024-02-01",
+    "role": {
+      "$oid": "65bfb53ba11d62d6eab9c7ea"
+    },
+    "mobile": "975532322",
+    "email": "moderator@gmail.com",
+    "password": "$2a$10$/zQz2xrcYucPfXtrw8s6/.SAGMhCljOlhR6GhJghmJihP4/GOIOLy",
+    "verified": true,
+    "isMale": true,
+    "bio": "",
+    "wasBanned": false,
+    "banned": {
+      "by": {
+        "$oid": "647dd2a5dced91b0b39444b3"
+      },
+      "at": "1/23/2024, 9:19:53 PM",
+      "for": "Account is still being processed."
+    },
+    "createdAt": {
+      "$date": "2024-01-23T13:19:53.304Z"
+    },
+    "updatedAt": {
+      "$date": "2024-02-03T14:03:17.350Z"
+    },
+    "__v": 0
+  },
+
+  {
+    "_id": {
+      "$oid": "65bfb4e7a11d62d6eab9c7e7"
+    },
+
+    "fullName": {
+      "fname": "darrel",
+      "mname": "acain",
+      "lname": "pajarillaga",
+      "suffix": ""
+    },
+    "address": {
+      "street": "MOLAVE",
+      "barangay": "PIAS",
+      "city": "GENERAL TINIO",
+      "province": "NUEVA ECIJA",
+      "region": "3"
+    },
+    "dob": "2002-11-23",
+    "role": {
+      "$oid": "65bfb53ba11d62d6eab9c7e9"
+    },
+    "mobile": "0975532322",
+    "email": "admin@gmail.com",
+    "password": "$2a$10$8zsHuLQf9AVjIfZj.OmpUe.lNBKxjqoVTd/6/A39xbl4C2xwo9NRa",
+    "verified": false,
+    "isMale": true,
+    "bio": "",
+    "wasBanned": false,
+    "banned": {
+      "by": {
+        "$oid": "647dd2a5dced91b0b39444b3"
+      },
+      "at": "2/3/2024, 9:42:40 PM",
+      "for": "Account is still being processed."
+    },
+    "createdAt": {
+      "$date": "2024-02-03T13:42:40.338Z"
+    },
+    "updatedAt": {
+      "$date": "2024-02-03T13:58:31.499Z"
+    },
+    "__v": 0
+  }
+]
