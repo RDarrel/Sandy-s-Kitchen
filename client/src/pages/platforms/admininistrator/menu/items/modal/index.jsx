@@ -24,7 +24,7 @@ import {
 import { capitalize } from "@/services/utilities";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import { SetIMAGE_ID, TOGGLE } from "@/services/redux/slices/menu/menu";
+import { SetNEW_MENU, TOGGLE } from "@/services/redux/slices/menu/menu";
 import Bundles from "./bundles";
 import { Category, Type } from "@/services/fakeDB";
 import { SAVE } from "@/services/redux/slices/menu/menu";
@@ -98,7 +98,7 @@ const Modal = () => {
         UPLOAD({ data: buildForm, token }),
       ).unwrap();
 
-      dispatch(SetIMAGE_ID({ _id: payload._id, imgId }));
+      dispatch(SetNEW_MENU({ ...payload, imgId }));
       toast.success("Successfully saved menu.");
       toggle();
     } catch (error) {

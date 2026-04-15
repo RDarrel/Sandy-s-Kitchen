@@ -57,16 +57,9 @@ export const reduxSlice = createSlice({
   name: url,
   initialState,
   reducers: {
-    SetIMAGE_ID: (state, { payload }) => {
-      const { _id: payloadId, imgId } = payload;
-      const updateCollections = (collections) => {
-        const index = collections.findIndex(({ _id }) => _id === payloadId);
-        if (index > -1) {
-          collections[index].imgId = imgId;
-        }
-      };
-      updateCollections(state.collections);
-      updateCollections(state.filtered);
+    SetNEW_MENU: (state, { payload }) => {
+      state.collections.unshift(payload);
+      state.filtered.unshift(payload);
     },
     SetCOLLECTIONS: (state, { payload }) => {
       state.collections = payload;
@@ -102,9 +95,7 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(SAVE.fulfilled, (state, action) => {
-        const { success, payload } = action.payload;
-        state.collections.unshift(payload);
-        state.filtered.unshift(payload);
+        const { success } = action.payload;
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
@@ -137,7 +128,7 @@ export const reduxSlice = createSlice({
   },
 });
 
-export const { SetCOLLECTIONS, Set_SELECTED, TOGGLE, SetIMAGE_ID } =
+export const { SetCOLLECTIONS, Set_SELECTED, TOGGLE, SetNEW_MENU } =
   reduxSlice.actions;
 
 export default reduxSlice.reducer;
