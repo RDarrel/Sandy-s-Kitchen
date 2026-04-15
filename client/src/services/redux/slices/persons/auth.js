@@ -57,7 +57,7 @@ export const CHANGE_PASSWORD = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const VALIDATEREFRESH = createAsyncThunk(
@@ -75,7 +75,7 @@ export const VALIDATEREFRESH = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const UPDATE = createAsyncThunk(`${name}/update`, (form, thunkAPI) => {
@@ -91,22 +91,23 @@ export const UPDATE = createAsyncThunk(`${name}/update`, (form, thunkAPI) => {
   }
 });
 
-export const UPLOAD = createAsyncThunk(`${name}/upload`, (form, thunkAPI) => {
-  try {
-    return axioKit.upload(form.data, form.token, (progress) => {
-      thunkAPI.dispatch(
-        UPLOADBAR(Math.round((progress.loaded * 100) / progress.total))
-      );
-    });
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
+export const UPLOAD = createAsyncThunk(
+  `${name}/upload`,
+  ({ data, token }, thunkAPI) => {
+    try {
+      return axioKit.upload(data, token);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
 
-    return thunkAPI.rejectWithValue(message);
-  }
-});
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
 export const reduxSlice = createSlice({
   name,

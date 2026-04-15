@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Plus,
@@ -11,6 +11,9 @@ import {
   FileWarning,
 } from "lucide-react";
 import Modal from "./modal";
+import { useDispatch, useSelector } from "react-redux";
+import { BROWSE, TOGGLE } from "@/services/redux/slices/menu/menu";
+import Cloudinary from "@/services/utilities/cloudinary";
 
 const categories = ["All", "Main", "Side Dish", "Dessert", "Resell"];
 
@@ -126,7 +129,7 @@ const fakeMenus = [
   },
 ];
 
-const getStockMeta = (stock) => {
+const getStockMeta = (stock = 0) => {
   if (stock <= 0) {
     return {
       label: "Out of Stock",
@@ -151,7 +154,6 @@ const getStockMeta = (stock) => {
 };
 
 const getPublishMeta = (item) => {
-  // Resell items can be publishable even without chef recipe workflow
   if (item.category === "Resell") {
     return {
       label: item.isPublish ? "Published" : "Hidden",
@@ -195,15 +197,40 @@ const getPublishMeta = (item) => {
   };
 };
 
+const normalizeMenuItem = (item, index = 0) => ({
+  ...item,
+  id: item?.id ?? item?._id ?? `menu-${index}`,
+  name: item?.name ?? "Unnamed Item",
+  category: item?.category ?? "Main",
+  price: Number(item?.price ?? 0),
+  stock: Number(item?.stock ?? 0),
+  hasRecipe: Boolean(item?.hasRecipe),
+  isPublish: Boolean(item?.isPublish),
+  chefApprovedBy: item?.chefApprovedBy ?? null,
+  description: item?.description ?? "No description available.",
+  image:
+    item?.image ||
+    "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80",
+});
+
 const Items = () => {
+  const dispatch = useDispatch();
+  const { token } = useSelector(({ auth }) => auth);
+  const { filtered } = useSelector(({ menu }) => menu);
+
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      dispatch(BROWSE({ token }));
+    }
+  }, [token, dispatch]);
 
   const filteredMenus = useMemo(() => {
     const keyword = search.trim().toLowerCase();
 
-    return fakeMenus.filter((item) => {
+    return filtered.filter((item) => {
       const matchesCategory =
         activeCategory === "All" || item.category === activeCategory;
 
@@ -215,7 +242,7 @@ const Items = () => {
 
       return matchesCategory && matchesSearch;
     });
-  }, [search, activeCategory]);
+  }, [filtered, search, activeCategory]);
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-5">
@@ -251,7 +278,7 @@ const Items = () => {
 
               <button
                 type="button"
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => dispatch(TOGGLE())}
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
               >
                 <Plus className="h-4 w-4" />
@@ -297,7 +324,11 @@ const Items = () => {
                 >
                   <div className="relative h-52 overflow-hidden">
                     <img
-                      src={item.image}
+                      src={
+                        item?.imgId
+                          ? Cloudinary.getMenuImg(item.imgId, item?._id)
+                          : item.image
+                      }
                       alt={item.name}
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
@@ -389,7 +420,8 @@ const Items = () => {
           </div>
         )}
       </div>
-      <Modal isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
+
+      <Modal />
     </div>
   );
 };

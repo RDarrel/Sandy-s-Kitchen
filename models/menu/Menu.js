@@ -8,6 +8,12 @@ const modelSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    imgId: String,
+
+    price: {
+      type: Number,
+      required: true,
+    },
     description: String,
     type: {
       type: String,
@@ -20,7 +26,7 @@ const modelSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: {
-        values: ["main", "side", "drink", "dessert"],
+        values: ["main", "side", "drinks", "dessert"],
         message: "{VALUE} is not supported",
       },
       default: "main",
@@ -33,7 +39,6 @@ const modelSchema = new mongoose.Schema(
     },
     qtyPerOrder: {
       type: Number,
-      default: 1,
     },
     deletedAt: {
       type: Date,

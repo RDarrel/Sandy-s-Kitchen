@@ -9,7 +9,7 @@ import axios from "axios";
  */
 const upload = async (data, token, onUploadProgress) =>
   await axios
-    .post("auth/upload", data, {
+    .post("persons/auth/upload", data, {
       headers: {
         Authorization: `QTracy ${token}`,
       },
