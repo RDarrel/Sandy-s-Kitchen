@@ -98,99 +98,98 @@
 :root {
   --radius: 0.625rem;
 
-  /* Main theme */
-  --background: #fdf6ee;
-  --foreground: #2d2d2d;
+  /* Sandy's Kitchenette - cheerful family-restaurant palette */
+  --background: #fff6ea;
+  --foreground: #3b2418;
 
-  --card: #fffaf5;
-  --card-foreground: #2d2d2d;
+  --card: #fffdf8;
+  --card-foreground: #3b2418;
 
-  --popover: #fffaf5;
-  --popover-foreground: #2d2d2d;
+  --popover: #fffdf8;
+  --popover-foreground: #3b2418;
 
-  --primary: #8b3a2f;
-  --primary-foreground: #ffffff;
+  --primary: #c62828;
+  --primary-foreground: #fffdf8;
 
-  --secondary: #f4e6d7;
-  --secondary-foreground: #2d2d2d;
+  --secondary: #ffe4b8;
+  --secondary-foreground: #5a3420;
 
-  /* HINDI ginagalaw */
-  --muted: #f2e8dd;
-  --muted-foreground: #6b5f57;
+  --muted: #f6eadb;
+  --muted-foreground: #7b5b46;
 
-  --accent: #f4a261;
-  --accent-foreground: #2d2d2d;
+  --accent: #f6b81a;
+  --accent-foreground: #4a2c12;
 
   --destructive: #dc2626;
 
-  --border: #e7d7c8;
-  --input: #e7d7c8;
-  --ring: #8b3a2f;
+  --border: #efd7bc;
+  --input: #efd7bc;
+  --ring: #c62828;
 
-  /* EXACT OLD SKELETON COLOR */
-  --skeleton: oklch(0.97 0 0);
+  /* Slightly darker than card/background so loading states stay visible */
+  --skeleton: #eddcc7;
 
-  --chart-1: #8b3a2f;
-  --chart-2: #f4a261;
-  --chart-3: #b85c38;
-  --chart-4: #d9a066;
-  --chart-5: #6f4e37;
+  --chart-1: #c62828;
+  --chart-2: #f6b81a;
+  --chart-3: #ff8f00;
+  --chart-4: #8d4b32;
+  --chart-5: #ef5350;
 
-  --sidebar: #fff8f1;
-  --sidebar-foreground: #2d2d2d;
-  --sidebar-primary: #8b3a2f;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f4a261;
-  --sidebar-accent-foreground: #2d2d2d;
-  --sidebar-border: #e7d7c8;
-  --sidebar-ring: #8b3a2f;
+  --sidebar: #fff9f0;
+  --sidebar-foreground: #3b2418;
+  --sidebar-primary: #c62828;
+  --sidebar-primary-foreground: #fffdf8;
+  --sidebar-accent: #f6b81a;
+  --sidebar-accent-foreground: #4a2c12;
+  --sidebar-border: #efd7bc;
+  --sidebar-ring: #c62828;
 }
 
 .dark {
-  --background: #1f1a17;
-  --foreground: #f8efe6;
+  --background: #231511;
+  --foreground: #fff1df;
 
-  --card: #2a2420;
-  --card-foreground: #f8efe6;
+  --card: #321d16;
+  --card-foreground: #fff1df;
 
-  --popover: #2a2420;
-  --popover-foreground: #f8efe6;
+  --popover: #321d16;
+  --popover-foreground: #fff1df;
 
-  --primary: #f4a261;
-  --primary-foreground: #2d2d2d;
+  --primary: #ef5350;
+  --primary-foreground: #2a120e;
 
-  --secondary: #3a312b;
-  --secondary-foreground: #f8efe6;
+  --secondary: #4a2d1f;
+  --secondary-foreground: #fff1df;
 
-  --muted: #3a312b;
-  --muted-foreground: #cbb8a6;
+  --muted: #40261b;
+  --muted-foreground: #d8b8a0;
 
-  --accent: #8b3a2f;
-  --accent-foreground: #ffffff;
+  --accent: #ffca28;
+  --accent-foreground: #412109;
 
   --destructive: #ef4444;
 
-  --border: #453a33;
-  --input: #453a33;
-  --ring: #f4a261;
+  --border: #5a3929;
+  --input: #5a3929;
+  --ring: #ef5350;
 
-  /* EXACT OLD DARK SKELETON */
-  --skeleton: oklch(0.269 0 0);
+  /* Slightly lighter than dark card surfaces for readable contrast */
+  --skeleton: #4a2f23;
 
-  --chart-1: #f4a261;
-  --chart-2: #8b3a2f;
-  --chart-3: #d97706;
-  --chart-4: #fb923c;
-  --chart-5: #b45309;
+  --chart-1: #ef5350;
+  --chart-2: #ffca28;
+  --chart-3: #ff8a65;
+  --chart-4: #a05a2c;
+  --chart-5: #ffe082;
 
-  --sidebar: #241e1a;
-  --sidebar-foreground: #f8efe6;
-  --sidebar-primary: #f4a261;
-  --sidebar-primary-foreground: #2d2d2d;
-  --sidebar-accent: #8b3a2f;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #453a33;
-  --sidebar-ring: #f4a261;
+  --sidebar: #2b1812;
+  --sidebar-foreground: #fff1df;
+  --sidebar-primary: #ef5350;
+  --sidebar-primary-foreground: #2a120e;
+  --sidebar-accent: #ffca28;
+  --sidebar-accent-foreground: #412109;
+  --sidebar-border: #5a3929;
+  --sidebar-ring: #ef5350;
 }
 
 @layer base {
