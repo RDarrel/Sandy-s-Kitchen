@@ -51,7 +51,7 @@ const LinkWithoutChild = (link) => {
   const { name, icon: Icon, path } = link;
   return (
     <SidebarMenuItem key={name}>
-      <SidebarMenuButton tooltip={name} asChild>
+      <SidebarMenuButton tooltip={name} asChild isActive={true}>
         <Link to={`/platforms${path}`}>
           {Icon && <Icon />}
           <span>{name}</span>
@@ -64,14 +64,14 @@ const LinkWithoutChild = (link) => {
 export function NavMain({ links }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel>Platforms</SidebarGroupLabel>
       <SidebarMenu>
         {links?.map((link) =>
           link?.children ? (
             <LinkWithChild key={link.name} {...link} />
           ) : (
             <LinkWithoutChild key={link.name} {...link} />
-          )
+          ),
         )}
       </SidebarMenu>
     </SidebarGroup>

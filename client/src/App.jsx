@@ -8,6 +8,7 @@ import { VALIDATEREFRESH } from "./services/redux/slices/persons/auth";
 import { useEffect } from "react";
 import Cashier from "./pages/platforms/cashier/dashboard";
 import ClaimStub from "./components/shared/claimStub";
+import Authentication from "./pages/authentication";
 export default function App() {
   const { auth, token } = useSelector(({ auth }) => auth),
     dispatch = useDispatch();
@@ -18,7 +19,7 @@ export default function App() {
   }, [token, auth]);
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Authentication />} />
       {/* <Route path="/authentication/:action" element={<Authentication />} /> */}
       <Route path="/platforms" element={<Platforms />}>
         {RouteConfig()}

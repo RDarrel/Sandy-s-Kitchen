@@ -70,7 +70,7 @@ const FuelPrice = () => {
           </Button>
         </div>
         {!isLoading ? (
-          collections.map((fuel) => {
+          collections?.map((fuel) => {
             const { pricing, name } = fuel;
             const srp = pricing.cost + pricing.markup;
             return (

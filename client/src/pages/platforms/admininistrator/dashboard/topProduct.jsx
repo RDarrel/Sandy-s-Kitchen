@@ -19,7 +19,7 @@ const TopProduct = () => {
   const [month, setMonth] = useState({
     label: "This Month",
     value: `${new Date().getFullYear()}-${String(
-      new Date().getMonth() + 1
+      new Date().getMonth() + 1,
     ).padStart(2, "0")}`,
   });
   const dispatch = useDispatch();
@@ -28,7 +28,7 @@ const TopProduct = () => {
     dispatch(TOP_PRODUCTS({ token, params: { month: month.value } }));
   }, [token, dispatch, month]);
 
-  const { products: chartDataPie = [], lastMonthTotalLiters = 0 } = top;
+  const { products: chartDataPie = [], lastMonthTotalLiters = 0 } = top || {};
 
   const renderBadgeLabel = ({
     cx,
@@ -99,7 +99,7 @@ const TopProduct = () => {
   const top1Product = sorted[0] || {};
   const currentLiters = chartDataPie.reduce(
     (total, product) => total + product?.liters,
-    0
+    0,
   );
 
   return (

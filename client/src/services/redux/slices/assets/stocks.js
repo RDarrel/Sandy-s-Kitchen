@@ -28,7 +28,7 @@ export const BROWSE = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const FUEL_CHECKER = createAsyncThunk(
@@ -46,7 +46,7 @@ export const FUEL_CHECKER = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
@@ -145,8 +145,8 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(FUEL_CHECKER.fulfilled, (state, action) => {
-        const { payload } = action.payload;
-        const lowStocks = payload.filter(({ liters }) => liters <= 1000);
+        const { payload = [] } = action.payload;
+        const lowStocks = payload?.filter(({ liters }) => liters <= 1000);
         if (lowStocks.length > 0) {
           state.showWarning = true;
           state.lowFuels = lowStocks;
@@ -186,7 +186,7 @@ export const reduxSlice = createSlice({
         const { success, payload } = action.payload;
         const { purchase, updatingRequest = false } = payload;
         const index = state.collections.findIndex(
-          ({ _id: id }) => id === purchase?._id
+          ({ _id: id }) => id === purchase?._id,
         );
         if (updatingRequest) {
           state.collections[index] = purchase;
