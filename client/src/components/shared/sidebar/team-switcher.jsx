@@ -8,14 +8,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 
-import logo from "../../../assets/logo.png";
-import smallLogo from "../../../assets/smallLogo.png";
+import logo from "../../../assets/icons/kitchenette.png";
 
 export function TeamSwitcher() {
-  const { isMobile } = useSidebar();
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -23,9 +20,15 @@ export function TeamSwitcher() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground "
             >
-              <img src={isMobile ? smallLogo : logo} className="h-13" />
+              <img src={logo} className="h-12 rounded-full" />
+              <div className="leading-tight">
+                <h2 className="font-bold">Sandy's Kitchenette</h2>
+                <p className="text-xs text-muted-foreground">
+                  Management System
+                </p>
+              </div>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
         </DropdownMenu>

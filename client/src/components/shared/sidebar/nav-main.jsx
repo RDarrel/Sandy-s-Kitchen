@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import {
   Collapsible,
@@ -14,13 +15,48 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { Link } from "react-router-dom"; // Import Link from react-router-dom
+import { Link, matchPath, useLocation } from "react-router-dom";
 
-const LinkWithChild = (link) => {
+const buildPlatformPath = (...segments) =>
+  `/platforms${segments.join("")}`.replace(/\/+/g, "/");
+
+const isPathActive = (pathname, targetPath) =>
+  Boolean(
+    matchPath(
+      {
+        path: targetPath,
+        end: false,
+      },
+      pathname,
+    ),
+  );
+
+const LinkWithChild = ({ pathname, ...link }) => {
   const { name, icon: Icon, children, path } = link;
+  const childLinks =
+    children?.map((subItem) => ({
+      ...subItem,
+      to: buildPlatformPath(path, subItem.path),
+    })) || [];
+  const isActive = childLinks.some((subItem) =>
+    isPathActive(pathname, subItem.to),
+  );
+  const [isOpen, setIsOpen] = useState(isActive);
+
+  useEffect(() => {
+    if (isActive) {
+      setIsOpen(true);
+    }
+  }, [isActive]);
 
   return (
-    <Collapsible key={name} asChild className="group/collapsible">
+    <Collapsible
+      key={name}
+      asChild
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className="group/collapsible"
+    >
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuButton tooltip={name}>
@@ -31,10 +67,13 @@ const LinkWithChild = (link) => {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <SidebarMenuSub>
-            {children?.map((subItem) => (
+            {childLinks.map((subItem) => (
               <SidebarMenuSubItem key={subItem.name}>
-                <SidebarMenuSubButton asChild>
-                  <Link to={`/platforms${path}${subItem.path}`}>
+                <SidebarMenuSubButton
+                  asChild
+                  isActive={isPathActive(pathname, subItem.to)}
+                >
+                  <Link to={subItem.to}>
                     <span>{subItem.name}</span>
                   </Link>
                 </SidebarMenuSubButton>
@@ -47,12 +86,18 @@ const LinkWithChild = (link) => {
   );
 };
 
-const LinkWithoutChild = (link) => {
+const LinkWithoutChild = ({ pathname, ...link }) => {
   const { name, icon: Icon, path } = link;
+  const to = buildPlatformPath(path);
+
   return (
     <SidebarMenuItem key={name}>
-      <SidebarMenuButton tooltip={name} asChild isActive={true}>
-        <Link to={`/platforms${path}`}>
+      <SidebarMenuButton
+        tooltip={name}
+        asChild
+        isActive={isPathActive(pathname, to)}
+      >
+        <Link to={to}>
           {Icon && <Icon />}
           <span>{name}</span>
         </Link>
@@ -62,15 +107,17 @@ const LinkWithoutChild = (link) => {
 };
 
 export function NavMain({ links }) {
+  const { pathname } = useLocation();
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platforms</SidebarGroupLabel>
       <SidebarMenu>
         {links?.map((link) =>
           link?.children ? (
-            <LinkWithChild key={link.name} {...link} />
+            <LinkWithChild key={link.name} {...link} pathname={pathname} />
           ) : (
-            <LinkWithoutChild key={link.name} {...link} />
+            <LinkWithoutChild key={link.name} {...link} pathname={pathname} />
           ),
         )}
       </SidebarMenu>

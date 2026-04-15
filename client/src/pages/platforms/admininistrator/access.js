@@ -8,6 +8,7 @@ import {
   GitPullRequestArrow,
   TruckElectric,
   Users,
+  UtensilsCrossed,
 } from "lucide-react";
 import Dashboard from "./dashboard";
 import Staffs from "./staffs";
@@ -20,6 +21,7 @@ import { OrderProcessing } from "./manageOrders/orderProcessing";
 import Transactions from "./reports/transactions";
 import Sales from "./reports/sales";
 import Audit from "./audit";
+import Items from "./menu/items";
 
 const access = [
   {
@@ -27,6 +29,24 @@ const access = [
     path: "/dashboard",
     icon: Gauge,
     component: Dashboard,
+  },
+
+  {
+    name: "Menu",
+    path: "/menu",
+    icon: UtensilsCrossed,
+    children: [
+      {
+        name: "Items",
+        path: "/items",
+        component: Items,
+      },
+      {
+        name: "Add Ons",
+        path: "/add-ons",
+        component: Items,
+      },
+    ],
   },
 
   {
