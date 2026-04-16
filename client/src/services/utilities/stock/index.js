@@ -6,16 +6,22 @@ const unitMap = {
 const Stock = {
   convertToBaseUnit: (value, type, useNumber = false) => {
     const baseUnit = unitMap[type];
-    var unit = 0;
+    let unit = 0;
+
     switch (type) {
       case "weight":
         unit = value / 1000; // g → kg
+        break;
       case "volume":
         unit = value / 1000; // ml → L
+        break;
       default:
         unit = value;
     }
-    return useNumber ? Number(unit) : `${unit} ${baseUnit}`;
+
+    const formatted = parseFloat(unit.toFixed(2));
+
+    return useNumber ? formatted : `${formatted} ${baseUnit}`;
   },
   getStatus: (_stock, measurement) => {
     const stock = Number(_stock) || 0;

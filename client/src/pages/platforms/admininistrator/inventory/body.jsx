@@ -18,6 +18,7 @@ import CustomPagination from "@/components/shared/pagination";
 import { handlePagination, Stock } from "@/services/utilities";
 import { useState } from "react";
 import { Set_SELECTED } from "@/services/redux/slices/inventory/inventoryItem";
+import TableLoading from "@/components/shared/loading/table";
 
 const ActionButton = ({ title, icon: Icon, destructive = false, onClick }) => (
   <Button
@@ -43,7 +44,7 @@ const InventoryBody = ({
   onRequestDelete,
   onConfirmDelete,
 }) => {
-  const { filtered, formSubmitted } = useSelector(
+  const { filtered, formSubmitted, isLoading } = useSelector(
       ({ inventoryItem }) => inventoryItem,
     ),
     [page, setPage] = useState(1),
@@ -52,108 +53,114 @@ const InventoryBody = ({
   return (
     <>
       <CardContent className="space-y-4">
-        <div className="overflow-hidden rounded-[5px] border border-border bg-card">
-          <Table>
-            <TableHeader className="bg-muted/70">
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Measurement</TableHead>
-                <TableHead>Current Stock</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.length ? (
-                handlePagination(filtered, page, maxPage).map((item) => {
-                  const status = Stock.getStatus(
-                    item.currentStock,
-                    item.measurement,
-                  );
+        {!isLoading ? (
+          <>
+            <div className="overflow-hidden rounded-[7px] border border-border bg-card">
+              <Table>
+                <TableHeader className="bg-muted/70">
+                  <TableRow>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Measurement</TableHead>
+                    <TableHead>Current Stock</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.length ? (
+                    handlePagination(filtered, page, maxPage).map((item) => {
+                      const status = Stock.getStatus(
+                        item.currentStock,
+                        item.measurement,
+                      );
 
-                  return (
-                    <TableRow key={item._id} className="bg-card">
-                      <TableCell className="whitespace-normal">
-                        <div className="space-y-1">
-                          <p className="font-semibold text-foreground">
-                            {capitalize(item.name)}
+                      return (
+                        <TableRow key={item._id} className="bg-card">
+                          <TableCell className="whitespace-normal">
+                            <div className="space-y-1">
+                              <p className="font-semibold text-foreground">
+                                {capitalize(item.name)}
+                              </p>
+                              <p className="max-w-xs text-xs leading-5 text-muted-foreground">
+                                {item.description || "No description provided."}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className="rounded-full border-accent/35 bg-accent/12 text-accent-foreground"
+                            >
+                              {capitalize(item.type)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{capitalize(item.category)}</TableCell>
+                          <TableCell>{capitalize(item.measurement)}</TableCell>
+                          <TableCell className="font-medium text-foreground">
+                            {Stock.convertToBaseUnit(
+                              item?.currentStock || 0,
+                              item.measurement,
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={`rounded-full ${statusClasses[status]}`}
+                            >
+                              {capitalize(status)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-end gap-2">
+                              <ActionButton
+                                title="Edit"
+                                icon={Pencil}
+                                onClick={() => dispatch(Set_SELECTED(item))}
+                              />
+                              <ActionButton
+                                title="Delete"
+                                icon={Trash2}
+                                destructive
+                                onClick={() => onRequestDelete(item)}
+                              />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-14 text-center">
+                        <div className="space-y-2">
+                          <p className="text-base font-semibold text-foreground">
+                            No inventory items found
                           </p>
-                          <p className="max-w-xs text-xs leading-5 text-muted-foreground">
-                            {item.description || "No description provided."}
+                          <p className="text-sm text-muted-foreground">
+                            Try another keyword or reset the filters to show all
+                            records.
                           </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className="rounded-full border-accent/35 bg-accent/12 text-accent-foreground"
-                        >
-                          {capitalize(item.type)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{capitalize(item.category)}</TableCell>
-                      <TableCell>{capitalize(item.measurement)}</TableCell>
-                      <TableCell className="font-medium text-foreground">
-                        {Stock.convertToBaseUnit(
-                          item?.currentStock || 0,
-                          item.measurement,
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`rounded-full ${statusClasses[status]}`}
-                        >
-                          {capitalize(status)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end gap-2">
-                          <ActionButton
-                            title="Edit"
-                            icon={Pencil}
-                            onClick={() => dispatch(Set_SELECTED(item))}
-                          />
-                          <ActionButton
-                            title="Delete"
-                            icon={Trash2}
-                            destructive
-                            onClick={() => onRequestDelete(item)}
-                          />
                         </div>
                       </TableCell>
                     </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="py-14 text-center">
-                    <div className="space-y-2">
-                      <p className="text-base font-semibold text-foreground">
-                        No inventory items found
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Try another keyword or reset the filters to show all
-                        records.
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <CustomPagination
-          title="Inventory Item"
-          titleExtension="s"
-          page={page}
-          setPage={setPage}
-          maxPage={maxPage}
-          setMaxPage={setMaxPage}
-          datas={filtered}
-        />
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <CustomPagination
+              title="Inventory Item"
+              titleExtension="s"
+              page={page}
+              setPage={setPage}
+              maxPage={maxPage}
+              setMaxPage={setMaxPage}
+              datas={filtered}
+            />
+          </>
+        ) : (
+          <TableLoading />
+        )}
       </CardContent>
 
       <CustomAlert

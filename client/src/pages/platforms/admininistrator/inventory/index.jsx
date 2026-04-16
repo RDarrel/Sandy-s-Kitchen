@@ -3,11 +3,16 @@ import { Card } from "@/components/ui/card";
 import InventoryBody from "./body";
 import InventoryHeader from "./header";
 import InventoryModal from "./modal";
+import { useDispatch, useSelector } from "react-redux";
+import { DESTROY } from "@/services/redux/slices/inventory/inventoryItem";
+import { toast } from "sonner";
 
 const Inventory = () => {
+  const { token } = useSelector(({ auth }) => auth);
   const [search, setSearch] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selected, setSelected] = useState(null);
+  const dispatch = useDispatch();
 
   const openDeleteModal = (item) => {
     setSelected(item);
@@ -16,9 +21,18 @@ const Inventory = () => {
 
   const handleDelete = () => {
     if (!selected?._id) return;
-
-    setDeleteOpen(false);
-    setSelected(null);
+    dispatch(DESTROY({ data: { _id: selected._id }, token }))
+      .unwrap()
+      .then(() => {
+        setSelected(null);
+        setDeleteOpen(false);
+        toast.success("Successfully deleted inventory item.");
+      })
+      .catch(() => {
+        setSelected(null);
+        setDeleteOpen(false);
+        toast.error("Failed to delete inventory item.");
+      });
   };
 
   return (

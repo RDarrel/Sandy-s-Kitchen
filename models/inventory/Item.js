@@ -62,6 +62,9 @@ const modelSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    deletedAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

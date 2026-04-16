@@ -47,6 +47,7 @@ export function CustomAlert({
               }
             }}
             className={buttonClassName}
+            disabled={formSubmitted}
           >
             {buttonTitle}
             {formSubmitted && <Loader className=" animate-spin" />}
