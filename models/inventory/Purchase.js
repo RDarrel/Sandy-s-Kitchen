@@ -24,6 +24,6 @@ const modelSchema = new mongoose.Schema(
   },
 );
 
-const Entity = mongoose.model("StockBatches", modelSchema);
+const Entity = mongoose.model("Purchase", modelSchema);
 
 module.exports = Entity;

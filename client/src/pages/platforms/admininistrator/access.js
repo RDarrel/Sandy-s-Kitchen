@@ -6,6 +6,7 @@ import {
   Fuel,
   Gauge,
   GitPullRequestArrow,
+  Package,
   TruckElectric,
   Users,
   UtensilsCrossed,
@@ -22,6 +23,7 @@ import Transactions from "./reports/transactions";
 import Sales from "./reports/sales";
 import Audit from "./audit";
 import Items from "./menu/items";
+import Inventory from "./inventory";
 
 const access = [
   {
@@ -50,10 +52,10 @@ const access = [
   },
 
   {
-    name: "Stocks",
-    path: "/stocks",
-    icon: Container,
-    component: Stocks,
+    name: "Inventory",
+    path: "/inventory",
+    icon: Package,
+    component: Inventory,
   },
 
   {

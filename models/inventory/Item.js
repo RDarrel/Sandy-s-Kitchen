@@ -23,6 +23,25 @@ const modelSchema = new mongoose.Schema(
       },
       default: "ingredient",
     },
+    category: {
+      type: String,
+      enum: {
+        values: [
+          "meat",
+          "vegetable",
+          "seafood",
+          "grain",
+          "dairy",
+          "condiment",
+          //for resell
+          "beverage",
+          "snack",
+          "other",
+        ],
+        message: "{VALUE} is not supported",
+      },
+      default: "other",
+    },
 
     measurement: {
       type: String,
@@ -66,7 +85,7 @@ modelSchema.pre("findOneAndUpdate", function (next) {
   next();
 });
 
-const Entity = mongoose.model("Inventory", modelSchema);
+const Entity = mongoose.model("Item", modelSchema);
 
 module.exports = Entity;
 
