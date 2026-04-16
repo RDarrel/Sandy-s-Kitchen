@@ -193,23 +193,21 @@ const Modal = () => {
   return (
     <Dialog open={showModal} onOpenChange={toggle}>
       <DialogContent
-        className={`rounded-[28px] border border-border bg-background p-0 shadow-[0_28px_80px_rgba(15,23,42,0.22)] ${
+        className={`border border-border bg-white shadow-[0_28px_80px_rgba(15,23,42,0.22)] ${
           form.type === "bundle" ? "max-w-5xl" : "max-w-2xl"
         }`}
       >
-        <div className="border-b border-border bg-gradient-to-r from-primary/10 via-background to-primary/5 px-7 py-2">
-          <DialogHeader>
-            <DialogTitle className="text-xl">
-              {willCreate ? "Create" : "Update"} Menu Item
-            </DialogTitle>
-            <DialogDescription>
-              Fill in the core details for a new kitchen or resale item.
-            </DialogDescription>
-          </DialogHeader>
-        </div>
+        <DialogHeader>
+          <DialogTitle className="text-xl">
+            {willCreate ? "Create" : "Update"} Menu Item
+          </DialogTitle>
+          <DialogDescription>
+            Fill in the core details for a new kitchen or resale item.
+          </DialogDescription>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-5 px-7 pt-4 pb-6">
+          <div className="space-y-5 ">
             <section className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="item-category">Category</Label>
@@ -277,7 +275,7 @@ const Modal = () => {
                   <Input
                     id="item-price"
                     type="number"
-                    min="0"
+                    min="1"
                     step="0.01"
                     value={form.price}
                     onChange={(event) =>

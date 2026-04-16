@@ -14,6 +14,9 @@ import Cloudinary from "@/services/utilities/cloudinary";
 import { ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
+
+const getBundleItemId = (item) => item?._id || item?.id;
+
 const Bundles = ({ form, setForm = () => {} }) => {
   const { collections } = useSelector(({ menu }) => menu);
   const [bundleSearch, setBundleSearch] = useState("");
@@ -38,7 +41,7 @@ const Bundles = ({ form, setForm = () => {} }) => {
     setForm((current) => ({
       ...current,
       bundleItems: current.bundleItems.map((item) =>
-        item.id === id ? { ...item, quantity } : item,
+        getBundleItemId(item) === id ? { ...item, quantity } : item,
       ),
     }));
   };
@@ -46,29 +49,33 @@ const Bundles = ({ form, setForm = () => {} }) => {
   const removeBundleItem = (id) => {
     setForm((current) => ({
       ...current,
-      bundleItems: current.bundleItems.filter((item) => item.id !== id),
+      bundleItems: current.bundleItems.filter(
+        (item) => getBundleItemId(item) !== id,
+      ),
     }));
   };
 
   const toggleBundleItem = (item) => {
+    const itemId = getBundleItemId(item);
+
     setForm((current) => {
       const exists = current.bundleItems.some(
-        (selectedItem) => selectedItem.id === item.id,
+        (selectedItem) => getBundleItemId(selectedItem) === itemId,
       );
 
       return {
         ...current,
         bundleItems: exists
           ? current.bundleItems.filter(
-              (selectedItem) => selectedItem.id !== item.id,
+              (selectedItem) => getBundleItemId(selectedItem) !== itemId,
             )
-          : [...current.bundleItems, { ...item, quantity: 1 }],
+          : [...current.bundleItems, { ...item, id: itemId, quantity: 1 }],
       };
     });
   };
 
   return (
-    <section className="rounded-[24px] border border-border bg-muted/30">
+    <section className="rounded-[24px] border border-border bg-white shadow-sm">
       <div className="border-b border-border px-5 py-4">
         <p className="text-sm font-semibold text-foreground">
           Bundle Composition
@@ -79,8 +86,8 @@ const Bundles = ({ form, setForm = () => {} }) => {
       </div>
 
       <div className="grid gap-4 p-4 xl:grid-cols-[1fr_24px_1fr]">
-        <div className="min-w-0 rounded-[20px] border border-border bg-background">
-          <div className="border-b border-border px-4 py-3">
+        <div className="min-w-0 overflow-hidden rounded-[20px] border border-border bg-white">
+          <div className="border-b border-border bg-white px-4 py-3">
             <p className="text-sm font-semibold">Available Menu Items</p>
             <div className="mt-3 grid gap-2 md:grid-cols-[1fr_180px]">
               <div className="relative">
@@ -111,24 +118,27 @@ const Bundles = ({ form, setForm = () => {} }) => {
             </div>
           </div>
 
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 overflow-y-auto bg-white">
             {filteredBundleItems?.length > 0 ? (
               filteredBundleItems.map((item) => {
+                const itemId = getBundleItemId(item);
                 const isSelected = form?.bundleItems?.some(
-                  (selectedItem) => selectedItem?.id === item.id,
+                  (selectedItem) => getBundleItemId(selectedItem) === itemId,
                 );
 
                 return (
                   <button
-                    key={item._id}
+                    key={itemId}
                     type="button"
                     onClick={() => toggleBundleItem(item)}
                     className={`grid w-full grid-cols-[56px_1fr_auto] items-center gap-3 border-b border-border px-4 py-3 text-left transition last:border-b-0 ${
-                      isSelected ? "bg-primary/5" : "hover:bg-muted/40"
+                      isSelected
+                        ? "border-l-4 border-l-primary bg-[color:color-mix(in_srgb,var(--color-primary)_8%,white)]"
+                        : "hover:bg-muted/15"
                     }`}
                   >
                     <img
-                      src={Cloudinary.getMenuImg(item.imgId, item._id)}
+                      src={Cloudinary.getMenuImg(item.imgId, itemId)}
                       alt={item.name}
                       className="h-12 w-12 rounded-xl object-cover"
                     />
@@ -142,7 +152,13 @@ const Bundles = ({ form, setForm = () => {} }) => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold">P{item.price}</p>
-                      <p className="text-xs text-primary">
+                      <p
+                        className={`text-xs font-medium ${
+                          isSelected
+                            ? "text-primary"
+                            : "text-muted-foreground"
+                        }`}
+                      >
                         {isSelected ? "Added" : "Add"}
                       </p>
                     </div>
@@ -150,7 +166,7 @@ const Bundles = ({ form, setForm = () => {} }) => {
                 );
               })
             ) : (
-              <div className="px-4 py-10 text-center text-sm text-muted-foreground">
+              <div className="bg-white px-4 py-10 text-center text-sm text-muted-foreground">
                 No menu items matched your search.
               </div>
             )}
@@ -159,29 +175,29 @@ const Bundles = ({ form, setForm = () => {} }) => {
 
         <div className="hidden items-center justify-center xl:flex">
           <div className="flex h-full items-center justify-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background shadow-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white shadow-sm">
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </div>
           </div>
         </div>
 
-        <div className="min-w-0 rounded-[20px] border border-border bg-background">
-          <div className="border-b border-border px-4 py-3">
+        <div className="min-w-0 overflow-hidden rounded-[20px] border border-border bg-white">
+          <div className="border-b border-border bg-white px-4 py-3">
             <p className="text-sm font-semibold">Selected for Bundle</p>
             <p className="text-xs text-muted-foreground">
               Set quantity for each selected item.
             </p>
           </div>
 
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-80 overflow-y-auto bg-white">
             {form.bundleItems?.length > 0 ? (
               form.bundleItems.map((item) => (
                 <div
-                  key={item?._id}
-                  className="grid grid-cols-[56px_1fr_84px_auto] items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
+                  key={getBundleItemId(item)}
+                  className="grid grid-cols-[56px_1fr_84px_auto] items-center gap-3 border-b border-border bg-white px-4 py-3 last:border-b-0"
                 >
                   <img
-                    src={Cloudinary.getMenuImg(item.imgId, item._id)}
+                    src={Cloudinary.getMenuImg(item.imgId, getBundleItemId(item))}
                     alt={item.name}
                     className="h-12 w-12 rounded-xl object-cover"
                   />
@@ -198,21 +214,24 @@ const Bundles = ({ form, setForm = () => {} }) => {
                     min="1"
                     value={item.quantity}
                     onChange={(event) =>
-                      handleBundleQuantityChange(item.id, event.target.value)
+                      handleBundleQuantityChange(
+                        getBundleItemId(item),
+                        event.target.value,
+                      )
                     }
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => removeBundleItem(item.id)}
+                    onClick={() => removeBundleItem(getBundleItemId(item))}
                   >
                     Remove
                   </Button>
                 </div>
               ))
             ) : (
-              <div className="px-4 py-10 text-center text-sm text-muted-foreground">
+              <div className="bg-white px-4 py-10 text-center text-sm text-muted-foreground">
                 No items selected yet.
               </div>
             )}
