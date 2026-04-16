@@ -14,7 +14,6 @@ export function CustomAlert({
   isOpen,
   capture, // performing of function
   setIsOpen,
-  title = "Warning",
   showCancelButton = false,
   formSubmitted = false,
   className = "",
@@ -27,23 +26,15 @@ export function CustomAlert({
   return (
     <AlertDialog open={isOpen} onOpenChange={haveIndex ? () => {} : capture}>
       <AlertDialogContent className={className}>
-        <AlertDialogHeader className="gap-3">
-          <AlertDialogTitle className="flex items-center gap-3 text-left">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
-              <TriangleAlert className="h-5 w-5" />
-            </span>
-            <span>{title}</span>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center">
+            <TriangleAlert className="mr-2" color="orange" /> Warning
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-left">
-            {message}
-          </AlertDialogDescription>
+          <AlertDialogDescription>{message}</AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className={"mt-4 gap-2"}>
+        <AlertDialogFooter className={"mt-2"}>
           {showCancelButton && (
-            <AlertDialogCancel
-              onClickCapture={() => setIsOpen(false)}
-              className="mt-0"
-            >
+            <AlertDialogCancel onClickCapture={() => setIsOpen(false)}>
               Cancel
             </AlertDialogCancel>
           )}
@@ -55,10 +46,10 @@ export function CustomAlert({
                 capture(false);
               }
             }}
-            className={`gap-2 ${buttonClassName}`}
+            className={buttonClassName}
           >
             {buttonTitle}
-            {formSubmitted && <Loader className="animate-spin" />}
+            {formSubmitted && <Loader className=" animate-spin" />}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
