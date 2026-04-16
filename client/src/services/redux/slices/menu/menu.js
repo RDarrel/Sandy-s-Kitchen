@@ -57,6 +57,19 @@ export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   }
 });
 
+export const DESTROY = createAsyncThunk(`${url}/destroy`, (form, thunkAPI) => {
+  try {
+    return axioKit.destroy(url, form.data, form.token);
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
 export const reduxSlice = createSlice({
   name: url,
   initialState,
@@ -88,6 +101,18 @@ export const reduxSlice = createSlice({
       updateCollections(state.collections);
       updateCollections(state.cluster);
       updateCollections(state.filtered);
+    },
+    SetDELETED_MENU: (state, { payload }) => {
+      const removeFromCollections = (collections) => {
+        const index = collections.findIndex(({ _id }) => _id === payload);
+        if (index > -1) {
+          collections.splice(index, 1);
+        }
+      };
+
+      removeFromCollections(state.collections);
+      removeFromCollections(state.cluster);
+      removeFromCollections(state.filtered);
     },
     SetCOLLECTIONS: (state, { payload }) => {
       state.collections = payload;
@@ -165,6 +190,33 @@ export const reduxSlice = createSlice({
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;
+      })
+      .addCase(DESTROY.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(DESTROY.fulfilled, (state, action) => {
+        const { success, payload } = action.payload;
+        const deletedId = payload?._id || payload;
+        const removeFromCollections = (collections) => {
+          const index = collections.findIndex(({ _id }) => _id === deletedId);
+          if (index > -1) {
+            collections.splice(index, 1);
+          }
+        };
+
+        removeFromCollections(state.collections);
+        removeFromCollections(state.cluster);
+        removeFromCollections(state.filtered);
+        state.formSubmitted = false;
+        state.message = success;
+        state.isSuccess = true;
+      })
+      .addCase(DESTROY.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
       });
   },
 });
@@ -176,6 +228,7 @@ export const {
   SetNEW_MENU,
   SetCREATE,
   SetUPDATED_MENU,
+  SetDELETED_MENU,
   FilterBY_CATEGORY,
   SetFILTERED,
   SEARCH,

@@ -1,95 +1,59 @@
 import Cloudinary from "@/services/utilities/cloudinary";
+import { CustomAlert } from "@/components/shared/alert";
 import {
   Pencil,
   Trash2,
-  Package2,
-  ChefHat,
-  BadgeCheck,
-  FileWarning,
   EllipsisVertical,
 } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Category } from "@/services/fakeDB";
-import { Set_SELECTED } from "@/services/redux/slices/menu/menu";
+import { DESTROY, Set_SELECTED } from "@/services/redux/slices/menu/menu";
 import ItemSkeleton from "./item-skeleton";
 import EmptyState from "./empty-state";
+import Feature from "./feature";
+import { toast } from "sonner";
 
 const skeletonItems = Array.from({ length: 6 }, (_, index) => index);
 
 const Body = () => {
-  const { filtered, isLoading } = useSelector(({ menu }) => menu);
+  const { filtered, isLoading, formSubmitted } = useSelector(({ menu }) => menu);
+  const { token } = useSelector(({ auth }) => auth);
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [cashierVisibility, setCashierVisibility] = useState({});
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteIndex, setDeleteIndex] = useState(-1);
   const dispatch = useDispatch();
-  const getStockMeta = (stock = 0) => {
-    if (stock <= 0) {
-      return {
-        label: "Out of Stock",
-        className: "bg-red-50 text-red-600 border-red-200",
-        icon: Package2,
-      };
-    }
-
-    if (stock <= 5) {
-      return {
-        label: `Low Stock (${stock})`,
-        className: "bg-amber-50 text-amber-600 border-amber-200",
-        icon: Package2,
-      };
-    }
-
-    return {
-      label: `In Stock (${stock})`,
-      className: "bg-green-50 text-green-600 border-green-200",
-      icon: Package2,
-    };
-  };
-
-  const getPublishMeta = (item) => {
-    if (item.category === "Resell") {
-      return {
-        label: item.isPublish ? "Published" : "Hidden",
-        className: item.isPublish
-          ? "bg-blue-50 text-blue-700 border-blue-200"
-          : "bg-slate-100 text-slate-600 border-slate-200",
-        icon: BadgeCheck,
-        helper: item.isPublish
-          ? "Ready for selling"
-          : "Not visible for selling yet",
-      };
-    }
-
-    if (!item.hasRecipe) {
-      return {
-        label: "Needs Recipe",
-        className: "bg-slate-100 text-slate-700 border-slate-200",
-        icon: FileWarning,
-        helper: "Chef needs to add a recipe first",
-      };
-    }
-
-    if (!item.isPublish) {
-      return {
-        label: "Pending Chef Approval",
-        className: "bg-amber-50 text-amber-700 border-amber-200",
-        icon: ChefHat,
-        helper: item.chefApprovedBy
-          ? `Draft only • Last handled by ${item.chefApprovedBy}`
-          : "Recipe exists but not published yet",
-      };
-    }
-
-    return {
-      label: "Published",
-      className: "bg-green-50 text-green-700 border-green-200",
-      icon: BadgeCheck,
-      helper: item.chefApprovedBy
-        ? `Approved by ${item.chefApprovedBy}`
-        : "Ready for selling",
-    };
-  };
   const hasFilteredResults = filtered.length > 0;
+
+  const setDeleteDialogOpen = (value) => {
+    setShowDeleteAlert(value);
+
+    if (!value) {
+      setDeleteTarget(null);
+      setDeleteIndex(-1);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget?._id) {
+      return;
+    }
+
+    try {
+      await dispatch(
+        DESTROY({ token, data: { _id: deleteTarget._id } }),
+      ).unwrap();
+      toast.success(`Deleted ${deleteTarget.name} successfully.`);
+      setShowDeleteAlert(false);
+      setDeleteTarget(null);
+      setDeleteIndex(-1);
+      setActiveMenuId(null);
+    } catch (error) {
+      toast.error(error?.message || error || "Failed to delete menu item.");
+    }
+  };
 
   return (
     <>
@@ -101,9 +65,9 @@ const Body = () => {
         </div>
       ) : hasFilteredResults ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((item) => {
-            const stockMeta = getStockMeta(item.stock);
-            const publishMeta = getPublishMeta(item);
+          {filtered.map((item, index) => {
+            const stockMeta = Feature.getStockMeta(item.stock);
+            const publishMeta = Feature.getPublishMeta(item);
             const PublishIcon = publishMeta.icon;
             const StockIcon = stockMeta.icon;
             const isActionOpen = activeMenuId === item._id;
@@ -185,6 +149,11 @@ const Body = () => {
 
                           <button
                             type="button"
+                            onClick={() => {
+                              setDeleteTarget(item);
+                              setDeleteIndex(index);
+                              setDeleteDialogOpen(true);
+                            }}
                             className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-red-500/90 text-white shadow-md backdrop-blur-sm transition hover:bg-red-500"
                           >
                             <Trash2 className="h-3 w-3" />
@@ -251,6 +220,53 @@ const Body = () => {
       ) : (
         <EmptyState />
       )}
+
+      <CustomAlert
+        isOpen={showDeleteAlert}
+        capture={handleDelete}
+        setIsOpen={setDeleteDialogOpen}
+        formSubmitted={formSubmitted}
+        showCancelButton
+        className="max-w-md"
+        buttonTitle="Yes, Delete"
+        buttonClassName="bg-red-600 hover:bg-red-700"
+        index={deleteIndex}
+        message={
+          deleteTarget && (
+            <div className="space-y-4">
+              <div className="overflow-hidden rounded-2xl border border-border bg-muted/30">
+                <div className="aspect-[16/9] overflow-hidden bg-muted">
+                  <img
+                    src={
+                      deleteTarget?.imgId
+                        ? Cloudinary.getMenuImg(
+                            deleteTarget.imgId,
+                            deleteTarget._id,
+                          )
+                        : deleteTarget?.image
+                    }
+                    alt={deleteTarget?.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="space-y-1 p-4 text-left">
+                  <p className="text-sm font-semibold text-foreground">
+                    {deleteTarget?.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    This menu item will be removed from your list.
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-sm text-foreground">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold">{deleteTarget?.name}</span>?
+              </p>
+            </div>
+          )
+        }
+      />
     </>
   );
 };
