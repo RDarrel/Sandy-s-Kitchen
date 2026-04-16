@@ -71,6 +71,7 @@ export const reduxSlice = createSlice({
       state.cluster = results;
       state.filtered = results;
       state.category = payload;
+      state.search = "";
     },
     SetNEW_MENU: (state, { payload }) => {
       state.collections.unshift(payload);
