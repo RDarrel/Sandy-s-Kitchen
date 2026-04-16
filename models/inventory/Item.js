@@ -48,6 +48,11 @@ const modelSchema = new mongoose.Schema(
       enum: ["weight", "volume", "pieces"],
       required: true,
     },
+    //per kg, L, pcs cost
+    cost: {
+      type: Number,
+      required: true,
+    },
 
     baseUnit: {
       type: String,

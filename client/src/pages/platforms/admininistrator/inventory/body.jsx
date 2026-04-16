@@ -15,7 +15,7 @@ import { capitalize } from "lodash";
 import { statusClasses } from "./config";
 import { useDispatch, useSelector } from "react-redux";
 import CustomPagination from "@/components/shared/pagination";
-import { handlePagination, Stock } from "@/services/utilities";
+import { Formatter, handlePagination, Stock } from "@/services/utilities";
 import { useState } from "react";
 import { Set_SELECTED } from "@/services/redux/slices/inventory/inventoryItem";
 import TableLoading from "@/components/shared/loading/table";
@@ -60,10 +60,10 @@ const InventoryBody = ({
                 <TableHeader className="bg-muted/70">
                   <TableRow>
                     <TableHead>Item</TableHead>
-                    <TableHead>Type</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Measurement</TableHead>
-                    <TableHead>Current Stock</TableHead>
+                    <TableHead>Cost</TableHead>
+                    <TableHead>Stock</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
@@ -88,22 +88,17 @@ const InventoryBody = ({
                               </p>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className="rounded-full border-accent/35 bg-accent/12 text-accent-foreground"
-                            >
-                              {capitalize(item.type)}
-                            </Badge>
-                          </TableCell>
+
                           <TableCell>{capitalize(item.category)}</TableCell>
                           <TableCell>{capitalize(item.measurement)}</TableCell>
+                          <TableCell>{`${Formatter.amount(item.cost)} / ${Stock.getUnit(item.measurement)}`}</TableCell>
                           <TableCell className="font-medium text-foreground">
                             {Stock.convertToBaseUnit(
                               item?.currentStock || 0,
                               item.measurement,
                             )}
                           </TableCell>
+
                           <TableCell>
                             <Badge
                               variant="outline"
@@ -159,7 +154,7 @@ const InventoryBody = ({
             />
           </>
         ) : (
-          <TableLoading />
+          <TableLoading numberOfColumns={7} />
         )}
       </CardContent>
 

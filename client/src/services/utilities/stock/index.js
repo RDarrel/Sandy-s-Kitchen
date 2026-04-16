@@ -35,5 +35,14 @@ const Stock = {
     if (stock <= 3000) return "Low Stock";
     return "In Stock";
   },
+
+  getUnit: (measurement) => {
+    const map = {
+      weight: "kg",
+      volume: "L",
+      pieces: "pc",
+    };
+    return map[measurement];
+  },
 };
 export default Stock;

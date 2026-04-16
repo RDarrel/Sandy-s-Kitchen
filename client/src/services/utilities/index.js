@@ -15,6 +15,7 @@ import getAge from "./getAge";
 import truncateString from "./truncateString";
 import formattedTime from "./formattedTime";
 import formattedAmount from "./formattedAmount";
+import Formatter from "./formatter";
 import format from "./format";
 import mobile from "./mobile";
 import capitalize from "./capitalize";
@@ -34,6 +35,7 @@ const PresetImage = (gender) => {
 export {
   ENCRYPTION_KEY,
   Stock,
+  Formatter,
   capitalize,
   ENDPOINT,
   axioKit,

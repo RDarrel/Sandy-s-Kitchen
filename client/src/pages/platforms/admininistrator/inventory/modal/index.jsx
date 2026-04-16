@@ -28,11 +28,13 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
+
 const INITIAL_FORM = {
   name: "",
   type: "ingredient",
   category: "other",
   measurement: "weight",
+  cost: "",
   description: "",
 };
 
@@ -69,11 +71,7 @@ const NameWarning = ({ name = "", selectedId, collections = [] }) => {
   );
 };
 
-const isExistingInventoryName = (
-  collections = [],
-  name = "",
-  selectedId,
-) => {
+const isExistingInventoryName = (collections = [], name = "", selectedId) => {
   const normalizedName = normalizeName(name);
 
   if (!normalizedName) {
@@ -98,22 +96,73 @@ const InventoryModal = () => {
   const { token } = useSelector(({ auth }) => auth);
   const { showModal, willCreate, formSubmitted, selected, collections } =
     useSelector(({ inventoryItem }) => inventoryItem);
+
   const [form, setForm] = useState(INITIAL_FORM);
   const dispatch = useDispatch();
+
   const toggle = () => dispatch(TOGGLE());
 
   useEffect(() => {
     if (showModal) {
-      if (!willCreate) {
-        setForm(selected);
+      if (!willCreate && selected) {
+        setForm({
+          ...INITIAL_FORM,
+          ...selected,
+          cost: selected?.cost ?? "",
+        });
       } else {
         setForm({ ...INITIAL_FORM });
       }
     }
   }, [willCreate, selected, showModal]);
 
+  const handleChange = (key, value) => {
+    setForm((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  };
+
+  const getCostLabel = () => {
+    switch (form.measurement) {
+      case "weight":
+        return "Cost per kg";
+      case "volume":
+        return "Cost per liter";
+      case "pieces":
+      default:
+        return "Cost per piece";
+    }
+  };
+
+  const getCostPlaceholder = () => {
+    switch (form.measurement) {
+      case "weight":
+        return "Enter cost per kg";
+      case "volume":
+        return "Enter cost per liter";
+      case "pieces":
+      default:
+        return "Enter cost per piece";
+    }
+  };
+
+  const hasDuplicateName = isExistingInventoryName(
+    collections,
+    form.name,
+    selected?._id,
+  );
+
   const handleSave = () => {
-    dispatch(SAVE({ data: form, token }))
+    dispatch(
+      SAVE({
+        data: {
+          ...form,
+          cost: Number(form.cost),
+        },
+        token,
+      }),
+    )
       .unwrap()
       .then(() => {
         toggle();
@@ -126,8 +175,17 @@ const InventoryModal = () => {
         ),
       );
   };
-  const handleupdate = () => {
-    dispatch(UPDATE({ data: form, token }))
+
+  const handleUpdate = () => {
+    dispatch(
+      UPDATE({
+        data: {
+          ...form,
+          cost: Number(form.cost),
+        },
+        token,
+      }),
+    )
       .unwrap()
       .then(() => {
         toggle();
@@ -143,31 +201,27 @@ const InventoryModal = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+
     if (hasDuplicateName) {
       toast.error("This inventory item name already exists.");
       return;
     }
+
+    if (!form.cost || Number(form.cost) <= 0) {
+      toast.error("Please enter a valid cost.");
+      return;
+    }
+
     if (willCreate) {
       handleSave();
     } else {
-      handleupdate();
+      handleUpdate();
     }
   };
-  const handleChange = (key, value) => {
-    setForm((current) => ({
-      ...current,
-      [key]: value,
-    }));
-  };
-  const hasDuplicateName = isExistingInventoryName(
-    collections,
-    form.name,
-    selected?._id,
-  );
 
   return (
     <Dialog open={showModal} onOpenChange={toggle}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto border-border bg-card sm:max-w-2xl">
+      <DialogContent className="max-h-[92vh] overflow-y-auto border-border bg-card sm:max-w-3xl">
         <DialogHeader className="gap-2">
           <DialogTitle className="text-2xl text-foreground">
             {willCreate ? "Create" : "Update"} Inventory Item
@@ -177,91 +231,123 @@ const InventoryModal = () => {
             pieces) for accurate tracking.
           </DialogDescription>
         </DialogHeader>
+
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-5 py-2 md:grid-cols-2">
-            <FormField
-              label="Item Name"
-              content={
-                <>
+          <div className="grid gap-5 py-2 md:grid-cols-12">
+            <div className="md:col-span-6">
+              <FormField
+                label="Item Name"
+                content={
+                  <>
+                    <Input
+                      required
+                      value={form.name}
+                      onChange={(event) =>
+                        handleChange("name", event.target.value)
+                      }
+                      placeholder="Enter inventory name"
+                    />
+                    <NameWarning
+                      name={form.name}
+                      selectedId={selected?._id}
+                      collections={collections}
+                    />
+                  </>
+                }
+              />
+            </div>
+
+            <div className="md:col-span-6">
+              <FormField
+                label="Type"
+                content={
+                  <Select
+                    value={form.type}
+                    onValueChange={(value) => handleChange("type", value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {typeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                }
+              />
+            </div>
+
+            <div className="md:col-span-4">
+              <FormField
+                label="Category"
+                content={
+                  <Select
+                    value={form.category}
+                    onValueChange={(value) => handleChange("category", value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryOptions[form.type]?.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                }
+              />
+            </div>
+
+            <div className="md:col-span-4">
+              <FormField
+                label="Measurement"
+                content={
+                  <Select
+                    value={form.measurement}
+                    onValueChange={(value) =>
+                      handleChange("measurement", value)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select measurement" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {measurementOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                }
+              />
+            </div>
+
+            <div className="md:col-span-4">
+              <FormField
+                label={getCostLabel()}
+                content={
                   <Input
                     required
-                    value={form.name}
-                    onChange={(event) => handleChange("name", event.target.value)}
-                    placeholder="Enter inventory name"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.cost}
+                    onChange={(event) =>
+                      handleChange("cost", event.target.value)
+                    }
+                    placeholder={getCostPlaceholder()}
                   />
-                  <NameWarning
-                    name={form.name}
-                    selectedId={selected?._id}
-                    collections={collections}
-                  />
-                </>
-              }
-            />
+                }
+              />
+            </div>
 
-            <FormField
-              label="Type"
-              content={
-                <Select
-                  value={form.type}
-                  onValueChange={(value) => handleChange("type", value)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {typeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              }
-            />
-
-            <FormField
-              label="Category"
-              content={
-                <Select
-                  value={form.category}
-                  onValueChange={(value) => handleChange("category", value)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoryOptions[form.type].map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              }
-            />
-
-            <FormField
-              label="Measurement"
-              content={
-                <Select
-                  value={form.measurement}
-                  onValueChange={(value) => handleChange("measurement", value)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select measurement" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {measurementOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              }
-            />
-
-            <div className="md:col-span-2">
+            <div className="md:col-span-12">
               <FormField
                 label="Description"
                 content={
@@ -279,7 +365,7 @@ const InventoryModal = () => {
           </div>
 
           <DialogFooter className="mt-2 gap-2">
-            <Button variant="outline" onClick={toggle}>
+            <Button type="button" variant="outline" onClick={toggle}>
               Cancel
             </Button>
             <Button type="submit" disabled={formSubmitted || hasDuplicateName}>

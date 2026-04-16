@@ -2,21 +2,16 @@ import {
   BookKey,
   BrickWall,
   ContactRound,
-  Container,
-  Fuel,
   Gauge,
   GitPullRequestArrow,
   Package,
-  TruckElectric,
   Users,
   UtensilsCrossed,
 } from "lucide-react";
 import Dashboard from "./dashboard";
 import Staffs from "./staffs";
 import Suppliers from "./suppliers";
-import Fuels from "./fuels";
-import OrderFuel from "./orderFuel";
-import Stocks from "../stockman/dashboard";
+
 import { ManageOrders } from "./manageOrders/shortDeliveries";
 import { OrderProcessing } from "./manageOrders/orderProcessing";
 import Transactions from "./reports/transactions";
@@ -32,7 +27,12 @@ const access = [
     icon: Gauge,
     component: Dashboard,
   },
-
+  {
+    name: "Inventory",
+    path: "/inventory",
+    icon: Package,
+    component: Inventory,
+  },
   {
     name: "Menu",
     path: "/menu",
@@ -51,25 +51,6 @@ const access = [
     ],
   },
 
-  {
-    name: "Inventory",
-    path: "/inventory",
-    icon: Package,
-    component: Inventory,
-  },
-
-  {
-    name: "Fuels",
-    path: "/fuels",
-    icon: Fuel,
-    component: Fuels,
-  },
-  {
-    name: "Order Fuel",
-    path: "/order-fuel",
-    icon: TruckElectric,
-    component: OrderFuel,
-  },
   {
     name: "Suppliers",
     path: "/suppliers",
