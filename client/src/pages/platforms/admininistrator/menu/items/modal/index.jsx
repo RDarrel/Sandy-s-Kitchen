@@ -48,7 +48,12 @@ const initialForm = {
 
 const Modal = () => {
   const { token } = useSelector(({ auth }) => auth);
-  const { showModal, selected, willCreate } = useSelector(({ menu }) => menu);
+  const {
+    showModal,
+    selected,
+    willCreate,
+    category: actCategory,
+  } = useSelector(({ menu }) => menu);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
@@ -69,11 +74,14 @@ const Modal = () => {
         setForm(selected);
         setImagePreview(Cloudinary.getMenuImg(selected.imgId, selected._id));
       } else {
-        setForm(initialForm);
+        setForm({
+          ...initialForm,
+          ...(actCategory !== "all" && { category: actCategory }),
+        });
         setImagePreview("");
       }
     }
-  }, [showModal, selected, willCreate]);
+  }, [showModal, selected, willCreate, actCategory]);
 
   const toggle = () => dispatch(TOGGLE());
   const handleChange = (key, value) => {
@@ -224,7 +232,9 @@ const Modal = () => {
       >
         <div className="border-b border-border bg-gradient-to-r from-primary/10 via-background to-primary/5 px-7 py-2">
           <DialogHeader>
-            <DialogTitle className="text-xl">Add Menu Item</DialogTitle>
+            <DialogTitle className="text-xl">
+              {willCreate ? "Create" : "Update"} Menu Item
+            </DialogTitle>
             <DialogDescription>
               Fill in the core details for a new kitchen or resale item.
             </DialogDescription>
@@ -392,7 +402,8 @@ const Modal = () => {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={submitting}>
-                  Save Item {submitting && <Loader className="animate-spin" />}
+                  {willCreate ? "Create" : "Update"}
+                  {submitting && <Loader className="animate-spin" />}
                 </Button>
               </div>
             </section>

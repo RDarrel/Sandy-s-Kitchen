@@ -2,56 +2,20 @@ import Cloudinary from "@/services/utilities/cloudinary";
 import {
   Pencil,
   Trash2,
-  UtensilsCrossed,
   Package2,
   ChefHat,
   BadgeCheck,
   FileWarning,
   EllipsisVertical,
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Category } from "@/services/fakeDB";
 import { Set_SELECTED } from "@/services/redux/slices/menu/menu";
+import ItemSkeleton from "./item-skeleton";
+import EmptyState from "./empty-state";
 
 const skeletonItems = Array.from({ length: 6 }, (_, index) => index);
-
-const ItemSkeleton = () => (
-  <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-    <div className="relative h-52 overflow-hidden">
-      <Skeleton className="h-full w-full rounded-none" />
-      <div className="absolute left-4 top-4 flex gap-2">
-        <Skeleton className="h-7 w-20 rounded-full" />
-      </div>
-      <div className="absolute right-3 top-3 flex items-start gap-1.5">
-        <Skeleton className="h-7 w-24 rounded-full" />
-        <Skeleton className="h-[30px] w-[30px] rounded-full" />
-      </div>
-      <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
-        <Skeleton className="h-7 w-36" />
-        <Skeleton className="h-10 w-20 rounded-xl" />
-      </div>
-    </div>
-
-    <div className="space-y-4 p-4">
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-4/5" />
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <Skeleton className="h-7 w-28 rounded-full" />
-        <Skeleton className="h-7 w-32 rounded-full" />
-      </div>
-
-      <div className="space-y-2">
-        <Skeleton className="h-3.5 w-full" />
-        <Skeleton className="h-3.5 w-3/4" />
-      </div>
-    </div>
-  </div>
-);
 
 const Body = () => {
   const { filtered, isLoading } = useSelector(({ menu }) => menu);
@@ -125,6 +89,8 @@ const Body = () => {
         : "Ready for selling",
     };
   };
+  const hasFilteredResults = filtered.length > 0;
+
   return (
     <>
       {isLoading ? (
@@ -133,7 +99,7 @@ const Body = () => {
             <ItemSkeleton key={item} />
           ))}
         </div>
-      ) : filtered.length > 0 ? (
+      ) : hasFilteredResults ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((item) => {
             const stockMeta = getStockMeta(item.stock);
@@ -283,16 +249,7 @@ const Body = () => {
           })}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center shadow-sm">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-            <UtensilsCrossed className="h-6 w-6 text-muted-foreground" />
-          </div>
-
-          <h3 className="mt-4 text-lg font-semibold">No menu items found</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            No results matched your current filter or search.
-          </p>
-        </div>
+        <EmptyState />
       )}
     </>
   );
