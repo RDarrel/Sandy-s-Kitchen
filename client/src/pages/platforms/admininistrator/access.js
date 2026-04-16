@@ -33,6 +33,7 @@ const access = [
     icon: Package,
     component: Inventory,
   },
+  // Base Recipes
   {
     name: "Menu",
     path: "/menu",
