@@ -47,7 +47,7 @@ exports.update = async (req, res) => {
 exports.destroy = async (req, res) => {
   try {
     const { _id } = req.body;
-    const deletedMenu = await Users.findByIdAndUpdate(
+    const deletedMenu = await Menu.findByIdAndUpdate(
       _id,
       { deletedAt: Date.now() },
       {

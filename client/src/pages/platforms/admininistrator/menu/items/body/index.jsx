@@ -225,44 +225,75 @@ const Body = () => {
         isOpen={showDeleteAlert}
         capture={handleDelete}
         setIsOpen={setDeleteDialogOpen}
+        title="Delete Menu Item?"
         formSubmitted={formSubmitted}
         showCancelButton
-        className="max-w-md"
-        buttonTitle="Yes, Delete"
+        className="max-w-lg border border-red-100 bg-white p-6 shadow-[0_28px_80px_rgba(15,23,42,0.22)]"
+        buttonTitle="Delete Item"
         buttonClassName="bg-red-600 hover:bg-red-700"
         index={deleteIndex}
         message={
           deleteTarget && (
-            <div className="space-y-4">
-              <div className="overflow-hidden rounded-2xl border border-border bg-muted/30">
-                <div className="aspect-[16/9] overflow-hidden bg-muted">
-                  <img
-                    src={
-                      deleteTarget?.imgId
-                        ? Cloudinary.getMenuImg(
-                            deleteTarget.imgId,
-                            deleteTarget._id,
-                          )
-                        : deleteTarget?.image
-                    }
-                    alt={deleteTarget?.name}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="space-y-1 p-4 text-left">
-                  <p className="text-sm font-semibold text-foreground">
-                    {deleteTarget?.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    This menu item will be removed from your list.
-                  </p>
+            <div className="space-y-5">
+              <div className="rounded-[22px] border border-red-100 bg-gradient-to-br from-red-50 via-white to-orange-50 p-3">
+                <div className="grid items-center gap-4 md:grid-cols-[160px_1fr]">
+                  <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
+                    <div className="aspect-square overflow-hidden bg-muted">
+                      <img
+                        src={
+                          deleteTarget?.imgId
+                            ? Cloudinary.getMenuImg(
+                                deleteTarget.imgId,
+                                deleteTarget._id,
+                              )
+                            : deleteTarget?.image
+                        }
+                        alt={deleteTarget?.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 text-left">
+                    <div className="space-y-1">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-red-500">
+                        Selected Menu
+                      </p>
+                      <p className="text-lg font-semibold leading-tight text-foreground">
+                        {deleteTarget?.name}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
+                        {Category.getName(deleteTarget?.category)}
+                      </span>
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
+                        PHP {deleteTarget?.price}
+                      </span>
+                    </div>
+
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      This action will permanently remove this menu item from
+                      your current list.
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <p className="text-sm text-foreground">
-                Are you sure you want to delete{" "}
-                <span className="font-semibold">{deleteTarget?.name}</span>?
-              </p>
+              <div className="rounded-2xl border border-dashed border-red-200 bg-red-50/60 px-4 py-3 text-left">
+                <p className="text-sm leading-6 text-foreground">
+                  Are you sure you want to delete{" "}
+                  <span className="font-semibold text-red-600">
+                    {deleteTarget?.name}
+                  </span>
+                  ?
+                </p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Once deleted, you will need to create it again if you want it
+                  back.
+                </p>
+              </div>
             </div>
           )
         }
