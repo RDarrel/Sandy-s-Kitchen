@@ -18,6 +18,7 @@ import formattedAmount from "./formattedAmount";
 import format from "./format";
 import mobile from "./mobile";
 import capitalize from "./capitalize";
+import Stock from "./stock";
 const ENDPOINT = "http://localhost:5000";
 const ENCRYPTION_KEY = "601b422c2548c7598feff2332a8e6eee9";
 //use this to if the system is deployed
@@ -32,6 +33,7 @@ const PresetImage = (gender) => {
 
 export {
   ENCRYPTION_KEY,
+  Stock,
   capitalize,
   ENDPOINT,
   axioKit,

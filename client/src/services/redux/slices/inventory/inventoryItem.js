@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { axioKit } from "../../../utilities";
+import { axioKit, Stock } from "../../../utilities";
 
 const url = "inventory/item";
 
@@ -82,10 +82,14 @@ export const reduxSlice = createSlice({
     FILTER: (state, { payload }) => {
       const results = state.collections.filter((item) =>
         Object.entries(payload).every(
-          ([key, value]) => !value || value === "all" || item[key] === value,
+          ([key, value]) =>
+            !value ||
+            value === "all" ||
+            (key === "status"
+              ? Stock.getStatus(item[key], item.measurement)
+              : item[key]) === value,
         ),
       );
-      console.log("payload", payload);
       state.cluster = results;
       state.filtered = results;
       state.params = payload;

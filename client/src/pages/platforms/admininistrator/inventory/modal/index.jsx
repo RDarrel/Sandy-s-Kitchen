@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { categoryOptions, measurementOptions, typeOptions } from "../config";
+import { AlertCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   SAVE,
@@ -34,6 +35,57 @@ const INITIAL_FORM = {
   measurement: "weight",
   description: "",
 };
+
+const normalizeName = (value = "") =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .trim();
+
+const NameWarning = ({ name = "", selectedId, collections = [] }) => {
+  const normalizedName = normalizeName(name);
+
+  if (!normalizedName) {
+    return null;
+  }
+
+  const existingItem = collections.find(
+    (item) =>
+      normalizeName(item.name) === normalizedName && item._id !== selectedId,
+  );
+
+  if (!existingItem) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+      <p>
+        "{name.trim()}" already exists. Please use a different inventory item
+        name.
+      </p>
+    </div>
+  );
+};
+
+const isExistingInventoryName = (
+  collections = [],
+  name = "",
+  selectedId,
+) => {
+  const normalizedName = normalizeName(name);
+
+  if (!normalizedName) {
+    return false;
+  }
+
+  return collections.some(
+    (item) =>
+      normalizeName(item.name) === normalizedName && item._id !== selectedId,
+  );
+};
+
 const FormField = ({ label, content, error = "" }) => (
   <div className="space-y-2">
     <Label>{label}</Label>
@@ -44,9 +96,8 @@ const FormField = ({ label, content, error = "" }) => (
 
 const InventoryModal = () => {
   const { token } = useSelector(({ auth }) => auth);
-  const { showModal, willCreate, formSubmitted, selected } = useSelector(
-    ({ inventoryItem }) => inventoryItem,
-  );
+  const { showModal, willCreate, formSubmitted, selected, collections } =
+    useSelector(({ inventoryItem }) => inventoryItem);
   const [form, setForm] = useState(INITIAL_FORM);
   const dispatch = useDispatch();
   const toggle = () => dispatch(TOGGLE());
@@ -92,6 +143,10 @@ const InventoryModal = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (hasDuplicateName) {
+      toast.error("This inventory item name already exists.");
+      return;
+    }
     if (willCreate) {
       handleSave();
     } else {
@@ -104,6 +159,11 @@ const InventoryModal = () => {
       [key]: value,
     }));
   };
+  const hasDuplicateName = isExistingInventoryName(
+    collections,
+    form.name,
+    selected?._id,
+  );
 
   return (
     <Dialog open={showModal} onOpenChange={toggle}>
@@ -122,12 +182,19 @@ const InventoryModal = () => {
             <FormField
               label="Item Name"
               content={
-                <Input
-                  required
-                  value={form.name}
-                  onChange={(event) => handleChange("name", event.target.value)}
-                  placeholder="Enter inventory name"
-                />
+                <>
+                  <Input
+                    required
+                    value={form.name}
+                    onChange={(event) => handleChange("name", event.target.value)}
+                    placeholder="Enter inventory name"
+                  />
+                  <NameWarning
+                    name={form.name}
+                    selectedId={selected?._id}
+                    collections={collections}
+                  />
+                </>
               }
             />
 
@@ -215,7 +282,7 @@ const InventoryModal = () => {
             <Button variant="outline" onClick={toggle}>
               Cancel
             </Button>
-            <Button type="submit" disabled={formSubmitted}>
+            <Button type="submit" disabled={formSubmitted || hasDuplicateName}>
               {willCreate ? "Save" : "Update"}
               <Spinner formSubmitted={formSubmitted} />
             </Button>

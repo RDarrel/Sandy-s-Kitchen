@@ -10,12 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { capitalize } from "lodash";
-import { formatStock, getStockStatus, statusClasses } from "./config";
+import { statusClasses } from "./config";
 import { useDispatch, useSelector } from "react-redux";
 import CustomPagination from "@/components/shared/pagination";
-import { handlePagination } from "@/services/utilities";
+import { handlePagination, Stock } from "@/services/utilities";
 import { useState } from "react";
 import { Set_SELECTED } from "@/services/redux/slices/inventory/inventoryItem";
 
@@ -40,11 +40,12 @@ const InventoryBody = ({
   deleteOpen,
   setDeleteOpen,
   selected,
-  onEdit,
   onRequestDelete,
   onConfirmDelete,
 }) => {
-  const { filtered } = useSelector(({ inventoryItem }) => inventoryItem),
+  const { filtered, formSubmitted } = useSelector(
+      ({ inventoryItem }) => inventoryItem,
+    ),
     [page, setPage] = useState(1),
     [maxPage, setMaxPage] = useState(5),
     dispatch = useDispatch();
@@ -67,7 +68,10 @@ const InventoryBody = ({
             <TableBody>
               {filtered.length ? (
                 handlePagination(filtered, page, maxPage).map((item) => {
-                  const status = getStockStatus(item);
+                  const status = Stock.getStatus(
+                    item.currentStock,
+                    item.measurement,
+                  );
 
                   return (
                     <TableRow key={item._id} className="bg-card">
@@ -92,7 +96,10 @@ const InventoryBody = ({
                       <TableCell>{capitalize(item.category)}</TableCell>
                       <TableCell>{capitalize(item.measurement)}</TableCell>
                       <TableCell className="font-medium text-foreground">
-                        {formatStock(item.currentStock, item.baseUnit)}
+                        {Stock.convertToBaseUnit(
+                          item?.currentStock || 0,
+                          item.measurement,
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -151,6 +158,7 @@ const InventoryBody = ({
 
       <CustomAlert
         isOpen={deleteOpen}
+        formSubmitted={formSubmitted}
         capture={onConfirmDelete}
         setIsOpen={setDeleteOpen}
         showCancelButton
