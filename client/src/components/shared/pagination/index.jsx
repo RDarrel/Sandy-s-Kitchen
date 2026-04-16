@@ -18,7 +18,7 @@ const CustomPagination = ({
   setPage = () => {},
   setMaxPage = () => {},
 }) => {
-  const maxButtonCount = Math.ceil(datas.length / maxPage);
+  const maxButtonCount = Math.ceil(datas.length / maxPage) || 1;
   const lengthOfDatas = datas?.length || 0;
 
   useEffect(() => {
@@ -31,13 +31,7 @@ const CustomPagination = ({
   };
 
   return (
-    <div
-      // className={cn(
-      //   "flex justify-between items-center mt-5",
-      //   lengthOfDatas === 0 && "hidden"
-      // )}
-      className={cn("flex justify-between items-center mt-5")}
-    >
+    <div className={cn("flex justify-between items-center mt-5")}>
       <div>
         <p className="text-gray-500 ml-2">
           {countOfDatas()} out of {datas?.length || 0}{" "}

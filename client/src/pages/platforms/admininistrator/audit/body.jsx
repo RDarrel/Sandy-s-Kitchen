@@ -14,7 +14,7 @@ import TableLoading from "@/components/shared/loading/table";
 import { Badge } from "@/components/ui/badge";
 const Body = () => {
   const { filtered, isLoading, collections, chosenRoles } = useSelector(
-    ({ audit }) => audit
+    ({ audit }) => audit,
   );
   return (
     <>

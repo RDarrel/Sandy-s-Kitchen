@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const baseUnitMap = {
   weight: "g",
   volume: "ml",
-  count: "pcs",
+  pieces: "pcs",
 };
 
 const modelSchema = new mongoose.Schema(
@@ -45,7 +45,7 @@ const modelSchema = new mongoose.Schema(
 
     measurement: {
       type: String,
-      enum: ["weight", "volume", "count"],
+      enum: ["weight", "volume", "pieces"],
       required: true,
     },
 

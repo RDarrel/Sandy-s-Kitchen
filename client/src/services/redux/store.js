@@ -11,10 +11,12 @@ import transactions from "./slices/commerce/transactions";
 import audit from "./slices/audit";
 import dashboard from "./slices/dashboard";
 import { menu } from "./slices/menu";
+import { inventoryItem } from "./slices/inventory";
 const store = configureStore({
   reducer: {
     auth,
     menu,
+    inventoryItem,
     staffs,
     suppliers,
     fuels,
