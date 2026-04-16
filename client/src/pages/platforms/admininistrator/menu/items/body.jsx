@@ -11,7 +11,9 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { Category } from "@/services/fakeDB";
+import { Set_SELECTED } from "@/services/redux/slices/menu/menu";
 
 const skeletonItems = Array.from({ length: 6 }, (_, index) => index);
 
@@ -55,6 +57,7 @@ const Body = () => {
   const { filtered, isLoading } = useSelector(({ menu }) => menu);
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [cashierVisibility, setCashierVisibility] = useState({});
+  const dispatch = useDispatch();
   const getStockMeta = (stock = 0) => {
     if (stock <= 0) {
       return {
@@ -191,41 +194,43 @@ const Body = () => {
                     </button>
 
                     <div className="flex flex-col items-end gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setActiveMenuId((current) =>
-                          current === item._id ? null : item._id,
-                        )
-                      }
-                      className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/90 text-primary shadow-md backdrop-blur-sm transition hover:bg-white"
-                    >
-                      <EllipsisVertical className="h-3 w-3" />
-                    </button>
+                      <button
+                        type="button"
+                        title="Actions"
+                        onClick={() =>
+                          setActiveMenuId((current) =>
+                            current === item._id ? null : item._id,
+                          )
+                        }
+                        className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/90 text-primary shadow-md backdrop-blur-sm transition hover:bg-white"
+                      >
+                        <EllipsisVertical className="h-3 w-3" />
+                      </button>
 
-                    {isActionOpen && (
-                      <>
-                        <button
-                          type="button"
-                          className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/90 text-primary shadow-md backdrop-blur-sm transition hover:bg-white"
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </button>
+                      {isActionOpen && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => dispatch(Set_SELECTED(item))}
+                            className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/90 text-primary shadow-md backdrop-blur-sm transition hover:bg-white"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
 
-                        <button
-                          type="button"
-                          className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-red-500/90 text-white shadow-md backdrop-blur-sm transition hover:bg-red-500"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </>
-                    )}
+                          <button
+                            type="button"
+                            className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-red-500/90 text-white shadow-md backdrop-blur-sm transition hover:bg-red-500"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
 
                   <div className="absolute left-4 top-4 flex flex-wrap gap-2">
                     <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary shadow">
-                      {item.category}
+                      {Category.getName(item.category)}
                     </span>
 
                     {!item.isPublish && item.category !== "Resell" && (

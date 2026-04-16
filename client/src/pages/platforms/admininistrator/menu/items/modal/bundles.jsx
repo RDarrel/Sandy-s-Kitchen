@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Category } from "@/services/fakeDB";
+import Cloudinary from "@/services/utilities/cloudinary";
 import { ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
@@ -111,15 +112,15 @@ const Bundles = ({ form, setForm = () => {} }) => {
           </div>
 
           <div className="max-h-80 overflow-y-auto">
-            {filteredBundleItems.length > 0 ? (
+            {filteredBundleItems?.length > 0 ? (
               filteredBundleItems.map((item) => {
-                const isSelected = form.bundleItems.some(
-                  (selectedItem) => selectedItem.id === item.id,
+                const isSelected = form?.bundleItems?.some(
+                  (selectedItem) => selectedItem?.id === item.id,
                 );
 
                 return (
                   <button
-                    key={item.id}
+                    key={item._id}
                     type="button"
                     onClick={() => toggleBundleItem(item)}
                     className={`grid w-full grid-cols-[56px_1fr_auto] items-center gap-3 border-b border-border px-4 py-3 text-left transition last:border-b-0 ${
@@ -127,7 +128,7 @@ const Bundles = ({ form, setForm = () => {} }) => {
                     }`}
                   >
                     <img
-                      src={item.image}
+                      src={Cloudinary.getMenuImg(item.imgId, item._id)}
                       alt={item.name}
                       className="h-12 w-12 rounded-xl object-cover"
                     />
@@ -173,14 +174,14 @@ const Bundles = ({ form, setForm = () => {} }) => {
           </div>
 
           <div className="max-h-80 overflow-y-auto">
-            {form.bundleItems.length > 0 ? (
+            {form.bundleItems?.length > 0 ? (
               form.bundleItems.map((item) => (
                 <div
-                  key={item.id}
+                  key={item?._id}
                   className="grid grid-cols-[56px_1fr_84px_auto] items-center gap-3 border-b border-border px-4 py-3 last:border-b-0"
                 >
                   <img
-                    src={item.image}
+                    src={Cloudinary.getMenuImg(item.imgId, item._id)}
                     alt={item.name}
                     className="h-12 w-12 rounded-xl object-cover"
                   />

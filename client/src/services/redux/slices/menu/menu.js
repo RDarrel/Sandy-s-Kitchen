@@ -5,8 +5,12 @@ const url = "menu/menu";
 
 const initialState = {
   collections: [],
+  category: "all",
+  search: "",
+  cluster: [],
   filtered: [],
   selected: {},
+  willCreate: false,
   showModal: false,
   formSubmitted: false,
   isSuccess: false,
@@ -57,15 +61,55 @@ export const reduxSlice = createSlice({
   name: url,
   initialState,
   reducers: {
+    FilterBY_CATEGORY: (state, { payload }) => {
+      const results =
+        payload === "all"
+          ? state.collections
+          : state.collections.filter((item) => {
+              return item.category === payload;
+            });
+      state.cluster = results;
+      state.filtered = results;
+      state.category = payload;
+    },
     SetNEW_MENU: (state, { payload }) => {
       state.collections.unshift(payload);
       state.filtered.unshift(payload);
+      state.cluster.unshift(payload);
+    },
+    SetUPDATED_MENU: (state, { payload }) => {
+      const updateCollections = (collections) => {
+        const index = collections.findIndex(({ _id }) => _id === payload._id);
+        if (index > -1) {
+          collections[index] = payload;
+        }
+      };
+      updateCollections(state.collections);
+      updateCollections(state.cluster);
+      updateCollections(state.filtered);
     },
     SetCOLLECTIONS: (state, { payload }) => {
       state.collections = payload;
     },
     Set_SELECTED: (state, { payload = null }) => {
       state.selected = payload || {};
+      state.showModal = true;
+      state.willCreate = false;
+    },
+    SetFILTERED: (state, { payload }) => {
+      state.filtered = payload;
+    },
+    SEARCH: (state, { payload }) => {
+      const results = !payload
+        ? state.cluster
+        : state.cluster.filter((item) => {
+            return item.name.toLowerCase().includes(payload.toLowerCase());
+          });
+      state.filtered = results;
+      state.search = payload;
+    },
+    SetCREATE: (state) => {
+      state.willCreate = true;
       state.showModal = true;
     },
     TOGGLE: (state) => {
@@ -81,7 +125,7 @@ export const reduxSlice = createSlice({
       })
       .addCase(BROWSE.fulfilled, (state, action) => {
         const { payload } = action.payload;
-        state.collections = state.filtered = payload;
+        state.collections = state.cluster = state.filtered = payload;
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
@@ -111,11 +155,7 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(UPDATE.fulfilled, (state, action) => {
-        const { success, payload } = action.payload;
-        const index = state.collections.findIndex(
-          ({ _id }) => _id === payload?._id,
-        );
-        state.collections[index] = payload;
+        const { success } = action.payload;
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
@@ -128,7 +168,16 @@ export const reduxSlice = createSlice({
   },
 });
 
-export const { SetCOLLECTIONS, Set_SELECTED, TOGGLE, SetNEW_MENU } =
-  reduxSlice.actions;
+export const {
+  SetCOLLECTIONS,
+  Set_SELECTED,
+  TOGGLE,
+  SetNEW_MENU,
+  SetCREATE,
+  SetUPDATED_MENU,
+  FilterBY_CATEGORY,
+  SetFILTERED,
+  SEARCH,
+} = reduxSlice.actions;
 
 export default reduxSlice.reducer;

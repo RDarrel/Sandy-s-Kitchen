@@ -24,7 +24,12 @@ import {
 import { capitalize } from "@/services/utilities";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import { SetNEW_MENU, TOGGLE } from "@/services/redux/slices/menu/menu";
+import {
+  SetNEW_MENU,
+  SetUPDATED_MENU,
+  TOGGLE,
+  UPDATE,
+} from "@/services/redux/slices/menu/menu";
 import Bundles from "./bundles";
 import { Category, Type } from "@/services/fakeDB";
 import { SAVE } from "@/services/redux/slices/menu/menu";
@@ -43,7 +48,7 @@ const initialForm = {
 
 const Modal = () => {
   const { token } = useSelector(({ auth }) => auth);
-  const { showModal } = useSelector(({ menu }) => menu);
+  const { showModal, selected, willCreate } = useSelector(({ menu }) => menu);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
@@ -57,6 +62,18 @@ const Modal = () => {
       }
     };
   }, [imagePreview]);
+
+  useEffect(() => {
+    if (showModal) {
+      if (!willCreate) {
+        setForm(selected);
+        setImagePreview(Cloudinary.getMenuImg(selected.imgId, selected._id));
+      } else {
+        setForm(initialForm);
+        setImagePreview("");
+      }
+    }
+  }, [showModal, selected, willCreate]);
 
   const toggle = () => dispatch(TOGGLE());
   const handleChange = (key, value) => {
@@ -74,16 +91,7 @@ const Modal = () => {
     }));
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!form.image) {
-      toast.error("Please upload a menu image.");
-      return;
-    }
-
-    setSubmitting(true);
-
+  const handleSave = async () => {
     try {
       const { payload } = await dispatch(SAVE({ data: form, token })).unwrap();
       const buildForm = Cloudinary.buildFileForm(
@@ -108,6 +116,56 @@ const Modal = () => {
       setForm(initialForm);
       setImagePreview("");
     }
+  };
+  const handleUpdate = async () => {
+    try {
+      const { payload } = await dispatch(
+        UPDATE({ data: form, token }),
+      ).unwrap();
+      var imgId = selected.imgId;
+
+      if (form.image) {
+        const buildForm = Cloudinary.buildFileForm(
+          form.image,
+          "menus",
+          payload._id,
+          {
+            menuId: payload._id,
+          },
+        );
+        const imgPayload = await dispatch(
+          UPLOAD({ data: buildForm, token }),
+        ).unwrap();
+        imgId = imgPayload.imgId;
+      }
+
+      dispatch(SetUPDATED_MENU({ ...payload, imgId }));
+      toast.success("Successfully updated menu.");
+      toggle();
+    } catch (error) {
+      toast.error(error?.message || error || "Failed to update menu.");
+    } finally {
+      setSubmitting(false);
+      setForm(initialForm);
+      setImagePreview("");
+    }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!form.image && !form.imgId) {
+      toast.error("Please upload a menu image.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    if (willCreate) {
+      return await handleSave();
+    }
+
+    await handleUpdate();
   };
 
   const handleImageChange = (event) => {

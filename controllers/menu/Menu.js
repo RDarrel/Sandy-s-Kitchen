@@ -31,14 +31,13 @@ exports.browse = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { _id } = req.body;
-    const updatedMenu = await Users.findByIdAndUpdate(_id, req.body, {
+    const updatedMenu = await Menu.findByIdAndUpdate(_id, req.body, {
       new: true,
     }).lean();
 
     res.status(200).json({
       success: "Menu Updated Successfully",
       payload: updatedMenu,
-      staff,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
