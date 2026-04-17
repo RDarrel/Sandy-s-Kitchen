@@ -98,98 +98,98 @@
 :root {
   --radius: 0.625rem;
 
-  /* Sandy's Kitchenette - appetizing warm dining palette */
-  --background: #f4ede4;
-  --foreground: #4b3226;
+  /* Sandy's Kitchenette - cheerful family-restaurant palette */
+  --background: #fff6ea;
+  --foreground: #3b2418;
 
-  --card: #fffdf9;
-  --card-foreground: #4b3226;
+  --card: #fffdf8;
+  --card-foreground: #3b2418;
 
-  --popover: #fffdf9;
-  --popover-foreground: #4b3226;
+  --popover: #fffdf8;
+  --popover-foreground: #3b2418;
 
-  --primary: #b6543f;
-  --primary-foreground: #fffaf3;
+  --primary: #c62828;
+  --primary-foreground: #fffdf8;
 
-  --secondary: #ead9c5;
-  --secondary-foreground: #5f4232;
+  --secondary: #ffe4b8;
+  --secondary-foreground: #5a3420;
 
-  --muted: #efe2d3;
-  --muted-foreground: #7a5d4c;
+  --muted: #f6eadb;
+  --muted-foreground: #7b5b46;
 
-  --accent: #d59a52;
-  --accent-foreground: #4a301c;
+  --accent: #f6b81a;
+  --accent-foreground: #4a2c12;
 
-  --destructive: #cb6250;
+  --destructive: #dc2626;
 
-  --border: #dcc3ab;
-  --input: #dcc3ab;
-  --ring: #b6543f;
+  --border: #efd7bc;
+  --input: #efd7bc;
+  --ring: #c62828;
 
   /* Slightly darker than card/background so loading states stay visible */
-  --skeleton: #e1cfbb;
+  --skeleton: #eddcc7;
 
-  --chart-1: #b6543f;
-  --chart-2: #d59a52;
-  --chart-3: #6f8b4b;
-  --chart-4: #8a6146;
-  --chart-5: #c9785d;
+  --chart-1: #c62828;
+  --chart-2: #f6b81a;
+  --chart-3: #ff8f00;
+  --chart-4: #8d4b32;
+  --chart-5: #ef5350;
 
-  --sidebar: #f8f1e8;
-  --sidebar-foreground: #4b3226;
-  --sidebar-primary: #b6543f;
-  --sidebar-primary-foreground: #fffaf3;
-  --sidebar-accent: #d59a52;
-  --sidebar-accent-foreground: #4a301c;
-  --sidebar-border: #dcc3ab;
-  --sidebar-ring: #b6543f;
+  --sidebar: #fff9f0;
+  --sidebar-foreground: #3b2418;
+  --sidebar-primary: #c62828;
+  --sidebar-primary-foreground: #fffdf8;
+  --sidebar-accent: #f6b81a;
+  --sidebar-accent-foreground: #4a2c12;
+  --sidebar-border: #efd7bc;
+  --sidebar-ring: #c62828;
 }
 
 .dark {
-  --background: #1d1612;
-  --foreground: #f7eadb;
+  --background: #231511;
+  --foreground: #fff1df;
 
-  --card: #2b211b;
-  --card-foreground: #f7eadb;
+  --card: #321d16;
+  --card-foreground: #fff1df;
 
-  --popover: #2b211b;
-  --popover-foreground: #f7eadb;
+  --popover: #321d16;
+  --popover-foreground: #fff1df;
 
-  --primary: #dd836f;
-  --primary-foreground: #2a1712;
+  --primary: #ef5350;
+  --primary-foreground: #2a120e;
 
-  --secondary: #3a2c25;
-  --secondary-foreground: #f7eadb;
+  --secondary: #4a2d1f;
+  --secondary-foreground: #fff1df;
 
-  --muted: #342721;
-  --muted-foreground: #ceb099;
+  --muted: #40261b;
+  --muted-foreground: #d8b8a0;
 
-  --accent: #d8a463;
-  --accent-foreground: #342113;
+  --accent: #ffca28;
+  --accent-foreground: #412109;
 
-  --destructive: #df7b69;
+  --destructive: #ef4444;
 
-  --border: #5c493d;
-  --input: #5c493d;
-  --ring: #dd836f;
+  --border: #5a3929;
+  --input: #5a3929;
+  --ring: #ef5350;
 
   /* Slightly lighter than dark card surfaces for readable contrast */
-  --skeleton: #49362c;
+  --skeleton: #4a2f23;
 
-  --chart-1: #dd836f;
-  --chart-2: #d8a463;
-  --chart-3: #8da96b;
-  --chart-4: #9a6d53;
-  --chart-5: #ebb18e;
+  --chart-1: #ef5350;
+  --chart-2: #ffca28;
+  --chart-3: #ff8a65;
+  --chart-4: #a05a2c;
+  --chart-5: #ffe082;
 
-  --sidebar: #241b17;
-  --sidebar-foreground: #f7eadb;
-  --sidebar-primary: #dd836f;
-  --sidebar-primary-foreground: #2a1712;
-  --sidebar-accent: #d8a463;
-  --sidebar-accent-foreground: #342113;
-  --sidebar-border: #5c493d;
-  --sidebar-ring: #dd836f;
+  --sidebar: #2b1812;
+  --sidebar-foreground: #fff1df;
+  --sidebar-primary: #ef5350;
+  --sidebar-primary-foreground: #2a120e;
+  --sidebar-accent: #ffca28;
+  --sidebar-accent-foreground: #412109;
+  --sidebar-border: #5a3929;
+  --sidebar-ring: #ef5350;
 }
 
 @layer base {
