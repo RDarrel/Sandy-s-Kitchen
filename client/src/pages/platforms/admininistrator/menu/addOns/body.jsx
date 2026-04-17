@@ -59,7 +59,7 @@ const CategoryBody = ({
                 <TableHeader className="bg-muted/70">
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Description</TableHead>
+                    <TableHead>Category</TableHead>
                     <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>

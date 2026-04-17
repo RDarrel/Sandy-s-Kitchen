@@ -33,7 +33,7 @@ const generateRoutes = async (app, folder, src) => {
     }
 
     //recursive function
-    generateRoutes(app, file, `${src}/${file}`);
+    generateRoutes(app, folder ? `${folder}/${file}` : file, `${src}/${file}`);
   }
 };
 

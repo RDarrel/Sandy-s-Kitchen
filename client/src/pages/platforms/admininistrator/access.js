@@ -20,6 +20,7 @@ import Audit from "./audit";
 import Items from "./menu/items";
 import Inventory from "./inventory";
 import Category from "./menu/category";
+import AddOns from "./menu/addOns";
 
 const access = [
   {
@@ -48,7 +49,7 @@ const access = [
       {
         name: "Add Ons",
         path: "/add-ons",
-        component: Items,
+        component: AddOns,
       },
       {
         name: "Categories",
