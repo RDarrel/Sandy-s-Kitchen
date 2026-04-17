@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { axioKit } from "../../../utilities";
+import { axioKit } from "../../../../utilities";
 
-const url = "menu/addons/menuaddons";
+const url = "menu/addons/addons";
 
 const initialState = {
   collections: [],
@@ -22,9 +22,9 @@ const initialState = {
   message: "",
 };
 
-export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
+export const SAVE = createAsyncThunk(`${url}/save`, async (form, thunkAPI) => {
   try {
-    return axioKit.save(url, form.data, form.token);
+    return await axioKit.save(url, form.data, form.token);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -35,47 +35,62 @@ export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
   }
 });
 
-export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
-  try {
-    return axioKit.universal(`${url}/browse`, token);
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
+export const BROWSE = createAsyncThunk(
+  `${url}`,
+  async ({ token }, thunkAPI) => {
+    try {
+      return await axioKit.universal(`${url}/browse`, token);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
 
-    return thunkAPI.rejectWithValue(message);
-  }
-});
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
-export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
-  try {
-    return axioKit.update(url, form.data, form.token);
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
+export const UPDATE = createAsyncThunk(
+  `${url}/update`,
+  async (form, thunkAPI) => {
+    try {
+      return await axioKit.update(url, form.data, form.token);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
 
-    return thunkAPI.rejectWithValue(message);
-  }
-});
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
-export const DESTROY = createAsyncThunk(`${url}/destroy`, (form, thunkAPI) => {
-  try {
-    return axioKit.destroy(url, form.data, form.token);
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
+export const DESTROY = createAsyncThunk(
+  `${url}/destroy`,
+  async (form, thunkAPI) => {
+    try {
+      return await axioKit.destroy(url, form.data, form.token);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
 
-    return thunkAPI.rejectWithValue(message);
-  }
-});
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
 export const reduxSlice = createSlice({
-  name: url,
+  name: "addOns",
   initialState,
   reducers: {
     SetCOLLECTIONS: (state, { payload }) => {
@@ -119,8 +134,7 @@ export const reduxSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
-        const { error } = action;
-        state.message = error.message;
+        state.message = action.payload || action.error?.message || "";
         state.isLoading = false;
       })
       .addCase(SAVE.pending, (state) => {
@@ -137,8 +151,7 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(SAVE.rejected, (state, action) => {
-        const { error } = action;
-        state.message = error.message;
+        state.message = action.payload || action.error?.message || "";
         state.formSubmitted = false;
       })
       .addCase(UPDATE.pending, (state) => {
@@ -161,8 +174,7 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(UPDATE.rejected, (state, action) => {
-        const { error } = action;
-        state.message = error.message;
+        state.message = action.payload || action.error?.message || "";
         state.formSubmitted = false;
       })
       .addCase(DESTROY.pending, (state) => {
@@ -187,8 +199,7 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(DESTROY.rejected, (state, action) => {
-        const { error } = action;
-        state.message = error.message;
+        state.message = action.payload || action.error?.message || "";
         state.formSubmitted = false;
       });
   },
@@ -198,7 +209,6 @@ export const {
   SetCOLLECTIONS,
   Set_SELECTED,
   TOGGLE,
-  SetNEW_MENU,
   SetCREATE,
   SetFILTERED,
   SEARCH,

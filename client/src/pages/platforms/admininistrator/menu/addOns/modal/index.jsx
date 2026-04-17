@@ -23,15 +23,21 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import Spinner from "@/components/shared/spinner";
-import { SAVE, TOGGLE, UPDATE } from "@/services/redux/slices/menu/menuAddOns";
+import {
+  SAVE,
+  TOGGLE,
+  UPDATE,
+} from "@/services/redux/slices/menu/addOns/addOns";
 import AddOnInventorySection from "./inventorySection";
 import {
   getExistingAddOn,
   getInventoryCost,
   getUnitOptions,
+  getErrorMessage,
   GROUP_OPTIONS,
   isPieceUnit,
   mapSelectedIngredient,
+  resolveUnitValue,
 } from "./utils";
 
 const INITIAL_FORM = {
@@ -71,7 +77,7 @@ const AddOnModal = () => {
 
   const { token } = useSelector(({ auth }) => auth);
   const { showModal, willCreate, formSubmitted, selected, collections } =
-    useSelector(({ menuAddOns }) => menuAddOns);
+    useSelector(({ addOns }) => addOns);
   const { collections: inventoryItems = [] } = useSelector(
     ({ inventoryItem }) => inventoryItem,
   );
@@ -125,10 +131,11 @@ const AddOnModal = () => {
       const linkedItem =
         inventoryItems.find((item) => item?._id === entry.inventory) || null;
       const unitOptions = getUnitOptions(linkedItem?.measurement);
-      const selectedUnit =
-        unitOptions.find((option) => option.value === entry.unit)?.value ||
-        unitOptions[0]?.value ||
-        entry.unit;
+      const selectedUnit = resolveUnitValue(
+        unitOptions,
+        entry.unit,
+        linkedItem?.measurement,
+      );
       const estimatedCost = getInventoryCost(
         entry.qtyPerOrder,
         selectedUnit,
@@ -147,9 +154,7 @@ const AddOnModal = () => {
   }, [form.ingredients, inventoryItems]);
 
   const selectedInventoryIds = useMemo(() => {
-    return form.ingredients
-      .map((entry) => entry?.inventory)
-      .filter(Boolean);
+    return form.ingredients.map((entry) => entry?.inventory).filter(Boolean);
   }, [form.ingredients]);
 
   const totalEstimatedInventoryCost = useMemo(() => {
@@ -230,7 +235,9 @@ const AddOnModal = () => {
               ...entry,
               unit: value,
               qtyPerOrder: isPieceUnit(value)
-                ? String(Math.max(1, Math.round(Number(entry.qtyPerOrder) || 1)))
+                ? String(
+                    Math.max(1, Math.round(Number(entry.qtyPerOrder) || 1)),
+                  )
                 : entry.qtyPerOrder,
             }
           : entry,
@@ -247,21 +254,6 @@ const AddOnModal = () => {
   };
 
   const validateForm = () => {
-    if (!form.name.trim()) {
-      toast.error("Add-on name is required.");
-      return false;
-    }
-
-    if (!form.price || Number(form.price) < 0) {
-      toast.error("Please enter a valid price.");
-      return false;
-    }
-
-    if (hasDuplicateName) {
-      toast.error("This add-on name already exists.");
-      return false;
-    }
-
     if (form.usesInventory) {
       if (!form.ingredients.length) {
         toast.error("Please select at least one ingredient or item.");
@@ -274,7 +266,10 @@ const AddOnModal = () => {
           return false;
         }
 
-        if (isPieceUnit(entry.unit) && !Number.isInteger(Number(entry.qtyPerOrder))) {
+        if (
+          isPieceUnit(entry.unit) &&
+          !Number.isInteger(Number(entry.qtyPerOrder))
+        ) {
           toast.error("Pieces must use whole numbers only.");
           return false;
         }
@@ -288,11 +283,13 @@ const AddOnModal = () => {
     const normalizedIngredients = form.usesInventory
       ? form.ingredients.map((entry) => {
           const linkedItem =
-            inventoryItems.find((item) => item?._id === entry.inventory) || null;
-          const normalizedUnit =
-            getUnitOptions(linkedItem?.measurement).find(
-              (option) => option.value === entry.unit,
-            )?.value || getUnitOptions(linkedItem?.measurement)[0]?.value;
+            inventoryItems.find((item) => item?._id === entry.inventory) ||
+            null;
+          const normalizedUnit = resolveUnitValue(
+            getUnitOptions(linkedItem?.measurement),
+            entry.unit,
+            linkedItem?.measurement,
+          );
 
           return {
             inventory: entry.inventory,
@@ -308,6 +305,7 @@ const AddOnModal = () => {
       ...form,
       price: Number(form.price),
       ingredients: normalizedIngredients,
+      hasRecipe: form.usesInventory,
       inventory: primaryIngredient?.inventory || null,
       qtyPerOrder: primaryIngredient?.qtyPerOrder || null,
       unit: primaryIngredient?.unit || null,
@@ -340,7 +338,7 @@ const AddOnModal = () => {
         toast.success(successMessage);
       })
       .catch((error) => {
-        toast.error(error?.message || error || errorMessage);
+        toast.error(getErrorMessage(error, errorMessage));
       });
   };
 
@@ -379,7 +377,7 @@ const AddOnModal = () => {
             </div>
 
             <div className="md:col-span-3">
-              <FormField label="Price" required>
+              <FormField label="Price">
                 <Input
                   type="number"
                   min="0"
@@ -389,6 +387,7 @@ const AddOnModal = () => {
                     handleChange("price", event.target.value)
                   }
                   placeholder="0.00"
+                  required
                 />
               </FormField>
             </div>

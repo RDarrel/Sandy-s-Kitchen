@@ -46,7 +46,7 @@ export const UNIT_OPTIONS = {
   ],
   volume: [
     { label: "ml", value: "ml" },
-    { label: "L", value: "L" },
+    { label: "L", value: "l" },
   ],
   pieces: [{ label: "pcs", value: "pcs" }],
 };
@@ -68,7 +68,15 @@ export const getExistingAddOn = (collections = [], name = "", selectedId) => {
   );
 };
 
+export const normalizeUnit = (unit = "") => unit.toLowerCase();
+
 export const getUnitOptions = (measurement) => UNIT_OPTIONS[measurement] || [];
+
+export const resolveUnitValue = (unitOptions = [], unit = "", measurement) =>
+  unitOptions.find((option) => option.value === normalizeUnit(unit))?.value ||
+  unitOptions[0]?.value ||
+  Stock.getUnit(measurement) ||
+  null;
 
 export const mapSelectedIngredient = (entry, inventoryItems) => {
   const linkedInventoryId = entry?.inventory?._id || entry?.inventory || "";
@@ -76,11 +84,7 @@ export const mapSelectedIngredient = (entry, inventoryItems) => {
     inventoryItems.find((item) => item?._id === linkedInventoryId) || null;
   const measurement = linkedInventory?.measurement;
   const unitOptions = getUnitOptions(measurement);
-  const fallbackUnit =
-    unitOptions.find((option) => option.value === entry?.unit)?.value ||
-    unitOptions[0]?.value ||
-    Stock.getUnit(measurement) ||
-    null;
+  const fallbackUnit = resolveUnitValue(unitOptions, entry?.unit, measurement);
 
   return {
     inventory: linkedInventory?._id || "",
@@ -88,8 +92,6 @@ export const mapSelectedIngredient = (entry, inventoryItems) => {
     unit: fallbackUnit,
   };
 };
-
-export const normalizeUnit = (unit = "") => unit.toLowerCase();
 
 export const getInventoryCost = (qtyPerOrder, unit, linkedItem) => {
   const quantity = Number(qtyPerOrder) || 0;
@@ -111,4 +113,24 @@ export const getInventoryCost = (qtyPerOrder, unit, linkedItem) => {
   }
 };
 
-export const isPieceUnit = (unit = "") => unit === "pcs";
+export const isPieceUnit = (unit = "") => normalizeUnit(unit) === "pcs";
+
+export const getErrorMessage = (error, fallback = "Something went wrong.") => {
+  if (!error) return fallback;
+
+  if (typeof error === "string") return error;
+
+  if (typeof error?.message === "string" && error.message.trim()) {
+    return error.message;
+  }
+
+  if (typeof error?.error === "string" && error.error.trim()) {
+    return error.error;
+  }
+
+  if (typeof error?.payload === "string" && error.payload.trim()) {
+    return error.payload;
+  }
+
+  return fallback;
+};

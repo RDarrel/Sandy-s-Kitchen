@@ -18,7 +18,7 @@ const modelSchema = new mongoose.Schema(
       {
         inventory: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Inventory",
+          ref: "Item",
           required: true,
         },
         qty: {
