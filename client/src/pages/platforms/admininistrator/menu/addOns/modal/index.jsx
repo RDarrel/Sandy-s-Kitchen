@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ArrowRight, Plus, Search, Trash2 } from "lucide-react";
+import { AlertCircle, ArrowRight, Search } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import Spinner from "@/components/shared/spinner";
-import { formattedAmount, Stock } from "@/services/utilities";
+import { Formatter, Stock } from "@/services/utilities";
 import { SAVE, TOGGLE, UPDATE } from "@/services/redux/slices/menu/menuAddOns";
 
 const GROUP_OPTIONS = [
@@ -74,6 +74,18 @@ const INITIAL_FILTERS = {
   search: "",
 };
 
+const UNIT_OPTIONS = {
+  weight: [
+    { label: "g", value: "g" },
+    { label: "kg", value: "kg" },
+  ],
+  volume: [
+    { label: "ml", value: "ml" },
+    { label: "L", value: "L" },
+  ],
+  pieces: [{ label: "pcs", value: "pcs" }],
+};
+
 const normalizeName = (value = "") =>
   value
     .toLowerCase()
@@ -95,14 +107,43 @@ const mapSelectedIngredient = (entry, inventoryItems) => {
   const linkedInventoryId = entry?.inventory?._id || entry?.inventory || "";
   const linkedInventory =
     inventoryItems.find((item) => item?._id === linkedInventoryId) || null;
+  const measurement = linkedInventory?.measurement;
+  const unitOptions = UNIT_OPTIONS[measurement] || [];
+  const fallbackUnit =
+    unitOptions.find((option) => option.value === entry?.unit)?.value ||
+    unitOptions[0]?.value ||
+    Stock.getUnit(measurement) ||
+    null;
 
   return {
     inventory: linkedInventory?._id || "",
     qtyPerOrder: entry?.qtyPerOrder ?? 1,
-    unit:
-      entry?.unit ||
-      (linkedInventory ? Stock.getUnit(linkedInventory.measurement) : null),
+    unit: fallbackUnit,
   };
+};
+
+const getUnitOptions = (measurement) => UNIT_OPTIONS[measurement] || [];
+
+const normalizeUnit = (unit = "") => unit.toLowerCase();
+
+const getInventoryCost = (qtyPerOrder, unit, linkedItem) => {
+  const quantity = Number(qtyPerOrder) || 0;
+  const cost = Number(linkedItem?.cost) || 0;
+  const measurement = linkedItem?.measurement;
+  const normalizedUnit = normalizeUnit(unit);
+
+  if (!quantity || !cost || !measurement) return 0;
+
+  switch (measurement) {
+    case "weight":
+      return normalizedUnit === "g" ? (quantity / 1000) * cost : quantity * cost;
+    case "volume":
+      return normalizedUnit === "ml" ? (quantity / 1000) * cost : quantity * cost;
+    case "pieces":
+      return quantity * cost;
+    default:
+      return 0;
+  }
 };
 
 const FormField = ({ label, required = false, error = "", children }) => (
@@ -207,14 +248,34 @@ const AddOnModal = () => {
     return form.ingredients.map((entry, index) => {
       const linkedItem =
         inventoryItems.find((item) => item?._id === entry.inventory) || null;
+      const unitOptions = getUnitOptions(linkedItem?.measurement);
+      const selectedUnit =
+        unitOptions.find((option) => option.value === entry.unit)?.value ||
+        unitOptions[0]?.value ||
+        entry.unit;
+      const estimatedCost = getInventoryCost(
+        entry.qtyPerOrder,
+        selectedUnit,
+        linkedItem,
+      );
 
       return {
         index,
         ...entry,
+        unit: selectedUnit,
         linkedItem,
+        unitOptions,
+        estimatedCost,
       };
     });
   }, [form.ingredients, inventoryItems]);
+
+  const totalEstimatedInventoryCost = useMemo(() => {
+    return selectedIngredientRows.reduce(
+      (total, entry) => total + (entry.estimatedCost || 0),
+      0,
+    );
+  }, [selectedIngredientRows]);
 
   const handleChange = (key, value) => {
     setForm((prev) => ({
@@ -266,7 +327,9 @@ const AddOnModal = () => {
         {
           inventory: item._id,
           qtyPerOrder: 1,
-          unit: Stock.getUnit(item.measurement),
+          unit:
+            getUnitOptions(item.measurement)[0]?.value ||
+            Stock.getUnit(item.measurement),
         },
       ],
     }));
@@ -287,6 +350,20 @@ const AddOnModal = () => {
           ? {
               ...entry,
               qtyPerOrder: value,
+            }
+          : entry,
+      ),
+    }));
+  };
+
+  const updateIngredientUnit = (index, value) => {
+    setForm((prev) => ({
+      ...prev,
+      ingredients: prev.ingredients.map((entry, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...entry,
+              unit: value,
             }
           : entry,
       ),
@@ -328,11 +405,20 @@ const AddOnModal = () => {
 
   const buildPayload = () => {
     const normalizedIngredients = form.usesInventory
-      ? form.ingredients.map((entry) => ({
-          inventory: entry.inventory,
-          qtyPerOrder: Number(entry.qtyPerOrder),
-          unit: entry.unit,
-        }))
+      ? form.ingredients.map((entry) => {
+          const linkedItem =
+            inventoryItems.find((item) => item?._id === entry.inventory) || null;
+          const normalizedUnit =
+            getUnitOptions(linkedItem?.measurement).find(
+              (option) => option.value === entry.unit,
+            )?.value || getUnitOptions(linkedItem?.measurement)[0]?.value;
+
+          return {
+            inventory: entry.inventory,
+            qtyPerOrder: Number(entry.qtyPerOrder),
+            unit: normalizedUnit || entry.unit,
+          };
+        })
       : [];
 
     const primaryIngredient = normalizedIngredients[0] || null;
@@ -469,32 +555,35 @@ const AddOnModal = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-5">
-                <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <input
-                    type="checkbox"
-                    checked={form.usesInventory}
-                    onChange={() => handleUsesInventoryChange(true)}
-                    className="h-4 w-4 rounded border-input"
-                  />
+              <div className="inline-flex rounded-xl border border-border bg-background p-1">
+                <button
+                  type="button"
+                  onClick={() => handleUsesInventoryChange(true)}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    form.usesInventory
+                      ? "bg-foreground text-background"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
                   Yes
-                </label>
-
-                <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <input
-                    type="checkbox"
-                    checked={!form.usesInventory}
-                    onChange={() => handleUsesInventoryChange(false)}
-                    className="h-4 w-4 rounded border-input"
-                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleUsesInventoryChange(false)}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    !form.usesInventory
+                      ? "bg-foreground text-background"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
                   No
-                </label>
+                </button>
               </div>
             </div>
 
             {form.usesInventory ? (
               <div className="mt-4 grid gap-4 border-t border-border pt-4 xl:grid-cols-[1.05fr_auto_0.95fr] xl:items-stretch">
-                <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card">
+                <div className="flex h-[472px] max-h-[472px] flex-col overflow-hidden rounded-2xl border border-border bg-card">
                   <div className="space-y-1 border-b border-border px-4 py-3">
                     <p className="text-base font-semibold text-foreground">
                       Browse Inventory
@@ -504,8 +593,8 @@ const AddOnModal = () => {
                     </p>
                   </div>
 
-                  <div className="space-y-3 p-3">
-                    <div className="grid gap-2 md:grid-cols-12">
+                  <div className="min-h-0 flex flex-1 flex-col space-y-3 p-3">
+                    <div className="grid gap-3 md:grid-cols-12">
                       <div className="relative md:col-span-5">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -568,7 +657,7 @@ const AddOnModal = () => {
                       </div>
                     </div>
 
-                    <div className="h-[300px] overflow-auto rounded-[10px] border border-border bg-card">
+                    <div className="min-h-0 flex-1 overflow-auto rounded-[10px] border border-border bg-card">
                       {filteredInventoryItems.length ? (
                         filteredInventoryItems.map((item) => {
                           const isSelected = selectedInventoryIds.includes(
@@ -596,20 +685,32 @@ const AddOnModal = () => {
                                   : "cursor-pointer bg-card transition hover:bg-muted/40"
                               }`}
                             >
-                              <div className="min-w-0 flex-1 space-y-1">
+                              <div className="min-w-0 flex-1 space-y-1.5">
                                 <p className="truncate text-sm font-semibold text-foreground">
                                   {item.name}
                                 </p>
                                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                  <span>{item.category}</span>
-                                  <span className="text-border">•</span>
-                                  <span>{item.type}</span>
+                                  <span className="capitalize">
+                                    {item.category}
+                                  </span>
+                                  <span className="text-border">&middot;</span>
+                                  <span className="capitalize">
+                                    {item.type}
+                                  </span>
+                                  <span className="text-border">&middot;</span>
+                                  <span>
+                                    {item.measurement === "weight"
+                                      ? "Weight"
+                                      : item.measurement === "volume"
+                                        ? "Volume"
+                                        : "Pieces"}
+                                  </span>
                                 </div>
                               </div>
 
                               <div className="flex shrink-0 flex-col items-end gap-1 text-right">
                                 <p className="text-sm font-semibold text-foreground">
-                                  P{formattedAmount(item.cost || 0)}
+                                  {Formatter.amount(item.cost || 0)}
                                 </p>
                                 <button
                                   type="button"
@@ -641,71 +742,138 @@ const AddOnModal = () => {
                 <div className="hidden xl:flex xl:h-full xl:items-center xl:justify-center">
                   <div className="relative flex h-full min-h-[360px] items-center justify-center px-1">
                     <div className="absolute left-1/2 top-1/2 h-px w-12 -translate-x-1/2 -translate-y-1/2 bg-border" />
-                    <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background shadow-sm">
+                    <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background">
                       <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card">
-                  <div className="space-y-1 border-b border-border px-4 py-3">
-                    <p className="text-base font-semibold text-foreground">
-                      Selected Items
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Set quantity for each selected item.
-                    </p>
+                <div className="flex h-[472px] max-h-[472px] flex-col overflow-hidden rounded-2xl border border-border bg-card">
+                  <div className="border-b border-border px-4 py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-base font-semibold text-foreground">
+                          Selected Items
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Set the ingredient amount used for each add-on serving.
+                        </p>
+                      </div>
+                      <div className="flex min-w-[72px] flex-col items-center justify-center rounded-lg border border-border bg-background px-3 py-2 text-center">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                          Items
+                        </p>
+                        <p className="text-base font-semibold text-foreground">
+                          {selectedIngredientRows.length}
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="h-[356px] overflow-auto">
+                  <div className="min-h-0 flex-1 overflow-auto bg-card p-3">
                     {selectedIngredientRows.length ? (
-                      selectedIngredientRows.map((entry) => (
-                        <div
-                          key={`${entry.index}-${entry.inventory}`}
-                          className="flex items-center gap-2 border-b border-border px-3 py-2.5 last:border-b-0"
-                        >
-                          <div className="min-w-0 flex-1 space-y-1">
-                            <p className="truncate text-sm font-semibold text-foreground">
-                              {entry.linkedItem?.name || "Unknown item"}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              P{formattedAmount(entry.linkedItem?.cost || 0)}{" "}
-                              each
-                            </p>
-                          </div>
-
-                          <div className="w-[72px] shrink-0">
-                            <Input
-                              type="number"
-                              min="0.01"
-                              step="0.01"
-                              value={entry.qtyPerOrder}
-                              onChange={(event) =>
-                                updateIngredientQty(
-                                  entry.index,
-                                  event.target.value,
-                                )
-                              }
-                              placeholder="1"
-                              className="h-8 text-center text-sm"
-                            />
-                          </div>
-
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => removeIngredientRow(entry.index)}
-                            className="h-8 shrink-0 px-3 text-xs"
+                      <div className="space-y-3">
+                        {selectedIngredientRows.map((entry) => (
+                          <div
+                            key={`${entry.index}-${entry.inventory}`}
+                            className="rounded-xl border border-border bg-background px-4 py-3 shadow-[0_1px_0_rgba(59,36,24,0.03)]"
                           >
-                            Remove
-                          </Button>
-                        </div>
-                      ))
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0 space-y-1">
+                                  <p className="truncate text-base font-semibold text-foreground">
+                                    {entry.linkedItem?.name || "Unknown item"}
+                                  </p>
+                                </div>
+                                <div className="shrink-0 rounded-lg border border-border bg-card px-3 py-1.5 text-center">
+                                  <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                                    Estimated Cost
+                                  </p>
+                                  <p className="text-sm font-semibold text-primary">
+                                    {Formatter.amount(entry.estimatedCost || 0)}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-[96px_96px_auto] items-start gap-3 border-t border-border/70 pt-3">
+                                <div className="flex flex-col justify-start gap-1 self-start">
+                                  <Label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                    Per Serve Qty
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    min="0.01"
+                                    step="0.01"
+                                    value={entry.qtyPerOrder}
+                                    onChange={(event) =>
+                                      updateIngredientQty(
+                                        entry.index,
+                                        event.target.value,
+                                      )
+                                    }
+                                    placeholder="1"
+                                    className="h-9 border-border bg-card px-2 text-center text-sm"
+                                  />
+                                </div>
+
+                                <div className="flex flex-col justify-start gap-1 self-start">
+                                  <Label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                    Per Serve Unit
+                                  </Label>
+                                  <Select
+                                    value={entry.unit}
+                                    onValueChange={(value) =>
+                                      updateIngredientUnit(entry.index, value)
+                                    }
+                                  >
+                                    <SelectTrigger className="h-9 w-full border-border bg-card px-2 text-xs">
+                                      <SelectValue placeholder="Unit" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {entry.unitOptions.map((option) => (
+                                        <SelectItem
+                                          key={option.value}
+                                          value={option.value}
+                                        >
+                                          {option.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="flex self-end justify-end">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => removeIngredientRow(entry.index)}
+                                    className="h-9 border-border bg-card px-3 text-xs font-medium text-muted-foreground hover:text-destructive"
+                                  >
+                                    Remove
+                                  </Button>
+                                </div>
+                              </div>
+
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
-                      <div className="flex min-h-[220px] items-center justify-center px-4 text-center text-sm text-muted-foreground">
+                      <div className="flex h-full min-h-[220px] items-center justify-center rounded-xl border border-dashed border-border bg-background px-6 text-center text-sm text-muted-foreground">
                         Selected inventory items will appear here.
                       </div>
                     )}
+                  </div>
+
+                  <div className="border-t border-border px-4 py-3">
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3 text-sm">
+                      <span className="font-medium text-muted-foreground">
+                        Total estimated inventory cost
+                      </span>
+                      <span className="text-lg font-semibold text-foreground">
+                        {Formatter.amount(totalEstimatedInventoryCost)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
