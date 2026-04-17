@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CustomAlert } from "@/components/shared/alert";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import Spinner from "@/components/shared/spinner";
+import { Formatter } from "@/services/utilities";
 import {
   SAVE,
   TOGGLE,
@@ -83,8 +85,12 @@ const AddOnModal = () => {
   );
 
   const [form, setForm] = useState(INITIAL_FORM);
+  const [showProfitWarning, setShowProfitWarning] = useState(false);
 
-  const toggle = () => dispatch(TOGGLE());
+  const toggle = () => {
+    setShowProfitWarning(false);
+    dispatch(TOGGLE());
+  };
 
   useEffect(() => {
     if (!showModal) return;
@@ -312,11 +318,7 @@ const AddOnModal = () => {
     };
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    if (!validateForm()) return;
-
+  const submitForm = () => {
     const action = willCreate ? SAVE : UPDATE;
     const successMessage = willCreate
       ? "Successfully saved add-on."
@@ -342,115 +344,166 @@ const AddOnModal = () => {
       });
   };
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    if (!validateForm()) return;
+
+    const declaredPrice = Number(form.price) || 0;
+    const isBelowEstimatedCost =
+      form.usesInventory && declaredPrice < totalEstimatedInventoryCost;
+
+    if (isBelowEstimatedCost) {
+      setShowProfitWarning(true);
+      return;
+    }
+
+    submitForm();
+  };
+
   return (
-    <Dialog open={showModal} onOpenChange={toggle}>
-      <DialogContent
-        className={`border-border bg-card transition-[max-width] duration-200 ${
-          form.usesInventory ? "sm:max-w-5xl" : "sm:max-w-2xl"
-        }`}
-      >
-        <DialogHeader className="gap-2">
-          <DialogTitle className="text-2xl text-foreground">
-            {willCreate ? "Create" : "Update"} Add-On
-          </DialogTitle>
-          <DialogDescription>
-            Set the basic details for this add-on option on your menu.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={showModal} onOpenChange={toggle}>
+        <DialogContent
+          className={`border-border bg-card transition-[max-width] duration-200 ${
+            form.usesInventory ? "sm:max-w-5xl" : "sm:max-w-2xl"
+          }`}
+        >
+          <DialogHeader className="gap-2">
+            <DialogTitle className="text-2xl text-foreground">
+              {willCreate ? "Create" : "Update"} Add-On
+            </DialogTitle>
+            <DialogDescription>
+              Set the basic details for this add-on option on your menu.
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid gap-5 md:grid-cols-12">
-            <div className="md:col-span-6">
-              <FormField label="Name" required>
-                <Input
-                  required
-                  value={form.name}
-                  onChange={(event) => handleChange("name", event.target.value)}
-                  placeholder="Enter add-on name"
-                />
-                <NameWarning
-                  name={form.name}
-                  selectedId={selected?._id}
-                  collections={collections}
-                />
-              </FormField>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid gap-5 md:grid-cols-12">
+              <div className="md:col-span-6">
+                <FormField label="Name" required>
+                  <Input
+                    required
+                    value={form.name}
+                    onChange={(event) =>
+                      handleChange("name", event.target.value)
+                    }
+                    placeholder="Enter add-on name"
+                  />
+                  <NameWarning
+                    name={form.name}
+                    selectedId={selected?._id}
+                    collections={collections}
+                  />
+                </FormField>
+              </div>
+
+              <div className="md:col-span-3">
+                <FormField label="Price">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.price}
+                    onChange={(event) =>
+                      handleChange("price", event.target.value)
+                    }
+                    placeholder="0.00"
+                    required
+                  />
+                </FormField>
+              </div>
+
+              <div className="md:col-span-3">
+                <FormField label="Group" required>
+                  <Select
+                    value={form.group}
+                    onValueChange={(value) => handleChange("group", value)}
+                  >
+                    <SelectTrigger className="w-full bg-transparent">
+                      <SelectValue placeholder="Select group" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GROUP_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              </div>
+
+              <div className="md:col-span-12">
+                <FormField label="Description">
+                  <Textarea
+                    rows={4}
+                    value={form.description}
+                    onChange={(event) =>
+                      handleChange("description", event.target.value)
+                    }
+                    placeholder="Write a short description for this add-on"
+                  />
+                </FormField>
+              </div>
             </div>
 
-            <div className="md:col-span-3">
-              <FormField label="Price">
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.price}
-                  onChange={(event) =>
-                    handleChange("price", event.target.value)
-                  }
-                  placeholder="0.00"
-                  required
-                />
-              </FormField>
-            </div>
+            <AddOnInventorySection
+              usesInventory={form.usesInventory}
+              onUsesInventoryChange={handleUsesInventoryChange}
+              onToggleInventoryItem={addInventoryItem}
+              selectedIngredientRows={selectedIngredientRows}
+              onUpdateIngredientQty={updateIngredientQty}
+              onUpdateIngredientUnit={updateIngredientUnit}
+              onRemoveIngredientRow={removeIngredientRow}
+              totalEstimatedInventoryCost={totalEstimatedInventoryCost}
+              isPieceUnit={isPieceUnit}
+              onIngredientQtyKeyDown={handleIngredientQtyKeyDown}
+            />
 
-            <div className="md:col-span-3">
-              <FormField label="Group" required>
-                <Select
-                  value={form.group}
-                  onValueChange={(value) => handleChange("group", value)}
-                >
-                  <SelectTrigger className="w-full bg-transparent">
-                    <SelectValue placeholder="Select group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {GROUP_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-            </div>
+            <DialogFooter className="gap-2">
+              <Button type="button" variant="outline" onClick={toggle}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={formSubmitted || hasDuplicateName}>
+                {willCreate ? "Save Add-On" : "Update Add-On"}
+                <Spinner formSubmitted={formSubmitted} />
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-            <div className="md:col-span-12">
-              <FormField label="Description">
-                <Textarea
-                  rows={4}
-                  value={form.description}
-                  onChange={(event) =>
-                    handleChange("description", event.target.value)
-                  }
-                  placeholder="Write a short description for this add-on"
-                />
-              </FormField>
-            </div>
-          </div>
-
-          <AddOnInventorySection
-            usesInventory={form.usesInventory}
-            onUsesInventoryChange={handleUsesInventoryChange}
-            onToggleInventoryItem={addInventoryItem}
-            selectedIngredientRows={selectedIngredientRows}
-            onUpdateIngredientQty={updateIngredientQty}
-            onUpdateIngredientUnit={updateIngredientUnit}
-            onRemoveIngredientRow={removeIngredientRow}
-            totalEstimatedInventoryCost={totalEstimatedInventoryCost}
-            isPieceUnit={isPieceUnit}
-            onIngredientQtyKeyDown={handleIngredientQtyKeyDown}
-          />
-
-          <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={toggle}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={formSubmitted || hasDuplicateName}>
-              {willCreate ? "Save Add-On" : "Update Add-On"}
-              <Spinner formSubmitted={formSubmitted} />
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <CustomAlert
+        isOpen={showProfitWarning}
+        setIsOpen={setShowProfitWarning}
+        capture={() => {
+          setShowProfitWarning(false);
+          submitForm();
+        }}
+        showCancelButton
+        formSubmitted={formSubmitted}
+        className="border-border bg-card shadow-[0_28px_90px_rgba(59,36,24,0.18)]"
+        buttonTitle={willCreate ? "Save Anyway" : "Update Anyway"}
+        buttonClassName="bg-amber-600 hover:bg-amber-700"
+        index={0}
+        message={
+          <>
+            This add-on is currently priced below its estimated inventory cost.
+            Your declared price is{" "}
+            <span className="font-semibold text-foreground">
+              {Formatter.amount(Number(form.price) || 0)}
+            </span>{" "}
+            while the estimated inventory cost is{" "}
+            <span className="font-semibold text-foreground">
+              {Formatter.amount(totalEstimatedInventoryCost)}
+            </span>
+            . Saving this may reduce or eliminate your profit on each sale. Are
+            you sure you want to continue?
+          </>
+        }
+      />
+    </>
   );
 };
 

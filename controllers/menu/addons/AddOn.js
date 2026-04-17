@@ -143,7 +143,6 @@ exports.update = async (req, res) => {
   try {
     const { _id } = req.body;
     const ingredients = normalizeIngredients(req.body.ingredients);
-    console.log(buildAddOnPayload(req.body));
     const addOn = await AddOn.findByIdAndUpdate(
       _id,
       buildAddOnPayload(req.body),
