@@ -19,6 +19,7 @@ import Sales from "./reports/sales";
 import Audit from "./audit";
 import Items from "./menu/items";
 import Inventory from "./inventory";
+import Category from "./menu/category";
 
 const access = [
   {
@@ -48,6 +49,11 @@ const access = [
         name: "Add Ons",
         path: "/add-ons",
         component: Items,
+      },
+      {
+        name: "Categories",
+        path: "/categories",
+        component: Category,
       },
     ],
   },
