@@ -2,15 +2,24 @@ const mongoose = require("mongoose");
 
 const modelSchema = new mongoose.Schema(
   {
-    menu: {
+    parentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Menu",
+      required: true,
+      refPath: "parentType",
     },
+
+    parentType: {
+      type: String,
+      required: true,
+      enum: ["Menu", "AddOn"],
+    },
+
     ingredients: [
       {
         inventory: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Inventory",
+          required: true,
         },
         qty: {
           type: Number,
@@ -24,6 +33,7 @@ const modelSchema = new mongoose.Schema(
         },
       },
     ],
+
     deletedAt: {
       type: Date,
     },

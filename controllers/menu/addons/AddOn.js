@@ -3,7 +3,7 @@ exports.save = async (req, res) => {
   try {
     const inventory = await Item.create(req.body);
     res.status(201).json({
-      success: "Inventory item Created Successfully",
+      success: "Add-on created successfully",
       payload: inventory,
     });
   } catch (error) {
@@ -16,11 +16,13 @@ exports.browse = async (req, res) => {
     const items = await Item.find({
       $or: [{ deletedAt: { $exists: false } }, { deletedAt: null }],
     })
+      .populate("inventory", "name type category measurement")
+      .populate("ingredients.inventory", "name type category measurement")
       .sort({ createdAt: -1 })
       .lean();
 
     res.status(200).json({
-      success: "Inventory items Fetched Successfully",
+      success: "Add-ons fetched successfully",
       payload: items,
     });
   } catch (error) {
@@ -33,10 +35,13 @@ exports.update = async (req, res) => {
     const { _id } = req.body;
     const item = await Item.findByIdAndUpdate(_id, req.body, {
       new: true,
-    }).lean();
+    })
+      .populate("inventory", "name type category measurement")
+      .populate("ingredients.inventory", "name type category measurement")
+      .lean();
 
     res.status(200).json({
-      success: "Inventory item updated Successfully",
+      success: "Add-on updated successfully",
       payload: item,
     });
   } catch (error) {
@@ -55,7 +60,7 @@ exports.destroy = async (req, res) => {
       },
     ).lean();
     res.status(200).json({
-      success: "Inventory item Deleted Successfully",
+      success: "Add-on deleted successfully",
       payload: item,
     });
   } catch (error) {

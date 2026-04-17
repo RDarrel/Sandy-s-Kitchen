@@ -16,7 +16,7 @@ import CustomPagination from "@/components/shared/pagination";
 import { handlePagination } from "@/services/utilities";
 import { useState } from "react";
 import TableLoading from "@/components/shared/loading/table";
-import { Set_SELECTED } from "@/services/redux/slices/menu/category";
+import { Set_SELECTED } from "@/services/redux/slices/menu/menuAddOns";
 
 const ActionButton = ({ title, icon: Icon, destructive = false, onClick }) => (
   <Button
@@ -42,9 +42,11 @@ const CategoryBody = ({
   onRequestDelete,
   onConfirmDelete,
 }) => {
-  const { filtered, formSubmitted, isLoading } = useSelector(
-    ({ menuCategory }) => menuCategory,
-  );
+  const {
+    filtered = [],
+    formSubmitted,
+    isLoading,
+  } = useSelector(({ menuAddOns }) => menuAddOns);
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(5);
   const dispatch = useDispatch();

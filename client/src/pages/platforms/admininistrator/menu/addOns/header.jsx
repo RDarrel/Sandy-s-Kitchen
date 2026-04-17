@@ -8,16 +8,19 @@ import {
   BROWSE,
   SEARCH,
   SetCREATE,
-} from "@/services/redux/slices/menu/category";
+} from "@/services/redux/slices/menu/menuAddOns";
+
+import { BROWSE as BROWSE_INGREDIENTS } from "@/services/redux/slices/inventory/inventoryItem";
 
 const CategoryHeader = () => {
   const { token } = useSelector(({ auth }) => auth);
-  const { search } = useSelector(({ menuCategory }) => menuCategory);
+  const { search } = useSelector(({ menuAddOns }) => menuAddOns);
   const dispatch = useDispatch();
 
   useEffect(() => {
     if (token) {
       dispatch(BROWSE({ token }));
+      dispatch(BROWSE_INGREDIENTS({ token }));
     }
   }, [dispatch, token]);
 
