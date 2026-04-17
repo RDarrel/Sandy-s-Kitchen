@@ -13,6 +13,11 @@ const modelSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    group: {
+      type: String,
+      enum: ["extras", "toppings", "sides", "drinks"],
+      default: "extras",
+    },
     unit: {
       type: String,
       enum: ["kg", "g", "ml", "l", "pcs"],
@@ -36,6 +41,6 @@ const modelSchema = new mongoose.Schema(
   },
 );
 
-const Entity = mongoose.model("AddOns", modelSchema);
+const Entity = mongoose.model("AddOn", modelSchema);
 
 module.exports = Entity;
