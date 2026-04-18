@@ -87,7 +87,7 @@ const Body = () => {
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-                  <div className="absolute right-3 top-3 flex items-start gap-1.5">
+                  <div className="absolute w-full  top-2 flex justify-between gap-1.5 px-2">
                     <button
                       type="button"
                       onClick={() =>
@@ -155,18 +155,6 @@ const Body = () => {
                         </>
                       )}
                     </div>
-                  </div>
-
-                  <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-primary shadow">
-                      {Category.getName(item.category)}
-                    </span>
-
-                    {!item.isPublish && item.category !== "Resell" && (
-                      <span className="rounded-full bg-black/65 px-3 py-1 text-xs font-semibold text-white shadow">
-                        Draft
-                      </span>
-                    )}
                   </div>
 
                   <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">

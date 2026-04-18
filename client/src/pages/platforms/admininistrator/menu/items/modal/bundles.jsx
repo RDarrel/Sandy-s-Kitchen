@@ -19,6 +19,9 @@ const getBundleItemId = (item) => item?._id || item?.id;
 
 const Bundles = ({ form, setForm = () => {} }) => {
   const { collections } = useSelector(({ menus }) => menus);
+  const { collections: categories } = useSelector(
+    ({ menuCategories }) => menuCategories,
+  );
   const [bundleSearch, setBundleSearch] = useState("");
   const [bundleCategory, setBundleCategory] = useState("All");
   const bundleCandidates = collections.filter((item) => item.type !== "bundle");
@@ -125,6 +128,9 @@ const Bundles = ({ form, setForm = () => {} }) => {
                 const isSelected = form?.bundleItems?.some(
                   (selectedItem) => getBundleItemId(selectedItem) === itemId,
                 );
+                const category = categories.find(
+                  (category) => category._id === item.category,
+                );
 
                 return (
                   <button
@@ -147,7 +153,7 @@ const Bundles = ({ form, setForm = () => {} }) => {
                         {item.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {item.category}
+                        {category?.name}
                       </p>
                     </div>
                     <div className="text-right">
