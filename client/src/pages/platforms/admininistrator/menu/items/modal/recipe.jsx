@@ -259,7 +259,7 @@ const Recipe = ({
                 {selectedIngredientRows.map((entry) => (
                   <div
                     key={`${entry.index}-${entry.inventory}`}
-                    className="rounded-xl border border-border px-4 py-3  bg-card"
+                    className="rounded-xl border border-border px-4 py-3 "
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-3">
@@ -268,9 +268,9 @@ const Recipe = ({
                             {entry.linkedItem?.name || "Unknown item"}
                           </p>
                         </div>
-                        <div className="shrink-0 rounded-lg border border-border bg-white px-3 py-1.5 text-center">
+                        <div className="shrink-0 rounded-lg border border-border bg-card px-3 py-1.5 text-center">
                           <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
-                            Estimated Cost
+                            COST / SERVE
                           </p>
                           <p className="text-sm font-semibold text-primary">
                             {Formatter.amount(entry.estimatedCost || 0)}
@@ -279,7 +279,7 @@ const Recipe = ({
                       </div>
 
                       <div className="grid grid-cols-[96px_96px_auto] items-start gap-3 border-t border-border/70 pt-3">
-                        <div className="flex flex-col justify-start gap-1 bg-white self-start">
+                        <div className="flex flex-col justify-start gap-1 bg-card self-start">
                           <Label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                             Per Serve Qty
                           </Label>
@@ -302,7 +302,7 @@ const Recipe = ({
                           />
                         </div>
 
-                        <div className="flex flex-col justify-start gap-1 bg-white self-start">
+                        <div className="flex flex-col justify-start gap-1 bg-card self-start">
                           <Label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                             Per Serve Unit
                           </Label>
@@ -355,7 +355,7 @@ const Recipe = ({
               <span className="font-medium text-muted-foreground">
                 Total estimated recipe cost
               </span>
-              <span className="text-lg font-semibold text-foreground">
+              <span className="text-lg font-semibold text-primary">
                 {Formatter.amount(totalEstimatedInventoryCost)}
               </span>
             </div>
