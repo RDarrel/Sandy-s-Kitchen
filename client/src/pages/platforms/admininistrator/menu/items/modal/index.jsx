@@ -40,7 +40,7 @@ import Name, { isExistingMenuName } from "./name";
 
 const initialForm = {
   name: "",
-  category: "main",
+  category: "",
   price: "",
   type: "prepared",
   description: "",
@@ -57,6 +57,9 @@ const Modal = () => {
     category: actCategory,
     collections,
   } = useSelector(({ menus }) => menus);
+  const { collections: categories } = useSelector(
+    ({ menuCategories }) => menuCategories,
+  );
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
@@ -79,12 +82,13 @@ const Modal = () => {
       } else {
         setForm({
           ...initialForm,
+          category: categories[0]?._id,
           ...(actCategory !== "all" && { category: actCategory }),
         });
         setImagePreview("");
       }
     }
-  }, [showModal, selected, willCreate, actCategory]);
+  }, [showModal, selected, willCreate, actCategory, categories]);
 
   const toggle = () => dispatch(TOGGLE());
   const handleChange = (key, value) => {
@@ -212,7 +216,8 @@ const Modal = () => {
               <div className="space-y-2">
                 <Label htmlFor="item-category">Category</Label>
                 <Select
-                  value={form.category}
+                  value={form.category || ""}
+                  required
                   onValueChange={(value) => handleChange("category", value)}
                 >
                   <SelectTrigger className="w-full">
@@ -221,8 +226,8 @@ const Modal = () => {
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Categories</SelectLabel>
-                      {Category.collections.map((category, index) => (
-                        <SelectItem key={index} value={category.value}>
+                      {categories?.map((category, index) => (
+                        <SelectItem key={index} value={category?._id}>
                           {category.name}
                         </SelectItem>
                       ))}

@@ -85,40 +85,38 @@ const Header = () => {
                   }`}
                 />
               ))
-          : [
-              { _id: "all", name: "All" },
-              ...(categories || []),
-              ...(categories || []),
-            ].map((category, index) => {
-              const isActive = actCategory === category?._id;
-              const categoryCount = categoryCounts[category.value];
+          : [{ _id: "all", name: "All" }, ...(categories || [])].map(
+              (category, index) => {
+                const isActive = actCategory === category?._id;
+                const categoryCount = categoryCounts[category?._id];
 
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => dispatch(FilterBY_CATEGORY(category._id))}
-                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "border border-border bg-background text-foreground hover:border-primary hover:text-primary"
-                  }`}
-                >
-                  <span>{category.name}</span>
-                  {category.value !== "all" && categoryCount > 0 && (
-                    <span
-                      className={`inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
-                        isActive
-                          ? "bg-primary-foreground/15 text-primary-foreground"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {categoryCount}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => dispatch(FilterBY_CATEGORY(category?._id))}
+                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border bg-background text-foreground hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    <span>{category.name}</span>
+                    {category?._id !== "all" && categoryCount > 0 && (
+                      <span
+                        className={`inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
+                          isActive
+                            ? "bg-primary-foreground/15 text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {categoryCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              },
+            )}
       </div>
     </div>
   );

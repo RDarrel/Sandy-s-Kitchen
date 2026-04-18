@@ -24,12 +24,9 @@ const modelSchema = new mongoose.Schema(
       default: "prepared",
     },
     category: {
-      type: String,
-      enum: {
-        values: ["main", "side", "drinks", "dessert"],
-        message: "{VALUE} is not supported",
-      },
-      default: "main",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "MenuCategory",
+      required: true,
     },
     isPublish: Boolean,
     //if type is Resell we need this
