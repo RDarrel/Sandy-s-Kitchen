@@ -24,7 +24,7 @@ import {
   SAVE,
   TOGGLE,
   UPDATE,
-} from "@/services/redux/slices/inventory/inventoryItem";
+} from "@/services/redux/slices/inventory/inventoryItems";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
@@ -95,7 +95,7 @@ const FormField = ({ label, content, error = "" }) => (
 const InventoryModal = () => {
   const { token } = useSelector(({ auth }) => auth);
   const { showModal, willCreate, formSubmitted, selected, collections } =
-    useSelector(({ inventoryItem }) => inventoryItem);
+    useSelector(({ inventoryItems }) => inventoryItems);
 
   const [form, setForm] = useState(INITIAL_FORM);
   const dispatch = useDispatch();

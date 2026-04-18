@@ -22,7 +22,7 @@ import {
   FILTER,
   SEARCH,
   SetCREATE,
-} from "@/services/redux/slices/inventory/inventoryItem";
+} from "@/services/redux/slices/inventory/inventoryItems";
 
 const FilterSelect = ({
   value,
@@ -48,7 +48,7 @@ const FilterSelect = ({
 
 const InventoryHeader = () => {
   const { token, search } = useSelector(({ auth }) => auth);
-  const { params } = useSelector(({ inventoryItem }) => inventoryItem);
+  const { params } = useSelector(({ inventoryItems }) => inventoryItems);
   const dispatch = useDispatch();
 
   useEffect(() => {

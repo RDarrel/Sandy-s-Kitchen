@@ -8,11 +8,11 @@ import {
   BROWSE,
   SEARCH,
   SetCREATE,
-} from "@/services/redux/slices/menu/category";
+} from "@/services/redux/slices/menu/categories";
 
 const CategoryHeader = () => {
   const { token } = useSelector(({ auth }) => auth);
-  const { search } = useSelector(({ menuCategory }) => menuCategory);
+  const { search } = useSelector(({ menuCategories }) => menuCategories);
   const dispatch = useDispatch();
 
   useEffect(() => {

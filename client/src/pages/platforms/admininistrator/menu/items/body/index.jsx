@@ -1,13 +1,9 @@
 import Cloudinary from "@/services/utilities/cloudinary";
-import {
-  Pencil,
-  Trash2,
-  EllipsisVertical,
-} from "lucide-react";
+import { Pencil, Trash2, EllipsisVertical } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Category } from "@/services/fakeDB";
-import { DESTROY, Set_SELECTED } from "@/services/redux/slices/menu/menu";
+import { DESTROY, Set_SELECTED } from "@/services/redux/slices/menu/menus";
 import ItemSkeleton from "./item-skeleton";
 import EmptyState from "./empty-state";
 import Feature from "./feature";
@@ -17,7 +13,9 @@ import { toast } from "sonner";
 const skeletonItems = Array.from({ length: 6 }, (_, index) => index);
 
 const Body = () => {
-  const { filtered, isLoading, formSubmitted } = useSelector(({ menu }) => menu);
+  const { filtered, isLoading, formSubmitted } = useSelector(
+    ({ menus }) => menus,
+  );
   const { token } = useSelector(({ auth }) => auth);
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [cashierVisibility, setCashierVisibility] = useState({});

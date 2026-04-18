@@ -1,5 +1,10 @@
 const router = require("express").Router(),
-  { save, browse, update, destroy } = require("../../controllers/menu/Menu"),
+  {
+    save,
+    browse,
+    update,
+    destroy,
+  } = require("../../controllers/menu/MenuCategories"),
   { validate } = require("../../middleware/jwt");
 
 router

@@ -7,11 +7,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import {
   BROWSE,
+  FILTER_BY_GROUP,
   SEARCH,
   SetCREATE,
 } from "@/services/redux/slices/menu/addOns/addOns";
 
-import { BROWSE as BROWSE_INGREDIENTS } from "@/services/redux/slices/inventory/inventoryItem";
+import { BROWSE as BROWSE_INGREDIENTS } from "@/services/redux/slices/inventory/inventoryItems";
 
 const GROUP_FILTERS = [
   { value: "all", label: "All" },
@@ -21,15 +22,20 @@ const GROUP_FILTERS = [
   { value: "drinks", label: "Drinks" },
 ];
 
-const CategoryHeader = ({ activeGroup, onChangeGroup }) => {
+const CategoryHeader = () => {
   const { token } = useSelector(({ auth }) => auth);
-  const { search, filtered = [], isLoading } = useSelector(({ addOns }) => addOns);
+  const {
+    search,
+    collections = [],
+    isLoading,
+    activeGroup,
+  } = useSelector(({ addOns }) => addOns);
   const dispatch = useDispatch();
   const groupCounts = GROUP_FILTERS.reduce((accumulator, group) => {
     accumulator[group.value] =
       group.value === "all"
-        ? filtered.length
-        : filtered.filter((item) => item.group === group.value).length;
+        ? collections?.length
+        : collections?.filter((item) => item.group === group.value).length;
     return accumulator;
   }, {});
 
@@ -87,7 +93,7 @@ const CategoryHeader = ({ activeGroup, onChangeGroup }) => {
                 <button
                   key={group.value}
                   type="button"
-                  onClick={() => onChangeGroup(group.value)}
+                  onClick={() => dispatch(FILTER_BY_GROUP(group.value))}
                   className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
                     isActive
                       ? "bg-primary text-primary-foreground"

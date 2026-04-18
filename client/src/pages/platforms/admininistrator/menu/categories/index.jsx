@@ -4,10 +4,10 @@ import CategoryBody from "./body";
 import CategoryHeader from "./header";
 import CategoryModal from "./modal";
 import { useDispatch, useSelector } from "react-redux";
-import { DESTROY } from "@/services/redux/slices/menu/category";
+import { DESTROY } from "@/services/redux/slices/menu/categories";
 import { toast } from "sonner";
 
-const Category = () => {
+const Categories = () => {
   const { token } = useSelector(({ auth }) => auth);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -57,4 +57,4 @@ const Category = () => {
   );
 };
 
-export default Category;
+export default Categories;

@@ -5,13 +5,9 @@ const url = "menu/addons/addons";
 
 const initialState = {
   collections: [],
+  cluster: [],
   search: "",
-  params: {
-    type: "",
-    category: "",
-    measurement: "",
-    status: "",
-  },
+  activeGroup: "all",
   filtered: [],
   selected: {},
   willCreate: false,
@@ -96,6 +92,15 @@ export const reduxSlice = createSlice({
     SetCOLLECTIONS: (state, { payload }) => {
       state.collections = payload;
     },
+    FILTER_BY_GROUP: (state, { payload }) => {
+      const isAll = payload === "all" || !payload;
+      const results = isAll
+        ? state.collections
+        : state.collections.filter((item) => item.group === payload);
+      state.cluster = results;
+      state.filtered = results;
+      state.activeGroup = payload;
+    },
     Set_SELECTED: (state, { payload = null }) => {
       state.selected = payload || {};
       state.showModal = true;
@@ -106,8 +111,8 @@ export const reduxSlice = createSlice({
     },
     SEARCH: (state, { payload }) => {
       const results = !payload
-        ? state.collections
-        : state.collections.filter((item) => {
+        ? state.cluster
+        : state.cluster.filter((item) => {
             return item.name.toLowerCase().includes(payload.toLowerCase());
           });
       state.filtered = results;
@@ -130,7 +135,7 @@ export const reduxSlice = createSlice({
       })
       .addCase(BROWSE.fulfilled, (state, action) => {
         const { payload } = action.payload;
-        state.collections = state.filtered = payload;
+        state.collections = state.cluster = state.filtered = payload;
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
@@ -211,6 +216,7 @@ export const {
   TOGGLE,
   SetCREATE,
   SetFILTERED,
+  FILTER_BY_GROUP,
   SEARCH,
 } = reduxSlice.actions;
 

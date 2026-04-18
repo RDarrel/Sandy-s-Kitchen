@@ -1,17 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axioKit } from "../../../utilities";
 
-const url = "menu/menucategory";
+const url = "menu/menus";
 
 const initialState = {
   collections: [],
+  category: "all",
   search: "",
-  params: {
-    type: "",
-    category: "",
-    measurement: "",
-    status: "",
-  },
+  cluster: [],
   filtered: [],
   selected: {},
   willCreate: false,
@@ -78,6 +74,46 @@ export const reduxSlice = createSlice({
   name: url,
   initialState,
   reducers: {
+    FilterBY_CATEGORY: (state, { payload }) => {
+      const results =
+        payload === "all"
+          ? state.collections
+          : state.collections.filter((item) => {
+              return item.category === payload;
+            });
+      state.cluster = results;
+      state.filtered = results;
+      state.category = payload;
+      state.search = "";
+    },
+    SetNEW_MENU: (state, { payload }) => {
+      state.collections.unshift(payload);
+      state.filtered.unshift(payload);
+      state.cluster.unshift(payload);
+    },
+    SetUPDATED_MENU: (state, { payload }) => {
+      const updateCollections = (collections) => {
+        const index = collections.findIndex(({ _id }) => _id === payload._id);
+        if (index > -1) {
+          collections[index] = payload;
+        }
+      };
+      updateCollections(state.collections);
+      updateCollections(state.cluster);
+      updateCollections(state.filtered);
+    },
+    SetDELETED_MENU: (state, { payload }) => {
+      const removeFromCollections = (collections) => {
+        const index = collections.findIndex(({ _id }) => _id === payload);
+        if (index > -1) {
+          collections.splice(index, 1);
+        }
+      };
+
+      removeFromCollections(state.collections);
+      removeFromCollections(state.cluster);
+      removeFromCollections(state.filtered);
+    },
     SetCOLLECTIONS: (state, { payload }) => {
       state.collections = payload;
     },
@@ -91,8 +127,8 @@ export const reduxSlice = createSlice({
     },
     SEARCH: (state, { payload }) => {
       const results = !payload
-        ? state.collections
-        : state.collections.filter((item) => {
+        ? state.cluster
+        : state.cluster.filter((item) => {
             return item.name.toLowerCase().includes(payload.toLowerCase());
           });
       state.filtered = results;
@@ -115,7 +151,7 @@ export const reduxSlice = createSlice({
       })
       .addCase(BROWSE.fulfilled, (state, action) => {
         const { payload } = action.payload;
-        state.collections = state.filtered = payload;
+        state.collections = state.cluster = state.filtered = payload;
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
@@ -130,8 +166,6 @@ export const reduxSlice = createSlice({
       })
       .addCase(SAVE.fulfilled, (state, action) => {
         const { success } = action.payload;
-        state.collections.unshift(action.payload.payload);
-        state.filtered.unshift(action.payload.payload);
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
@@ -147,15 +181,7 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(UPDATE.fulfilled, (state, action) => {
-        const { success, payload } = action.payload;
-        const updateCollections = (collections) => {
-          const index = collections.findIndex(({ _id }) => _id === payload._id);
-          if (index > -1) {
-            collections[index] = payload;
-          }
-        };
-        updateCollections(state.collections);
-        updateCollections(state.filtered);
+        const { success } = action.payload;
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
@@ -181,6 +207,7 @@ export const reduxSlice = createSlice({
         };
 
         removeFromCollections(state.collections);
+        removeFromCollections(state.cluster);
         removeFromCollections(state.filtered);
         state.formSubmitted = false;
         state.message = success;
@@ -200,6 +227,9 @@ export const {
   TOGGLE,
   SetNEW_MENU,
   SetCREATE,
+  SetUPDATED_MENU,
+  SetDELETED_MENU,
+  FilterBY_CATEGORY,
   SetFILTERED,
   SEARCH,
 } = reduxSlice.actions;

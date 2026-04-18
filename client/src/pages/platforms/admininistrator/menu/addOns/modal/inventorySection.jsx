@@ -32,12 +32,13 @@ const AddOnInventorySection = ({
   onIngredientQtyKeyDown,
 }) => {
   const { collections: inventoryItems = [] } = useSelector(
-    ({ inventoryItem }) => inventoryItem,
+    ({ inventoryItems }) => inventoryItems,
   );
   const [filters, setFilters] = useState(INITIAL_FILTERS);
 
   const selectedInventoryIds = useMemo(
-    () => selectedIngredientRows.map((entry) => entry.inventory).filter(Boolean),
+    () =>
+      selectedIngredientRows.map((entry) => entry.inventory).filter(Boolean),
     [selectedIngredientRows],
   );
 

@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { axioKit, Stock } from "../../../utilities";
+import { axioKit } from "../../../utilities";
 
-const url = "inventory/item";
+const url = "menu/menuCategories";
 
 const initialState = {
   collections: [],
@@ -12,7 +12,6 @@ const initialState = {
     measurement: "",
     status: "",
   },
-  cluster: [],
   filtered: [],
   selected: {},
   willCreate: false,
@@ -79,50 +78,6 @@ export const reduxSlice = createSlice({
   name: url,
   initialState,
   reducers: {
-    FILTER: (state, { payload }) => {
-      const results = state.collections.filter((item) =>
-        Object.entries(payload).every(
-          ([key, value]) =>
-            !value ||
-            value === "all" ||
-            (key === "status"
-              ? Stock.getStatus(item[key], item.measurement)
-              : item[key]) === value,
-        ),
-      );
-      state.cluster = results;
-      state.filtered = results;
-      state.params = payload;
-      state.search = "";
-    },
-    SetNEW_MENU: (state, { payload }) => {
-      state.collections.unshift(payload);
-      state.filtered.unshift(payload);
-      state.cluster.unshift(payload);
-    },
-    SetUPDATED_MENU: (state, { payload }) => {
-      const updateCollections = (collections) => {
-        const index = collections.findIndex(({ _id }) => _id === payload._id);
-        if (index > -1) {
-          collections[index] = payload;
-        }
-      };
-      updateCollections(state.collections);
-      updateCollections(state.cluster);
-      updateCollections(state.filtered);
-    },
-    SetDELETED_MENU: (state, { payload }) => {
-      const removeFromCollections = (collections) => {
-        const index = collections.findIndex(({ _id }) => _id === payload);
-        if (index > -1) {
-          collections.splice(index, 1);
-        }
-      };
-
-      removeFromCollections(state.collections);
-      removeFromCollections(state.cluster);
-      removeFromCollections(state.filtered);
-    },
     SetCOLLECTIONS: (state, { payload }) => {
       state.collections = payload;
     },
@@ -136,8 +91,8 @@ export const reduxSlice = createSlice({
     },
     SEARCH: (state, { payload }) => {
       const results = !payload
-        ? state.cluster
-        : state.cluster.filter((item) => {
+        ? state.collections
+        : state.collections.filter((item) => {
             return item.name.toLowerCase().includes(payload.toLowerCase());
           });
       state.filtered = results;
@@ -160,7 +115,7 @@ export const reduxSlice = createSlice({
       })
       .addCase(BROWSE.fulfilled, (state, action) => {
         const { payload } = action.payload;
-        state.collections = state.cluster = state.filtered = payload;
+        state.collections = state.filtered = payload;
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
@@ -176,7 +131,6 @@ export const reduxSlice = createSlice({
       .addCase(SAVE.fulfilled, (state, action) => {
         const { success } = action.payload;
         state.collections.unshift(action.payload.payload);
-        state.cluster.unshift(action.payload.payload);
         state.filtered.unshift(action.payload.payload);
         state.formSubmitted = false;
         state.message = success;
@@ -201,7 +155,6 @@ export const reduxSlice = createSlice({
           }
         };
         updateCollections(state.collections);
-        updateCollections(state.cluster);
         updateCollections(state.filtered);
         state.formSubmitted = false;
         state.message = success;
@@ -228,7 +181,6 @@ export const reduxSlice = createSlice({
         };
 
         removeFromCollections(state.collections);
-        removeFromCollections(state.cluster);
         removeFromCollections(state.filtered);
         state.formSubmitted = false;
         state.message = success;
@@ -248,9 +200,6 @@ export const {
   TOGGLE,
   SetNEW_MENU,
   SetCREATE,
-  SetUPDATED_MENU,
-  SetDELETED_MENU,
-  FILTER,
   SetFILTERED,
   SEARCH,
 } = reduxSlice.actions;

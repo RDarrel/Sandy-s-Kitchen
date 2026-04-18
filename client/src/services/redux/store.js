@@ -10,15 +10,15 @@ import deals from "./slices/commerce/deals";
 import transactions from "./slices/commerce/transactions";
 import audit from "./slices/audit";
 import dashboard from "./slices/dashboard";
-import { addOns, menu, menuCategory } from "./slices/menu";
-import { inventoryItem } from "./slices/inventory";
+import { addOns, menus, menuCategories } from "./slices/menu";
+import { inventoryItems } from "./slices/inventory";
 const store = configureStore({
   reducer: {
     auth,
     addOns,
-    menu,
-    menuCategory,
-    inventoryItem,
+    menus,
+    menuCategories,
+    inventoryItems,
     staffs,
     suppliers,
     fuels,

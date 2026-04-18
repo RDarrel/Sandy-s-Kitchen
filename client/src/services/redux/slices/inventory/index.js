@@ -1,1 +1,1 @@
-export { default as inventoryItem } from "./inventoryItem";
+export { default as inventoryItems } from "./inventoryItems";

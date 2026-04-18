@@ -4,7 +4,7 @@ import InventoryBody from "./body";
 import InventoryHeader from "./header";
 import InventoryModal from "./modal";
 import { useDispatch, useSelector } from "react-redux";
-import { DESTROY } from "@/services/redux/slices/inventory/inventoryItem";
+import { DESTROY } from "@/services/redux/slices/inventory/inventoryItems";
 import { toast } from "sonner";
 
 const Inventory = () => {

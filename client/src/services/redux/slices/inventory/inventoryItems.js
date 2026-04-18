@@ -1,12 +1,17 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { axioKit } from "../../../utilities";
+import { axioKit, Stock } from "../../../utilities";
 
-const url = "menu/menu";
+const url = "inventory/items";
 
 const initialState = {
   collections: [],
-  category: "all",
   search: "",
+  params: {
+    type: "",
+    category: "",
+    measurement: "",
+    status: "",
+  },
   cluster: [],
   filtered: [],
   selected: {},
@@ -74,16 +79,20 @@ export const reduxSlice = createSlice({
   name: url,
   initialState,
   reducers: {
-    FilterBY_CATEGORY: (state, { payload }) => {
-      const results =
-        payload === "all"
-          ? state.collections
-          : state.collections.filter((item) => {
-              return item.category === payload;
-            });
+    FILTER: (state, { payload }) => {
+      const results = state.collections.filter((item) =>
+        Object.entries(payload).every(
+          ([key, value]) =>
+            !value ||
+            value === "all" ||
+            (key === "status"
+              ? Stock.getStatus(item[key], item.measurement)
+              : item[key]) === value,
+        ),
+      );
       state.cluster = results;
       state.filtered = results;
-      state.category = payload;
+      state.params = payload;
       state.search = "";
     },
     SetNEW_MENU: (state, { payload }) => {
@@ -166,6 +175,9 @@ export const reduxSlice = createSlice({
       })
       .addCase(SAVE.fulfilled, (state, action) => {
         const { success } = action.payload;
+        state.collections.unshift(action.payload.payload);
+        state.cluster.unshift(action.payload.payload);
+        state.filtered.unshift(action.payload.payload);
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
@@ -181,7 +193,16 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(UPDATE.fulfilled, (state, action) => {
-        const { success } = action.payload;
+        const { success, payload } = action.payload;
+        const updateCollections = (collections) => {
+          const index = collections.findIndex(({ _id }) => _id === payload._id);
+          if (index > -1) {
+            collections[index] = payload;
+          }
+        };
+        updateCollections(state.collections);
+        updateCollections(state.cluster);
+        updateCollections(state.filtered);
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
@@ -229,7 +250,7 @@ export const {
   SetCREATE,
   SetUPDATED_MENU,
   SetDELETED_MENU,
-  FilterBY_CATEGORY,
+  FILTER,
   SetFILTERED,
   SEARCH,
 } = reduxSlice.actions;

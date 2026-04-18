@@ -18,7 +18,7 @@ import { useSelector } from "react-redux";
 const getBundleItemId = (item) => item?._id || item?.id;
 
 const Bundles = ({ form, setForm = () => {} }) => {
-  const { collections } = useSelector(({ menu }) => menu);
+  const { collections } = useSelector(({ menus }) => menus);
   const [bundleSearch, setBundleSearch] = useState("");
   const [bundleCategory, setBundleCategory] = useState("All");
   const bundleCandidates = collections.filter((item) => item.type !== "bundle");
@@ -154,9 +154,7 @@ const Bundles = ({ form, setForm = () => {} }) => {
                       <p className="text-sm font-semibold">P{item.price}</p>
                       <p
                         className={`text-xs font-medium ${
-                          isSelected
-                            ? "text-primary"
-                            : "text-muted-foreground"
+                          isSelected ? "text-primary" : "text-muted-foreground"
                         }`}
                       >
                         {isSelected ? "Added" : "Add"}
@@ -197,7 +195,10 @@ const Bundles = ({ form, setForm = () => {} }) => {
                   className="grid grid-cols-[56px_1fr_84px_auto] items-center gap-3 border-b border-border bg-white px-4 py-3 last:border-b-0"
                 >
                   <img
-                    src={Cloudinary.getMenuImg(item.imgId, getBundleItemId(item))}
+                    src={Cloudinary.getMenuImg(
+                      item.imgId,
+                      getBundleItemId(item),
+                    )}
                     alt={item.name}
                     className="h-12 w-12 rounded-xl object-cover"
                   />

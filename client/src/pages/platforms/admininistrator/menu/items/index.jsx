@@ -2,7 +2,8 @@ import React, { useEffect } from "react";
 
 import Modal from "./modal";
 import { useDispatch, useSelector } from "react-redux";
-import { BROWSE } from "@/services/redux/slices/menu/menu";
+import { BROWSE } from "@/services/redux/slices/menu/menus";
+import { BROWSE as BROWSE_CATEGORIES } from "@/services/redux/slices/menu/categories";
 import Header from "./header";
 import Body from "./body";
 
@@ -13,6 +14,7 @@ const Items = () => {
   useEffect(() => {
     if (token) {
       dispatch(BROWSE({ token }));
+      dispatch(BROWSE_CATEGORIES({ token }));
     }
   }, [token, dispatch]);
 

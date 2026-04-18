@@ -1,12 +1,14 @@
-import { Category } from "@/services/fakeDB";
-import { SetCREATE } from "@/services/redux/slices/menu/menu";
+import { SetCREATE } from "@/services/redux/slices/menu/menus";
 import { Plus, UtensilsCrossed } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 
 const EmptyState = () => {
   const dispatch = useDispatch();
   const { collections, cluster, filtered, search, category } = useSelector(
-    ({ menu }) => menu,
+    ({ menus }) => menus,
+  );
+  const { collections: categories } = useSelector(
+    ({ menuCategories }) => menuCategories,
   );
 
   const hasMenus = collections.length > 0;
@@ -14,7 +16,9 @@ const EmptyState = () => {
   const hasCategoryFilter = category && category !== "all";
   const hasCategoryMatches = cluster.length > 0;
   const hasFilteredResults = filtered.length > 0;
-  const categoryLabel = Category.getName(category) || "this category";
+  const categoryLabel = hasCategoryFilter
+    ? categories?.find((item) => item?._id === category).name
+    : "this category";
   const emptyState = (() => {
     if (!hasMenus) {
       return {

@@ -29,10 +29,10 @@ import {
   SetUPDATED_MENU,
   TOGGLE,
   UPDATE,
-} from "@/services/redux/slices/menu/menu";
+} from "@/services/redux/slices/menu/menus";
 import Bundles from "./bundles";
 import { Category, Type } from "@/services/fakeDB";
-import { SAVE } from "@/services/redux/slices/menu/menu";
+import { SAVE } from "@/services/redux/slices/menu/menus";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { UPLOAD } from "@/services/redux/slices/persons/auth";
 import MenuImage from "./image";
@@ -56,7 +56,7 @@ const Modal = () => {
     willCreate,
     category: actCategory,
     collections,
-  } = useSelector(({ menu }) => menu);
+  } = useSelector(({ menus }) => menus);
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState("");

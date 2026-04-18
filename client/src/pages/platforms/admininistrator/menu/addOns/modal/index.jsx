@@ -78,10 +78,16 @@ const AddOnModal = () => {
   const dispatch = useDispatch();
 
   const { token } = useSelector(({ auth }) => auth);
-  const { showModal, willCreate, formSubmitted, selected, collections } =
-    useSelector(({ addOns }) => addOns);
+  const {
+    showModal,
+    willCreate,
+    formSubmitted,
+    selected,
+    collections,
+    activeGroup,
+  } = useSelector(({ addOns }) => addOns);
   const { collections: inventoryItems = [] } = useSelector(
-    ({ inventoryItem }) => inventoryItem,
+    ({ inventoryItems }) => inventoryItems,
   );
 
   const [form, setForm] = useState(INITIAL_FORM);
@@ -91,7 +97,6 @@ const AddOnModal = () => {
     setShowProfitWarning(false);
     dispatch(TOGGLE());
   };
-
   useEffect(() => {
     if (!showModal) return;
 
@@ -124,9 +129,9 @@ const AddOnModal = () => {
         _id: selected?._id,
       });
     } else {
-      setForm(INITIAL_FORM);
+      setForm({ ...INITIAL_FORM, group: activeGroup });
     }
-  }, [inventoryItems, selected, showModal, willCreate]);
+  }, [inventoryItems, selected, showModal, willCreate, activeGroup]);
 
   const hasDuplicateName = useMemo(() => {
     return !!getExistingAddOn(collections, form.name, selected?._id);
@@ -415,13 +420,13 @@ const AddOnModal = () => {
               </div>
 
               <div className="md:col-span-3">
-                <FormField label="Group" required>
+                <FormField label="Category" required>
                   <Select
                     value={form.group}
                     onValueChange={(value) => handleChange("group", value)}
                   >
                     <SelectTrigger className="w-full bg-transparent">
-                      <SelectValue placeholder="Select group" />
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
                       {GROUP_OPTIONS.map((option) => (
@@ -465,7 +470,10 @@ const AddOnModal = () => {
               <Button type="button" variant="outline" onClick={toggle}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={formSubmitted || hasDuplicateName}>
+              <Button
+                type="submit"
+                disabled={formSubmitted || hasDuplicateName}
+              >
                 {willCreate ? "Save Add-On" : "Update Add-On"}
                 <Spinner formSubmitted={formSubmitted} />
               </Button>

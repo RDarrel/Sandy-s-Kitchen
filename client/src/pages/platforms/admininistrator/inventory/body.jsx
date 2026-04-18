@@ -17,7 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import CustomPagination from "@/components/shared/pagination";
 import { Formatter, handlePagination, Stock } from "@/services/utilities";
 import { useState } from "react";
-import { Set_SELECTED } from "@/services/redux/slices/inventory/inventoryItem";
+import { Set_SELECTED } from "@/services/redux/slices/inventory/inventoryItems";
 import TableLoading from "@/components/shared/loading/table";
 
 const ActionButton = ({ title, icon: Icon, destructive = false, onClick }) => (
@@ -45,7 +45,7 @@ const InventoryBody = ({
   onConfirmDelete,
 }) => {
   const { filtered, formSubmitted, isLoading } = useSelector(
-      ({ inventoryItem }) => inventoryItem,
+      ({ inventoryItems }) => inventoryItems,
     ),
     [page, setPage] = useState(1),
     [maxPage, setMaxPage] = useState(5),

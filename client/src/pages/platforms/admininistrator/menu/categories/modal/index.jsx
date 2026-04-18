@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { AlertCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { SAVE, TOGGLE, UPDATE } from "@/services/redux/slices/menu/category";
+import { SAVE, TOGGLE, UPDATE } from "@/services/redux/slices/menu/categories";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
@@ -69,7 +69,7 @@ const FormField = ({ label, content, error = "" }) => (
 const InventoryModal = () => {
   const { token } = useSelector(({ auth }) => auth);
   const { showModal, willCreate, formSubmitted, selected, collections } =
-    useSelector(({ menuCategory }) => menuCategory);
+    useSelector(({ menuCategories }) => menuCategories);
 
   const [form, setForm] = useState(INITIAL_FORM);
   const dispatch = useDispatch();
