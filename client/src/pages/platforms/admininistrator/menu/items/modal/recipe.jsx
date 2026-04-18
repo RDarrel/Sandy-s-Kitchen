@@ -16,7 +16,6 @@ import { Formatter } from "@/services/utilities";
 import {
   INITIAL_FILTERS,
   INVENTORY_CATEGORY_OPTIONS,
-  INVENTORY_TYPE_OPTIONS,
 } from "../../addOns/modal/utils";
 
 const Recipe = ({
@@ -42,8 +41,7 @@ const Recipe = ({
 
   const filteredInventoryItems = useMemo(() => {
     return inventoryItems.filter((item) => {
-      const matchesType =
-        filters.type === "all" ? true : item?.type === filters.type;
+      const matchesType = item?.type === "ingredient";
       const matchesCategory =
         filters.category === "all" ? true : item?.category === filters.category;
       const matchesSearch = filters.search
@@ -55,24 +53,14 @@ const Recipe = ({
   }, [filters, inventoryItems]);
 
   const handleFilterChange = (key, value) => {
-    setFilters((prev) => {
-      if (key === "type") {
-        return {
-          ...prev,
-          type: value,
-          category: "all",
-        };
-      }
-
-      return {
-        ...prev,
-        [key]: value,
-      };
-    });
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
   return (
-    <section className="rounded-[24px] border border-border bg-white shadow-sm">
+    <section className="rounded-[15px] border border-border bg-white shadow-sm">
       <div className="border-b border-border px-5 py-4">
         <p className="text-sm font-semibold text-foreground">Recipe Setup</p>
         <p className="text-xs text-muted-foreground">
@@ -82,7 +70,7 @@ const Recipe = ({
       </div>
 
       <div className="grid gap-4 p-4 xl:grid-cols-[1.05fr_auto_0.95fr] xl:items-stretch">
-        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-2xl border border-border">
+        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
           <div className="space-y-1 border-b border-border px-4 py-3">
             <p className="text-base font-semibold text-foreground">
               Select Ingredients
@@ -94,8 +82,8 @@ const Recipe = ({
           </div>
 
           <div className="min-h-0 flex flex-1 flex-col space-y-3 p-3">
-            <div className="grid gap-3 md:grid-cols-12">
-              <div className="relative md:col-span-5">
+            <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+              <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={filters.search}
@@ -107,25 +95,7 @@ const Recipe = ({
                 />
               </div>
 
-              <div className="md:col-span-3">
-                <Select
-                  value={filters.type}
-                  onValueChange={(value) => handleFilterChange("type", value)}
-                >
-                  <SelectTrigger className="w-full bg-transparent">
-                    <SelectValue placeholder="Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INVENTORY_TYPE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="md:col-span-4">
+              <div>
                 <Select
                   value={filters.category}
                   onValueChange={(value) =>
@@ -136,10 +106,7 @@ const Recipe = ({
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(
-                      INVENTORY_CATEGORY_OPTIONS[filters.type] ||
-                      INVENTORY_CATEGORY_OPTIONS.all
-                    ).map((option) => (
+                    {INVENTORY_CATEGORY_OPTIONS.ingredient.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -231,7 +198,7 @@ const Recipe = ({
           </div>
         </div>
 
-        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-2xl border border-border">
+        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
           <div className="border-b border-border px-4 py-3">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">

@@ -32,7 +32,8 @@ const Resell = ({
       if (item?.type !== "resell") return false;
       if (category !== "all" && item?.category !== category) return false;
 
-      return !keyword || (
+      return (
+        !keyword ||
         item?.name?.toLowerCase().includes(keyword) ||
         item?.category?.toLowerCase().includes(keyword)
       );
@@ -40,7 +41,7 @@ const Resell = ({
   }, [category, inventoryItems, search]);
 
   return (
-    <section className="rounded-[24px] border border-border bg-white shadow-sm">
+    <section className="rounded-[15px] border border-border bg-white shadow-sm">
       <div className="border-b border-border px-5 py-4">
         <p className="text-sm font-semibold text-foreground">Resell Link</p>
         <p className="text-xs text-muted-foreground">
@@ -61,7 +62,7 @@ const Resell = ({
         >
           {selectedResellRow ? (
             <div>
-              <div className="rounded-xl border border-border px-4 py-4">
+              <div className="rounded-[10px] border border-border px-4 py-4">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 space-y-1">

@@ -3,6 +3,16 @@ import { Loader, PhilippinePeso } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -21,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { capitalize } from "@/services/utilities";
+import { capitalize, Formatter } from "@/services/utilities";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import {
@@ -76,6 +86,9 @@ const Modal = () => {
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
+  const [showPriceWarning, setShowPriceWarning] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState(null);
+  const [hasManualPrice, setHasManualPrice] = useState(false);
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
 
@@ -112,6 +125,7 @@ const Modal = () => {
           ...selected,
           ingredients: existingIngredients,
         });
+        setHasManualPrice(true);
         setImagePreview(Cloudinary.getMenuImg(selected.imgId, selected._id));
       } else {
         setForm({
@@ -119,6 +133,7 @@ const Modal = () => {
           category: categories[0]?._id,
           ...(actCategory !== "all" && { category: actCategory }),
         });
+        setHasManualPrice(false);
         setImagePreview("");
       }
     }
@@ -144,8 +159,7 @@ const Modal = () => {
       ...current,
       type: value,
       bundleItems: value === "bundle" ? current.bundleItems : [],
-      ingredients:
-        value === "prepared" || value === "resell" ? current.ingredients : [],
+      ingredients: [],
     }));
   };
 
@@ -260,6 +274,31 @@ const Modal = () => {
   };
 
   const selectedResellRow = selectedIngredientRows[0] || null;
+  const totalEstimatedBundleCost = form.bundleItems.reduce(
+    (total, item) => total + Number(item.price || 0) * Number(item.quantity || 0),
+    0,
+  );
+  const totalEstimatedResellCost = Number(selectedResellRow?.linkedItem?.cost || 0);
+  const totalEstimatedMenuCost =
+    form.type === "prepared"
+      ? totalEstimatedInventoryCost
+      : form.type === "bundle"
+        ? totalEstimatedBundleCost
+        : form.type === "resell"
+          ? totalEstimatedResellCost
+          : 0;
+
+  useEffect(() => {
+    if (!showModal || !willCreate || hasManualPrice) return;
+
+    setForm((current) => ({
+      ...current,
+      price:
+        totalEstimatedMenuCost > 0
+          ? String(Number(totalEstimatedMenuCost.toFixed(2)))
+          : "",
+    }));
+  }, [hasManualPrice, showModal, totalEstimatedMenuCost, willCreate]);
 
   const selectResellItem = (item) => {
     const unitOptions = getUnitOptions(item.measurement);
@@ -349,13 +388,16 @@ const Modal = () => {
       toast.error(error?.message || error || "Failed to save menu.");
     } finally {
       setSubmitting(false);
+      setShowPriceWarning(false);
+      setPendingPayload(null);
+      setHasManualPrice(false);
       setForm(initialForm);
       setImagePreview("");
     }
   };
   const handleUpdate = async (payload) => {
     try {
-      const { payload } = await dispatch(
+      const { payload: updatedPayload } = await dispatch(
         UPDATE({ data: payload, token }),
       ).unwrap();
       let imgId = selected.imgId;
@@ -364,9 +406,9 @@ const Modal = () => {
         const buildForm = Cloudinary.buildFileForm(
           form.image,
           "menus",
-          payload._id,
+          updatedPayload._id,
           {
-            menuId: payload._id,
+            menuId: updatedPayload._id,
           },
         );
         const imgPayload = await dispatch(
@@ -375,16 +417,29 @@ const Modal = () => {
         imgId = imgPayload.imgId;
       }
 
-      dispatch(SetUPDATED_MENU({ ...payload, imgId }));
+      dispatch(SetUPDATED_MENU({ ...updatedPayload, imgId }));
       toast.success("Successfully updated menu.");
       toggle();
     } catch (error) {
       toast.error(error?.message || error || "Failed to update menu.");
     } finally {
       setSubmitting(false);
+      setShowPriceWarning(false);
+      setPendingPayload(null);
+      setHasManualPrice(false);
       setForm(initialForm);
       setImagePreview("");
     }
+  };
+
+  const submitPayload = async (payload) => {
+    setSubmitting(true);
+
+    if (willCreate) {
+      return await handleSave(payload);
+    }
+
+    await handleUpdate(payload);
   };
 
   const handleSubmit = async (event) => {
@@ -410,18 +465,22 @@ const Modal = () => {
       return;
     }
 
-    setSubmitting(true);
-
     const payload = {
       ...form,
       ...buildInventoryPayload(),
     };
 
-    if (willCreate) {
-      return await handleSave(payload);
+    const declaredPrice = Number(payload.price || 0);
+    const shouldWarnAboutPrice =
+      totalEstimatedMenuCost > 0 && declaredPrice <= totalEstimatedMenuCost;
+
+    if (shouldWarnAboutPrice) {
+      setPendingPayload(payload);
+      setShowPriceWarning(true);
+      return;
     }
 
-    await handleUpdate(payload);
+    await submitPayload(payload);
   };
 
   const hasDuplicateName = isExistingMenuName(
@@ -544,9 +603,10 @@ const Modal = () => {
                     min="1"
                     step="0.01"
                     value={form.price}
-                    onChange={(event) =>
-                      handleChange("price", event.target.value)
-                    }
+                    onChange={(event) => {
+                      setHasManualPrice(true);
+                      handleChange("price", event.target.value);
+                    }}
                     placeholder="0.00"
                     className="pl-9"
                     required
@@ -591,6 +651,67 @@ const Modal = () => {
           </div>
         </form>
       </DialogContent>
+
+      <AlertDialog open={showPriceWarning} onOpenChange={setShowPriceWarning}>
+        <AlertDialogContent className="max-w-md border border-border bg-white shadow-[0_28px_80px_rgba(15,23,42,0.22)]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Review menu price</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4 text-sm text-muted-foreground">
+                <p>
+                  The price you entered may leave little to no profit on this
+                  menu item.
+                </p>
+
+                <div className="grid gap-3 rounded-xl border border-border bg-muted/20 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                      Declared Price
+                    </span>
+                    <span className="text-base font-semibold text-foreground">
+                      {Formatter.amount(Number(form.price || 0))}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground">
+                      Estimated Cost
+                    </span>
+                    <span className="text-base font-semibold text-destructive">
+                      {Formatter.amount(totalEstimatedMenuCost)}
+                    </span>
+                  </div>
+                </div>
+
+                <p>
+                  Since your selling price is not higher than the estimated
+                  cost, this item could earn very little or even lose money. Do
+                  you still want to continue?
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowPriceWarning(false);
+                setPendingPayload(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (!pendingPayload) return;
+                setShowPriceWarning(false);
+                await submitPayload(pendingPayload);
+              }}
+            >
+              Continue Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };

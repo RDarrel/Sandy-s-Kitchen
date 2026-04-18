@@ -29,7 +29,8 @@ const Bundles = ({ form, setForm = () => {} }) => {
   const [bundleCategory, setBundleCategory] = useState("All");
   const bundleCandidates = collections.filter((item) => item.type !== "bundle");
   const totalEstimatedBundleCost = (form.bundleItems || []).reduce(
-    (total, item) => total + Number(item.price || 0) * Number(item.quantity || 0),
+    (total, item) =>
+      total + Number(item.price || 0) * Number(item.quantity || 0),
     0,
   );
 
@@ -85,13 +86,13 @@ const Bundles = ({ form, setForm = () => {} }) => {
           ? current.bundleItems.filter(
               (selectedItem) => getBundleItemId(selectedItem) !== itemId,
             )
-          : [...current.bundleItems, { ...item, id: itemId, quantity: 1 }],
+          : [{ ...item, id: itemId, quantity: 1 }, ...current.bundleItems],
       };
     });
   };
 
   return (
-    <section className="rounded-[24px] border border-border bg-white shadow-sm">
+    <section className="rounded-[15px] border border-border bg-white shadow-sm">
       <div className="border-b border-border px-5 py-4">
         <p className="text-sm font-semibold text-foreground">
           Bundle Composition
@@ -102,7 +103,7 @@ const Bundles = ({ form, setForm = () => {} }) => {
       </div>
 
       <div className="grid gap-4 p-4 xl:grid-cols-[1fr_24px_1fr] xl:items-stretch">
-        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[20px] border border-border bg-white">
+        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border bg-white">
           <div className="border-b border-border bg-white px-4 py-3">
             <p className="text-sm font-semibold">Available Menu Items</p>
             <div className="mt-3 grid gap-2 md:grid-cols-[1fr_180px]">
@@ -198,7 +199,7 @@ const Bundles = ({ form, setForm = () => {} }) => {
           </div>
         </div>
 
-        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[20px] border border-border bg-white">
+        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border bg-white">
           <div className="border-b border-border bg-white px-4 py-3">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
@@ -254,14 +255,15 @@ const Bundles = ({ form, setForm = () => {} }) => {
                           </p>
                           <p className="text-sm font-semibold text-primary">
                             {Formatter.amount(
-                              Number(item.price || 0) * Number(item.quantity || 0),
+                              Number(item.price || 0) *
+                                Number(item.quantity || 0),
                             )}
                           </p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-[120px_auto] items-start gap-3 border-t border-border/70 pt-3">
-                        <div className="flex flex-col justify-start gap-1 self-start">
+                        <div className="flex flex-col justify-start gap-1 self-start bg-card">
                           <Label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                             Bundle Qty
                           </Label>
