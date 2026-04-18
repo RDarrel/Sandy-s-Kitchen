@@ -38,6 +38,7 @@ import { UPLOAD } from "@/services/redux/slices/persons/auth";
 import MenuImage from "./image";
 import Name, { isExistingMenuName } from "./name";
 import Recipe from "./recipe";
+import Resell from "./resell";
 import {
   getInventoryCost,
   getUnitOptions,
@@ -143,7 +144,8 @@ const Modal = () => {
       ...current,
       type: value,
       bundleItems: value === "bundle" ? current.bundleItems : [],
-      ingredients: value === "prepared" ? current.ingredients : [],
+      ingredients:
+        value === "prepared" || value === "resell" ? current.ingredients : [],
     }));
   };
 
@@ -257,8 +259,35 @@ const Modal = () => {
     }
   };
 
-  const buildPreparedPayload = () => {
-    if (form.type !== "prepared") {
+  const selectedResellRow = selectedIngredientRows[0] || null;
+
+  const selectResellItem = (item) => {
+    const unitOptions = getUnitOptions(item.measurement);
+
+    setForm((current) => ({
+      ...current,
+      ingredients:
+        current.ingredients[0]?.inventory === item._id
+          ? []
+          : [
+              {
+                inventory: item._id,
+                qtyPerOrder: 1,
+                unit: unitOptions[0]?.value || null,
+              },
+            ],
+    }));
+  };
+
+  const removeResellItem = () => {
+    setForm((current) => ({
+      ...current,
+      ingredients: [],
+    }));
+  };
+
+  const buildInventoryPayload = () => {
+    if (!["prepared", "resell"].includes(form.type)) {
       return {
         ingredients: [],
         hasRecipe: false,
@@ -287,8 +316,9 @@ const Modal = () => {
     const primaryIngredient = normalizedIngredients[0] || null;
 
     return {
-      ingredients: normalizedIngredients,
-      hasRecipe: normalizedIngredients.length > 0,
+      ingredients: form.type === "prepared" ? normalizedIngredients : [],
+      hasRecipe:
+        form.type === "prepared" ? normalizedIngredients.length > 0 : false,
       inventory: primaryIngredient?.inventory || null,
       qtyPerOrder: primaryIngredient?.qtyPerOrder || null,
       unit: primaryIngredient?.unit || null,
@@ -370,11 +400,21 @@ const Modal = () => {
       return;
     }
 
+    if (form.type === "prepared" && !form.ingredients.length) {
+      toast.error("Please add at least one recipe ingredient.");
+      return;
+    }
+
+    if (form.type === "resell" && !selectedResellRow) {
+      toast.error("Please select one resell inventory item.");
+      return;
+    }
+
     setSubmitting(true);
 
     const payload = {
       ...form,
-      ...buildPreparedPayload(),
+      ...buildInventoryPayload(),
     };
 
     if (willCreate) {
@@ -396,7 +436,9 @@ const Modal = () => {
         className={`border border-border bg-white shadow-[0_28px_80px_rgba(15,23,42,0.22)] ${
           form.type === "bundle" || form.type === "prepared"
             ? "max-w-5xl"
-            : "max-w-2xl"
+            : form.type === "resell"
+              ? "max-w-xl"
+              : "max-w-2xl"
         }`}
       >
         <DialogHeader>
@@ -468,6 +510,14 @@ const Modal = () => {
                 totalEstimatedInventoryCost={totalEstimatedInventoryCost}
                 isPieceUnit={isPieceUnit}
                 onIngredientQtyKeyDown={handleIngredientQtyKeyDown}
+              />
+            )}
+
+            {form.type === "resell" && (
+              <Resell
+                selectedResellRow={selectedResellRow}
+                onSelectResellItem={selectResellItem}
+                onRemoveResellItem={removeResellItem}
               />
             )}
 
