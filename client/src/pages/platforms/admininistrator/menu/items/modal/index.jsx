@@ -274,11 +274,14 @@ const Modal = () => {
   };
 
   const selectedResellRow = selectedIngredientRows[0] || null;
-  const totalEstimatedBundleCost = form.bundleItems.reduce(
-    (total, item) => total + Number(item.price || 0) * Number(item.quantity || 0),
+  const totalEstimatedBundleCost = form?.bundleItems?.reduce(
+    (total, item) =>
+      total + Number(item.price || 0) * Number(item.quantity || 0),
     0,
   );
-  const totalEstimatedResellCost = Number(selectedResellRow?.linkedItem?.cost || 0);
+  const totalEstimatedResellCost = Number(
+    selectedResellRow?.linkedItem?.cost || 0,
+  );
   const totalEstimatedMenuCost =
     form.type === "prepared"
       ? totalEstimatedInventoryCost

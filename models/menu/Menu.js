@@ -28,6 +28,10 @@ const modelSchema = new mongoose.Schema(
       ref: "MenuCategory",
       required: true,
     },
+    hasRecipe: {
+      type: Boolean,
+    },
+
     isPublish: Boolean,
     //if type is Resell we need this
     inventory: {
