@@ -195,12 +195,12 @@ const Modal = () => {
     setForm((current) => ({
       ...current,
       ingredients: [
-        ...current.ingredients,
         {
           inventory: item._id,
           qtyPerOrder: 1,
           unit: getUnitOptions(item.measurement)[0]?.value || null,
         },
+        ...current.ingredients,
       ],
     }));
   };

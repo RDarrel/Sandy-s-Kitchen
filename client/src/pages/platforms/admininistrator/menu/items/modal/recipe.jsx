@@ -236,10 +236,10 @@ const Recipe = ({
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
                 <p className="text-base font-semibold text-foreground">
-                  Selected Ingredients
+                  Recipe Ingredients
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Set the amount used for one serving of this menu item.
+                  Build the ingredient list for one serving of this menu item.
                 </p>
               </div>
               <div className="flex min-w-[72px] flex-col items-center justify-center rounded-lg border border-border px-3 py-2 text-center">
