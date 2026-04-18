@@ -31,12 +31,20 @@ import {
   UPDATE,
 } from "@/services/redux/slices/menu/menus";
 import Bundles from "./bundles";
-import { Category, Type } from "@/services/fakeDB";
+import { Type } from "@/services/fakeDB";
 import { SAVE } from "@/services/redux/slices/menu/menus";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { UPLOAD } from "@/services/redux/slices/persons/auth";
 import MenuImage from "./image";
 import Name, { isExistingMenuName } from "./name";
+import Recipe from "./recipe";
+import {
+  getInventoryCost,
+  getUnitOptions,
+  isPieceUnit,
+  mapSelectedIngredient,
+  resolveUnitValue,
+} from "../../addOns/modal/utils";
 
 const initialForm = {
   name: "",
@@ -46,6 +54,7 @@ const initialForm = {
   description: "",
   image: null,
   bundleItems: [],
+  ingredients: [],
 };
 
 const Modal = () => {
@@ -59,6 +68,9 @@ const Modal = () => {
   } = useSelector(({ menus }) => menus);
   const { collections: categories } = useSelector(
     ({ menuCategories }) => menuCategories,
+  );
+  const { collections: inventoryItems = [] } = useSelector(
+    ({ inventoryItems }) => inventoryItems,
   );
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
@@ -77,7 +89,28 @@ const Modal = () => {
   useEffect(() => {
     if (showModal) {
       if (!willCreate) {
-        setForm(selected);
+        const existingIngredients =
+          selected?.ingredients?.length > 0
+            ? selected.ingredients.map((entry) =>
+                mapSelectedIngredient(entry, inventoryItems),
+              )
+            : selected?.inventory
+              ? [
+                  mapSelectedIngredient(
+                    {
+                      inventory: selected.inventory,
+                      qtyPerOrder: selected.qtyPerOrder,
+                      unit: selected.unit,
+                    },
+                    inventoryItems,
+                  ),
+                ]
+              : [];
+
+        setForm({
+          ...selected,
+          ingredients: existingIngredients,
+        });
         setImagePreview(Cloudinary.getMenuImg(selected.imgId, selected._id));
       } else {
         setForm({
@@ -88,7 +121,14 @@ const Modal = () => {
         setImagePreview("");
       }
     }
-  }, [showModal, selected, willCreate, actCategory, categories]);
+  }, [
+    showModal,
+    selected,
+    willCreate,
+    actCategory,
+    categories,
+    inventoryItems,
+  ]);
 
   const toggle = () => dispatch(TOGGLE());
   const handleChange = (key, value) => {
@@ -103,25 +143,176 @@ const Modal = () => {
       ...current,
       type: value,
       bundleItems: value === "bundle" ? current.bundleItems : [],
+      ingredients: value === "prepared" ? current.ingredients : [],
     }));
   };
 
-  const handleSave = async () => {
+  const selectedIngredientRows = form.ingredients.map((entry, index) => {
+    const linkedItem =
+      inventoryItems.find((item) => item?._id === entry.inventory) || null;
+    const unitOptions = getUnitOptions(linkedItem?.measurement);
+    const selectedUnit = resolveUnitValue(
+      unitOptions,
+      entry.unit,
+      linkedItem?.measurement,
+    );
+    const estimatedCost = getInventoryCost(
+      entry.qtyPerOrder,
+      selectedUnit,
+      linkedItem,
+    );
+
+    return {
+      index,
+      ...entry,
+      unit: selectedUnit,
+      linkedItem,
+      unitOptions,
+      estimatedCost,
+    };
+  });
+
+  const totalEstimatedInventoryCost = selectedIngredientRows.reduce(
+    (total, entry) => total + (entry.estimatedCost || 0),
+    0,
+  );
+
+  const selectedInventoryIds = form.ingredients
+    .map((entry) => entry?.inventory)
+    .filter(Boolean);
+
+  const toggleRecipeItem = (item) => {
+    if (selectedInventoryIds.includes(item._id)) {
+      setForm((current) => ({
+        ...current,
+        ingredients: current.ingredients.filter(
+          (entry) => entry.inventory !== item._id,
+        ),
+      }));
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      ingredients: [
+        ...current.ingredients,
+        {
+          inventory: item._id,
+          qtyPerOrder: 1,
+          unit: getUnitOptions(item.measurement)[0]?.value || null,
+        },
+      ],
+    }));
+  };
+
+  const removeIngredientRow = (index) => {
+    setForm((current) => ({
+      ...current,
+      ingredients: current.ingredients.filter(
+        (_, rowIndex) => rowIndex !== index,
+      ),
+    }));
+  };
+
+  const updateIngredientQty = (index, value) => {
+    setForm((current) => ({
+      ...current,
+      ingredients: current.ingredients.map((entry, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...entry,
+              qtyPerOrder: isPieceUnit(entry.unit)
+                ? value.replace(/[^0-9]/g, "")
+                : value,
+            }
+          : entry,
+      ),
+    }));
+  };
+
+  const updateIngredientUnit = (index, value) => {
+    setForm((current) => ({
+      ...current,
+      ingredients: current.ingredients.map((entry, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...entry,
+              unit: value,
+              qtyPerOrder: isPieceUnit(value)
+                ? String(
+                    Math.max(1, Math.round(Number(entry.qtyPerOrder) || 1)),
+                  )
+                : entry.qtyPerOrder,
+            }
+          : entry,
+      ),
+    }));
+  };
+
+  const handleIngredientQtyKeyDown = (event, unit) => {
+    if (!isPieceUnit(unit)) return;
+
+    if ([".", ",", "e", "E", "-", "+"].includes(event.key)) {
+      event.preventDefault();
+    }
+  };
+
+  const buildPreparedPayload = () => {
+    if (form.type !== "prepared") {
+      return {
+        ingredients: [],
+        hasRecipe: false,
+        inventory: null,
+        qtyPerOrder: null,
+        unit: null,
+      };
+    }
+
+    const normalizedIngredients = form.ingredients.map((entry) => {
+      const linkedItem =
+        inventoryItems.find((item) => item?._id === entry.inventory) || null;
+      const normalizedUnit = resolveUnitValue(
+        getUnitOptions(linkedItem?.measurement),
+        entry.unit,
+        linkedItem?.measurement,
+      );
+
+      return {
+        inventory: entry.inventory,
+        qtyPerOrder: Number(entry.qtyPerOrder),
+        unit: normalizedUnit || entry.unit,
+      };
+    });
+
+    const primaryIngredient = normalizedIngredients[0] || null;
+
+    return {
+      ingredients: normalizedIngredients,
+      hasRecipe: normalizedIngredients.length > 0,
+      inventory: primaryIngredient?.inventory || null,
+      qtyPerOrder: primaryIngredient?.qtyPerOrder || null,
+      unit: primaryIngredient?.unit || null,
+    };
+  };
+
+  const handleSave = async (payload) => {
     try {
-      const { payload } = await dispatch(SAVE({ data: form, token })).unwrap();
+      const { payload: savedPayload } = await dispatch(
+        SAVE({ data: payload, token }),
+      ).unwrap();
       const buildForm = Cloudinary.buildFileForm(
         form.image,
         "menus",
-        payload._id,
+        savedPayload._id,
         {
-          menuId: payload._id,
+          menuId: savedPayload._id,
         },
       );
       const { imgId } = await dispatch(
         UPLOAD({ data: buildForm, token }),
       ).unwrap();
 
-      dispatch(SetNEW_MENU({ ...payload, imgId }));
+      dispatch(SetNEW_MENU({ ...savedPayload, imgId }));
       toast.success("Successfully saved menu.");
       toggle();
     } catch (error) {
@@ -132,12 +323,12 @@ const Modal = () => {
       setImagePreview("");
     }
   };
-  const handleUpdate = async () => {
+  const handleUpdate = async (payload) => {
     try {
       const { payload } = await dispatch(
-        UPDATE({ data: form, token }),
+        UPDATE({ data: payload, token }),
       ).unwrap();
-      var imgId = selected.imgId;
+      let imgId = selected.imgId;
 
       if (form.image) {
         const buildForm = Cloudinary.buildFileForm(
@@ -181,11 +372,16 @@ const Modal = () => {
 
     setSubmitting(true);
 
+    const payload = {
+      ...form,
+      ...buildPreparedPayload(),
+    };
+
     if (willCreate) {
-      return await handleSave();
+      return await handleSave(payload);
     }
 
-    await handleUpdate();
+    await handleUpdate(payload);
   };
 
   const hasDuplicateName = isExistingMenuName(
@@ -198,7 +394,9 @@ const Modal = () => {
     <Dialog open={showModal} onOpenChange={toggle}>
       <DialogContent
         className={`border border-border bg-white shadow-[0_28px_80px_rgba(15,23,42,0.22)] ${
-          form.type === "bundle" ? "max-w-5xl" : "max-w-2xl"
+          form.type === "bundle" || form.type === "prepared"
+            ? "max-w-5xl"
+            : "max-w-2xl"
         }`}
       >
         <DialogHeader>
@@ -258,6 +456,19 @@ const Modal = () => {
 
             {form.type === "bundle" && (
               <Bundles form={form} setForm={setForm} />
+            )}
+
+            {form.type === "prepared" && (
+              <Recipe
+                onToggleInventoryItem={toggleRecipeItem}
+                selectedIngredientRows={selectedIngredientRows}
+                onUpdateIngredientQty={updateIngredientQty}
+                onUpdateIngredientUnit={updateIngredientUnit}
+                onRemoveIngredientRow={removeIngredientRow}
+                totalEstimatedInventoryCost={totalEstimatedInventoryCost}
+                isPieceUnit={isPieceUnit}
+                onIngredientQtyKeyDown={handleIngredientQtyKeyDown}
+              />
             )}
 
             <section className="grid gap-4 md:grid-cols-2">
