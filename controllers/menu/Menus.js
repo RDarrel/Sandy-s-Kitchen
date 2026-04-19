@@ -55,9 +55,21 @@ const normalizeRecommendedAddOns = (value = []) => {
     .map((entry) => String(entry));
 };
 
-const buildMenuPayload = (body = {}, normalizedIngredients = []) => {
+const buildMenuPayload = (
+  body = {},
+  normalizedIngredients = [],
+  normalizedBundleItems = [],
+) => {
   const primaryIngredient = normalizedIngredients[0] || null;
   const type = body.type || "prepared";
+  const shouldSetAvailability = Object.prototype.hasOwnProperty.call(
+    body,
+    "isAvailable",
+  );
+  const hasSetup =
+    type === "bundle"
+      ? normalizedBundleItems.length > 0
+      : normalizedIngredients.length > 0;
 
   return {
     name: body.name,
@@ -71,6 +83,9 @@ const buildMenuPayload = (body = {}, normalizedIngredients = []) => {
     qtyPerOrder:
       type === "bundle" ? null : primaryIngredient?.qtyPerOrder || null,
     unit: type === "bundle" ? null : primaryIngredient?.unit || null,
+    ...(shouldSetAvailability
+      ? { isAvailable: Boolean(body.isAvailable) && hasSetup }
+      : {}),
   };
 };
 
@@ -332,8 +347,19 @@ exports.save = async (req, res) => {
       req.body.type === "bundle"
         ? normalizeBundleItems(req.body.bundleItems)
         : [];
+
+    if (
+      req.body.type === "bundle" &&
+      normalizedBundleItems.length === 1 &&
+      Boolean(req.body.isAvailable)
+    ) {
+      return res.status(400).json({
+        error: "Bundle composition must include at least 2 menu items.",
+      });
+    }
+
     const menu = await Menu.create(
-      buildMenuPayload(req.body, normalizedIngredients),
+      buildMenuPayload(req.body, normalizedIngredients, normalizedBundleItems),
     );
 
     await syncRecipe(
@@ -376,9 +402,20 @@ exports.update = async (req, res) => {
       req.body.type === "bundle"
         ? normalizeBundleItems(req.body.bundleItems)
         : [];
+
+    if (
+      req.body.type === "bundle" &&
+      normalizedBundleItems.length === 1 &&
+      Boolean(req.body.isAvailable)
+    ) {
+      return res.status(400).json({
+        error: "Bundle composition must include at least 2 menu items.",
+      });
+    }
+
     const updatedMenu = await Menu.findByIdAndUpdate(
       _id,
-      buildMenuPayload(req.body, normalizedIngredients),
+      buildMenuPayload(req.body, normalizedIngredients, normalizedBundleItems),
       {
         new: true,
         runValidators: true,
@@ -445,9 +482,23 @@ exports.availability = async (req, res) => {
       return res.status(400).json({ error: "Menu ID is required." });
     }
 
+    const existingMenu = await findMenu(_id);
+    if (!existingMenu) {
+      return res.status(404).json({ error: "Menu not found." });
+    }
+
+    const hasSetup =
+      existingMenu.type === "bundle"
+        ? (existingMenu.bundleItems || []).length > 0
+        : existingMenu.type === "resell"
+          ? Boolean(existingMenu.inventory)
+          : (existingMenu.ingredients || []).length > 0;
+
+    const nextAvailability = Boolean(isAvailable) && hasSetup;
+
     const updatedMenu = await Menu.findByIdAndUpdate(
       _id,
-      { isAvailable: Boolean(isAvailable) },
+      { isAvailable: nextAvailability },
       { new: true, runValidators: true },
     ).lean();
 

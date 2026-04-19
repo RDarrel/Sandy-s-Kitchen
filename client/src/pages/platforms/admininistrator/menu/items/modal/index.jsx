@@ -74,6 +74,60 @@ const initialForm = {
   recommendedAddOns: [],
 };
 
+const getSetupRequirementLabel = (type) => {
+  if (type === "bundle") return "set up the bundle composition";
+  if (type === "resell") return "link a stock item";
+  return "create a recipe";
+};
+
+const getSetupOnlyDialogMeta = (type) => {
+  if (type === "bundle") {
+    return {
+      title: "Manage Bundle Items",
+      description: "Select the menu items included in this bundle.",
+    };
+  }
+
+  if (type === "resell") {
+    return {
+      title: "Manage Inventory Link",
+      description: "Link a stock item for selling and inventory tracking.",
+    };
+  }
+
+  return {
+    title: "Manage Recipe",
+    description: "Select the ingredients used to prepare one serving.",
+  };
+};
+
+const getRemoveSetupCopy = (type) => {
+  if (type === "bundle") {
+    return {
+      title: "Confirm bundle removal",
+      lead: "You removed all items from this bundle.",
+      detail:
+        "If you continue, this menu item will be saved as unavailable and it will no longer be sold until you set up the bundle composition again.",
+    };
+  }
+
+  if (type === "resell") {
+    return {
+      title: "Confirm stock link removal",
+      lead: "You removed the linked stock item for this menu.",
+      detail:
+        "If you continue, this menu item will be saved as unavailable and it will no longer be sold until you link a stock item again.",
+    };
+  }
+
+  return {
+    title: "Confirm recipe removal",
+    lead: "You removed all ingredients from this recipe.",
+    detail:
+      "If you continue, this menu item will be saved as unavailable and it will no longer be sold until you create a recipe again.",
+  };
+};
+
 const Modal = () => {
   const { token } = useSelector(({ auth }) => auth);
   const {
@@ -94,15 +148,25 @@ const Modal = () => {
 
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
+  const [submitIntent, setSubmitIntent] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [showPriceWarning, setShowPriceWarning] = useState(false);
+  const [showSetupLaterWarning, setShowSetupLaterWarning] = useState(false);
+  const [showRemoveSetupWarning, setShowRemoveSetupWarning] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
+  const [pendingSetupLaterPayload, setPendingSetupLaterPayload] =
+    useState(null);
+  const [pendingRemoveSetupPayload, setPendingRemoveSetupPayload] =
+    useState(null);
   const [hasManualPrice, setHasManualPrice] = useState(false);
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
   const isSetupOnly = !willCreate && modalMode === "setup";
   const isAddOnsOnly = !willCreate && modalMode === "addons";
   const isFullEdit = !isSetupOnly && !isAddOnsOnly;
+
+  const shouldShowAvailabilitySaveOptions =
+    !isAddOnsOnly && (willCreate || isSetupOnly);
 
   useEffect(() => {
     return () => {
@@ -165,7 +229,9 @@ const Modal = () => {
             : selected?.type === "resell"
               ? hasResellSetup
               : false,
-          enableAddOns: isAddOnsOnly ? true : existingRecommendedAddOns.length > 0,
+          enableAddOns: isAddOnsOnly
+            ? true
+            : existingRecommendedAddOns.length > 0,
           recommendedAddOns: existingRecommendedAddOns,
         });
         setHasManualPrice(true);
@@ -437,12 +503,13 @@ const Modal = () => {
       toggle();
     } catch (error) {
       toast.error(error?.message || error || "Failed to save menu.");
-    } finally {
-      setSubmitting(false);
-      setShowPriceWarning(false);
-      setPendingPayload(null);
-      setHasManualPrice(false);
-      setForm(initialForm);
+	    } finally {
+	      setSubmitting(false);
+	      setSubmitIntent(null);
+	      setShowPriceWarning(false);
+	      setPendingPayload(null);
+	      setHasManualPrice(false);
+	      setForm(initialForm);
       setImagePreview("");
     }
   };
@@ -473,12 +540,13 @@ const Modal = () => {
       toggle();
     } catch (error) {
       toast.error(error?.message || error || "Failed to update menu.");
-    } finally {
-      setSubmitting(false);
-      setShowPriceWarning(false);
-      setPendingPayload(null);
-      setHasManualPrice(false);
-      setForm(initialForm);
+	    } finally {
+	      setSubmitting(false);
+	      setSubmitIntent(null);
+	      setShowPriceWarning(false);
+	      setPendingPayload(null);
+	      setHasManualPrice(false);
+	      setForm(initialForm);
       setImagePreview("");
     }
   };
@@ -496,6 +564,20 @@ const Modal = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+	    const submitter = event?.nativeEvent?.submitter || null;
+	    const rawAvailabilityIntent =
+	      submitter?.getAttribute?.("data-availability") || null;
+	    const availabilityIntent =
+	      shouldShowAvailabilitySaveOptions && !rawAvailabilityIntent
+	        ? "unavailable"
+	        : rawAvailabilityIntent;
+	    setSubmitIntent(availabilityIntent || "default");
+	    const isSavingUnavailable =
+	      shouldShowAvailabilitySaveOptions &&
+	      availabilityIntent === "unavailable";
+	    const wantsAvailable =
+	      shouldShowAvailabilitySaveOptions && availabilityIntent === "available";
+
     if (hasDuplicateName) {
       toast.error("This menu name already exists.");
       return;
@@ -506,26 +588,26 @@ const Modal = () => {
       return;
     }
 
-    if (form.type === "prepared" && !form.ingredients.length) {
-      if (form.setupRecipe) {
-        toast.error("Please add at least one recipe ingredient.");
-        return;
-      }
-    }
+	    if (form.type === "prepared" && !form.ingredients.length) {
+	      if (wantsAvailable && (willCreate || isSetupOnly)) {
+	        toast.error("Please add at least one recipe ingredient.");
+	        return;
+	      }
+	    }
 
-    if (form.type === "resell" && !selectedResellRow) {
-      if (form.setupResellLink) {
-        toast.error("Please select one resell inventory item.");
-        return;
-      }
-    }
+	    if (form.type === "resell" && !selectedResellRow) {
+	      if (wantsAvailable && (willCreate || isSetupOnly)) {
+	        toast.error("Please select one resell inventory item.");
+	        return;
+	      }
+	    }
 
-    if (form.type === "bundle" && !form.bundleItems.length) {
-      if (form.setupBundle) {
-        toast.error("Please add at least one menu item to the bundle.");
-        return;
-      }
-    }
+	    if (form.type === "bundle" && form.bundleItems?.length < 2) {
+	      if (wantsAvailable && (willCreate || isSetupOnly)) {
+	        toast.error("Please select at least 2 menu items for this bundle.");
+	        return;
+	      }
+	    }
 
     const normalizedRecommendedAddOns = form.enableAddOns
       ? Array.from(
@@ -544,7 +626,33 @@ const Modal = () => {
       ...form,
       recommendedAddOns: normalizedRecommendedAddOns,
       ...buildInventoryPayload(),
+      ...(shouldShowAvailabilitySaveOptions
+        ? { isAvailable: wantsAvailable }
+        : {}),
     };
+
+    const isRemovingSetup =
+      !willCreate &&
+      Boolean(selected?.isAvailable) &&
+      (form.type === "prepared"
+        ? payload.ingredients.length === 0
+        : form.type === "bundle"
+          ? payload.bundleItems.length === 0
+          : form.type === "resell"
+            ? !payload.inventory
+            : false);
+
+    if (isRemovingSetup) {
+      setPendingRemoveSetupPayload({ ...payload, isAvailable: false });
+      setShowRemoveSetupWarning(true);
+      return;
+    }
+
+	    if (willCreate && !shouldShowAvailabilitySaveOptions) {
+	      setPendingSetupLaterPayload({ ...payload, isAvailable: false });
+	      setShowSetupLaterWarning(true);
+	      return;
+	    }
 
     const declaredPrice = Number(payload.price || 0);
     const shouldWarnAboutPrice =
@@ -565,41 +673,41 @@ const Modal = () => {
     selected?._id,
   );
 
-  return (
-    <Dialog open={showModal} onOpenChange={toggle}>
-      <DialogContent
+	  return (
+	    <Dialog open={showModal} onOpenChange={toggle}>
+	      <DialogContent
         className={`border border-border bg-white shadow-[0_28px_80px_rgba(15,23,42,0.22)] ${
           isAddOnsOnly
             ? "max-w-5xl"
             : isSetupOnly
-            ? form.type === "resell"
-              ? "max-w-xl"
-              : "max-w-5xl"
-            : form.type === "bundle" || form.type === "prepared"
-              ? "max-w-5xl"
-              : form.type === "resell"
+              ? form.type === "resell"
                 ? "max-w-xl"
-                : "max-w-2xl"
+                : "max-w-5xl"
+              : form.type === "bundle" || form.type === "prepared"
+                ? "max-w-5xl"
+                : form.type === "resell"
+                  ? "max-w-xl"
+                  : "max-w-2xl"
         }`}
       >
-        <DialogHeader>
-          <DialogTitle className="text-xl">
-            {willCreate
-              ? "Create Menu Item"
-              : isAddOnsOnly
-                ? "Manage Add-Ons"
-                : isSetupOnly
-                ? `Update ${capitalize(form.type || "prepared")} Setup`
-                : "Update Menu Item"}
-          </DialogTitle>
-          <DialogDescription>
-            {isAddOnsOnly
-              ? "Choose the add-ons that will be suggested for this menu item."
-              : isSetupOnly
-              ? "Adjust the operational setup for this menu item without changing the rest of its core details."
-              : "Fill in the core details for a new kitchen or resale item."}
-          </DialogDescription>
-        </DialogHeader>
+	        <DialogHeader>
+	          <DialogTitle className="text-xl">
+	            {willCreate
+	              ? "Create Menu Item"
+	              : isAddOnsOnly
+	                ? "Manage Add-Ons"
+	                : isSetupOnly
+	                  ? getSetupOnlyDialogMeta(form.type || "prepared").title
+	                  : "Update Menu Item"}
+	          </DialogTitle>
+	          <DialogDescription>
+	            {isAddOnsOnly
+	              ? "Choose the add-ons that will be suggested for this menu item."
+	              : isSetupOnly
+	                ? getSetupOnlyDialogMeta(form.type || "prepared").description
+	                : "Fill in the core details for a new kitchen or resale item."}
+	          </DialogDescription>
+	        </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-5 ">
@@ -653,29 +761,17 @@ const Modal = () => {
               <Bundles
                 form={form}
                 setForm={setForm}
-                enabled={form.setupBundle}
-                hideToggle={!willCreate && (form.bundleItems?.length || 0) > 0}
-                onEnabledChange={(value) => {
-                  setForm((current) => ({
-                    ...current,
-                    setupBundle: value,
-                    bundleItems: value ? current.bundleItems : [],
-                  }));
-                }}
+                enabled
+                hideToggle
+                onEnabledChange={() => {}}
               />
             )}
 
             {!isAddOnsOnly && form.type === "prepared" && (
               <Recipe
-                enabled={form.setupRecipe}
-                hideToggle={!willCreate && form.ingredients.length > 0}
-                onEnabledChange={(value) => {
-                  setForm((current) => ({
-                    ...current,
-                    setupRecipe: value,
-                    ingredients: value ? current.ingredients : [],
-                  }));
-                }}
+                enabled
+                hideToggle
+                onEnabledChange={() => {}}
                 onToggleInventoryItem={toggleRecipeItem}
                 selectedIngredientRows={selectedIngredientRows}
                 onUpdateIngredientQty={updateIngredientQty}
@@ -689,15 +785,9 @@ const Modal = () => {
 
             {!isAddOnsOnly && form.type === "resell" && (
               <Resell
-                enabled={form.setupResellLink}
-                hideToggle={!willCreate && Boolean(selectedResellRow)}
-                onEnabledChange={(value) => {
-                  setForm((current) => ({
-                    ...current,
-                    setupResellLink: value,
-                    ingredients: value ? current.ingredients : [],
-                  }));
-                }}
+                enabled
+                hideToggle
+                onEnabledChange={() => {}}
                 selectedResellRow={selectedResellRow}
                 onSelectResellItem={selectResellItem}
                 onRemoveResellItem={removeResellItem}
@@ -813,17 +903,155 @@ const Modal = () => {
             )}
 
             <section className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
-              <Button type="button" variant="outline" onClick={toggle}>
-                Cancel
+              <Button
+                type="button"
+                variant="outline"
+                onClick={toggle}
+                disabled={submitting}
+              >
+                Close
               </Button>
-              <Button type="submit" disabled={submitting || hasDuplicateName}>
-                {willCreate ? "Save" : isSetupOnly ? "Update Setup" : "Update"}
-                {submitting && <Loader className="animate-spin" />}
-              </Button>
+
+	              {shouldShowAvailabilitySaveOptions ? (
+	                <>
+	                  <Button
+	                    type="submit"
+	                    variant="outline"
+	                    disabled={submitting || hasDuplicateName}
+	                    data-availability="unavailable"
+	                    onClick={() => setSubmitIntent("unavailable")}
+	                  >
+	                    Save as unavailable
+	                    {submitting && submitIntent === "unavailable" && (
+	                      <Loader className="animate-spin" />
+	                    )}
+	                  </Button>
+	                  <Button
+	                    type="submit"
+	                    disabled={submitting || hasDuplicateName}
+	                    data-availability="available"
+	                    onClick={() => setSubmitIntent("available")}
+	                  >
+	                    Save & make available
+	                    {submitting && submitIntent === "available" && (
+	                      <Loader className="animate-spin" />
+	                    )}
+	                  </Button>
+	                </>
+	              ) : (
+                <Button type="submit" disabled={submitting || hasDuplicateName}>
+	                  {willCreate
+	                    ? "Save"
+	                    : isSetupOnly
+	                      ? "Update Setup"
+	                      : "Update"}
+	                  {submitting && <Loader className="animate-spin" />}
+	                </Button>
+	              )}
             </section>
           </div>
         </form>
       </DialogContent>
+
+      <AlertDialog
+        open={showSetupLaterWarning}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowSetupLaterWarning(false);
+            setPendingSetupLaterPayload(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="max-w-md border border-border bg-white shadow-[0_28px_80px_rgba(15,23,42,0.22)]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Saved as unavailable</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  This menu item will be saved, but it won&apos;t be available
+                  for selling yet.
+                </p>
+                <p>
+                  To make it available later, open the setup and{" "}
+                  {getSetupRequirementLabel(form.type)}.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={submitting}
+              onClick={() => {
+                setShowSetupLaterWarning(false);
+                setPendingSetupLaterPayload(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={submitting}
+              onClick={async () => {
+                if (!pendingSetupLaterPayload) return;
+                setShowSetupLaterWarning(false);
+                await submitPayload(pendingSetupLaterPayload);
+                setPendingSetupLaterPayload(null);
+              }}
+            >
+              Save as unavailable
+              {submitting && <Loader className="animate-spin" />}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showRemoveSetupWarning}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowRemoveSetupWarning(false);
+            setPendingRemoveSetupPayload(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="max-w-md border border-border bg-white shadow-[0_28px_80px_rgba(15,23,42,0.22)]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {getRemoveSetupCopy(form.type).title}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p className="text-foreground">
+                  {getRemoveSetupCopy(form.type).lead}
+                </p>
+                <p>{getRemoveSetupCopy(form.type).detail}</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={submitting}
+              onClick={() => {
+                setShowRemoveSetupWarning(false);
+                setPendingRemoveSetupPayload(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={submitting}
+              onClick={async () => {
+                if (!pendingRemoveSetupPayload) return;
+                setShowRemoveSetupWarning(false);
+                await submitPayload(pendingRemoveSetupPayload);
+                setPendingRemoveSetupPayload(null);
+              }}
+            >
+              Proceed & save as unavailable
+              {submitting && <Loader className="animate-spin" />}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={showPriceWarning} onOpenChange={setShowPriceWarning}>
         <AlertDialogContent className="max-w-md border border-border bg-white shadow-[0_28px_80px_rgba(15,23,42,0.22)]">

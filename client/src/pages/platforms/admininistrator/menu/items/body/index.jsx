@@ -137,8 +137,8 @@ const getCountLabel = (count, label) => {
 };
 
 const getManageLabel = (type) => {
-  if (type === "bundle") return "Manage Bundle";
-  if (type === "resell") return "Manage Stock Link";
+  if (type === "bundle") return "Manage Bundle Items";
+  if (type === "resell") return "Manage Inventory Link";
   return "Manage Recipe";
 };
 
@@ -162,7 +162,7 @@ const getSetupNowLabel = (type) => {
 
 const getAvailabilitySetupRequirement = (type) => {
   if (type === "bundle") {
-    return "set up the bundle composition";
+    return "add at least 2 bundle items";
   }
 
   if (type === "resell") {
@@ -176,6 +176,12 @@ const getAvailabilityDoubleCheckTarget = (type) => {
   if (type === "bundle") return "bundle composition";
   if (type === "resell") return "stock link";
   return "recipe";
+};
+
+const getAvailabilityManageLabel = (type) => {
+  if (type === "bundle") return "Manage Bundle Items";
+  if (type === "resell") return "Manage Inventory Link";
+  return "Manage Recipe";
 };
 
 const getMenuCategoryName = (menu, categories = []) => {
@@ -253,12 +259,7 @@ const Body = () => {
   const updateAvailability = async (menuItem, nextAvailability) => {
     if (!menuItem?._id) return;
 
-    const currentAvailability = Boolean(
-      availabilityOverrides[menuItem._id] ??
-      menuItem.isAvailable ??
-      menuItem.isPublish ??
-      false,
-    );
+    const currentAvailability = Boolean(menuItem.isAvailable ?? menuItem.isPublish);
 
     setAvailabilitySubmitting(true);
     setAvailabilityTargetId(menuItem._id);
@@ -276,10 +277,11 @@ const Body = () => {
       ).unwrap();
 
       dispatch(SetUPDATED_MENU(updatedPayload));
-      setAvailabilityOverrides((current) => ({
-        ...current,
-        [menuItem._id]: Boolean(updatedPayload?.isAvailable),
-      }));
+      setAvailabilityOverrides((current) => {
+        const next = { ...current };
+        delete next[menuItem._id];
+        return next;
+      });
 
       toast.success(
         updatedPayload?.isAvailable
@@ -289,10 +291,11 @@ const Body = () => {
 
       closeAvailabilityDialog();
     } catch (error) {
-      setAvailabilityOverrides((current) => ({
-        ...current,
-        [menuItem._id]: currentAvailability,
-      }));
+      setAvailabilityOverrides((current) => {
+        const next = { ...current };
+        delete next[menuItem._id];
+        return next;
+      });
       toast.error(error?.message || error || "Failed to update availability.");
     } finally {
       setAvailabilitySubmitting(false);
@@ -333,9 +336,11 @@ const Body = () => {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
 	          {filtered.map((item) => {
             const isActionOpen = activeMenuId === item._id;
-	            const isCashierVisible =
-	              availabilityOverrides[item._id] ??
-	              Boolean(item.isAvailable ?? item.isPublish);
+	            const isOptimisticRow =
+	              availabilitySubmitting && availabilityTargetId === item._id;
+	            const isCashierVisible = isOptimisticRow
+	              ? Boolean(availabilityOverrides[item._id])
+	              : Boolean(item.isAvailable ?? item.isPublish);
 	            const isAvailabilityBusy =
 	              formSubmitted ||
 	              (availabilitySubmitting && availabilityTargetId === item._id);
@@ -794,7 +799,7 @@ const Body = () => {
 	                  ? "Make this menu item available?"
 	                  : availabilityDialog.variant === "confirmUnavailable"
 	                    ? "Make this menu item unavailable?"
-	                    : "Setup required before selling"}
+	                    : "Not ready to sell yet"}
 	              </span>
 	            </AlertDialogTitle>
 
@@ -883,7 +888,7 @@ const Body = () => {
 	                      </>
 	                    ) : (
 	                      <>
-	                        Before making this item available, please{" "}
+	                        To make this item available, please{" "}
 	                        <span className="font-semibold">
 	                          {getAvailabilitySetupRequirement(
 	                            availabilityDialog.item?.type,
@@ -891,7 +896,7 @@ const Body = () => {
 	                        </span>{" "}
 	                        first.
 	                      </>
-	                      )}
+	                    )}
 	                  </p>
 	                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
 	                    {availabilityDialog.variant === "confirmAvailable"
@@ -941,19 +946,19 @@ const Body = () => {
 	              <AlertDialogAction
 	                onClick={() => {
 	                  if (availabilityDialog.item) {
-                    dispatch(
-                      Set_SELECTED({
-                        item: availabilityDialog.item,
-                        mode: "setup",
-                      }),
-                    );
+	                    dispatch(
+	                      Set_SELECTED({
+	                        item: availabilityDialog.item,
+	                        mode: "setup",
+	                      }),
+	                    );
 	                  }
 	                  closeAvailabilityDialog();
 	                }}
 	                disabled={formSubmitted || availabilitySubmitting}
 	                className="bg-primary hover:bg-primary/90"
 	              >
-	                Open setup
+	                {getAvailabilityManageLabel(availabilityDialog.item?.type)}
 	              </AlertDialogAction>
 	            )}
           </AlertDialogFooter>
