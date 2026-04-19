@@ -32,7 +32,7 @@ const modelSchema = new mongoose.Schema(
       type: Boolean,
     },
 
-    isPublish: Boolean,
+    isAvailable: Boolean,
     //if type is Resell we need this
     inventory: {
       type: mongoose.Schema.Types.ObjectId,

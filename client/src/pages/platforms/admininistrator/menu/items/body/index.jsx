@@ -10,6 +10,7 @@ import {
   EllipsisVertical,
   Layers3,
   Pencil,
+  Plus,
   Soup,
   Store,
   Trash2,
@@ -100,6 +101,19 @@ const getDetailEntries = (item, categories = []) => {
   }));
 };
 
+const getRecommendedAddOnEntries = (addOns = []) => {
+  if (!Array.isArray(addOns)) return [];
+
+  return addOns
+    .map((addOn, index) => ({
+      id: addOn?._id || `${index}-${addOn?.name || "addon"}`,
+      name: addOn?.name || "Untitled add-on",
+      price: Number(addOn?.price || 0),
+      group: addOn?.group || "extras",
+    }))
+    .filter((entry) => entry.id);
+};
+
 const getCountLabel = (count, label) => {
   const base = count === 1 ? label.replace(/s$/, "") : label;
   return `${count} ${base}`;
@@ -109,6 +123,24 @@ const getManageLabel = (type) => {
   if (type === "bundle") return "Manage Bundle";
   if (type === "resell") return "Manage Stock Link";
   return "Manage Recipe";
+};
+
+const getSetupCtaLabel = (type) => {
+  if (type === "bundle") return "Set up bundle";
+  if (type === "resell") return "Link stock item";
+  return "Create recipe";
+};
+
+const getSetupCtaDescription = (type) => {
+  if (type === "bundle") return "Set up bundled items so it’s ready to sell.";
+  if (type === "resell") return "Link a stock item so it’s ready to sell.";
+  return "Create a recipe to sell & track this item.";
+};
+
+const getSetupNowLabel = (type) => {
+  if (type === "bundle") return "Set up bundle now";
+  if (type === "resell") return "Link stock now";
+  return "Create recipe now";
 };
 
 const Body = () => {
@@ -122,6 +154,7 @@ const Body = () => {
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [cashierVisibility, setCashierVisibility] = useState({});
   const [openDetailId, setOpenDetailId] = useState(null);
+  const [activeDetailTab, setActiveDetailTab] = useState("details");
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const dispatch = useDispatch();
@@ -171,18 +204,29 @@ const Body = () => {
             const isCashierVisible =
               cashierVisibility[item._id] ?? item.isPublish;
             const detailEntries = getDetailEntries(item, categories);
+            const recommendedEntries = getRecommendedAddOnEntries(
+              item?.recommendedAddOns || [],
+            );
             const typeMeta = getMenuTypeMeta(item.type);
             const TypeIcon = typeMeta.icon;
             const hasBreakdown = detailEntries.length > 0;
-            const isDetailsOpen = openDetailId === item._id;
+            const hasRecommendedAddOns = recommendedEntries.length > 0;
+            const shouldEnableCollapse = hasBreakdown || hasRecommendedAddOns;
+            const isDetailsOpen =
+              shouldEnableCollapse && openDetailId === item._id;
+            const isOverlayOpen = isDetailsOpen;
 
             return (
               <Collapsible
                 key={item._id}
-                open={isDetailsOpen}
-                onOpenChange={(open) => setOpenDetailId(open ? item._id : null)}
+                open={shouldEnableCollapse ? isDetailsOpen : false}
+                onOpenChange={(open) => {
+                  if (!shouldEnableCollapse) return;
+                  setOpenDetailId(open ? item._id : null);
+                  setActiveDetailTab("details");
+                }}
                 className={`group relative transition-transform duration-300 hover:-translate-y-1 ${
-                  isDetailsOpen ? "z-20" : ""
+                  isOverlayOpen ? "z-20" : ""
                 }`}
               >
                 <div
@@ -221,7 +265,7 @@ const Body = () => {
                         }`}
                       >
                         <span>
-                          {isCashierVisible ? "Selling" : "Not Selling"}
+                          {isCashierVisible ? "Available" : "Unavailable"}
                         </span>
                         <span
                           className={`relative h-3.5 w-6 rounded-full transition ${
@@ -295,174 +339,269 @@ const Body = () => {
                       {item.description}
                     </p>
 
-                    <CollapsibleTrigger asChild>
+                    {shouldEnableCollapse ? (
+                      <CollapsibleTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => setActiveDetailTab("details")}
+                          className="mt-3 flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-border/80 bg-muted/10 px-3 py-2.5 text-left transition hover:border-border hover:bg-muted/20"
+                        >
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/5 text-primary">
+                              <TypeIcon className="h-3.5 w-3.5" />
+                            </span>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold text-foreground">
+                                {typeMeta.title}
+                                {hasRecommendedAddOns ? " & Add-ons" : ""}
+                              </p>
+                              <p className="truncate text-[11px] text-muted-foreground">
+                                {hasBreakdown
+                                  ? DETAIL_HINT_BY_TYPE[item.type]
+                                  : EMPTY_STATE_BY_TYPE[item.type] ||
+                                    EMPTY_STATE_BY_TYPE.prepared}
+                                {hasRecommendedAddOns
+                                  ? ` \u2022 ${recommendedEntries.length} add-ons`
+                                  : ""}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex shrink-0 items-center gap-2">
+                            {hasBreakdown && item.type !== "prepared" && (
+                              <span className="rounded-full bg-background px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                                {capitalize(item.type)}
+                              </span>
+                            )}
+                            <ChevronDown
+                              className={`h-4 w-4 text-muted-foreground transition-transform ${
+                                isDetailsOpen ? "rotate-180" : ""
+                              }`}
+                            />
+                          </div>
+                        </button>
+                      </CollapsibleTrigger>
+                    ) : (
                       <button
                         type="button"
-                        className="mt-3 flex w-full items-center justify-between gap-3 rounded-xl border border-border/80 bg-muted/10 px-3 py-2.5 text-left transition hover:border-border hover:bg-muted/20"
+                        onClick={() =>
+                          dispatch(Set_SELECTED({ item, mode: "setup" }))
+                        }
+                        className="mt-3 flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-left transition hover:border-primary/30 hover:bg-primary/10"
                       >
-                        <div className="flex min-w-0 items-start gap-3">
-                          <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/5 text-primary">
-                            <TypeIcon className="h-4 w-4" />
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <TypeIcon className="h-3.5 w-3.5" />
                           </span>
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-foreground">
-                              {typeMeta.title}
+                            <p className="truncate text-sm font-semibold text-primary">
+                              {getSetupCtaLabel(item.type)}
                             </p>
-                            <p className="truncate text-[11px] text-muted-foreground">
-                              {hasBreakdown
-                                ? DETAIL_HINT_BY_TYPE[item.type]
-                                : EMPTY_STATE_BY_TYPE[item.type] ||
-                                  EMPTY_STATE_BY_TYPE.prepared}
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">
+                              {getSetupCtaDescription(item.type)}
                             </p>
                           </div>
                         </div>
-
-                        <div className="flex shrink-0 items-center gap-2">
-                          {hasBreakdown && (
-                            <span className="rounded-full bg-background px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                              {capitalize(item.type)}
-                            </span>
-                          )}
-                          <ChevronDown
-                            className={`h-4 w-4 text-muted-foreground transition-transform ${
-                              isDetailsOpen ? "rotate-180" : ""
-                            }`}
-                          />
-                        </div>
+                        <Plus className="h-4 w-4 text-primary" />
                       </button>
-                    </CollapsibleTrigger>
+                    )}
                   </div>
                 </div>
 
-                <CollapsibleContent className="absolute left-0 top-full z-30 mt-0 w-full overflow-hidden opacity-100 transition-opacity duration-200 ease-out data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:opacity-100">
-                  {hasBreakdown ? (
+                {shouldEnableCollapse ? (
+                  <CollapsibleContent className="absolute left-0 top-full z-30 mt-0 w-full overflow-hidden opacity-100 transition-opacity duration-200 ease-out data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:opacity-100">
                     <div className="relative rounded-b-2xl border border-border border-t-0 bg-card p-3 shadow-none">
                       <div className="absolute inset-x-0 top-0 h-px bg-card" />
                       <div className="absolute inset-x-4 top-0 h-px bg-border/70" />
-                      <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
-                        {item.type === "bundle"
-                          ? detailEntries.map((entry) => (
+
+                      {hasRecommendedAddOns ? (
+                        <div className="mb-3">
+                          <div className="flex w-full max-w-full rounded-xl border border-border bg-background p-1">
+                            <button
+                              type="button"
+                              onClick={() => setActiveDetailTab("details")}
+                              className={`flex-1 rounded-lg px-3 py-2 text-center text-xs font-semibold transition ${
+                                activeDetailTab === "details"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                              }`}
+                            >
+                              {typeMeta.title}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setActiveDetailTab("addons")}
+                              className={`flex-1 rounded-lg px-3 py-2 text-center text-xs font-semibold transition ${
+                                activeDetailTab === "addons"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                              }`}
+                            >
+                              Add-ons ({recommendedEntries.length})
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {activeDetailTab === "addons" ? (
+                        hasRecommendedAddOns ? (
+                          <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                            {recommendedEntries.map((entry) => (
                               <div
                                 key={entry.id}
-                                className="flex items-start justify-between gap-3 rounded-xl border border-border/60 bg-background/50 px-3 py-2.5"
+                                className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-background/50 px-3 py-2.5"
                               >
                                 <div className="min-w-0">
                                   <p className="truncate text-sm font-medium text-foreground">
-                                    {entry.name}
+                                    {capitalize(entry.name)}
                                   </p>
                                   <p className="text-xs text-muted-foreground">
-                                    {entry.category || "Uncategorized"}
-                                    {entry.type
-                                      ? ` | ${capitalize(entry.type)}`
-                                      : ""}
+                                    {capitalize(entry.group)}
                                   </p>
                                 </div>
-
-                                <div className="shrink-0 text-right">
-                                  <p className="text-sm font-semibold text-foreground">
-                                    x{entry.quantity}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {Formatter.amount(
-                                      entry.price * entry.quantity,
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            ))
-                          : detailEntries.map((entry) => (
-                              <div
-                                key={entry.id}
-                                className="flex items-start justify-between gap-3 rounded-xl border border-border/60 bg-background/50 px-3 py-2.5"
-                              >
-                                <div className="min-w-0">
-                                  <p className="truncate text-sm font-medium text-foreground">
-                                    {entry.name}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {entry.category
-                                      ? capitalize(entry.category)
-                                      : "Inventory item"}
-                                    {entry.type
-                                      ? ` | ${capitalize(entry.type)}`
-                                      : ""}
-                                  </p>
-                                </div>
-
-                                <div className="shrink-0 text-right">
-                                  <p className="text-sm font-semibold text-foreground">
-                                    {entry.quantity} {entry.unit}
-                                  </p>
-                                  {item.type === "resell" && (
-                                    <p className="text-xs text-muted-foreground">
-                                      {Formatter.amount(entry.cost)}
-                                    </p>
-                                  )}
-                                </div>
+                                <p className="shrink-0 text-sm font-semibold text-foreground">
+                                  {Formatter.amount(entry.price)}
+                                </p>
                               </div>
                             ))}
-                      </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-xl border border-dashed border-border bg-background/50 px-4 py-6 text-sm text-muted-foreground">
+                            No recommended add-ons yet.
+                          </div>
+                        )
+                      ) : hasBreakdown ? (
+                        <>
+                          <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                            {item.type === "bundle"
+                              ? detailEntries.map((entry) => (
+                                  <div
+                                    key={entry.id}
+                                    className="flex items-start justify-between gap-3 rounded-xl border border-border/60 bg-background/50 px-3 py-2.5"
+                                  >
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-medium text-foreground">
+                                        {entry.name}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {entry.category || "Uncategorized"}
+                                        {entry.type
+                                          ? ` | ${capitalize(entry.type)}`
+                                          : ""}
+                                      </p>
+                                    </div>
 
-                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-border/70 pt-3">
-                        <p className="text-[11px] text-muted-foreground">
-                          {getCountLabel(
-                            detailEntries.length,
-                            typeMeta.summaryLabel,
-                          )}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            dispatch(
-                              Set_SELECTED({
-                                item,
-                                mode: "setup",
-                              }),
-                            )
-                          }
-                          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                          {getManageLabel(item.type)}
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="relative rounded-b-2xl border border-dashed border-border border-t-0 bg-card p-4 shadow-none">
-                      <div className="absolute inset-x-0 top-0 h-px bg-card" />
-                      <div className="absolute inset-x-4 top-0 h-px bg-border/70" />
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">
-                            {EMPTY_CTA_BY_TYPE[item.type]?.title ||
-                              EMPTY_CTA_BY_TYPE.prepared.title}
-                          </p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Add the stock details so this menu item is ready for
-                            operations and costing review.
-                          </p>
+                                    <div className="shrink-0 text-right">
+                                      <p className="text-sm font-semibold text-foreground">
+                                        x{entry.quantity}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {Formatter.amount(
+                                          entry.price * entry.quantity,
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))
+                              : detailEntries.map((entry) => (
+                                  <div
+                                    key={entry.id}
+                                    className="flex items-start justify-between gap-3 rounded-xl border border-border/60 bg-background/50 px-3 py-2.5"
+                                  >
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm font-medium text-foreground">
+                                        {entry.name}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {entry.category
+                                          ? capitalize(entry.category)
+                                          : "Inventory item"}
+                                        {entry.type
+                                          ? ` | ${capitalize(entry.type)}`
+                                          : ""}
+                                      </p>
+                                    </div>
+
+                                    <div className="shrink-0 text-right">
+                                      <p className="text-sm font-semibold text-foreground">
+                                        {entry.quantity} {entry.unit}
+                                      </p>
+                                      {item.type === "resell" && (
+                                        <p className="text-xs text-muted-foreground">
+                                          {Formatter.amount(entry.cost)}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="rounded-xl border border-dashed border-border bg-background/50 p-4">
+                          <div className="min-w-0">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold text-foreground">
+                                {EMPTY_CTA_BY_TYPE[item.type]?.title ||
+                                  EMPTY_CTA_BY_TYPE.prepared.title}
+                              </p>
+                              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                {getSetupCtaDescription(item.type)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              dispatch(Set_SELECTED({ item, mode: "setup" }))
+                            }
+                            className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            {getSetupNowLabel(item.type)}
+                          </button>
                         </div>
+                      )}
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            dispatch(
-                              Set_SELECTED({
-                                item,
-                                mode: "setup",
-                              }),
-                            )
-                          }
-                          className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                          {EMPTY_CTA_BY_TYPE[item.type]?.action ||
-                            EMPTY_CTA_BY_TYPE.prepared.action}
-                        </button>
-                      </div>
+                      {(activeDetailTab === "addons" || hasBreakdown) && (
+                        <div className="mt-3 flex items-center justify-between gap-3 border-t border-border/70 pt-3">
+                          <p className="text-[11px] text-muted-foreground">
+                            {activeDetailTab === "addons"
+                              ? getCountLabel(
+                                  recommendedEntries.length,
+                                  "add-ons",
+                                )
+                              : getCountLabel(
+                                  detailEntries.length,
+                                  typeMeta.summaryLabel,
+                                )}
+                          </p>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              dispatch(
+                                Set_SELECTED({
+                                  item,
+                                  mode:
+                                    activeDetailTab === "addons"
+                                      ? "addons"
+                                      : "setup",
+                                }),
+                              )
+                            }
+                            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            {activeDetailTab === "addons"
+                              ? "Manage Add-ons"
+                              : getManageLabel(item.type)}
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </CollapsibleContent>
+                  </CollapsibleContent>
+                ) : null}
               </Collapsible>
             );
           })}

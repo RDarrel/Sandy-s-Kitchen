@@ -101,6 +101,8 @@ const Modal = () => {
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
   const isSetupOnly = !willCreate && modalMode === "setup";
+  const isAddOnsOnly = !willCreate && modalMode === "addons";
+  const isFullEdit = !isSetupOnly && !isAddOnsOnly;
 
   useEffect(() => {
     return () => {
@@ -163,7 +165,7 @@ const Modal = () => {
             : selected?.type === "resell"
               ? hasResellSetup
               : false,
-          enableAddOns: existingRecommendedAddOns.length > 0,
+          enableAddOns: isAddOnsOnly ? true : existingRecommendedAddOns.length > 0,
           recommendedAddOns: existingRecommendedAddOns,
         });
         setHasManualPrice(true);
@@ -186,6 +188,7 @@ const Modal = () => {
     categories,
     inventoryItems,
     isSetupOnly,
+    isAddOnsOnly,
   ]);
 
   const toggle = () => dispatch(TOGGLE());
@@ -498,7 +501,7 @@ const Modal = () => {
       return;
     }
 
-    if (!form.image && !form.imgId) {
+    if (!isAddOnsOnly && !form.image && !form.imgId) {
       toast.error("Please upload a menu image.");
       return;
     }
@@ -566,7 +569,9 @@ const Modal = () => {
     <Dialog open={showModal} onOpenChange={toggle}>
       <DialogContent
         className={`border border-border bg-white shadow-[0_28px_80px_rgba(15,23,42,0.22)] ${
-          isSetupOnly
+          isAddOnsOnly
+            ? "max-w-5xl"
+            : isSetupOnly
             ? form.type === "resell"
               ? "max-w-xl"
               : "max-w-5xl"
@@ -581,12 +586,16 @@ const Modal = () => {
           <DialogTitle className="text-xl">
             {willCreate
               ? "Create Menu Item"
-              : isSetupOnly
+              : isAddOnsOnly
+                ? "Manage Add-Ons"
+                : isSetupOnly
                 ? `Update ${capitalize(form.type || "prepared")} Setup`
                 : "Update Menu Item"}
           </DialogTitle>
           <DialogDescription>
-            {isSetupOnly
+            {isAddOnsOnly
+              ? "Choose the add-ons that will be suggested for this menu item."
+              : isSetupOnly
               ? "Adjust the operational setup for this menu item without changing the rest of its core details."
               : "Fill in the core details for a new kitchen or resale item."}
           </DialogDescription>
@@ -594,7 +603,7 @@ const Modal = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-5 ">
-            {!isSetupOnly && (
+            {isFullEdit && (
               <section className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="item-category">Category</Label>
@@ -640,7 +649,7 @@ const Modal = () => {
               </section>
             )}
 
-            {form.type === "bundle" && (
+            {!isAddOnsOnly && form.type === "bundle" && (
               <Bundles
                 form={form}
                 setForm={setForm}
@@ -656,7 +665,7 @@ const Modal = () => {
               />
             )}
 
-            {form.type === "prepared" && (
+            {!isAddOnsOnly && form.type === "prepared" && (
               <Recipe
                 enabled={form.setupRecipe}
                 hideToggle={!willCreate && form.ingredients.length > 0}
@@ -678,7 +687,7 @@ const Modal = () => {
               />
             )}
 
-            {form.type === "resell" && (
+            {!isAddOnsOnly && form.type === "resell" && (
               <Resell
                 enabled={form.setupResellLink}
                 hideToggle={!willCreate && Boolean(selectedResellRow)}
@@ -695,42 +704,57 @@ const Modal = () => {
               />
             )}
 
-            <section className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="item-name">Item Name</Label>
-                <Input
-                  id="item-name"
-                  value={form.name}
-                  onChange={(event) => handleChange("name", event.target.value)}
-                  placeholder="e.g. Pork Sisig"
-                  required
-                />
-                <Name name={form.name} selectedId={selected?._id} />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="item-price">Price</Label>
-                <div className="relative">
-                  <PhilippinePeso className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            {isAddOnsOnly ? (
+              <section className="rounded-[15px] border border-border bg-white shadow-sm">
+                <div className="border-b border-border px-5 py-4">
+                  <p className="text-sm font-semibold text-foreground">
+                    {form.name || "Menu Item"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    SRP {Formatter.amount(Number(form.price || 0))}
+                  </p>
+                </div>
+              </section>
+            ) : (
+              <section className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="item-name">Item Name</Label>
                   <Input
-                    id="item-price"
-                    type="number"
-                    min="1"
-                    step="0.01"
-                    value={form.price}
-                    onChange={(event) => {
-                      setHasManualPrice(true);
-                      handleChange("price", event.target.value);
-                    }}
-                    placeholder="0.00"
-                    className="pl-9"
+                    id="item-name"
+                    value={form.name}
+                    onChange={(event) =>
+                      handleChange("name", event.target.value)
+                    }
+                    placeholder="e.g. Pork Sisig"
                     required
                   />
+                  <Name name={form.name} selectedId={selected?._id} />
                 </div>
-              </div>
-            </section>
 
-            {!isSetupOnly && (
+                <div className="space-y-2">
+                  <Label htmlFor="item-price">Price</Label>
+                  <div className="relative">
+                    <PhilippinePeso className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="item-price"
+                      type="number"
+                      min="1"
+                      step="0.01"
+                      value={form.price}
+                      onChange={(event) => {
+                        setHasManualPrice(true);
+                        handleChange("price", event.target.value);
+                      }}
+                      placeholder="0.00"
+                      className="pl-9"
+                      required
+                    />
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {isFullEdit && (
               <>
                 <section className="grid gap-6">
                   <MenuImage
@@ -773,6 +797,19 @@ const Modal = () => {
                   }
                 />
               </>
+            )}
+
+            {isAddOnsOnly && (
+              <RecommendedAddOns
+                collections={addOns}
+                enabled
+                hideToggle
+                onEnabledChange={() => {}}
+                selectedIds={form.recommendedAddOns}
+                onSelectedIdsChange={(ids) =>
+                  handleChange("recommendedAddOns", ids)
+                }
+              />
             )}
 
             <section className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
