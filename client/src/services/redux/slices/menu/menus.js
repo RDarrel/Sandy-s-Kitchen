@@ -10,6 +10,7 @@ const initialState = {
   cluster: [],
   filtered: [],
   selected: {},
+  modalMode: "full",
   willCreate: false,
   showModal: false,
   formSubmitted: false,
@@ -118,7 +119,13 @@ export const reduxSlice = createSlice({
       state.collections = payload;
     },
     Set_SELECTED: (state, { payload = null }) => {
-      state.selected = payload || {};
+      if (payload?.item) {
+        state.selected = payload.item || {};
+        state.modalMode = payload.mode || "full";
+      } else {
+        state.selected = payload || {};
+        state.modalMode = "full";
+      }
       state.showModal = true;
       state.willCreate = false;
     },
@@ -136,10 +143,14 @@ export const reduxSlice = createSlice({
     },
     SetCREATE: (state) => {
       state.willCreate = true;
+      state.modalMode = "full";
       state.showModal = true;
     },
     TOGGLE: (state) => {
       state.showModal = !state.showModal;
+      if (!state.showModal) {
+        state.modalMode = "full";
+      }
     },
   },
   extraReducers: (builder) => {

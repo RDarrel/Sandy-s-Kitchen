@@ -73,6 +73,7 @@ const Modal = () => {
   const {
     showModal,
     selected,
+    modalMode,
     willCreate,
     category: actCategory,
     collections,
@@ -91,6 +92,7 @@ const Modal = () => {
   const [hasManualPrice, setHasManualPrice] = useState(false);
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
+  const isSetupOnly = !willCreate && modalMode === "setup";
 
   useEffect(() => {
     return () => {
@@ -496,67 +498,79 @@ const Modal = () => {
     <Dialog open={showModal} onOpenChange={toggle}>
       <DialogContent
         className={`border border-border bg-white shadow-[0_28px_80px_rgba(15,23,42,0.22)] ${
-          form.type === "bundle" || form.type === "prepared"
-            ? "max-w-5xl"
-            : form.type === "resell"
+          isSetupOnly
+            ? form.type === "resell"
               ? "max-w-xl"
-              : "max-w-2xl"
+              : "max-w-5xl"
+            : form.type === "bundle" || form.type === "prepared"
+              ? "max-w-5xl"
+              : form.type === "resell"
+                ? "max-w-xl"
+                : "max-w-2xl"
         }`}
       >
         <DialogHeader>
           <DialogTitle className="text-xl">
-            {willCreate ? "Create" : "Update"} Menu Item
+            {willCreate
+              ? "Create Menu Item"
+              : isSetupOnly
+                ? `Update ${capitalize(form.type || "prepared")} Setup`
+                : "Update Menu Item"}
           </DialogTitle>
           <DialogDescription>
-            Fill in the core details for a new kitchen or resale item.
+            {isSetupOnly
+              ? "Adjust the operational setup for this menu item without changing the rest of its core details."
+              : "Fill in the core details for a new kitchen or resale item."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-5 ">
-            <section className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="item-category">Category</Label>
-                <Select
-                  value={form.category || ""}
-                  required
-                  onValueChange={(value) => handleChange("category", value)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Categories</SelectLabel>
-                      {categories?.map((category, index) => (
-                        <SelectItem key={index} value={category?._id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
+            {!isSetupOnly && (
+              <section className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="item-category">Category</Label>
+                  <Select
+                    value={form.category || ""}
+                    required
+                    onValueChange={(value) => handleChange("category", value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Categories</SelectLabel>
+                        {categories?.map((category, index) => (
+                          <SelectItem key={index} value={category?._id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="item-type">Type</Label>
-                <Select value={form.type} onValueChange={handleTypeChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Type</SelectLabel>
-                      {Type.collections.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {capitalize(type)}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-            </section>
+                <div className="space-y-2">
+                  <Label htmlFor="item-type">Type</Label>
+                  <Select value={form.type} onValueChange={handleTypeChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Type</SelectLabel>
+                        {Type.collections.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {capitalize(type)}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </section>
+            )}
 
             {form.type === "bundle" && (
               <Bundles form={form} setForm={setForm} />
@@ -618,38 +632,39 @@ const Modal = () => {
               </div>
             </section>
 
-            <section className="grid gap-6">
-              <MenuImage
-                fileInputRef={fileInputRef}
-                form={form}
-                imagePreview={imagePreview}
-                setForm={setForm}
-                setImagePreview={setImagePreview}
-              />
-
-              <div className="space-y-2">
-                <Label htmlFor="item-description">Description</Label>
-                <Textarea
-                  id="item-description"
-                  value={form.description}
-                  onChange={(event) =>
-                    handleChange("description", event.target.value)
-                  }
-                  placeholder="Add a short product description for staff and menu display."
-                  className="min-h-28 resize-none"
-                  required
+            {!isSetupOnly && (
+              <section className="grid gap-6">
+                <MenuImage
+                  fileInputRef={fileInputRef}
+                  form={form}
+                  imagePreview={imagePreview}
+                  setForm={setForm}
+                  setImagePreview={setImagePreview}
                 />
-              </div>
 
-              <div className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
-                <Button type="button" variant="outline" onClick={toggle}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={submitting || hasDuplicateName}>
-                  {willCreate ? "Save" : "Update"}
-                  {submitting && <Loader className="animate-spin" />}
-                </Button>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="item-description">Description</Label>
+                  <Textarea
+                    id="item-description"
+                    value={form.description}
+                    onChange={(event) =>
+                      handleChange("description", event.target.value)
+                    }
+                    placeholder="Add a short product description for staff and menu display."
+                    className="min-h-28 resize-none"
+                  />
+                </div>
+              </section>
+            )}
+
+            <section className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
+              <Button type="button" variant="outline" onClick={toggle}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={submitting || hasDuplicateName}>
+                {willCreate ? "Save" : isSetupOnly ? "Update Setup" : "Update"}
+                {submitting && <Loader className="animate-spin" />}
+              </Button>
             </section>
           </div>
         </form>
