@@ -58,6 +58,22 @@ export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   }
 });
 
+export const SET_AVAILABILITY = createAsyncThunk(
+  `${url}/availability`,
+  (form, thunkAPI) => {
+    try {
+      return axioKit.update(url, form.data, form.token, "availability");
+    } catch (error) {
+      const message =
+        (error.response && error.response.data && error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const DESTROY = createAsyncThunk(`${url}/destroy`, (form, thunkAPI) => {
   try {
     return axioKit.destroy(url, form.data, form.token);
@@ -198,6 +214,22 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(UPDATE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
+      })
+      .addCase(SET_AVAILABILITY.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(SET_AVAILABILITY.fulfilled, (state, action) => {
+        const { success } = action.payload;
+        state.formSubmitted = false;
+        state.message = success;
+        state.isSuccess = true;
+      })
+      .addCase(SET_AVAILABILITY.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;

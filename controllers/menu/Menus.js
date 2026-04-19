@@ -436,3 +436,30 @@ exports.destroy = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+exports.availability = async (req, res) => {
+  try {
+    const { _id, isAvailable } = req.body;
+
+    if (!_id) {
+      return res.status(400).json({ error: "Menu ID is required." });
+    }
+
+    const updatedMenu = await Menu.findByIdAndUpdate(
+      _id,
+      { isAvailable: Boolean(isAvailable) },
+      { new: true, runValidators: true },
+    ).lean();
+
+    if (!updatedMenu) {
+      return res.status(404).json({ error: "Menu not found." });
+    }
+
+    res.status(200).json({
+      success: "Menu Availability Updated Successfully",
+      payload: await findMenu(_id),
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};

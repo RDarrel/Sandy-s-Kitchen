@@ -9,6 +9,7 @@ import {
   ChevronDown,
   EllipsisVertical,
   Layers3,
+  Loader,
   Pencil,
   Plus,
   Soup,
@@ -17,11 +18,27 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { DESTROY, Set_SELECTED } from "@/services/redux/slices/menu/menus";
+import {
+  DESTROY,
+  SET_AVAILABILITY,
+  Set_SELECTED,
+  SetUPDATED_MENU,
+} from "@/services/redux/slices/menu/menus";
 import ItemSkeleton from "./item-skeleton";
 import EmptyState from "./empty-state";
 import Confirmation from "./confirmation";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { TriangleAlert } from "lucide-react";
 
 const skeletonItems = Array.from({ length: 6 }, (_, index) => index);
 
@@ -132,8 +149,8 @@ const getSetupCtaLabel = (type) => {
 };
 
 const getSetupCtaDescription = (type) => {
-  if (type === "bundle") return "Set up bundled items so it’s ready to sell.";
-  if (type === "resell") return "Link a stock item so it’s ready to sell.";
+  if (type === "bundle") return "Set up bundled items so it's ready to sell.";
+  if (type === "resell") return "Link a stock item so it's ready to sell.";
   return "Create a recipe to sell & track this item.";
 };
 
@@ -141,6 +158,33 @@ const getSetupNowLabel = (type) => {
   if (type === "bundle") return "Set up bundle now";
   if (type === "resell") return "Link stock now";
   return "Create recipe now";
+};
+
+const getAvailabilitySetupRequirement = (type) => {
+  if (type === "bundle") {
+    return "set up the bundle composition";
+  }
+
+  if (type === "resell") {
+    return "link a stock item";
+  }
+
+  return "create a recipe";
+};
+
+const getAvailabilityDoubleCheckTarget = (type) => {
+  if (type === "bundle") return "bundle composition";
+  if (type === "resell") return "stock link";
+  return "recipe";
+};
+
+const getMenuCategoryName = (menu, categories = []) => {
+  const categoryId = menu?.category?._id || menu?.category || null;
+  if (!categoryId) return "Uncategorized";
+  return (
+    categories.find((entry) => String(entry?._id) === String(categoryId))
+      ?.name || "Uncategorized"
+  );
 };
 
 const Body = () => {
@@ -152,11 +196,18 @@ const Body = () => {
     ({ menuCategories }) => menuCategories,
   );
   const [activeMenuId, setActiveMenuId] = useState(null);
-  const [cashierVisibility, setCashierVisibility] = useState({});
+  const [availabilityOverrides, setAvailabilityOverrides] = useState({});
   const [openDetailId, setOpenDetailId] = useState(null);
   const [activeDetailTab, setActiveDetailTab] = useState("details");
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [availabilityDialog, setAvailabilityDialog] = useState({
+    open: false,
+    variant: null,
+    item: null,
+  });
+  const [availabilitySubmitting, setAvailabilitySubmitting] = useState(false);
+  const [availabilityTargetId, setAvailabilityTargetId] = useState(null);
   const dispatch = useDispatch();
   const hasFilteredResults = filtered.length > 0;
 
@@ -189,6 +240,87 @@ const Body = () => {
     }
   };
 
+  const closeAvailabilityDialog = () => {
+    setAvailabilityDialog({ open: false, variant: null, item: null });
+    setAvailabilityTargetId(null);
+  };
+
+  const openAvailabilityDialog = (variant, item) => {
+    setAvailabilityDialog({ open: true, variant, item });
+    setAvailabilityTargetId(item?._id || null);
+  };
+
+  const updateAvailability = async (menuItem, nextAvailability) => {
+    if (!menuItem?._id) return;
+
+    const currentAvailability = Boolean(
+      availabilityOverrides[menuItem._id] ??
+      menuItem.isAvailable ??
+      menuItem.isPublish ??
+      false,
+    );
+
+    setAvailabilitySubmitting(true);
+    setAvailabilityTargetId(menuItem._id);
+    setAvailabilityOverrides((current) => ({
+      ...current,
+      [menuItem._id]: nextAvailability,
+    }));
+
+    try {
+      const { payload: updatedPayload } = await dispatch(
+        SET_AVAILABILITY({
+          token,
+          data: { _id: menuItem._id, isAvailable: nextAvailability },
+        }),
+      ).unwrap();
+
+      dispatch(SetUPDATED_MENU(updatedPayload));
+      setAvailabilityOverrides((current) => ({
+        ...current,
+        [menuItem._id]: Boolean(updatedPayload?.isAvailable),
+      }));
+
+      toast.success(
+        updatedPayload?.isAvailable
+          ? "Menu item is now available."
+          : "Menu item is now unavailable.",
+      );
+
+      closeAvailabilityDialog();
+    } catch (error) {
+      setAvailabilityOverrides((current) => ({
+        ...current,
+        [menuItem._id]: currentAvailability,
+      }));
+      toast.error(error?.message || error || "Failed to update availability.");
+    } finally {
+      setAvailabilitySubmitting(false);
+    }
+  };
+
+  const handleAvailabilityToggle = (
+    menuItem,
+    currentAvailability,
+    hasSetup,
+  ) => {
+    if (availabilitySubmitting && availabilityTargetId === menuItem?._id) {
+      return;
+    }
+
+    if (currentAvailability) {
+      openAvailabilityDialog("confirmUnavailable", menuItem);
+      return;
+    }
+
+	    if (!hasSetup) {
+	      openAvailabilityDialog("setupRequired", menuItem);
+	      return;
+	    }
+
+	    openAvailabilityDialog("confirmAvailable", menuItem);
+	  };
+
   return (
     <>
       {isLoading ? (
@@ -199,10 +331,14 @@ const Body = () => {
         </div>
       ) : hasFilteredResults ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((item) => {
+	          {filtered.map((item) => {
             const isActionOpen = activeMenuId === item._id;
-            const isCashierVisible =
-              cashierVisibility[item._id] ?? item.isPublish;
+	            const isCashierVisible =
+	              availabilityOverrides[item._id] ??
+	              Boolean(item.isAvailable ?? item.isPublish);
+	            const isAvailabilityBusy =
+	              formSubmitted ||
+	              (availabilitySubmitting && availabilityTargetId === item._id);
             const detailEntries = getDetailEntries(item, categories);
             const recommendedEntries = getRecommendedAddOnEntries(
               item?.recommendedAddOns || [],
@@ -250,15 +386,17 @@ const Body = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
                     <div className="absolute top-2 flex w-full items-start justify-between gap-1.5 px-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setCashierVisibility((current) => ({
-                            ...current,
-                            [item._id]: !isCashierVisible,
-                          }))
+	                      <button
+	                        type="button"
+	                        disabled={isAvailabilityBusy}
+	                        onClick={() =>
+	                          handleAvailabilityToggle(
+                            item,
+                            isCashierVisible,
+                            hasBreakdown,
+                          )
                         }
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold shadow-md backdrop-blur-sm transition ${
+	                        className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold shadow-md backdrop-blur-sm transition disabled:cursor-not-allowed disabled:opacity-70 ${
                           isCashierVisible
                             ? "border-emerald-200 bg-emerald-50/95 text-emerald-700"
                             : "border-white/30 bg-black/55 text-white"
@@ -617,6 +755,210 @@ const Body = () => {
         item={deleteTarget}
         formSubmitted={formSubmitted}
       />
+
+	      <AlertDialog
+	        open={availabilityDialog.open}
+	        onOpenChange={(open) => {
+	          if (!open && (formSubmitted || availabilitySubmitting)) return;
+	          if (!open) closeAvailabilityDialog();
+	        }}
+	      >
+	        <AlertDialogContent
+	          className="max-w-lg border border-border bg-white p-6 shadow-[0_28px_80px_rgba(15,23,42,0.22)]"
+	          onEscapeKeyDown={(event) => {
+	            if (formSubmitted || availabilitySubmitting) {
+	              event.preventDefault();
+	            }
+	          }}
+	          onPointerDownOutside={(event) => {
+	            if (formSubmitted || availabilitySubmitting) {
+	              event.preventDefault();
+	            }
+	          }}
+	        >
+	          <AlertDialogHeader className="gap-2">
+	            <AlertDialogTitle className="flex items-center gap-3 text-left">
+	              <span
+	                className={`flex h-10 w-10 items-center justify-center rounded-2xl ${
+	                  availabilityDialog.variant === "confirmAvailable"
+	                    ? "bg-emerald-100 text-emerald-700"
+	                    : availabilityDialog.variant === "confirmUnavailable"
+	                      ? "bg-slate-100 text-slate-700"
+	                      : "bg-orange-100 text-orange-600"
+	                }`}
+	              >
+	                <TriangleAlert className="h-5 w-5" />
+	              </span>
+	              <span>
+	                {availabilityDialog.variant === "confirmAvailable"
+	                  ? "Make this menu item available?"
+	                  : availabilityDialog.variant === "confirmUnavailable"
+	                    ? "Make this menu item unavailable?"
+	                    : "Setup required before selling"}
+	              </span>
+	            </AlertDialogTitle>
+
+	            <AlertDialogDescription asChild>
+	              <div className="space-y-4 text-left">
+	                <div
+	                  className={`rounded-[22px] border p-3 ${
+	                    availabilityDialog.variant === "confirmUnavailable"
+	                      ? "border-slate-100 bg-gradient-to-br from-slate-50 via-white to-slate-50"
+	                      : "border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50"
+	                  }`}
+	                >
+	                  <div className="grid items-center gap-4 md:grid-cols-[140px_1fr]">
+	                    <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
+	                      <div className="aspect-square overflow-hidden bg-muted">
+	                        <img
+	                          src={
+	                            availabilityDialog.item?.imgId
+	                              ? Cloudinary.getMenuImg(
+	                                  availabilityDialog.item.imgId,
+	                                  availabilityDialog.item?._id,
+	                                )
+	                              : availabilityDialog.item?.image
+	                          }
+	                          alt={availabilityDialog.item?.name || "Menu item"}
+	                          className="h-full w-full object-cover"
+	                        />
+	                      </div>
+	                    </div>
+
+	                    <div className="space-y-2">
+	                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+	                        Selected Menu Item
+	                      </p>
+	                      <p className="text-lg font-semibold leading-tight text-foreground">
+	                        {availabilityDialog.item?.name}
+	                      </p>
+	                      <div className="flex flex-wrap gap-2">
+	                        <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
+	                          {getMenuCategoryName(
+	                            availabilityDialog.item,
+	                            categories,
+	                          )}
+	                        </span>
+	                        <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
+	                          {Formatter.amount(
+	                            Number(availabilityDialog.item?.price || 0),
+	                          )}
+	                        </span>
+	                      </div>
+	                    </div>
+	                  </div>
+	                </div>
+
+	                <div
+	                  className={`rounded-2xl border border-dashed px-4 py-3 ${
+	                    availabilityDialog.variant === "confirmAvailable"
+	                      ? "border-emerald-200 bg-emerald-50/60"
+	                      : availabilityDialog.variant === "confirmUnavailable"
+	                        ? "border-slate-200 bg-slate-50/60"
+	                        : "border-orange-200 bg-orange-50/60"
+	                  }`}
+	                >
+	                  <p className="text-sm leading-6 text-foreground">
+	                    {availabilityDialog.variant === "confirmAvailable" ? (
+	                      <>
+	                        Before making{" "}
+	                        <span className="font-semibold">
+	                          {availabilityDialog.item?.name}
+	                        </span>{" "}
+	                        available, please double-check the{" "}
+	                        <span className="font-semibold">
+	                          {getAvailabilityDoubleCheckTarget(
+	                            availabilityDialog.item?.type,
+	                          )}
+	                        </span>{" "}
+	                        details.
+	                      </>
+	                    ) : availabilityDialog.variant === "confirmUnavailable" ? (
+	                      <>
+	                        Are you sure you want to mark{" "}
+	                        <span className="font-semibold">
+	                          {availabilityDialog.item?.name}
+	                        </span>{" "}
+	                        as unavailable?
+	                      </>
+	                    ) : (
+	                      <>
+	                        Before making this item available, please{" "}
+	                        <span className="font-semibold">
+	                          {getAvailabilitySetupRequirement(
+	                            availabilityDialog.item?.type,
+	                          )}
+	                        </span>{" "}
+	                        first.
+	                      </>
+	                      )}
+	                  </p>
+	                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+	                    {availabilityDialog.variant === "confirmAvailable"
+	                      ? "This helps keep inventory deductions and costing accurate."
+	                      : availabilityDialog.variant === "confirmUnavailable"
+	                        ? "Once unavailable, this item will no longer be available for selling."
+	                        : "This helps ensure pricing, stock, and costing are accurate."}
+	                  </p>
+	                </div>
+	              </div>
+	            </AlertDialogDescription>
+	          </AlertDialogHeader>
+
+	          <AlertDialogFooter className="mt-4 gap-2">
+	            <AlertDialogCancel
+	              onClick={closeAvailabilityDialog}
+	              className="mt-0"
+	              disabled={formSubmitted || availabilitySubmitting}
+	            >
+	              Cancel
+	            </AlertDialogCancel>
+	            {availabilityDialog.variant === "confirmAvailable" ? (
+	              <AlertDialogAction
+	                onClick={(event) => {
+	                  event.preventDefault();
+	                  updateAvailability(availabilityDialog.item, true);
+	                }}
+	                disabled={formSubmitted || availabilitySubmitting}
+	                className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+	              >
+	                Make available
+	                {formSubmitted && <Loader className="h-4 w-4 animate-spin" />}
+	              </AlertDialogAction>
+	            ) : availabilityDialog.variant === "confirmUnavailable" ? (
+	              <AlertDialogAction
+	                onClick={(event) => {
+	                  event.preventDefault();
+	                  updateAvailability(availabilityDialog.item, false);
+	                }}
+	                disabled={formSubmitted || availabilitySubmitting}
+	                className="gap-2 bg-slate-900 hover:bg-slate-900/90"
+	              >
+	                Make unavailable
+	                {formSubmitted && <Loader className="h-4 w-4 animate-spin" />}
+	              </AlertDialogAction>
+	            ) : (
+	              <AlertDialogAction
+	                onClick={() => {
+	                  if (availabilityDialog.item) {
+                    dispatch(
+                      Set_SELECTED({
+                        item: availabilityDialog.item,
+                        mode: "setup",
+                      }),
+                    );
+	                  }
+	                  closeAvailabilityDialog();
+	                }}
+	                disabled={formSubmitted || availabilitySubmitting}
+	                className="bg-primary hover:bg-primary/90"
+	              >
+	                Open setup
+	              </AlertDialogAction>
+	            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
