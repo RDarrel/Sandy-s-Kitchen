@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { BROWSE } from "@/services/redux/slices/menu/menus";
 import { BROWSE as BROWSE_CATEGORIES } from "@/services/redux/slices/menu/categories";
 import { BROWSE as BROWSE_INVENTORY_ITEMS } from "@/services/redux/slices/inventory/inventoryItems";
+import { BROWSE as BROWSE_ADD_ONS } from "@/services/redux/slices/menu/addOns/addOns";
 import Header from "./header";
 import Body from "./body";
 
@@ -17,6 +18,7 @@ const Items = () => {
       dispatch(BROWSE({ token }));
       dispatch(BROWSE_CATEGORIES({ token }));
       dispatch(BROWSE_INVENTORY_ITEMS({ token }));
+      dispatch(BROWSE_ADD_ONS({ token }));
     }
   }, [token, dispatch]);
 

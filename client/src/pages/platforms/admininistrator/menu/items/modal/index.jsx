@@ -84,6 +84,8 @@ const Modal = () => {
   const { collections: inventoryItems = [] } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
+  const { collections: addOns } = useSelector(({ addOns }) => addOns);
+
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState("");
