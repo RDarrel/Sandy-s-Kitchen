@@ -87,7 +87,7 @@ const Body = () => {
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
-                  <div className="absolute w-full  top-2 flex justify-between gap-1.5 px-2">
+                  <div className="absolute w-full  top-2  gap-1.5 px-2 flex justify-between items-start">
                     <button
                       type="button"
                       onClick={() =>
