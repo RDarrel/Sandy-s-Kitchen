@@ -49,6 +49,7 @@ import MenuImage from "./image";
 import Name, { isExistingMenuName } from "./name";
 import Recipe from "./recipe";
 import Resell from "./resell";
+import RecommendedAddOns from "./addOns";
 import {
   getInventoryCost,
   getUnitOptions,
@@ -66,6 +67,11 @@ const initialForm = {
   image: null,
   bundleItems: [],
   ingredients: [],
+  setupRecipe: false,
+  setupBundle: false,
+  setupResellLink: false,
+  enableAddOns: false,
+  recommendedAddOns: [],
 };
 
 const Modal = () => {
@@ -125,9 +131,40 @@ const Modal = () => {
                 ]
               : [];
 
+        const existingRecommendedAddOns = Array.isArray(
+          selected?.recommendedAddOns,
+        )
+          ? selected.recommendedAddOns
+              .map((entry) => entry?._id || entry)
+              .filter(Boolean)
+          : [];
+
+        const hasRecipeSetup = existingIngredients.length > 0;
+        const hasBundleSetup = (selected?.bundleItems || []).length > 0;
+        const hasResellSetup =
+          selected?.type === "resell" ? existingIngredients.length > 0 : false;
+        const shouldForceSetup = isSetupOnly;
+
         setForm({
           ...selected,
           ingredients: existingIngredients,
+          setupRecipe: shouldForceSetup
+            ? selected?.type === "prepared"
+            : selected?.type === "prepared"
+              ? hasRecipeSetup
+              : false,
+          setupBundle: shouldForceSetup
+            ? selected?.type === "bundle"
+            : selected?.type === "bundle"
+              ? hasBundleSetup
+              : false,
+          setupResellLink: shouldForceSetup
+            ? selected?.type === "resell"
+            : selected?.type === "resell"
+              ? hasResellSetup
+              : false,
+          enableAddOns: existingRecommendedAddOns.length > 0,
+          recommendedAddOns: existingRecommendedAddOns,
         });
         setHasManualPrice(true);
         setImagePreview(Cloudinary.getMenuImg(selected.imgId, selected._id));
@@ -148,6 +185,7 @@ const Modal = () => {
     actCategory,
     categories,
     inventoryItems,
+    isSetupOnly,
   ]);
 
   const toggle = () => dispatch(TOGGLE());
@@ -164,6 +202,9 @@ const Modal = () => {
       type: value,
       bundleItems: value === "bundle" ? current.bundleItems : [],
       ingredients: [],
+      setupRecipe: false,
+      setupBundle: false,
+      setupResellLink: false,
     }));
   };
 
@@ -463,17 +504,42 @@ const Modal = () => {
     }
 
     if (form.type === "prepared" && !form.ingredients.length) {
-      toast.error("Please add at least one recipe ingredient.");
-      return;
+      if (form.setupRecipe) {
+        toast.error("Please add at least one recipe ingredient.");
+        return;
+      }
     }
 
     if (form.type === "resell" && !selectedResellRow) {
-      toast.error("Please select one resell inventory item.");
-      return;
+      if (form.setupResellLink) {
+        toast.error("Please select one resell inventory item.");
+        return;
+      }
     }
+
+    if (form.type === "bundle" && !form.bundleItems.length) {
+      if (form.setupBundle) {
+        toast.error("Please add at least one menu item to the bundle.");
+        return;
+      }
+    }
+
+    const normalizedRecommendedAddOns = form.enableAddOns
+      ? Array.from(
+          new Set(
+            (Array.isArray(form.recommendedAddOns)
+              ? form.recommendedAddOns
+              : []
+            )
+              .map((entry) => entry?._id || entry)
+              .filter(Boolean),
+          ),
+        )
+      : [];
 
     const payload = {
       ...form,
+      recommendedAddOns: normalizedRecommendedAddOns,
       ...buildInventoryPayload(),
     };
 
@@ -575,11 +641,32 @@ const Modal = () => {
             )}
 
             {form.type === "bundle" && (
-              <Bundles form={form} setForm={setForm} />
+              <Bundles
+                form={form}
+                setForm={setForm}
+                enabled={form.setupBundle}
+                hideToggle={!willCreate && (form.bundleItems?.length || 0) > 0}
+                onEnabledChange={(value) => {
+                  setForm((current) => ({
+                    ...current,
+                    setupBundle: value,
+                    bundleItems: value ? current.bundleItems : [],
+                  }));
+                }}
+              />
             )}
 
             {form.type === "prepared" && (
               <Recipe
+                enabled={form.setupRecipe}
+                hideToggle={!willCreate && form.ingredients.length > 0}
+                onEnabledChange={(value) => {
+                  setForm((current) => ({
+                    ...current,
+                    setupRecipe: value,
+                    ingredients: value ? current.ingredients : [],
+                  }));
+                }}
                 onToggleInventoryItem={toggleRecipeItem}
                 selectedIngredientRows={selectedIngredientRows}
                 onUpdateIngredientQty={updateIngredientQty}
@@ -593,6 +680,15 @@ const Modal = () => {
 
             {form.type === "resell" && (
               <Resell
+                enabled={form.setupResellLink}
+                hideToggle={!willCreate && Boolean(selectedResellRow)}
+                onEnabledChange={(value) => {
+                  setForm((current) => ({
+                    ...current,
+                    setupResellLink: value,
+                    ingredients: value ? current.ingredients : [],
+                  }));
+                }}
                 selectedResellRow={selectedResellRow}
                 onSelectResellItem={selectResellItem}
                 onRemoveResellItem={removeResellItem}
@@ -635,28 +731,48 @@ const Modal = () => {
             </section>
 
             {!isSetupOnly && (
-              <section className="grid gap-6">
-                <MenuImage
-                  fileInputRef={fileInputRef}
-                  form={form}
-                  imagePreview={imagePreview}
-                  setForm={setForm}
-                  setImagePreview={setImagePreview}
-                />
-
-                <div className="space-y-2">
-                  <Label htmlFor="item-description">Description</Label>
-                  <Textarea
-                    id="item-description"
-                    value={form.description}
-                    onChange={(event) =>
-                      handleChange("description", event.target.value)
-                    }
-                    placeholder="Add a short product description for staff and menu display."
-                    className="min-h-28 resize-none"
+              <>
+                <section className="grid gap-6">
+                  <MenuImage
+                    fileInputRef={fileInputRef}
+                    form={form}
+                    imagePreview={imagePreview}
+                    setForm={setForm}
+                    setImagePreview={setImagePreview}
                   />
-                </div>
-              </section>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="item-description">Description</Label>
+                    <Textarea
+                      id="item-description"
+                      value={form.description}
+                      onChange={(event) =>
+                        handleChange("description", event.target.value)
+                      }
+                      placeholder="Add a short product description for staff and menu display."
+                      className="min-h-28 resize-none"
+                    />
+                  </div>
+                </section>
+
+                <RecommendedAddOns
+                  collections={addOns}
+                  enabled={form.enableAddOns}
+                  hideToggle={
+                    !willCreate && (form.recommendedAddOns?.length || 0) > 0
+                  }
+                  onEnabledChange={(value) => {
+                    handleChange("enableAddOns", value);
+                    if (!value) {
+                      handleChange("recommendedAddOns", []);
+                    }
+                  }}
+                  selectedIds={form.recommendedAddOns}
+                  onSelectedIdsChange={(ids) =>
+                    handleChange("recommendedAddOns", ids)
+                  }
+                />
+              </>
             )}
 
             <section className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">

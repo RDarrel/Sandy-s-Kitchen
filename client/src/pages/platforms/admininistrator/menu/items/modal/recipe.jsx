@@ -19,6 +19,9 @@ import {
 } from "../../addOns/modal/utils";
 
 const Recipe = ({
+  enabled = false,
+  hideToggle = false,
+  onEnabledChange = () => {},
   onToggleInventoryItem,
   selectedIngredientRows,
   onUpdateIngredientQty,
@@ -59,20 +62,56 @@ const Recipe = ({
     }));
   };
 
+  const shouldShowBody = hideToggle || enabled;
+
   return (
     <section className="rounded-[15px] border border-border bg-white shadow-sm">
-      <div className="border-b border-border px-5 py-4">
-        <p className="text-sm font-semibold text-foreground">Recipe Setup</p>
-        <p className="text-xs text-muted-foreground">
-          Select the inventory ingredients used to prepare one serving of this
-          menu item.
-        </p>
+      <div
+        className={`flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between ${
+          shouldShowBody ? "border-b border-border" : ""
+        }`}
+      >
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">Recipe Setup</p>
+          <p className="text-xs text-muted-foreground">
+            Select the inventory ingredients used to prepare one serving of this
+            menu item.
+          </p>
+        </div>
+
+        {!hideToggle ? (
+          <div className="inline-flex rounded-xl border border-border bg-background p-1">
+            <button
+              type="button"
+              onClick={() => onEnabledChange(true)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                enabled
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up now
+            </button>
+            <button
+              type="button"
+              onClick={() => onEnabledChange(false)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                !enabled
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up later
+            </button>
+          </div>
+        ) : null}
       </div>
 
-      <div className="grid gap-4 p-4 xl:grid-cols-[1.05fr_auto_0.95fr] xl:items-stretch">
-        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
-          <div className="space-y-1 border-b border-border px-4 py-3">
-            <p className="text-base font-semibold text-foreground">
+      {shouldShowBody ? (
+        <div className="grid gap-4 p-4 xl:grid-cols-[1.05fr_auto_0.95fr] xl:items-stretch">
+          <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
+            <div className="space-y-1 border-b border-border px-4 py-3">
+              <p className="text-base font-semibold text-foreground">
               Select Ingredients
             </p>
             <p className="text-sm text-muted-foreground">
@@ -189,7 +228,7 @@ const Recipe = ({
           </div>
         </div>
 
-        <div className="hidden xl:flex xl:h-full xl:items-center xl:justify-center">
+          <div className="hidden xl:flex xl:h-full xl:items-center xl:justify-center">
           <div className="relative flex h-full min-h-[360px] items-center justify-center px-1">
             <div className="absolute left-1/2 top-1/2 h-px w-12 -translate-x-1/2 -translate-y-1/2 bg-border" />
             <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background">
@@ -198,7 +237,7 @@ const Recipe = ({
           </div>
         </div>
 
-        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
+          <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
           <div className="border-b border-border px-4 py-3">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-1">
@@ -327,8 +366,9 @@ const Recipe = ({
               </span>
             </div>
           </div>
+          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   );
 };

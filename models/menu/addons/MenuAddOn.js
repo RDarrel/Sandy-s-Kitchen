@@ -8,7 +8,7 @@ const modelSchema = new mongoose.Schema(
     },
     addOn: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "AddOns",
+      ref: "AddOn",
     },
     deletedAt: {
       type: Date,

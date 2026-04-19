@@ -1,5 +1,6 @@
 const Menu = require("../../models/menu/Menu");
 const MenuComposition = require("../../models/menu/MenuComposition");
+const MenuAddOn = require("../../models/menu/addons/MenuAddOn");
 const Recipe = require("../../models/recipe/Recipe");
 
 const ACTIVE_FILTER = {
@@ -43,6 +44,15 @@ const normalizeBundleItems = (bundleItems = []) => {
       qty: Math.max(1, Number(entry?.quantity || entry?.qty || 1)),
     }))
     .filter((entry) => entry.menu);
+};
+
+const normalizeRecommendedAddOns = (value = []) => {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((entry) => entry?._id || entry)
+    .filter(Boolean)
+    .map((entry) => String(entry));
 };
 
 const buildMenuPayload = (body = {}, normalizedIngredients = []) => {
@@ -124,6 +134,115 @@ const syncComposition = async (menuId, bundleItems = []) => {
   });
 };
 
+const syncMenuAddOns = async (menuId, addOnIds = []) => {
+  const normalizedMenuId = String(menuId || "").trim();
+  if (!normalizedMenuId) return;
+
+  const normalizedAddOnIds = Array.from(
+    new Set((Array.isArray(addOnIds) ? addOnIds : []).map(String)),
+  ).filter(Boolean);
+
+  const currentLinks = await MenuAddOn.find({ menu: menuId }).lean();
+  const linksByAddOnId = currentLinks.reduce((accumulator, link) => {
+    const addOnId = String(link.addOn);
+    if (!accumulator.has(addOnId)) {
+      accumulator.set(addOnId, []);
+    }
+    accumulator.get(addOnId).push(link);
+    return accumulator;
+  }, new Map());
+  const desiredSet = new Set(normalizedAddOnIds);
+  const deletedAt = new Date();
+
+  const operations = [];
+
+  linksByAddOnId.forEach((links, addOnId) => {
+    const shouldKeep = desiredSet.has(addOnId);
+    const primaryLink = links.find((link) => !link.deletedAt) || links[0];
+
+    links.forEach((link) => {
+      if (String(link._id) === String(primaryLink._id)) return;
+      if (link.deletedAt) return;
+
+      operations.push({
+        updateOne: {
+          filter: { _id: link._id },
+          update: { $set: { deletedAt } },
+        },
+      });
+    });
+
+    if (shouldKeep && primaryLink.deletedAt) {
+      operations.push({
+        updateOne: {
+          filter: { _id: primaryLink._id },
+          update: { $set: { deletedAt: null } },
+        },
+      });
+    }
+
+    if (!shouldKeep && !primaryLink.deletedAt) {
+      operations.push({
+        updateOne: {
+          filter: { _id: primaryLink._id },
+          update: { $set: { deletedAt } },
+        },
+      });
+    }
+  });
+
+  normalizedAddOnIds.forEach((addOnId) => {
+    if (linksByAddOnId.has(addOnId)) return;
+
+    operations.push({
+      insertOne: {
+        document: {
+          menu: menuId,
+          addOn: addOnId,
+          deletedAt: null,
+        },
+      },
+    });
+  });
+
+  if (operations.length) {
+    await MenuAddOn.bulkWrite(operations);
+  }
+};
+
+const attachRecommendedAddOns = async (menus = []) => {
+  if (!menus.length) return [];
+
+  const menuIds = menus.map((menu) => menu._id);
+
+  const links = await MenuAddOn.find({
+    menu: { $in: menuIds },
+    ...ACTIVE_FILTER,
+  })
+    .populate("addOn", "name price description group")
+    .lean();
+
+  const addOnsByMenuId = links.reduce((accumulator, link) => {
+    const menuId = String(link.menu);
+    const addOn = link.addOn || null;
+
+    if (!accumulator.has(menuId)) {
+      accumulator.set(menuId, []);
+    }
+
+    if (addOn) {
+      accumulator.get(menuId).push(addOn);
+    }
+
+    return accumulator;
+  }, new Map());
+
+  return menus.map((menu) => ({
+    ...menu,
+    recommendedAddOns: addOnsByMenuId.get(String(menu._id)) || [],
+  }));
+};
+
 const attachRecipes = async (menus = []) => {
   if (!menus.length) return [];
 
@@ -191,7 +310,8 @@ const attachCompositions = async (menus = []) => {
 
 const hydrateMenus = async (menus = []) => {
   const menusWithRecipes = await attachRecipes(menus);
-  return attachCompositions(menusWithRecipes);
+  const menusWithCompositions = await attachCompositions(menusWithRecipes);
+  return attachRecommendedAddOns(menusWithCompositions);
 };
 
 const findMenu = async (_id) => {
@@ -205,6 +325,9 @@ const findMenu = async (_id) => {
 exports.save = async (req, res) => {
   try {
     const normalizedIngredients = normalizeIngredients(req.body);
+    const normalizedRecommendedAddOns = normalizeRecommendedAddOns(
+      req.body.recommendedAddOns,
+    );
     const normalizedBundleItems =
       req.body.type === "bundle"
         ? normalizeBundleItems(req.body.bundleItems)
@@ -218,6 +341,7 @@ exports.save = async (req, res) => {
       req.body.type === "bundle" ? [] : normalizedIngredients,
     );
     await syncComposition(menu._id, normalizedBundleItems);
+    await syncMenuAddOns(menu._id, normalizedRecommendedAddOns);
 
     res.status(201).json({
       success: "Menu Created Successfully",
@@ -245,6 +369,9 @@ exports.update = async (req, res) => {
   try {
     const { _id } = req.body;
     const normalizedIngredients = normalizeIngredients(req.body);
+    const normalizedRecommendedAddOns = normalizeRecommendedAddOns(
+      req.body.recommendedAddOns,
+    );
     const normalizedBundleItems =
       req.body.type === "bundle"
         ? normalizeBundleItems(req.body.bundleItems)
@@ -267,6 +394,7 @@ exports.update = async (req, res) => {
       req.body.type === "bundle" ? [] : normalizedIngredients,
     );
     await syncComposition(_id, normalizedBundleItems);
+    await syncMenuAddOns(_id, normalizedRecommendedAddOns);
 
     res.status(200).json({
       success: "Menu Updated Successfully",
@@ -298,6 +426,7 @@ exports.destroy = async (req, res) => {
       { menu: _id, ...ACTIVE_FILTER },
       { deletedAt },
     );
+    await MenuAddOn.updateMany({ menu: _id, ...ACTIVE_FILTER }, { deletedAt });
 
     res.status(200).json({
       success: "Menu Deleted Successfully",

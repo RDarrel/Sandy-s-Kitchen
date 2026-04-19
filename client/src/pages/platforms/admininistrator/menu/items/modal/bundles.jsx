@@ -20,7 +20,13 @@ import { useSelector } from "react-redux";
 const getBundleItemId = (item) => item?._id || item?.id;
 const INVALID_NUMBER_KEYS = ["e", "E", "+", "-", "."];
 
-const Bundles = ({ form, setForm = () => {} }) => {
+const Bundles = ({
+  form,
+  setForm = () => {},
+  enabled = false,
+  hideToggle = false,
+  onEnabledChange = () => {},
+}) => {
   const { collections } = useSelector(({ menus }) => menus);
   const { collections: categories } = useSelector(
     ({ menuCategories }) => menuCategories,
@@ -91,21 +97,57 @@ const Bundles = ({ form, setForm = () => {} }) => {
     });
   };
 
+  const shouldShowBody = hideToggle || enabled;
+
   return (
     <section className="rounded-[15px] border border-border bg-white shadow-sm">
-      <div className="border-b border-border px-5 py-4">
-        <p className="text-sm font-semibold text-foreground">
-          Bundle Composition
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Add items on the left and review quantities on the right.
-        </p>
+      <div
+        className={`flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between ${
+          shouldShowBody ? "border-b border-border" : ""
+        }`}
+      >
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">
+            Bundle Composition
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Add items on the left and review quantities on the right.
+          </p>
+        </div>
+
+        {!hideToggle ? (
+          <div className="inline-flex rounded-xl border border-border bg-background p-1">
+            <button
+              type="button"
+              onClick={() => onEnabledChange(true)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                enabled
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up now
+            </button>
+            <button
+              type="button"
+              onClick={() => onEnabledChange(false)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                !enabled
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up later
+            </button>
+          </div>
+        ) : null}
       </div>
 
-      <div className="grid gap-4 p-4 xl:grid-cols-[1fr_24px_1fr] xl:items-stretch">
-        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border bg-white">
-          <div className="border-b border-border bg-white px-4 py-3">
-            <p className="text-sm font-semibold">Available Menu Items</p>
+      {shouldShowBody ? (
+        <div className="grid gap-4 p-4 xl:grid-cols-[1fr_24px_1fr] xl:items-stretch">
+          <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border bg-white">
+            <div className="border-b border-border bg-white px-4 py-3">
+              <p className="text-sm font-semibold">Available Menu Items</p>
             <div className="mt-3 grid gap-2 md:grid-cols-[1fr_180px]">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -318,7 +360,8 @@ const Bundles = ({ form, setForm = () => {} }) => {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      ) : null}
     </section>
   );
 };
