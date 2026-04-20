@@ -210,14 +210,14 @@ const Header = () => {
   }, {});
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm overflow-x-hidden">
-      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex items-center gap-3">
+    <div className="w-full max-w-full min-w-0 overflow-x-hidden rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-4">
+      <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:flex-wrap xl:items-center xl:justify-between">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <UtensilsCrossed className="h-5 w-5" />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-semibold leading-tight">
                 Menu Items
@@ -234,9 +234,9 @@ const Header = () => {
           </div>
         </div>
 
-	        <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
-	          <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
-	            <div className="relative w-full md:w-[280px]">
+	        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:gap-3 xl:w-auto">
+	          <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center">
+	            <div className="relative w-full min-w-0 sm:max-w-[360px] sm:flex-1 md:w-[280px]">
 	              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 	              <input
 	                type="text"
@@ -251,15 +251,15 @@ const Header = () => {
 	          <button
 	            type="button"
 	            onClick={() => dispatch(SetCREATE())}
-	            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+	            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
 	          >
-            <Plus className="h-4 w-4" />
-            Add Item
-          </button>
-        </div>
-	      </div>
+	            <Plus className="h-4 w-4" />
+	            Add Item
+	          </button>
+	        </div>
+      </div>
 
-	      <div className="mt-4 flex min-w-0 items-center gap-2">
+	      <div className="mt-4 grid w-full min-w-0 grid-cols-[auto_1fr] items-center gap-1.5 sm:gap-2 md:grid-cols-[auto_auto_1fr_auto]">
 	        <Select
 	          value={availability}
 	          onValueChange={(value) =>
@@ -269,8 +269,8 @@ const Header = () => {
 	          <SelectTrigger
 	            aria-label="Filter by availability"
 	            title="Availability"
-	            className="h-10 w-[130px] shrink-0 rounded-full bg-background overflow-hidden sm:w-[150px]"
-	            size="default"
+	            className="h-9 w-[88px] shrink-0 overflow-hidden rounded-full bg-background sm:h-10 sm:w-[110px] md:w-[150px]"
+	            size="sm"
 	          >
 	            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
 	            <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
@@ -289,7 +289,7 @@ const Header = () => {
 	          aria-label="Scroll categories left"
 	          onClick={() => scrollByAmount(-240)}
 	          disabled={!canScrollLeft}
-	          className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card/80 text-foreground shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 ${
+	          className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card/80 text-foreground shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 md:inline-flex md:h-10 md:w-10 ${
 	            canScrollLeft
 	              ? "hover:bg-card"
 	              : "opacity-30 cursor-default"
@@ -298,7 +298,7 @@ const Header = () => {
 	          <ChevronLeft className="h-4 w-4" />
 	        </button>
 
-        <div className="relative min-w-0 max-w-full flex-1">
+        <div className="relative w-full min-w-0 overflow-hidden">
           {canScrollLeft && (
             <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-card to-transparent" />
           )}
@@ -314,43 +314,55 @@ const Header = () => {
             onPointerCancel={endPointer}
             onWheel={handleWheel}
             style={{ touchAction: "pan-y" }}
-            className={`no-scrollbar overscroll-x-contain flex max-w-full flex-nowrap gap-2 overflow-x-auto pb-1 select-none ${
+            className={`no-scrollbar overscroll-x-contain flex w-full min-w-0 flex-nowrap gap-1.5 overflow-x-auto pb-1 select-none sm:gap-2 ${
               isDragging ? "cursor-grabbing" : "cursor-grab"
             }`}
           >
             {isLoading
-              ? new Array(7)
+              ? new Array(12)
                   .fill("")
                   .map((_, index) => (
-                  <Skeleton
-                    key={index}
-                    className={`h-10 shrink-0 rounded-full ${
-                      index === 0 ? "w-16" : "w-24"
-                    }`}
-                  />
-                ))
+                    <Skeleton
+                      key={index}
+                      className={`h-9 shrink-0 rounded-full sm:h-10 ${
+                        index % 6 === 0
+                          ? "w-16"
+                          : index % 6 === 1
+                            ? "w-24"
+                            : index % 6 === 2
+                              ? "w-20"
+                              : index % 6 === 3
+                                ? "w-28"
+                                : index % 6 === 4
+                                  ? "w-24"
+                                  : "w-32"
+                      }`}
+                    />
+                  ))
               : [{ _id: "all", name: "All" }, ...(categories || [])].map(
                   (category, index) => {
                     const isActive = actCategory === category?._id;
                     const categoryCount = categoryCounts[category?._id];
 
                     return (
-                      <button
-                        key={index}
-                        type="button"
-                        onClick={() => handleCategoryClick(category?._id)}
-                        className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-4 py-0 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 ${
-                          isActive
-                            ? "bg-primary text-primary-foreground"
-                            : "border border-border bg-background text-foreground hover:border-primary hover:text-primary"
-                        }`}
-                      >
-                        <span>{category.name}</span>
-                        {category?._id !== "all" && categoryCount > 0 && (
-                          <span
-                            className={`inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
-                              isActive
-                                ? "bg-primary-foreground/15 text-primary-foreground"
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => handleCategoryClick(category?._id)}
+                      className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 py-0 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:h-10 sm:gap-2 sm:px-4 sm:text-sm ${
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "border border-border bg-background text-foreground hover:border-primary hover:text-primary"
+                      }`}
+                    >
+                      <span className="max-w-[96px] truncate sm:max-w-[120px] md:max-w-none">
+                        {category.name}
+                      </span>
+                      {category?._id !== "all" && categoryCount > 0 && (
+                        <span
+                          className={`inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
+                            isActive
+                              ? "bg-primary-foreground/15 text-primary-foreground"
                                 : "bg-muted text-muted-foreground"
                             }`}
                           >
@@ -369,7 +381,7 @@ const Header = () => {
           aria-label="Scroll categories right"
           onClick={() => scrollByAmount(240)}
           disabled={!canScrollRight}
-          className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-card/80 text-foreground shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 ${
+          className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card/80 text-foreground shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 md:inline-flex md:h-10 md:w-10 ${
             canScrollRight
               ? "hover:bg-card"
               : "opacity-30 cursor-default"
