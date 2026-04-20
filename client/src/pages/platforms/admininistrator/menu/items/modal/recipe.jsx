@@ -15,6 +15,7 @@ import {
 import { Formatter } from "@/services/utilities";
 import {
   INITIAL_FILTERS,
+  INVENTORY_TYPE_OPTIONS,
   INVENTORY_CATEGORY_OPTIONS,
   getInventoryCost,
   getUnitOptions,
@@ -28,7 +29,11 @@ const Recipe = ({ form, setForm = () => {} }) => {
   const { collections: inventoryItems = [] } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
-  const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [filters, setFilters] = useState(() => ({
+    ...INITIAL_FILTERS,
+    // In prepared recipe setup, default to ingredients. User can switch to resell.
+    type: "ingredient",
+  }));
 
   const selectedIngredientRows = useMemo(() => {
     const ingredients = Array.isArray(form?.ingredients)
@@ -76,7 +81,8 @@ const Recipe = ({ form, setForm = () => {} }) => {
 
   const filteredInventoryItems = useMemo(() => {
     return inventoryItems.filter((item) => {
-      const matchesType = item?.type === "ingredient";
+      const matchesType =
+        filters.type === "all" ? true : item?.type === filters.type;
       const matchesCategory =
         filters.category === "all" ? true : item?.category === filters.category;
       const matchesSearch = filters.search
@@ -88,11 +94,24 @@ const Recipe = ({ form, setForm = () => {} }) => {
   }, [filters, inventoryItems]);
 
   const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setFilters((prev) => {
+      if (key === "type") {
+        // When switching between Ingredient / Resell, reset category so it matches the new type.
+        return { ...prev, type: value, category: "all" };
+      }
+
+      return {
+        ...prev,
+        [key]: value,
+      };
+    });
   };
+
+  const categoryOptions = useMemo(() => {
+    return (
+      INVENTORY_CATEGORY_OPTIONS[filters.type] || INVENTORY_CATEGORY_OPTIONS.all
+    );
+  }, [filters.type]);
 
   const toggleInventoryItem = (item) => {
     if (!item?._id) return;
@@ -196,34 +215,59 @@ const Recipe = ({ form, setForm = () => {} }) => {
           </div>
 
           <div className="min-h-0 flex flex-1 flex-col space-y-3 p-3">
-            <div className="grid gap-3 md:grid-cols-[1fr_180px]">
-              <div className="relative">
+            <div className="flex gap-3">
+              {/* SEARCH - takes remaining space */}
+              <div className="relative flex-1 min-w-0">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={filters.search}
-                  onChange={(event) =>
-                    handleFilterChange("search", event.target.value)
-                  }
-                  placeholder="Search inventory items..."
-                  className="pl-9"
+                  onChange={(e) => handleFilterChange("search", e.target.value)}
+                  placeholder="Search..."
+                  className="w-full pl-9"
                 />
               </div>
 
-              <Select
-                value={filters.category}
-                onValueChange={(value) => handleFilterChange("category", value)}
-              >
-                <SelectTrigger className="w-full bg-transparent">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {INVENTORY_CATEGORY_OPTIONS.ingredient.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* TYPE */}
+              <div className="w-[120px] shrink-0">
+                <Select
+                  value={filters.type}
+                  onValueChange={(value) => handleFilterChange("type", value)}
+                >
+                  <SelectTrigger className="w-full bg-transparent">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INVENTORY_TYPE_OPTIONS.filter(
+                      (o) => o.value !== "all",
+                    ).map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* CATEGORY */}
+              <div className="w-[135px] shrink-0">
+                <Select
+                  value={filters.category}
+                  onValueChange={(value) =>
+                    handleFilterChange("category", value)
+                  }
+                >
+                  <SelectTrigger className="w-full bg-transparent">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="min-h-0 flex-1 overflow-auto rounded-[10px] border border-border">

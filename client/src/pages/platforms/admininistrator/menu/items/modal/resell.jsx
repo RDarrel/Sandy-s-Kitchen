@@ -131,29 +131,31 @@ const Resell = ({ form, setForm = () => {} }) => {
             </div>
           ) : (
             <div className="flex h-full min-h-0 flex-col space-y-3 p-1">
-              <div className="mt-1 grid gap-3 md:grid-cols-[1fr_180px]">
-                <div className="relative">
+              <div className="mt-1 grid gap-3 sm:gap-2 md:grid-cols-[minmax(0,1fr)_190px] md:items-center">
+                <div className="relative min-w-0">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search inventory items..."
-                    className="pl-9"
+                    className="w-full pl-9"
                   />
                 </div>
 
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="w-full bg-transparent">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INVENTORY_CATEGORY_OPTIONS.resell.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="min-w-0 md:w-[190px]">
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="w-full bg-transparent">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INVENTORY_CATEGORY_OPTIONS.resell.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="min-h-0 flex-1 overflow-auto rounded-[10px] border border-border">
@@ -215,4 +217,3 @@ const Resell = ({ form, setForm = () => {} }) => {
 };
 
 export default Resell;
-

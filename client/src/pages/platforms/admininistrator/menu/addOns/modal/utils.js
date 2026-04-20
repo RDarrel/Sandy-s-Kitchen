@@ -9,7 +9,7 @@ export const GROUP_OPTIONS = [
 
 export const INVENTORY_TYPE_OPTIONS = [
   { label: "All Types", value: "all" },
-  { label: "Ingredient", value: "ingredient" },
+  { label: "Ingredients", value: "ingredient" },
   { label: "Resell", value: "resell" },
 ];
 
