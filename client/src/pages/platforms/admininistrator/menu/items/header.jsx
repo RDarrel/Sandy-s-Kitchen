@@ -27,10 +27,10 @@ const Header = () => {
     category: actCategory,
     availability,
     search,
-    collections,
+    collections = [],
     isLoading,
   } = useSelector(({ menus }) => menus);
-  const { collections: categories } = useSelector(
+  const { collections: categories = [] } = useSelector(
     ({ menuCategories }) => menuCategories,
   );
   const dispatch = useDispatch();
@@ -39,7 +39,6 @@ const Header = () => {
   const scrollerRef = useRef(null);
   const dragRef = useRef({
     isDragging: false,
-    isPointerDown: false,
     pointerId: null,
     startX: 0,
     startScrollLeft: 0,
@@ -58,7 +57,9 @@ const Header = () => {
     // Tiny epsilon because of fractional scroll values.
     const epsilon = 1;
     setCanScrollLeft(el.scrollLeft > epsilon);
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - epsilon);
+    setCanScrollRight(
+      el.scrollLeft + el.clientWidth < el.scrollWidth - epsilon,
+    );
   }, []);
 
   useEffect(() => {
@@ -89,7 +90,6 @@ const Header = () => {
     const el = scrollerRef.current;
     const didDrag = dragRef.current.moved;
     dragRef.current.isDragging = false;
-    dragRef.current.isPointerDown = false;
     setIsDragging(false);
     try {
       el?.releasePointerCapture(e.pointerId);
@@ -97,7 +97,8 @@ const Header = () => {
       // Ignore.
     }
 
-    if (typeof dragRef.current.cleanup === "function") dragRef.current.cleanup();
+    if (typeof dragRef.current.cleanup === "function")
+      dragRef.current.cleanup();
 
     // Allow click again after the drag gesture fully finishes (prevents "dead" categories).
     if (didDrag) {
@@ -107,82 +108,89 @@ const Header = () => {
     }
   }, []);
 
-  const handlePointerDown = useCallback((e) => {
-    const el = scrollerRef.current;
-    if (!el) return;
+  const handlePointerDown = useCallback(
+    (e) => {
+      const el = scrollerRef.current;
+      if (!el) return;
 
-    // Only left mouse button; allow touch/pen as-is.
-    if (e.pointerType === "mouse" && e.button !== 0) return;
+      // Only left mouse button; allow touch/pen as-is.
+      if (e.pointerType === "mouse" && e.button !== 0) return;
 
-    // Clear any previous listeners/state just in case.
-    if (typeof dragRef.current.cleanup === "function") dragRef.current.cleanup();
+      // Clear any previous listeners/state just in case.
+      if (typeof dragRef.current.cleanup === "function")
+        dragRef.current.cleanup();
 
-    dragRef.current.isPointerDown = true;
-    dragRef.current.isDragging = false;
-    dragRef.current.pointerId = e.pointerId;
-    dragRef.current.startX = e.clientX;
-    dragRef.current.startScrollLeft = el.scrollLeft;
-    dragRef.current.moved = false;
+      dragRef.current.isDragging = false;
+      dragRef.current.pointerId = e.pointerId;
+      dragRef.current.startX = e.clientX;
+      dragRef.current.startScrollLeft = el.scrollLeft;
+      dragRef.current.moved = false;
 
-    // If the user releases the pointer outside the scroller, we still need to stop dragging.
-    const onWindowPointerUp = (ev) => {
-      if (dragRef.current.pointerId !== ev.pointerId) return;
-      endPointer(ev);
-    };
+      // If the user releases the pointer outside the scroller, we still need to stop dragging.
+      const onWindowPointerUp = (ev) => {
+        if (dragRef.current.pointerId !== ev.pointerId) return;
+        endPointer(ev);
+      };
 
-    const onWindowPointerCancel = (ev) => {
-      if (dragRef.current.pointerId !== ev.pointerId) return;
-      endPointer(ev);
-    };
+      const onWindowPointerCancel = (ev) => {
+        if (dragRef.current.pointerId !== ev.pointerId) return;
+        endPointer(ev);
+      };
 
-    window.addEventListener("pointerup", onWindowPointerUp);
-    window.addEventListener("pointercancel", onWindowPointerCancel);
+      window.addEventListener("pointerup", onWindowPointerUp);
+      window.addEventListener("pointercancel", onWindowPointerCancel);
 
-    dragRef.current.cleanup = () => {
-      window.removeEventListener("pointerup", onWindowPointerUp);
-      window.removeEventListener("pointercancel", onWindowPointerCancel);
-      dragRef.current.cleanup = null;
-    };
-  }, [endPointer]);
+      dragRef.current.cleanup = () => {
+        window.removeEventListener("pointerup", onWindowPointerUp);
+        window.removeEventListener("pointercancel", onWindowPointerCancel);
+        dragRef.current.cleanup = null;
+      };
+    },
+    [endPointer],
+  );
 
-  const handlePointerMove = useCallback((e) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    if (dragRef.current.pointerId !== e.pointerId) return;
+  const handlePointerMove = useCallback(
+    (e) => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      if (dragRef.current.pointerId !== e.pointerId) return;
 
-    // For mouse, only allow dragging while left button is actually held down.
-    if (e.pointerType === "mouse" && (e.buttons & 1) === 0) {
-      endPointer(e);
-      return;
-    }
-
-    const dx = e.clientX - dragRef.current.startX;
-    if (Math.abs(dx) <= 4 && !dragRef.current.isDragging) return;
-
-    if (!dragRef.current.isDragging) {
-      dragRef.current.isDragging = true;
-      setIsDragging(true);
-      dragRef.current.moved = true;
-
-      // Once we know it's a drag, capture the pointer so the gesture stays consistent.
-      try {
-        el.setPointerCapture(e.pointerId);
-      } catch {
-        // Ignore if the browser doesn't support it.
+      // For mouse, only allow dragging while left button is actually held down.
+      if (e.pointerType === "mouse" && (e.buttons & 1) === 0) {
+        endPointer(e);
+        return;
       }
-    }
 
-    // While dragging, avoid any native drag/selection behaviors and scroll chaining.
-    e.preventDefault();
-    el.scrollLeft = dragRef.current.startScrollLeft - dx;
-  }, [endPointer]);
+      const dx = e.clientX - dragRef.current.startX;
+      if (Math.abs(dx) <= 4 && !dragRef.current.isDragging) return;
+
+      if (!dragRef.current.isDragging) {
+        dragRef.current.isDragging = true;
+        setIsDragging(true);
+        dragRef.current.moved = true;
+
+        // Once we know it's a drag, capture the pointer so the gesture stays consistent.
+        try {
+          el.setPointerCapture(e.pointerId);
+        } catch {
+          // Ignore if the browser doesn't support it.
+        }
+      }
+
+      // While dragging, avoid any native drag/selection behaviors and scroll chaining.
+      e.preventDefault();
+      el.scrollLeft = dragRef.current.startScrollLeft - dx;
+    },
+    [endPointer],
+  );
 
   const handleWheel = useCallback((e) => {
     const el = scrollerRef.current;
     if (!el) return;
 
     // Only intercept horizontal intent. Vertical wheel should keep scrolling the page.
-    const horizontalIntent = e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY);
+    const horizontalIntent =
+      e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY);
     if (!horizontalIntent) return;
 
     if (el.scrollWidth <= el.clientWidth) return;
@@ -234,69 +242,67 @@ const Header = () => {
           </div>
         </div>
 
-	        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:gap-3 xl:w-auto">
-	          <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center">
-	            <div className="relative w-full min-w-0 sm:max-w-[360px] sm:flex-1 md:w-[280px]">
-	              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-	              <input
-	                type="text"
-	                placeholder="Search items..."
-	                value={search}
-	                onChange={(e) => dispatch(SEARCH(e.target.value))}
-	                className="h-10 w-full rounded-xl border border-input bg-background pl-9 pr-3 text-sm outline-none transition focus:border-primary"
-	              />
-	            </div>
-	          </div>
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:gap-3 xl:w-auto">
+          <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="relative w-full min-w-0 sm:max-w-[360px] sm:flex-1 md:w-[280px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search items..."
+                value={search}
+                onChange={(e) => dispatch(SEARCH(e.target.value))}
+                className="h-10 w-full rounded-xl border border-input bg-background pl-9 pr-3 text-sm outline-none transition focus:border-primary"
+              />
+            </div>
+          </div>
 
-	          <button
-	            type="button"
-	            onClick={() => dispatch(SetCREATE())}
-	            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
-	          >
-	            <Plus className="h-4 w-4" />
-	            Add Item
-	          </button>
-	        </div>
+          <button
+            type="button"
+            onClick={() => dispatch(SetCREATE())}
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            Add Item
+          </button>
+        </div>
       </div>
 
-	      <div className="mt-4 grid w-full min-w-0 grid-cols-[auto_1fr] items-center gap-1.5 sm:gap-2 md:grid-cols-[auto_auto_1fr_auto]">
-	        <Select
-	          value={availability}
-	          onValueChange={(value) =>
-	            dispatch(FilterBY_AVAILABILITY(value || "all"))
-	          }
-	        >
-	          <SelectTrigger
-	            aria-label="Filter by availability"
-	            title="Availability"
-	            className="h-9 w-[88px] shrink-0 overflow-hidden rounded-full bg-background sm:h-10 sm:w-[110px] md:w-[150px]"
-	            size="sm"
-	          >
-	            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-	            <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
-	              <SelectValue placeholder="All" />
-	            </span>
-	          </SelectTrigger>
-	          <SelectContent align="start">
-	            <SelectItem value="all">All</SelectItem>
-	            <SelectItem value="available">Available</SelectItem>
-	            <SelectItem value="unavailable">Unavailable</SelectItem>
-	          </SelectContent>
-	        </Select>
+      <div className="mt-4 grid w-full min-w-0 grid-cols-[auto_1fr] items-center gap-1.5 sm:gap-2 md:grid-cols-[auto_auto_1fr_auto]">
+        <Select
+          value={availability}
+          onValueChange={(value) =>
+            dispatch(FilterBY_AVAILABILITY(value || "all"))
+          }
+        >
+          <SelectTrigger
+            aria-label="Filter by availability"
+            title="Availability"
+            className="h-8 w-[88px] shrink-0 overflow-hidden rounded-full bg-background sm:h-9 sm:w-[110px] md:w-[150px]"
+            size="sm"
+          >
+            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+            <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
+              <SelectValue placeholder="All" />
+            </span>
+          </SelectTrigger>
+          <SelectContent align="start">
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="unavailable">Unavailable</SelectItem>
+          </SelectContent>
+        </Select>
 
-	        <button
-	          type="button"
-	          aria-label="Scroll categories left"
-	          onClick={() => scrollByAmount(-240)}
-	          disabled={!canScrollLeft}
-	          className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card/80 text-foreground shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 md:inline-flex md:h-10 md:w-10 ${
-	            canScrollLeft
-	              ? "hover:bg-card"
-	              : "opacity-30 cursor-default"
-	          }`}
-	        >
-	          <ChevronLeft className="h-4 w-4" />
-	        </button>
+        <button
+          type="button"
+          aria-label="Scroll categories left"
+          onClick={() => scrollByAmount(-240)}
+          disabled={!canScrollLeft}
+          className={`hidden h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border border-border bg-card/80 text-foreground shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 md:inline-flex md:h-9 md:w-9 ${
+            canScrollLeft ? "hover:bg-card" : "opacity-30 cursor-default"
+          }`}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
 
         <div className="relative w-full min-w-0 overflow-hidden">
           {canScrollLeft && (
@@ -314,7 +320,7 @@ const Header = () => {
             onPointerCancel={endPointer}
             onWheel={handleWheel}
             style={{ touchAction: "pan-y" }}
-            className={`no-scrollbar overscroll-x-contain flex w-full min-w-0 flex-nowrap gap-1.5 overflow-x-auto pb-1 select-none sm:gap-2 ${
+            className={`no-scrollbar overscroll-x-contain flex w-full min-w-0 flex-nowrap gap-1.5 overflow-x-auto py-0.5 select-none sm:gap-2 ${
               isDragging ? "cursor-grabbing" : "cursor-grab"
             }`}
           >
@@ -324,7 +330,7 @@ const Header = () => {
                   .map((_, index) => (
                     <Skeleton
                       key={index}
-                      className={`h-9 shrink-0 rounded-full sm:h-10 ${
+                      className={`h-8 shrink-0 rounded-full sm:h-9 ${
                         index % 6 === 0
                           ? "w-16"
                           : index % 6 === 1
@@ -339,40 +345,38 @@ const Header = () => {
                       }`}
                     />
                   ))
-              : [{ _id: "all", name: "All" }, ...(categories || [])].map(
-                  (category, index) => {
-                    const isActive = actCategory === category?._id;
-                    const categoryCount = categoryCounts[category?._id];
+              : [{ _id: "all", name: "All" }, ...categories].map((category) => {
+                  const isActive = actCategory === category?._id;
+                  const categoryCount = categoryCounts[category?._id];
 
-                    return (
+                  return (
                     <button
-                      key={index}
+                      key={category?._id || category?.name}
                       type="button"
                       onClick={() => handleCategoryClick(category?._id)}
-                      className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 py-0 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:h-10 sm:gap-2 sm:px-4 sm:text-sm ${
+                      className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 py-0 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:h-9 sm:gap-2 sm:px-4 sm:text-sm ${
                         isActive
                           ? "bg-primary text-primary-foreground"
                           : "border border-border bg-background text-foreground hover:border-primary hover:text-primary"
                       }`}
                     >
                       <span className="max-w-[96px] truncate sm:max-w-[120px] md:max-w-none">
-                        {category.name}
+                        {category?.name}
                       </span>
                       {category?._id !== "all" && categoryCount > 0 && (
                         <span
                           className={`inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
                             isActive
                               ? "bg-primary-foreground/15 text-primary-foreground"
-                                : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            {categoryCount}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  },
-                )}
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {categoryCount}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
           </div>
         </div>
 
@@ -381,10 +385,8 @@ const Header = () => {
           aria-label="Scroll categories right"
           onClick={() => scrollByAmount(240)}
           disabled={!canScrollRight}
-          className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-card/80 text-foreground shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 md:inline-flex md:h-10 md:w-10 ${
-            canScrollRight
-              ? "hover:bg-card"
-              : "opacity-30 cursor-default"
+          className={`hidden h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border border-border bg-card/80 text-foreground shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 md:inline-flex md:h-9 md:w-9 ${
+            canScrollRight ? "hover:bg-card" : "opacity-30 cursor-default"
           }`}
         >
           <ChevronRight className="h-4 w-4" />
