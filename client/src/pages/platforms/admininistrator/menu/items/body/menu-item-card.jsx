@@ -73,11 +73,7 @@ const MenuItemCard = ({
       }`}
     >
       <div
-        className={`relative flex h-full flex-col border bg-card shadow-sm transition-shadow duration-300 hover:shadow-lg ${
-          isDetailsOpen
-            ? "overflow-visible rounded-t-2xl rounded-b-none border-2 border-primary/40 border-b-0 shadow-sm"
-            : "rounded-2xl border-border"
-        }`}
+        className={`relative flex h-full flex-col overflow-visible rounded-2xl bg-card shadow-sm transition-shadow duration-300 hover:shadow-lg`}
       >
         <div className="relative h-52 overflow-hidden rounded-t-2xl bg-muted/40">
           <img
@@ -168,7 +164,13 @@ const MenuItemCard = ({
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col p-4">
+        <div
+          className={`flex flex-1 flex-col bg-card p-4 ${
+            isDetailsOpen
+              ? "rounded-b-none border-x-2 border-primary/40 border-b-0"
+              : "rounded-b-2xl border-x border-b border-border"
+          }`}
+        >
           <p className="truncate text-sm leading-6 text-muted-foreground">
             {item?.description}
           </p>
