@@ -267,7 +267,6 @@ const Modal = () => {
     }));
   }, [hasManualPrice, showModal, totalEstimatedMenuCost, willCreate]);
 
-
   const buildInventoryPayload = () => {
     if (!["prepared", "resell"].includes(form.type)) {
       return {
@@ -594,23 +593,17 @@ const Modal = () => {
             )}
 
             {!isAddOnsOnly && form.type === "prepared" && (
-              <Recipe
-                form={form}
-                setForm={setForm}
-              />
+              <Recipe form={form} setForm={setForm} />
             )}
 
             {!isAddOnsOnly && form.type === "resell" && (
-              <Resell
-                form={form}
-                setForm={setForm}
-              />
+              <Resell form={form} setForm={setForm} />
             )}
 
             {isAddOnsOnly ? (
               <section className="rounded-[15px] border border-border bg-white shadow-sm">
                 <div className="border-b border-border px-5 py-4">
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className="no-underline text-base font-semibold leading-tight text-foreground">
                     {form.name || "Menu Item"}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -682,23 +675,25 @@ const Modal = () => {
                   </div>
                 </section>
 
-                <RecommendedAddOns
-                  collections={addOns}
-                  enabled={form.enableAddOns}
-                  hideToggle={
-                    !willCreate && (form.recommendedAddOns?.length || 0) > 0
-                  }
-                  onEnabledChange={(value) => {
-                    handleChange("enableAddOns", value);
-                    if (!value) {
-                      handleChange("recommendedAddOns", []);
+                {["prepared", "bundle"].includes(form.type) && (
+                  <RecommendedAddOns
+                    collections={addOns}
+                    enabled={form.enableAddOns}
+                    hideToggle={
+                      !willCreate && (form.recommendedAddOns?.length || 0) > 0
                     }
-                  }}
-                  selectedIds={form.recommendedAddOns}
-                  onSelectedIdsChange={(ids) =>
-                    handleChange("recommendedAddOns", ids)
-                  }
-                />
+                    onEnabledChange={(value) => {
+                      handleChange("enableAddOns", value);
+                      if (!value) {
+                        handleChange("recommendedAddOns", []);
+                      }
+                    }}
+                    selectedIds={form.recommendedAddOns}
+                    onSelectedIdsChange={(ids) =>
+                      handleChange("recommendedAddOns", ids)
+                    }
+                  />
+                )}
               </>
             )}
 

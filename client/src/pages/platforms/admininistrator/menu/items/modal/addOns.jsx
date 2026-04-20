@@ -203,8 +203,8 @@ const RecommendedAddOns = ({
                         }}
                         className={`flex items-center justify-between gap-3 border-b border-border px-3 py-2.5 last:border-b-0 ${
                           isSelected
-                            ? "cursor-default bg-[color:color-mix(in_srgb,var(--primary)_7%,white)] shadow-[inset_4px_0_0_var(--color-primary)]"
-                            : "cursor-pointer bg-card transition hover:bg-muted/40"
+                            ? "cursor-pointer bg-[color:color-mix(in_srgb,var(--primary)_7%,white)] shadow-[inset_4px_0_0_var(--color-primary)] hover:bg-[color:color-mix(in_srgb,var(--primary)_10%,white)]"
+                            : "cursor-pointer bg-transparent transition-colors hover:bg-muted/40"
                         }`}
                       >
                         <div className="min-w-0 flex-1 space-y-1">

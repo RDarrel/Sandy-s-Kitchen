@@ -16,7 +16,7 @@ import {
   Store,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   DESTROY,
@@ -216,6 +216,30 @@ const Body = () => {
   const [availabilityTargetId, setAvailabilityTargetId] = useState(null);
   const dispatch = useDispatch();
   const hasFilteredResults = filtered.length > 0;
+
+  const openItem = openDetailId
+    ? filtered.find((entry) => entry?._id === openDetailId) || null
+    : null;
+
+  const openItemHasRecommendedAddOns =
+    getRecommendedAddOnEntries(openItem?.recommendedAddOns || []).length > 0;
+
+  // If user was viewing add-ons, then removed them (via Manage Add-ons + Save),
+  // the tab switcher disappears (because there are no add-ons). Without this,
+  // the UI gets stuck showing the "no add-ons" empty state even if recipe/bundle exists.
+  useEffect(() => {
+    if (!openDetailId) return;
+
+    if (!openItem) {
+      setOpenDetailId(null);
+      setActiveDetailTab("details");
+      return;
+    }
+
+    if (activeDetailTab === "addons" && !openItemHasRecommendedAddOns) {
+      setActiveDetailTab("details");
+    }
+  }, [openDetailId, openItem, openItemHasRecommendedAddOns, activeDetailTab]);
 
   const setDeleteDialogOpen = (value) => {
     setShowDeleteAlert(value);

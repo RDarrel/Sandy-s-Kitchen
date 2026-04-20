@@ -208,6 +208,12 @@
   }
 }
 
+/* Radix UI (Select/Popover/etc) may scroll-lock the page and add padding-right to compensate.
+   With `scrollbar-gutter: stable`, that extra padding causes a visible width "shrink" while open. */
+body[data-scroll-locked] {
+  padding-right: 0 !important;
+}
+
 @layer utilities {
   /* Hide scrollbar but keep scrolling enabled (touch, wheel, drag). */
   .no-scrollbar {
