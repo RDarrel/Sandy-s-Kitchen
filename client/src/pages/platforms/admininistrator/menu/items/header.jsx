@@ -73,14 +73,14 @@ const Header = () => {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-nowrap gap-2 overflow-x-auto pb-1">
         {isLoading
           ? new Array(7)
               .fill("")
               .map((_, index) => (
                 <Skeleton
                   key={index}
-                  className={`h-10 rounded-full ${
+                  className={`h-10 shrink-0 rounded-full ${
                     index === 0 ? "w-16" : "w-24"
                   }`}
                 />
@@ -95,7 +95,7 @@ const Header = () => {
                     key={index}
                     type="button"
                     onClick={() => dispatch(FilterBY_CATEGORY(category?._id))}
-                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                    className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "border border-border bg-background text-foreground hover:border-primary hover:text-primary"

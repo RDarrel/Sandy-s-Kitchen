@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useSelector } from "react-redux";
 
 import { Button } from "@/components/ui/button";
@@ -16,31 +16,59 @@ import { Formatter } from "@/services/utilities";
 import {
   INITIAL_FILTERS,
   INVENTORY_CATEGORY_OPTIONS,
+  getInventoryCost,
+  getUnitOptions,
+  isPieceUnit,
+  resolveUnitValue,
 } from "../../addOns/modal/utils";
 
-const Recipe = ({
-  enabled = false,
-  hideToggle = false,
-  onEnabledChange = () => {},
-  onToggleInventoryItem,
-  selectedIngredientRows,
-  onUpdateIngredientQty,
-  onUpdateIngredientUnit,
-  onRemoveIngredientRow,
-  totalEstimatedInventoryCost,
-  isPieceUnit,
-  onIngredientQtyKeyDown,
-}) => {
+const INVALID_NUMBER_KEYS = ["e", "E", "+", "-", ".", ","];
+
+const Recipe = ({ form, setForm = () => {} }) => {
   const { collections: inventoryItems = [] } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
   const [filters, setFilters] = useState(INITIAL_FILTERS);
 
-  const selectedInventoryIds = useMemo(
-    () =>
-      selectedIngredientRows.map((entry) => entry.inventory).filter(Boolean),
-    [selectedIngredientRows],
-  );
+  const selectedIngredientRows = useMemo(() => {
+    const ingredients = Array.isArray(form?.ingredients) ? form.ingredients : [];
+
+    return ingredients.map((entry, index) => {
+      const linkedItem =
+        inventoryItems.find((item) => item?._id === entry.inventory) || null;
+      const unitOptions = getUnitOptions(linkedItem?.measurement);
+      const selectedUnit = resolveUnitValue(
+        unitOptions,
+        entry.unit,
+        linkedItem?.measurement,
+      );
+      const estimatedCost = getInventoryCost(
+        entry.qtyPerOrder,
+        selectedUnit,
+        linkedItem,
+      );
+
+      return {
+        index,
+        ...entry,
+        unit: selectedUnit,
+        linkedItem,
+        unitOptions,
+        estimatedCost,
+      };
+    });
+  }, [form?.ingredients, inventoryItems]);
+
+  const selectedInventoryIds = useMemo(() => {
+    return selectedIngredientRows.map((entry) => entry.inventory).filter(Boolean);
+  }, [selectedIngredientRows]);
+
+  const totalEstimatedInventoryCost = useMemo(() => {
+    return selectedIngredientRows.reduce(
+      (total, entry) => total + (entry.estimatedCost || 0),
+      0,
+    );
+  }, [selectedIngredientRows]);
 
   const filteredInventoryItems = useMemo(() => {
     return inventoryItems.filter((item) => {
@@ -62,15 +90,86 @@ const Recipe = ({
     }));
   };
 
-  const shouldShowBody = hideToggle || enabled;
+  const toggleInventoryItem = (item) => {
+    if (!item?._id) return;
+
+    if (selectedInventoryIds.includes(item._id)) {
+      setForm((current) => ({
+        ...current,
+        ingredients: (current.ingredients || []).filter(
+          (entry) => entry.inventory !== item._id,
+        ),
+      }));
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      ingredients: [
+        {
+          inventory: item._id,
+          qtyPerOrder: 1,
+          unit: getUnitOptions(item.measurement)[0]?.value || null,
+        },
+        ...(current.ingredients || []),
+      ],
+    }));
+  };
+
+  const removeIngredientRow = (index) => {
+    setForm((current) => ({
+      ...current,
+      ingredients: (current.ingredients || []).filter(
+        (_, rowIndex) => rowIndex !== index,
+      ),
+    }));
+  };
+
+  const updateIngredientQty = (index, value) => {
+    setForm((current) => ({
+      ...current,
+      ingredients: (current.ingredients || []).map((entry, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...entry,
+              qtyPerOrder: isPieceUnit(entry.unit)
+                ? value.replace(/[^0-9]/g, "")
+                : value,
+            }
+          : entry,
+      ),
+    }));
+  };
+
+  const updateIngredientUnit = (index, value) => {
+    setForm((current) => ({
+      ...current,
+      ingredients: (current.ingredients || []).map((entry, rowIndex) =>
+        rowIndex === index
+          ? {
+              ...entry,
+              unit: value,
+              qtyPerOrder: isPieceUnit(value)
+                ? String(
+                    Math.max(1, Math.round(Number(entry.qtyPerOrder) || 1)),
+                  )
+                : entry.qtyPerOrder,
+            }
+          : entry,
+      ),
+    }));
+  };
+
+  const handleIngredientQtyKeyDown = (event, unit) => {
+    if (!isPieceUnit(unit)) return;
+    if (INVALID_NUMBER_KEYS.includes(event.key)) {
+      event.preventDefault();
+    }
+  };
 
   return (
     <section className="rounded-[15px] border border-border bg-white shadow-sm">
-      <div
-        className={`flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between ${
-          shouldShowBody ? "border-b border-border" : ""
-        }`}
-      >
+      <div className="flex flex-col gap-3 border-b border-border px-5 py-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
           <p className="text-sm font-semibold text-foreground">Recipe Setup</p>
           <p className="text-xs text-muted-foreground">
@@ -78,40 +177,12 @@ const Recipe = ({
             menu item.
           </p>
         </div>
-
-        {!hideToggle ? (
-          <div className="inline-flex rounded-xl border border-border bg-background p-1">
-            <button
-              type="button"
-              onClick={() => onEnabledChange(true)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                enabled
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              }`}
-            >
-              Set up now
-            </button>
-            <button
-              type="button"
-              onClick={() => onEnabledChange(false)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                !enabled
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              }`}
-            >
-              Set up later
-            </button>
-          </div>
-        ) : null}
       </div>
 
-      {shouldShowBody ? (
-        <div className="grid gap-4 p-4 xl:grid-cols-[1.05fr_auto_0.95fr] xl:items-stretch">
-          <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
-            <div className="space-y-1 border-b border-border px-4 py-3">
-              <p className="text-base font-semibold text-foreground">
+      <div className="grid gap-4 p-4 xl:grid-cols-[1.05fr_auto_0.95fr] xl:items-stretch">
+        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
+          <div className="space-y-1 border-b border-border px-4 py-3">
+            <p className="text-base font-semibold text-foreground">
               Select Ingredients
             </p>
             <p className="text-sm text-muted-foreground">
@@ -134,144 +205,112 @@ const Recipe = ({
                 />
               </div>
 
-              <div>
-                <Select
-                  value={filters.category}
-                  onValueChange={(value) =>
-                    handleFilterChange("category", value)
-                  }
-                >
-                  <SelectTrigger className="w-full bg-transparent">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INVENTORY_CATEGORY_OPTIONS.ingredient.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select
+                value={filters.category}
+                onValueChange={(value) => handleFilterChange("category", value)}
+              >
+                <SelectTrigger className="w-full bg-transparent">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INVENTORY_CATEGORY_OPTIONS.ingredient.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-auto rounded-[10px] border border-border ">
+            <div className="min-h-0 flex-1 overflow-auto rounded-[10px] border border-border">
               {filteredInventoryItems.length ? (
-                filteredInventoryItems.map((item) => {
-                  const isSelected = selectedInventoryIds.includes(item._id);
-
-                  return (
-                    <div
-                      key={item._id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => onToggleInventoryItem(item)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          onToggleInventoryItem(item);
-                        }
-                      }}
-                      className={`flex items-center justify-between gap-3 border-b border-border px-3 py-2.5 last:border-b-0 ${
-                        isSelected
-                          ? "cursor-default bg-[color:color-mix(in_srgb,var(--primary)_7%,white)] shadow-[inset_4px_0_0_var(--color-primary)]"
-                          : "cursor-pointer  transition hover:bg-muted/40"
-                      }`}
-                    >
-                      <div className="min-w-0 flex-1 space-y-1.5">
-                        <p className="truncate text-sm font-semibold text-foreground">
-                          {item.name}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span className="capitalize">{item.category}</span>
-                          <span className="text-border">&middot;</span>
-                          <span className="capitalize">{item.type}</span>
-                          <span className="text-border">&middot;</span>
-                          <span>
-                            {item.measurement === "weight"
-                              ? "Weight"
-                              : item.measurement === "volume"
-                                ? "Volume"
-                                : "Pieces"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex shrink-0 flex-col items-end gap-1 text-right">
-                        <p className="text-sm font-semibold text-foreground">
-                          {Formatter.amount(item.cost || 0)}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onToggleInventoryItem(item);
-                          }}
-                          className={`text-xs font-medium ${
-                            isSelected
-                              ? "text-primary"
-                              : "text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          {isSelected ? "Added" : "Add"}
-                        </button>
+                filteredInventoryItems.map((item) => (
+                  <div
+                    key={item._id}
+                    role="button"
+                    tabIndex={0}
+                    className={`flex cursor-pointer items-center justify-between gap-3 border-b border-border px-3 py-2.5 transition last:border-b-0 hover:bg-muted/40 ${
+                      selectedInventoryIds.includes(item._id) ? "bg-primary/5" : ""
+                    }`}
+                    onClick={() => toggleInventoryItem(item)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        toggleInventoryItem(item);
+                      }
+                    }}
+                  >
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {item.name}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <span className="capitalize">{item.category}</span>
+                        <span className="text-border">&middot;</span>
+                        <span className="capitalize">{item.type}</span>
                       </div>
                     </div>
-                  );
-                })
+
+                    <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+                      <p className="text-sm font-semibold text-foreground">
+                        {Formatter.amount(item.cost || 0)}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          toggleInventoryItem(item);
+                        }}
+                        className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                      >
+                        {selectedInventoryIds.includes(item._id) ? "Remove" : "Add"}
+                      </button>
+                    </div>
+                  </div>
+                ))
               ) : (
-                <div className="flex min-h-[220px] items-center justify-center px-4 text-center text-sm text-muted-foreground">
-                  No inventory items matched your filters.
+                <div className="flex h-full min-h-[220px] items-center justify-center px-4 text-center text-sm text-muted-foreground">
+                  No inventory items matched your search.
                 </div>
               )}
             </div>
           </div>
         </div>
 
-          <div className="hidden xl:flex xl:h-full xl:items-center xl:justify-center">
-          <div className="relative flex h-full min-h-[360px] items-center justify-center px-1">
-            <div className="absolute left-1/2 top-1/2 h-px w-12 -translate-x-1/2 -translate-y-1/2 bg-border" />
-            <div className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background">
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </div>
+        <div className="hidden xl:flex xl:flex-col xl:items-center xl:justify-center">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-muted/30 text-muted-foreground">
+            <Search className="h-4 w-4" />
+          </span>
         </div>
 
-          <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
-          <div className="border-b border-border px-4 py-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1">
-                <p className="text-base font-semibold text-foreground">
-                  Recipe Ingredients
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Build the ingredient list for one serving of this menu item.
-                </p>
-              </div>
-              <div className="flex min-w-[72px] flex-col items-center justify-center rounded-lg border border-border px-3 py-2 text-center">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  Items
-                </p>
-                <p className="text-base font-semibold text-foreground">
-                  {selectedIngredientRows.length}
-                </p>
-              </div>
-            </div>
+        <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
+          <div className="space-y-1 border-b border-border px-4 py-3">
+            <p className="text-base font-semibold text-foreground">
+              Selected Ingredients
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Update quantities and units for each ingredient.
+            </p>
           </div>
 
           <div className="min-h-0 flex-1 overflow-auto p-3">
             {selectedIngredientRows.length ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {selectedIngredientRows.map((entry) => (
                   <div
-                    key={`${entry.index}-${entry.inventory}`}
-                    className="rounded-xl border border-border px-4 py-3 "
+                    key={`${entry.inventory}-${entry.index}`}
+                    className="rounded-xl border border-border px-4 py-3"
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0 space-y-1">
                           <p className="truncate text-base font-semibold text-foreground">
-                            {entry.linkedItem?.name || "Unknown item"}
+                            {entry?.linkedItem?.name || "Unknown item"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {entry?.linkedItem?.category
+                              ? String(entry.linkedItem.category)
+                              : "Ingredient"}
                           </p>
                         </div>
                         <div className="shrink-0 rounded-lg border border-border bg-card px-3 py-1.5 text-center">
@@ -284,65 +323,57 @@ const Recipe = ({
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-[96px_96px_auto] items-start gap-3 border-t border-border/70 pt-3">
-                        <div className="flex flex-col justify-start gap-1 bg-card self-start">
+                      <div className="grid grid-cols-[120px_auto] items-start gap-3 border-t border-border/70 pt-3">
+                        <div className="flex flex-col justify-start gap-1 self-start bg-card">
                           <Label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                            Per Serve Qty
+                            Qty / Serve
                           </Label>
                           <Input
-                            type="number"
-                            min={isPieceUnit(entry.unit) ? "1" : "0.01"}
-                            step={isPieceUnit(entry.unit) ? "1" : "0.01"}
                             value={entry.qtyPerOrder}
                             onKeyDown={(event) =>
-                              onIngredientQtyKeyDown(event, entry.unit)
+                              handleIngredientQtyKeyDown(event, entry.unit)
                             }
                             onChange={(event) =>
-                              onUpdateIngredientQty(
-                                entry.index,
-                                event.target.value,
-                              )
+                              updateIngredientQty(entry.index, event.target.value)
                             }
-                            placeholder="1"
                             className="h-9 border-border bg-transparent px-2 text-center text-sm"
                           />
                         </div>
 
-                        <div className="flex flex-col justify-start gap-1 bg-card self-start">
-                          <Label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                            Per Serve Unit
-                          </Label>
-                          <Select
-                            value={entry.unit}
-                            onValueChange={(value) =>
-                              onUpdateIngredientUnit(entry.index, value)
-                            }
-                          >
-                            <SelectTrigger className="h-9 w-full border-border bg-transparent px-2 text-xs">
-                              <SelectValue placeholder="Unit" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {entry.unitOptions.map((option) => (
-                                <SelectItem
-                                  key={option.value}
-                                  value={option.value}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+                          <div className="flex flex-col gap-1">
+                            <Label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                              Unit
+                            </Label>
+                            <Select
+                              value={entry.unit}
+                              onValueChange={(value) =>
+                                updateIngredientUnit(entry.index, value)
+                              }
+                            >
+                              <SelectTrigger className="h-9 bg-transparent">
+                                <SelectValue placeholder="Unit" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {entry.unitOptions.map((option) => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
 
-                        <div className="flex self-end justify-end">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => onRemoveIngredientRow(entry.index)}
-                            className="h-9 border-border bg-transparent px-3 text-xs font-medium text-muted-foreground hover:border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
-                          >
-                            Remove
-                          </Button>
+                          <div className="flex justify-end">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => removeIngredientRow(entry.index)}
+                              className="h-9 border-border bg-transparent px-3 text-xs font-medium text-muted-foreground hover:border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
+                            >
+                              Remove
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -366,11 +397,11 @@ const Recipe = ({
               </span>
             </div>
           </div>
-          </div>
         </div>
-      ) : null}
+      </div>
     </section>
   );
 };
 
 export default Recipe;
+
