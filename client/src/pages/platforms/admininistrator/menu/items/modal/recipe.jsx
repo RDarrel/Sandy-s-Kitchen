@@ -338,14 +338,26 @@ const Recipe = ({ form, setForm = () => {} }) => {
         </div>
 
         <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
-          <div className="space-y-1 border-b border-border px-4 py-3">
-            <p className="text-base font-semibold text-foreground">
-              Selected Ingredients
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Build this recipe per serving. Add ingredients from the left, then
-              set the quantity and unit used for each one.
-            </p>
+          <div className="border-b border-border bg-white px-4 py-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-base font-semibold text-foreground">
+                  Selected Ingredients
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Build your recipe by adding ingredients and setting their
+                  quantity.
+                </p>
+              </div>
+              <div className="flex min-w-[72px] flex-col items-center justify-center rounded-lg border border-border px-3 py-2 text-center">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                  Items
+                </p>
+                <p className="text-base font-semibold text-foreground">
+                  {selectedIngredientRows?.length || 0}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="min-h-0 flex-1 overflow-auto p-3">
