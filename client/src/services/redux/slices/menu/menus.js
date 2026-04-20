@@ -3,9 +3,36 @@ import { axioKit } from "../../../utilities";
 
 const url = "menu/menus";
 
+const getIsAvailable = (item) => Boolean(item?.isAvailable ?? item?.isPublish);
+
+const applyFilters = (collections, { category, availability, search }) => {
+  const byCategory =
+    category === "all"
+      ? collections
+      : collections.filter((item) => item.category === category);
+
+  const byAvailability =
+    availability === "all"
+      ? byCategory
+      : byCategory.filter((item) => {
+          const isAvailable = getIsAvailable(item);
+          return availability === "available" ? isAvailable : !isAvailable;
+        });
+
+  const cluster = byAvailability;
+  const filtered = !search
+    ? cluster
+    : cluster.filter((item) => {
+        return item.name.toLowerCase().includes(search.toLowerCase());
+      });
+
+  return { cluster, filtered };
+};
+
 const initialState = {
   collections: [],
   category: "all",
+  availability: "all",
   search: "",
   cluster: [],
   filtered: [],
@@ -92,16 +119,30 @@ export const reduxSlice = createSlice({
   initialState,
   reducers: {
     FilterBY_CATEGORY: (state, { payload }) => {
-      const results =
-        payload === "all"
-          ? state.collections
-          : state.collections.filter((item) => {
-              return item.category === payload;
-            });
-      state.cluster = results;
-      state.filtered = results;
       state.category = payload;
       state.search = "";
+
+      const { cluster, filtered } = applyFilters(state.collections, {
+        category: state.category,
+        availability: state.availability,
+        search: state.search,
+      });
+
+      state.cluster = cluster;
+      state.filtered = filtered;
+    },
+    FilterBY_AVAILABILITY: (state, { payload }) => {
+      state.availability = payload || "all";
+      state.search = "";
+
+      const { cluster, filtered } = applyFilters(state.collections, {
+        category: state.category,
+        availability: state.availability,
+        search: state.search,
+      });
+
+      state.cluster = cluster;
+      state.filtered = filtered;
     },
     SetNEW_MENU: (state, { payload }) => {
       state.collections.unshift(payload);
@@ -149,13 +190,15 @@ export const reduxSlice = createSlice({
       state.filtered = payload;
     },
     SEARCH: (state, { payload }) => {
-      const results = !payload
-        ? state.cluster
-        : state.cluster.filter((item) => {
-            return item.name.toLowerCase().includes(payload.toLowerCase());
-          });
-      state.filtered = results;
       state.search = payload;
+
+      const { filtered } = applyFilters(state.collections, {
+        category: state.category,
+        availability: state.availability,
+        search: state.search,
+      });
+
+      state.filtered = filtered;
     },
     SetCREATE: (state) => {
       state.willCreate = true;
@@ -178,7 +221,16 @@ export const reduxSlice = createSlice({
       })
       .addCase(BROWSE.fulfilled, (state, action) => {
         const { payload } = action.payload;
-        state.collections = state.cluster = state.filtered = payload;
+        state.collections = payload;
+
+        const { cluster, filtered } = applyFilters(state.collections, {
+          category: state.category,
+          availability: state.availability,
+          search: state.search,
+        });
+
+        state.cluster = cluster;
+        state.filtered = filtered;
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
@@ -273,6 +325,7 @@ export const {
   SetUPDATED_MENU,
   SetDELETED_MENU,
   FilterBY_CATEGORY,
+  FilterBY_AVAILABILITY,
   SetFILTERED,
   SEARCH,
 } = reduxSlice.actions;
