@@ -1,0 +1,29 @@
+/* Local styles for Menu > Items page. Imported by items/index.jsx. */
+
+/* Keep the layout from shifting when Radix Select locks scrolling and adds padding-right. */
+html.menu-items-scope,
+body.menu-items-scope {
+  scrollbar-gutter: stable;
+}
+
+body.menu-items-scope[data-scroll-locked] {
+  padding-right: 0 !important;
+}
+
+.menu-items-page {
+  overflow-x: hidden;
+}
+
+@layer utilities {
+  /* Hide scrollbar but keep scrolling enabled (touch, wheel, drag). */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE/Edge legacy */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none; /* Chrome/Safari */
+  }
+}
