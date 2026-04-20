@@ -8,21 +8,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PackagePlus, Search } from "lucide-react";
 import {
-  categoryOptions,
-  measurementOptions,
-  stockOptions,
-  typeOptions,
-} from "./config";
+  PackageCheck,
+  PackageMinus,
+  PackagePlus,
+  PackageX,
+  Search,
+} from "lucide-react";
+import { categoryOptions, stockOptions, typeOptions } from "./config";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   BROWSE,
   FILTER,
   SEARCH,
   SetCREATE,
 } from "@/services/redux/slices/inventory/inventoryItems";
+import { Stock } from "@/services/utilities";
 
 const FilterSelect = ({
   value,
@@ -32,7 +34,7 @@ const FilterSelect = ({
   allLabel,
 }) => (
   <Select value={value} onValueChange={onValueChange}>
-    <SelectTrigger className="w-full">
+    <SelectTrigger className="w-full ">
       <SelectValue placeholder={placeholder} />
     </SelectTrigger>
     <SelectContent>
@@ -46,17 +48,112 @@ const FilterSelect = ({
   </Select>
 );
 
+const SummaryCard = ({
+  title,
+  count = 0,
+  description,
+  Icon,
+  tone = "neutral",
+}) => {
+  const toneClass =
+    tone === "success"
+      ? "border-emerald-200/60 from-emerald-50/60 to-emerald-50/20 text-emerald-700"
+      : tone === "warning"
+        ? "border-amber-200/60 from-amber-50/60 to-amber-50/20 text-amber-700"
+        : "border-red-200/60 from-red-50/60 to-red-50/20 text-red-700";
+
+  const pillClass =
+    tone === "success"
+      ? "bg-emerald-100 text-emerald-700"
+      : tone === "warning"
+        ? "bg-amber-100 text-amber-700"
+        : "bg-red-100 text-red-700";
+
+  return (
+    <div
+      className={`rounded-[8px] border bg-gradient-to-br via-white p-2.5 shadow-sm ${toneClass}`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center justify-between gap-3">
+            <p className="truncate text-[10px] font-semibold uppercase leading-none tracking-[0.16em]">
+              {title}
+            </p>
+            <span
+              className={`shrink-0 rounded-full px-1.5 py-0.5 text-[15px] font-semibold leading-none ${pillClass}`}
+            >
+              {count}
+            </span>
+          </div>
+          <p className="mt-1 truncate text-[11px] leading-none text-muted-foreground">
+            {description}
+          </p>
+        </div>
+        <span
+          className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-2xl ${pillClass}`}
+        >
+          <Icon className="h-3.5 w-3.5" />
+        </span>
+      </div>
+    </div>
+  );
+};
+
 const InventoryHeader = () => {
-  const { token, search } = useSelector(({ auth }) => auth);
-  const { params } = useSelector(({ inventoryItems }) => inventoryItems);
+  const { token } = useSelector(({ auth }) => auth);
+  const { params, collections, cluster, search } = useSelector(
+    ({ inventoryItems }) => inventoryItems,
+  );
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(BROWSE({ token }));
   }, [dispatch, token]);
+
+  const stockSummary = useMemo(() => {
+    const summary = {
+      inStock: 0,
+      lowStock: 0,
+      outOfStock: 0,
+    };
+
+    (collections || []).forEach((item) => {
+      const status = Stock.getStatus(item?.currentStock, item?.measurement);
+      if (status === "Out of Stock") summary.outOfStock += 1;
+      else if (status === "Low Stock") summary.lowStock += 1;
+      else summary.inStock += 1;
+    });
+
+    return summary;
+  }, [collections]);
+
+  const stockFilterMeta = useMemo(() => {
+    const counts = {
+      "In Stock": 0,
+      "Low Stock": 0,
+      "Out of Stock": 0,
+    };
+
+    (cluster || []).forEach((item) => {
+      const status = Stock.getStatus(item?.currentStock, item?.measurement);
+      counts[status] = (counts[status] || 0) + 1;
+    });
+
+    return {
+      counts,
+      options: stockOptions.map((option) => ({
+        ...option,
+        label:
+          (counts[option.value] || 0) > 0
+            ? `${option.label} (${counts[option.value]})`
+            : option.label,
+      })),
+    };
+  }, [cluster]);
+
   return (
     <>
-      <CardHeader className="space-y-4">
+      <CardHeader className="space-y-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <CardTitle className="text-2xl text-foreground">
@@ -74,6 +171,30 @@ const InventoryHeader = () => {
             <PackagePlus className="h-4 w-4" />
             New Inventory
           </Button>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-3">
+          <SummaryCard
+            title="In Stock"
+            count={stockSummary.inStock}
+            description="Items ready to use"
+            Icon={PackageCheck}
+            tone="success"
+          />
+          <SummaryCard
+            title="Low Stock"
+            count={stockSummary.lowStock}
+            description="Reorder soon"
+            Icon={PackageMinus}
+            tone="warning"
+          />
+          <SummaryCard
+            title="Out of Stock"
+            count={stockSummary.outOfStock}
+            description="Needs restock"
+            Icon={PackageX}
+            tone="danger"
+          />
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.6fr_repeat(3,minmax(0,1fr))]">
@@ -113,7 +234,7 @@ const InventoryHeader = () => {
               dispatch(FILTER({ ...params, status: value }))
             }
             placeholder="Stock status"
-            options={stockOptions}
+            options={stockFilterMeta.options}
             allLabel="All stock levels"
           />
         </div>

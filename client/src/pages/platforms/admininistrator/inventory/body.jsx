@@ -77,7 +77,7 @@ const InventoryBody = ({
                       );
 
                       return (
-                        <TableRow key={item._id} className="bg-card">
+                        <TableRow key={item._id} className="">
                           <TableCell className="whitespace-normal">
                             <div className="space-y-1">
                               <p className="font-semibold text-foreground">
