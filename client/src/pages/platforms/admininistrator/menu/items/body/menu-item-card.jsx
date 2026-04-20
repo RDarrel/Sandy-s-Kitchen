@@ -73,10 +73,10 @@ const MenuItemCard = ({
       }`}
     >
       <div
-        className={`relative flex h-full flex-col border border-border bg-card shadow-sm transition-shadow duration-300 hover:shadow-lg ${
+        className={`relative flex h-full flex-col border bg-card shadow-sm transition-shadow duration-300 hover:shadow-lg ${
           isDetailsOpen
-            ? "overflow-visible rounded-t-2xl rounded-b-none border-b-transparent shadow-sm"
-            : "rounded-2xl"
+            ? "overflow-visible rounded-t-2xl rounded-b-none border-2 border-primary/40 border-b-0 shadow-sm"
+            : "rounded-2xl border-border"
         }`}
       >
         <div className="relative h-52 overflow-hidden rounded-t-2xl bg-muted/40">
@@ -242,9 +242,14 @@ const MenuItemCard = ({
 
       {shouldEnableCollapse ? (
         <CollapsibleContent className="absolute left-0 top-full z-30 mt-0 w-full overflow-hidden opacity-100 transition-opacity duration-200 ease-out data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:opacity-100">
-          <div className="relative rounded-b-2xl border border-border border-t-0 bg-card p-3 shadow-none">
-            <div className="absolute inset-x-0 top-0 h-px bg-card" />
-            <div className="absolute inset-x-4 top-0 h-px bg-border/70" />
+          <div
+            className={`relative rounded-b-2xl border border-t-0 bg-card px-3 pb-3 pt-4 shadow-none ${
+              isDetailsOpen
+                ? "border-2 border-primary/40 border-t-0"
+                : "border-border"
+            }`}
+          >
+            <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-border/70" />
 
             {hasRecommendedAddOns ? (
               <div className="mb-3">
