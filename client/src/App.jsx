@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import Cashier from "./pages/platforms/cashier/dashboard";
 import ClaimStub from "./components/shared/claimStub";
 import Authentication from "./pages/authentication";
+import Arduino from "./pages/arduino";
 export default function App() {
   const { auth, token } = useSelector(({ auth }) => auth),
     dispatch = useDispatch();
@@ -25,6 +26,7 @@ export default function App() {
         {RouteConfig()}
         <Route path="*" element={<h2>Not Found</h2>} />
       </Route>
+      <Route path="arduino" element={<Arduino />} />
       <Route path="cashier" element={<Cashier />} />
       <Route path="printout/claimStub" element={<ClaimStub />} />
       <Route path="*" element={<h2>Not Found</h2>} />
