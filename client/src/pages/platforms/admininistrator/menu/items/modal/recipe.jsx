@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 import { useSelector } from "react-redux";
 
 import { Button } from "@/components/ui/button";
@@ -277,10 +277,12 @@ const Recipe = ({ form, setForm = () => {} }) => {
           </div>
         </div>
 
-        <div className="hidden xl:flex xl:flex-col xl:items-center xl:justify-center">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-muted/30 text-muted-foreground">
-            <Search className="h-4 w-4" />
-          </span>
+        <div className="hidden items-center justify-center xl:flex">
+          <div className="flex h-full items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white shadow-sm">
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </div>
         </div>
 
         <div className="flex h-[472px] max-h-[472px] min-w-0 flex-col overflow-hidden rounded-[10px] border border-border">
@@ -289,7 +291,8 @@ const Recipe = ({ form, setForm = () => {} }) => {
               Selected Ingredients
             </p>
             <p className="text-sm text-muted-foreground">
-              Update quantities and units for each ingredient.
+              Build this recipe per serving. Add ingredients from the left, then set
+              the quantity and unit used for each one.
             </p>
           </div>
 
@@ -404,4 +407,3 @@ const Recipe = ({ form, setForm = () => {} }) => {
 };
 
 export default Recipe;
-

@@ -602,8 +602,8 @@ const Modal = () => {
 
             {isAddOnsOnly ? (
               <section className="rounded-[15px] border border-border bg-white shadow-sm">
-                <div className="border-b border-border px-5 py-4">
-                  <p className="no-underline text-base font-semibold leading-tight text-foreground">
+                <div className="px-5 py-4">
+                  <p className="no-underline text-lg font-bold leading-tight text-foreground">
                     {form.name || "Menu Item"}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -622,9 +622,18 @@ const Modal = () => {
                       handleChange("name", event.target.value)
                     }
                     placeholder="e.g. Pork Sisig"
+                    readOnly={isSetupOnly}
+                    aria-readonly={isSetupOnly}
+                    className={
+                      isSetupOnly
+                        ? "bg-muted/40 text-foreground/90 shadow-none focus-visible:ring-0"
+                        : ""
+                    }
                     required
                   />
-                  <Name name={form.name} selectedId={selected?._id} />
+                  {!isSetupOnly && (
+                    <Name name={form.name} selectedId={selected?._id} />
+                  )}
                 </div>
 
                 <div className="space-y-2">
