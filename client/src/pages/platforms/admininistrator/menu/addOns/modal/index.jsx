@@ -129,7 +129,10 @@ const AddOnModal = () => {
         _id: selected?._id,
       });
     } else {
-      setForm({ ...INITIAL_FORM, group: activeGroup });
+      setForm({
+        ...INITIAL_FORM,
+        ...(activeGroup !== "all" && { group: activeGroup }),
+      });
     }
   }, [inventoryItems, selected, showModal, willCreate, activeGroup]);
 

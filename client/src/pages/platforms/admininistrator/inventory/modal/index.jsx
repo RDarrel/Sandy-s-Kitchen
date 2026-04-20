@@ -111,6 +111,7 @@ const InventoryModal = () => {
           cost: selected?.cost ?? "",
         });
       } else {
+        console.log("running useEffect");
         setForm({ ...INITIAL_FORM });
       }
     }
@@ -218,7 +219,7 @@ const InventoryModal = () => {
       handleUpdate();
     }
   };
-
+  console.log("form.category", form.category);
   return (
     <Dialog open={showModal} onOpenChange={toggle}>
       <DialogContent className="max-h-[92vh] overflow-y-auto border-border bg-card sm:max-w-3xl">
@@ -263,7 +264,15 @@ const InventoryModal = () => {
                 content={
                   <Select
                     value={form.type}
-                    onValueChange={(value) => handleChange("type", value)}
+                    onValueChange={(value) => {
+                      const options = categoryOptions[value];
+                      setForm((prev) => ({
+                        ...prev,
+                        type: value,
+                        category: options[0].value,
+                        ...(value === "resell" && { measurement: "pieces" }),
+                      }));
+                    }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select type" />
@@ -285,7 +294,8 @@ const InventoryModal = () => {
                 label="Category"
                 content={
                   <Select
-                    value={form.category}
+                    value={form?.category}
+                    key={form.type}
                     onValueChange={(value) => handleChange("category", value)}
                   >
                     <SelectTrigger className="w-full">
@@ -317,7 +327,10 @@ const InventoryModal = () => {
                       <SelectValue placeholder="Select measurement" />
                     </SelectTrigger>
                     <SelectContent>
-                      {measurementOptions.map((option) => (
+                      {(form.type === "resell"
+                        ? [{ value: "pieces", label: "Pieces" }]
+                        : measurementOptions
+                      ).map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>

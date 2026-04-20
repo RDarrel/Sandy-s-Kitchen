@@ -76,7 +76,7 @@ const InventoryHeader = () => {
           </Button>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.6fr_repeat(4,minmax(0,1fr))]">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.6fr_repeat(3,minmax(0,1fr))]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -106,15 +106,7 @@ const InventoryHeader = () => {
             options={params.type !== "all" ? categoryOptions[params.type] : []}
             allLabel="All categories"
           />
-          <FilterSelect
-            value={params.measurement || "all"}
-            onValueChange={(value) =>
-              dispatch(FILTER({ ...params, measurement: value }))
-            }
-            placeholder="Measurement"
-            options={measurementOptions}
-            allLabel="All measurements"
-          />
+
           <FilterSelect
             value={params.status || "all"}
             onValueChange={(value) =>

@@ -89,7 +89,6 @@ const InventoryModal = () => {
       }
     }
   }, [willCreate, selected, showModal]);
-
   const handleChange = (key, value) => {
     setForm((current) => ({
       ...current,
