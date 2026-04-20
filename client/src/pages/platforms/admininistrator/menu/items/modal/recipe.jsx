@@ -355,8 +355,8 @@ const Recipe = ({ form, setForm = () => {} }) => {
                         </div>
 
                         <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
-                          <div className="flex flex-col gap-1 bg-card">
-                            <Label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                          <div className="flex flex-col gap-1 ">
+                            <Label className="text-[11px] font-medium uppercase tracking-[0.08em]  text-muted-foreground">
                               Unit
                             </Label>
                             <Select
@@ -365,7 +365,7 @@ const Recipe = ({ form, setForm = () => {} }) => {
                                 updateIngredientUnit(entry.index, value)
                               }
                             >
-                              <SelectTrigger className="h-9 bg-transparent">
+                              <SelectTrigger className="h-9 bg-card">
                                 <SelectValue placeholder="Unit" />
                               </SelectTrigger>
                               <SelectContent>
