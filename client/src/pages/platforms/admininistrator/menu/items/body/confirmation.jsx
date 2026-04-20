@@ -9,7 +9,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Cloudinary from "@/services/utilities/cloudinary";
-import { Category } from "@/services/fakeDB";
 import { Loader, TriangleAlert } from "lucide-react";
 
 const Confirmation = ({
@@ -57,9 +56,6 @@ const Confirmation = ({
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
-                      {Category.getName(item?.category)}
-                    </span>
                     <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
                       PHP {item?.price}
                     </span>

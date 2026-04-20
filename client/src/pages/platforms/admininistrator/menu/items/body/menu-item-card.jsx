@@ -46,7 +46,9 @@ const MenuItemCard = ({
   const isActionOpen = activeMenuId === item?._id;
 
   const detailEntries = getDetailEntries(item, categories);
-  const recommendedEntries = getRecommendedAddOnEntries(item?.recommendedAddOns || []);
+  const recommendedEntries = getRecommendedAddOnEntries(
+    item?.recommendedAddOns || [],
+  );
   const typeMeta = getMenuTypeMeta(item?.type);
   const TypeIcon = typeMeta.icon;
 
@@ -80,7 +82,9 @@ const MenuItemCard = ({
         <div className="relative h-52 overflow-hidden rounded-t-2xl bg-muted/40">
           <img
             src={
-              item?.imgId ? Cloudinary.getMenuImg(item.imgId, item?._id) : item?.image
+              item?.imgId
+                ? Cloudinary.getMenuImg(item.imgId, item?._id)
+                : item?.image
             }
             alt={item?.name}
             className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-105"
@@ -120,7 +124,9 @@ const MenuItemCard = ({
                 type="button"
                 title="Actions"
                 onClick={() =>
-                  setActiveMenuId((current) => (current === item?._id ? null : item?._id))
+                  setActiveMenuId((current) =>
+                    current === item?._id ? null : item?._id,
+                  )
                 }
                 className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/90 text-primary shadow-md backdrop-blur-sm transition hover:bg-white"
               >
@@ -163,7 +169,7 @@ const MenuItemCard = ({
         </div>
 
         <div className="flex flex-1 flex-col p-4">
-          <p className="line-clamp-2 min-h-[3rem] text-sm leading-6 text-muted-foreground">
+          <p className="truncate text-sm leading-6 text-muted-foreground">
             {item?.description}
           </p>
 
@@ -223,7 +229,7 @@ const MenuItemCard = ({
                   <p className="truncate text-sm font-semibold text-primary">
                     {getSetupCtaLabel(item?.type)}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
                     {getSetupCtaDescription(item?.type)}
                   </p>
                 </div>
@@ -298,7 +304,7 @@ const MenuItemCard = ({
               )
             ) : hasBreakdown ? (
               <>
-                <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                <div className="max-h-50 space-y-2 overflow-y-auto pr-1">
                   {item?.type === "bundle"
                     ? detailEntries.map((entry) => (
                         <div
@@ -364,7 +370,7 @@ const MenuItemCard = ({
                       {EMPTY_CTA_BY_TYPE[item?.type]?.title ||
                         EMPTY_CTA_BY_TYPE.prepared.title}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
                       {getSetupCtaDescription(item?.type)}
                     </p>
                   </div>
@@ -386,7 +392,10 @@ const MenuItemCard = ({
                 <p className="text-[11px] text-muted-foreground">
                   {activeDetailTab === "addons"
                     ? getCountLabel(recommendedEntries.length, "add-ons")
-                    : getCountLabel(detailEntries.length, typeMeta.summaryLabel)}
+                    : getCountLabel(
+                        detailEntries.length,
+                        typeMeta.summaryLabel,
+                      )}
                 </p>
 
                 <button
@@ -413,4 +422,3 @@ const MenuItemCard = ({
 };
 
 export default MenuItemCard;
-

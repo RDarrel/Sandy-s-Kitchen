@@ -31,7 +31,9 @@ const Recipe = ({ form, setForm = () => {} }) => {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
 
   const selectedIngredientRows = useMemo(() => {
-    const ingredients = Array.isArray(form?.ingredients) ? form.ingredients : [];
+    const ingredients = Array.isArray(form?.ingredients)
+      ? form.ingredients
+      : [];
 
     return ingredients.map((entry, index) => {
       const linkedItem =
@@ -60,7 +62,9 @@ const Recipe = ({ form, setForm = () => {} }) => {
   }, [form?.ingredients, inventoryItems]);
 
   const selectedInventoryIds = useMemo(() => {
-    return selectedIngredientRows.map((entry) => entry.inventory).filter(Boolean);
+    return selectedIngredientRows
+      .map((entry) => entry.inventory)
+      .filter(Boolean);
   }, [selectedIngredientRows]);
 
   const totalEstimatedInventoryCost = useMemo(() => {
@@ -230,7 +234,9 @@ const Recipe = ({ form, setForm = () => {} }) => {
                     role="button"
                     tabIndex={0}
                     className={`flex cursor-pointer items-center justify-between gap-3 border-b border-border px-3 py-2.5 transition last:border-b-0 hover:bg-muted/40 ${
-                      selectedInventoryIds.includes(item._id) ? "bg-primary/5" : ""
+                      selectedInventoryIds.includes(item._id)
+                        ? "bg-primary/5"
+                        : ""
                     }`}
                     onClick={() => toggleInventoryItem(item)}
                     onKeyDown={(event) => {
@@ -263,7 +269,9 @@ const Recipe = ({ form, setForm = () => {} }) => {
                         }}
                         className="text-xs font-medium text-muted-foreground hover:text-foreground"
                       >
-                        {selectedInventoryIds.includes(item._id) ? "Remove" : "Add"}
+                        {selectedInventoryIds.includes(item._id)
+                          ? "Remove"
+                          : "Add"}
                       </button>
                     </div>
                   </div>
@@ -291,8 +299,8 @@ const Recipe = ({ form, setForm = () => {} }) => {
               Selected Ingredients
             </p>
             <p className="text-sm text-muted-foreground">
-              Build this recipe per serving. Add ingredients from the left, then set
-              the quantity and unit used for each one.
+              Build this recipe per serving. Add ingredients from the left, then
+              set the quantity and unit used for each one.
             </p>
           </div>
 
@@ -337,14 +345,17 @@ const Recipe = ({ form, setForm = () => {} }) => {
                               handleIngredientQtyKeyDown(event, entry.unit)
                             }
                             onChange={(event) =>
-                              updateIngredientQty(entry.index, event.target.value)
+                              updateIngredientQty(
+                                entry.index,
+                                event.target.value,
+                              )
                             }
                             className="h-9 border-border bg-transparent px-2 text-center text-sm"
                           />
                         </div>
 
                         <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-col gap-1 bg-card">
                             <Label className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
                               Unit
                             </Label>
@@ -359,7 +370,10 @@ const Recipe = ({ form, setForm = () => {} }) => {
                               </SelectTrigger>
                               <SelectContent>
                                 {entry.unitOptions.map((option) => (
-                                  <SelectItem key={option.value} value={option.value}>
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
                                     {option.label}
                                   </SelectItem>
                                 ))}

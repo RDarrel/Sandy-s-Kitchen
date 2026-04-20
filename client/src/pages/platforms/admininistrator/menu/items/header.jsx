@@ -244,7 +244,7 @@ const Header = () => {
 
         <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end md:gap-3 xl:w-auto">
           <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center">
-            <div className="relative w-full min-w-0 sm:max-w-[360px] sm:flex-1 md:w-[280px]">
+            <div className="relative w-full min-w-0 sm:max-w-[300px] sm:flex-1 md:w-[250px]">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
