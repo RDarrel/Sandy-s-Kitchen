@@ -70,6 +70,172 @@ const Cashier = () => {
 	  const [cart, setCart] = useState(() => loadCashierCart());
 	  const [customizeState, setCustomizeState] = useState(null);
 	  const [customSelected, setCustomSelected] = useState([]);
+		  const orderCardRef = useRef(null);
+		  const cartButtonRef = useRef(null);
+
+			  const animateAddToOrder = (fromEl, menu) => {
+			    try {
+			      if (typeof window === "undefined" || typeof document === "undefined") return Promise.resolve();
+			      if (!fromEl?.getBoundingClientRect) return Promise.resolve();
+			      if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return Promise.resolve();
+
+		      const cardEl = fromEl?.closest?.("[data-menu-card]") || null;
+			      const sourceEl = cardEl || fromEl;
+			      const fromRect = sourceEl.getBoundingClientRect();
+			      if (!fromRect || fromRect.width < 8 || fromRect.height < 8) return Promise.resolve();
+
+		      const fromX = fromRect.left + fromRect.width / 2;
+		      const fromY = fromRect.top + fromRect.height / 2;
+
+		      const targetEl = orderCardRef.current || cartButtonRef.current;
+		      const targetRect = targetEl?.getBoundingClientRect?.();
+		      const useFallback =
+		        !targetRect || targetRect.width < 8 || targetRect.height < 8 || targetRect.bottom < 0;
+		      const fallbackRect = cartButtonRef.current?.getBoundingClientRect?.();
+			      const toRect = useFallback ? fallbackRect : targetRect;
+			      if (!toRect || toRect.width < 8 || toRect.height < 8) return Promise.resolve();
+
+		      const toX = toRect.left + toRect.width / 2;
+		      const toY = toRect.top + Math.min(toRect.height * 0.35, 120);
+
+			      const dx = toX - fromX;
+			      const dy = toY - fromY;
+			      const distance = Math.hypot(dx, dy) || 1;
+			      const unitX = dx / distance;
+			      const unitY = dy / distance;
+
+		      const flyer = cardEl ? cardEl.cloneNode(true) : document.createElement("div");
+
+		      if (!cardEl) {
+		        flyer.className =
+		          "pointer-events-none fixed z-[60] w-[220px] select-none rounded-2xl border bg-background/95 shadow-lg backdrop-blur";
+		        flyer.innerHTML = `
+		          <div class="px-3 pt-2 text-xs font-semibold text-foreground">
+		            ${String(menu?.name || "Added item")
+		              .replaceAll("&", "&amp;")
+		              .replaceAll("<", "&lt;")
+		              .replaceAll(">", "&gt;")}
+		          </div>
+		          <div class="px-3 pb-2 text-[11px] font-semibold text-muted-foreground">
+		            ${String(Formatter.amount(Number(menu?.price) || 0))
+		              .replaceAll("&", "&amp;")
+		              .replaceAll("<", "&lt;")
+		              .replaceAll(">", "&gt;")}
+		          </div>
+		        `;
+		        flyer.style.left = `${fromX}px`;
+		        flyer.style.top = `${fromY}px`;
+		        flyer.style.transform = "translate(-50%, -50%)";
+		      } else {
+		        const computed = window.getComputedStyle(cardEl);
+		        flyer.style.position = "fixed";
+		        flyer.style.left = `${fromRect.left}px`;
+		        flyer.style.top = `${fromRect.top}px`;
+		        flyer.style.width = `${fromRect.width}px`;
+		        flyer.style.height = `${fromRect.height}px`;
+		        flyer.style.margin = "0";
+		        flyer.style.pointerEvents = "none";
+		        flyer.style.zIndex = "60";
+		        flyer.style.background = computed.backgroundColor;
+		        flyer.style.borderRadius = computed.borderRadius;
+		        flyer.style.overflow = "hidden";
+		        flyer.style.boxShadow =
+		          "0 18px 48px rgba(0,0,0,.18), 0 8px 18px rgba(0,0,0,.12)";
+		        flyer.style.transformOrigin = "center";
+		        flyer.style.willChange = "transform, opacity, filter";
+		      }
+
+			      document.body.appendChild(flyer);
+
+			      // Small "grab" feedback on the original card (no lift).
+			      if (cardEl?.animate) {
+			        cardEl.animate(
+			          [
+			            { transform: "translate3d(0,0,0) scale(1)" },
+			            { transform: "translate3d(0,0,0) scale(0.985)" },
+			            { transform: "translate3d(0,0,0) scale(1)" },
+			          ],
+			          { duration: 160, easing: "cubic-bezier(0.2, 0.9, 0.2, 1)" },
+			        );
+			      }
+
+			      const duration = 650;
+			      const easing = "cubic-bezier(0.22, 1, 0.36, 1)";
+
+			      const targetPulseEl = orderCardRef.current || cartButtonRef.current;
+			      if (targetPulseEl?.animate) {
+			        targetPulseEl.animate(
+			          [
+			            { transform: "translate3d(0,0,0) scale(1)" },
+			            { transform: "translate3d(0,0,0) scale(1.006)" },
+			            { transform: "translate3d(0,0,0) scale(1)" },
+			          ],
+			          { duration: 200, delay: Math.round(duration * 0.52), easing },
+			        );
+			      }
+
+				      const midX = dx * 0.7;
+				      const midY = dy * 0.7;
+
+			      const start =
+			        cardEl
+			          ? "translate3d(0px, 0px, 0) scale(1) rotate(0deg)"
+			          : "translate(-50%, -50%) translate3d(0px, 0px, 0) scale(1) rotate(0deg)";
+				      const mid =
+				        cardEl
+				          ? `translate3d(${midX}px, ${midY}px, 0) scale(0.94) rotate(0deg)`
+				          : `translate(-50%, -50%) translate3d(${midX}px, ${midY}px, 0) scale(0.94) rotate(0deg)`;
+				      const end =
+				        cardEl
+				          ? `translate3d(${dx}px, ${dy}px, 0) scale(0.2) rotate(0deg)`
+				          : `translate(-50%, -50%) translate3d(${dx}px, ${dy}px, 0) scale(0.2) rotate(0deg)`;
+
+			      const anim = flyer.animate(
+			        [
+			          { transform: start, opacity: 1 },
+			          { transform: mid, opacity: 1, offset: 0.62 },
+			          { transform: end, opacity: 1, offset: 0.9 },
+			          { transform: end, opacity: 0, offset: 1 },
+			        ],
+			        { duration, easing, fill: "both" },
+			      );
+
+			      const cleanup = () => flyer.remove();
+
+			      // Resolve slightly before the end so the cart update "lands" as the card arrives,
+			      // while cleanup still happens on finish/cancel.
+			      const arrivalMs = Math.max(0, Math.round(duration * 0.72));
+			      let resolved = false;
+			      let timer = null;
+			      let resolveArrival = null;
+
+			      const arrivalPromise = new Promise((resolve) => {
+			        resolveArrival = () => {
+			          if (resolved) return;
+			          resolved = true;
+			          resolve();
+			        };
+			        timer = window.setTimeout(resolveArrival, arrivalMs);
+			      });
+
+			      anim.onfinish = () => {
+			        if (timer) window.clearTimeout(timer);
+			        resolveArrival?.();
+			        cleanup();
+			      };
+			      anim.oncancel = () => {
+			        if (timer) window.clearTimeout(timer);
+			        resolveArrival?.();
+			        cleanup();
+			      };
+
+			      return arrivalPromise;
+			    } catch {
+			      // ignore animation errors
+			    }
+
+			    return Promise.resolve();
+			  };
 
   const categories = useMemo(() => {
     return (Array.isArray(categoriesCollections) ? categoriesCollections : [])
@@ -86,19 +252,20 @@ const Cashier = () => {
 	    return map;
 	  }, [menusCollections]);
 	
-	  const cartLines = useMemo(() => {
-	    const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-	    return lines
-	      .map((line) => ({
-	        ...line,
-	        id: String(line?.id || ""),
-	        menuId: String(line?.menuId || ""),
-	        quantity: Math.max(0, Number(line?.quantity) || 0),
-	        addOns: Array.isArray(line?.addOns) ? line.addOns : [],
-	        signature: String(line?.signature || ""),
-	      }))
-	      .filter((line) => line.id && line.menuId && line.quantity > 0);
-	  }, [cart]);
+		  const cartLines = useMemo(() => {
+		    const lines = Array.isArray(cart?.lines) ? cart.lines : [];
+		    return lines
+		      .map((line) => ({
+		        ...line,
+		        id: String(line?.id || ""),
+		        menuId: String(line?.menuId || ""),
+		        quantity: Math.max(0, Number(line?.quantity) || 0),
+		        addOns: Array.isArray(line?.addOns) ? line.addOns : [],
+		        signature: String(line?.signature || ""),
+		        updatedAt: Number(line?.updatedAt) || 0,
+		      }))
+		      .filter((line) => line.id && line.menuId && line.quantity > 0);
+		  }, [cart]);
 	
 	  const quantityByMenuId = useMemo(() => {
 	    const map = new Map();
@@ -108,20 +275,22 @@ const Cashier = () => {
 	    return map;
 	  }, [cartLines]);
 	
-	  const cartEntries = useMemo(() => {
-	    return cartLines
-	      .map((line) => {
-	        const menu = menuById.get(String(line.menuId));
-	        if (!menu) return null;
-	        return { line, menu };
-	      })
-	      .filter(Boolean)
-	      .sort((a, b) => {
-	        const nameSort = String(a?.menu?.name || "").localeCompare(String(b?.menu?.name || ""));
-	        if (nameSort) return nameSort;
-	        return String(a?.line?.signature || "").localeCompare(String(b?.line?.signature || ""));
-	      });
-	  }, [cartLines, menuById]);
+		  const cartEntries = useMemo(() => {
+		    return cartLines
+		      .map((line) => {
+		        const menu = menuById.get(String(line.menuId));
+		        if (!menu) return null;
+		        return { line, menu };
+		      })
+		      .filter(Boolean)
+		      .sort((a, b) => {
+		        const updatedSort = (b?.line?.updatedAt || 0) - (a?.line?.updatedAt || 0);
+		        if (updatedSort) return updatedSort;
+		        const nameSort = String(a?.menu?.name || "").localeCompare(String(b?.menu?.name || ""));
+		        if (nameSort) return nameSort;
+		        return String(a?.line?.signature || "").localeCompare(String(b?.line?.signature || ""));
+		      });
+		  }, [cartLines, menuById]);
 	
 	  const cartTotals = useMemo(() => {
 	    const totalItems = cartEntries.reduce((sum, entry) => sum + (entry?.line?.quantity || 0), 0);
@@ -161,9 +330,10 @@ const Cashier = () => {
 	    return null;
 	  };
 	
-	  const addToCart = ({ menuId, addOns = [] }) => {
-	    const normalizedMenuId = String(menuId || "");
-	    if (!normalizedMenuId) return;
+		  const addToCart = ({ menuId, addOns = [] }) => {
+		    const normalizedMenuId = String(menuId || "");
+		    if (!normalizedMenuId) return;
+		    const now = Date.now();
 	
 	    const normalizedAddOns = (Array.isArray(addOns) ? addOns : [])
 	      .map((item) => ({
@@ -180,43 +350,46 @@ const Cashier = () => {
 	      normalizedAddOns.map((item) => item._id),
 	    );
 	
-	    setCart((prev) => {
-	      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
-	      const existingIndex = prevLines.findIndex((line) => String(line?.signature || "") === signature);
-	      if (existingIndex > -1) {
-	        const nextLines = [...prevLines];
-	        const current = nextLines[existingIndex];
-	        nextLines[existingIndex] = {
-	          ...current,
-	          quantity: (Number(current?.quantity) || 0) + 1,
-	        };
-	        return { version: 2, lines: nextLines };
-	      }
+		    setCart((prev) => {
+		      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
+		      const existingIndex = prevLines.findIndex((line) => String(line?.signature || "") === signature);
+		      if (existingIndex > -1) {
+		        const nextLines = [...prevLines];
+		        const current = nextLines[existingIndex];
+		        nextLines[existingIndex] = {
+		          ...current,
+		          quantity: (Number(current?.quantity) || 0) + 1,
+		          updatedAt: now,
+		        };
+		        return { version: 2, lines: nextLines };
+		      }
+		
+		      const nextLine = {
+		        id: createCartLineId(),
+		        menuId: normalizedMenuId,
+		        quantity: 1,
+		        addOns: normalizedAddOns,
+		        signature,
+		        updatedAt: now,
+		      };
+		      return { version: 2, lines: [nextLine, ...prevLines] };
+		    });
+		  };
 	
-	      const nextLine = {
-	        id: createCartLineId(),
-	        menuId: normalizedMenuId,
-	        quantity: 1,
-	        addOns: normalizedAddOns,
-	        signature,
-	      };
-	      return { version: 2, lines: [nextLine, ...prevLines] };
-	    });
-	  };
-	
-	  const incrementLine = (lineId) => {
-	    const id = String(lineId || "");
-	    if (!id) return;
-	    setCart((prev) => {
-	      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
-	      const nextLines = prevLines.map((line) =>
-	        String(line?.id) === id
-	          ? { ...line, quantity: (Number(line?.quantity) || 0) + 1 }
-	          : line,
-	      );
-	      return { version: 2, lines: nextLines };
-	    });
-	  };
+		  const incrementLine = (lineId) => {
+		    const id = String(lineId || "");
+		    if (!id) return;
+		    const now = Date.now();
+		    setCart((prev) => {
+		      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
+		      const nextLines = prevLines.map((line) =>
+		        String(line?.id) === id
+		          ? { ...line, quantity: (Number(line?.quantity) || 0) + 1, updatedAt: now }
+		          : line,
+		      );
+		      return { version: 2, lines: nextLines };
+		    });
+		  };
 	
 		  const decrementLine = (lineId) => {
 		    const id = String(lineId || "");
@@ -245,9 +418,10 @@ const Cashier = () => {
 		    });
 		  };
 	
-	  const updateLineAddOns = ({ lineId, addOns = [] }) => {
-	    const id = String(lineId || "");
-	    if (!id) return;
+		  const updateLineAddOns = ({ lineId, addOns = [] }) => {
+		    const id = String(lineId || "");
+		    if (!id) return;
+		    const now = Date.now();
 	
 	    const normalizedAddOns = (Array.isArray(addOns) ? addOns : [])
 	      .map((item) => ({
@@ -284,11 +458,12 @@ const Cashier = () => {
 	        return { version: 2, lines: nextLines };
 	      }
 	
-	      const nextLines = [...prevLines];
-	      nextLines[index] = { ...target, addOns: normalizedAddOns, signature };
-	      return { version: 2, lines: nextLines };
-	    });
-	  };
+		      const nextLines = [...prevLines];
+		      nextLines[index] = { ...target, addOns: normalizedAddOns, signature };
+		      nextLines[index].updatedAt = now;
+		      return { version: 2, lines: nextLines };
+		    });
+		  };
 	
 	  const clearCart = () => setCart({ version: 2, lines: [] });
 	
@@ -339,12 +514,13 @@ const Cashier = () => {
 	          </div>
 
           <div className="flex items-center gap-2">
-            <Sheet open={cartOpen} onOpenChange={setCartOpen}>
-              <Button
-                type="button"
-                variant="outline"
-                className="relative h-10 rounded-xl lg:hidden"
-                onClick={() => setCartOpen(true)}
+		            <Sheet open={cartOpen} onOpenChange={setCartOpen}>
+		              <Button
+		                ref={cartButtonRef}
+		                type="button"
+		                variant="outline"
+		                className="relative h-10 rounded-xl lg:hidden"
+		                onClick={() => setCartOpen(true)}
               >
                 <ShoppingCart className="h-4 w-4" />
                 <span className="hidden sm:inline">Cart</span>
@@ -504,21 +680,25 @@ const Cashier = () => {
 	                      }
 	                      quantity={quantityByMenuId.get(String(menu?._id || "")) || 0}
 	                      imageSrc={getMenuImgSrc(menu)}
-	                      onAdd={() => {
-	                        const hasAddOns =
-	                          Array.isArray(menu?.recommendedAddOns) && menu.recommendedAddOns.length;
-	                        if (hasAddOns) openCustomizeForMenu(menu);
-	                        else addToCart({ menuId: menu?._id, addOns: [] });
-	                      }}
-	                      onCustomize={() => openCustomizeForMenu(menu)}
-	                    />
-	                  ))}
+		                      onAdd={async (e) => {
+		                        const hasAddOns =
+		                          Array.isArray(menu?.recommendedAddOns) && menu.recommendedAddOns.length;
+		                        if (hasAddOns) return openCustomizeForMenu(menu);
+		                        await animateAddToOrder(e?.currentTarget, menu);
+		                        addToCart({ menuId: menu?._id, addOns: [] });
+		                      }}
+		                      onCustomize={() => openCustomizeForMenu(menu)}
+		                    />
+		                  ))}
 	            </div>
 	          </section>
 	
 			          <aside className="hidden lg:block">
 			            <div className="relative h-[calc(100dvh-92px)]">
-			              <div className="fixed top-[92px] right-[max(1.5rem,calc((100vw-1536px)/2+1.5rem))] z-20 flex h-[calc(100dvh-92px-1.5rem)] w-[380px] flex-col rounded-2xl border bg-card shadow-sm">
+				              <div
+				                ref={orderCardRef}
+				                className="fixed top-[92px] right-[max(1.5rem,calc((100vw-1536px)/2+1.5rem))] z-20 flex h-[calc(100dvh-92px-1.5rem)] w-[380px] flex-col rounded-2xl border bg-card shadow-sm"
+				              >
 		              <div className="flex items-center justify-between gap-2 p-4">
 		                <div>
 		                  <p className="text-sm font-semibold">Current order</p>
@@ -860,7 +1040,11 @@ const StatusPill = ({ label, count, tone }) => {
 	  const price = Number(menu?.price) || 0;
 
   return (
-    <Card className="group overflow-hidden rounded-2xl py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <Card
+      data-menu-card
+      data-menu-id={String(menu?._id || "")}
+      className="group overflow-hidden rounded-2xl py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+    >
       <div className="relative h-40 bg-muted/40">
         {imageSrc ? (
           <img
@@ -943,11 +1127,45 @@ const StatusPill = ({ label, count, tone }) => {
 };
 
 const CartPanel = ({ entries, totals, onIncrement, onDecrement, onRemove, onClear, onCustomize }) => {
-	  return (
-	    <div className="flex h-full flex-col">
-	      <div className="min-h-0 flex-1 space-y-2 overflow-auto pr-1">
-	        {entries.length ? (
-	          entries.map(({ menu, line }) => {
+  const animatedByLineIdRef = useRef(new Map());
+
+  const animateLineEl = useCallback((el, lineId, updatedAt) => {
+    if (!el) return;
+    if (!updatedAt) return;
+
+    const lastAnimated = animatedByLineIdRef.current.get(lineId);
+    if (lastAnimated === updatedAt) return;
+    animatedByLineIdRef.current.set(lineId, updatedAt);
+
+    try {
+      if (typeof window !== "undefined") {
+        const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+        if (reduce) return;
+      }
+
+      el.animate(
+        [
+          {
+            transform: "translate3d(0,-10px,0) scale(0.985)",
+            opacity: 0.6,
+          },
+          {
+            transform: "translate3d(0,0,0) scale(1)",
+            opacity: 1,
+          },
+        ],
+        { duration: 320, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "both" },
+      );
+    } catch {
+      // ignore animation errors
+    }
+  }, []);
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="min-h-0 flex-1 space-y-2 overflow-auto pr-1">
+        {entries.length ? (
+          entries.map(({ menu, line }) => {
             const lineId = String(line?.id || "");
             const price = Number(menu?.price) || 0;
             const addOnsTotal = (line?.addOns || []).reduce(
@@ -961,11 +1179,14 @@ const CartPanel = ({ entries, totals, onIncrement, onDecrement, onRemove, onClea
               : menu?.image || null;
             const addOnNames = (line?.addOns || []).map((item) => item?.name).filter(Boolean);
 
-	            return (
-	              <div
-	                key={lineId}
-	                className="rounded-xl border bg-background/40 p-3"
-	              >
+            return (
+              <div
+                ref={(el) =>
+                  animateLineEl(el, lineId, Number(line?.updatedAt) || 0)
+                }
+                key={lineId}
+                className="rounded-xl border bg-background/40 p-3"
+              >
 	                <div className="flex items-start justify-between gap-3">
 	                  <div className="flex min-w-0 items-start gap-3">
 	                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted/40">
@@ -1271,6 +1492,7 @@ function loadCashierCart() {
             quantity,
             addOns: [],
             signature: createCartSignature(normalizedMenuId, []),
+            updatedAt: 0,
           };
         })
         .filter(Boolean);
