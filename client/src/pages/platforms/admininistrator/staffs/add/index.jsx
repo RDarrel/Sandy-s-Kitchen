@@ -27,14 +27,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { isEqual } from "lodash";
 import { RESET, SAVE } from "@/services/redux/slices/persons/staffs";
 import { toast } from "sonner";
+import { Role } from "@/services/fakeDB";
 
 const AddStaff = ({ isOpen, setIsOpen }) => {
   const { token } = useSelector(({ auth }) => auth),
-    {
-      formSubmitted,
-      isSuccess,
-      message = "",
-    } = useSelector(({ staffs }) => staffs),
+    { formSubmitted } = useSelector(({ staffs }) => staffs),
     [form, setForm] = useState({}),
     [showPassword, setShowPassword] = useState(false),
     [showCPassword, setShowCPassword] = useState(false),
@@ -48,17 +45,9 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
 
   useEffect(() => {
     if (isOpen) {
-      setForm({});
+      setForm({ role: 2 });
     }
   }, [isOpen]);
-
-  useEffect(() => {
-    if (!formSubmitted && isSuccess && isOpen) {
-      toast.success("Staff Successfully Added!");
-      setIsOpen(false);
-      dispatch(RESET());
-    }
-  }, [formSubmitted, isSuccess, isOpen, dispatch]);
 
   useEffect(() => {
     const { password = "" } = form;
@@ -83,28 +72,39 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
       setNotMatchPassword(true);
       return;
     } else {
-      dispatch(SAVE({ token, data: form }));
-      setNotMatchPassword(false);
+      dispatch(SAVE({ token, data: form }))
+        .unwrap()
+        .then(() => {
+          toast.success("Staff Successfully Added!");
+          setIsOpen(false);
+          dispatch(RESET());
+          setNotMatchPassword(false);
+        })
+        .catch((error) => {
+          toast.error(error?.message || error || "Failed to add staff.");
+        });
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-[45rem]  ">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Staff Registration</DialogTitle>
           <DialogDescription>
             Please provide the necessary details to complete the staff
-            registration. Click save when you're done
+            registration. Click register when you're done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-5">
             <div className="grid gap-2">
-              <Label className="font-normal text-gray-700">Role*</Label>
+              <Label>Role*</Label>
               <Select
-                value={form.role ?? ""}
-                onValueChange={(value) => setForm({ ...form, role: value })}
+                value={String(form.role) ?? ""}
+                onValueChange={(value) =>
+                  setForm({ ...form, role: Number(value) })
+                }
                 required={true}
               >
                 <SelectTrigger className="w-full">
@@ -113,21 +113,18 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Role</SelectLabel>
-                    <SelectItem value="68221276142bcd0fef29b829">
-                      Cashier
-                    </SelectItem>
-                    <SelectItem value="68221270142bcd0fef29b828">
-                      Stockman
-                    </SelectItem>
+                    {Role.collections.map(({ id, label }) => (
+                      <SelectItem key={id} value={String(id)}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-5">
               <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="fname" className={"text-[#414651] font-[400]"}>
-                  First Name*
-                </Label>
+                <Label htmlFor="fname">First Name*</Label>
                 <Input
                   type="text"
                   value={form?.fullName?.fname}
@@ -143,9 +140,7 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
                 />
               </div>
               <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="mname" className={"text-[#414651] font-[400]"}>
-                  Middle Name (Optional)
-                </Label>
+                <Label htmlFor="mname">Middle Name (Optional)</Label>
 
                 <Input
                   type="text"
@@ -164,9 +159,7 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
 
             <div className="grid grid-cols-2 gap-5">
               <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="lname" className={"text-[#414651] font-[400]"}>
-                  Last Name*
-                </Label>
+                <Label htmlFor="lname">Last Name*</Label>
                 <Input
                   type="text"
                   required
@@ -182,9 +175,7 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
                 />
               </div>
               <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="email" className={"text-[#414651] font-[400]"}>
-                  Email*
-                </Label>
+                <Label htmlFor="email">Email*</Label>
                 <Input
                   type="text"
                   id="email"
@@ -195,23 +186,13 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
                   }
                   placeholder="Enter email here.."
                 />
-                {message && (
-                  <h2 className="-mt-2 -mb-2 text-red-700">
-                    Oops... this email already exists.
-                  </h2>
-                )}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-5">
               <div>
                 <div className="grid w-full max-w-sm items-center gap-1.5 ">
-                  <Label
-                    htmlFor="password"
-                    className={"text-[#414651] font-[400]"}
-                  >
-                    Password*
-                  </Label>
+                  <Label htmlFor="password">Password*</Label>
 
                   <div className="relative">
                     <Input
@@ -228,7 +209,7 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -236,12 +217,7 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
                 </div>
               </div>
               <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label
-                  htmlFor="cPassword"
-                  className={"text-[#414651] font-[400]"}
-                >
-                  Confirm Password*
-                </Label>
+                <Label htmlFor="cPassword">Confirm Password*</Label>
 
                 <div className="relative">
                   <Input
@@ -258,7 +234,7 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
                   <button
                     type="button"
                     onClick={() => setShowCPassword(!showCPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                   >
                     {showCPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -283,7 +259,7 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
                 <h2
                   className={cn(
                     "text-[13px] ",
-                    hasSpecialChar && "text-green-700"
+                    hasSpecialChar && "text-green-700",
                   )}
                 >
                   *Password must contain at least one special character
@@ -299,13 +275,17 @@ const AddStaff = ({ isOpen, setIsOpen }) => {
               </div>
             </div>
           </div>
-          <DialogFooter className="mt-5">
+          <DialogFooter className="mt-5 gap-2">
             <Button
-              type="submit"
-              disabled={weekPassword || formSubmitted}
-              className="bg-[#FF4F00] hover:bg-[#e64500] transition-colors duration-200 cursor-pointer"
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
             >
-              Register {formSubmitted && <Loader className=" animate-spin" />}
+              Cancel
+            </Button>
+            <Button type="submit" disabled={weekPassword || formSubmitted}>
+              Register{" "}
+              {formSubmitted && <Loader className="h-4 w-4 animate-spin" />}
             </Button>
           </DialogFooter>
         </form>

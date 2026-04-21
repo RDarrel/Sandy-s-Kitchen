@@ -3,18 +3,16 @@ const Staffs = require("../../models/persons/Staffs"),
 
 exports.save = async (req, res) => {
   try {
+    const isExist = await Users.findOne({ email: req.body.email });
+    if (isExist) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
     const createdUser = await Users.create(req.body);
     const createdStaff = await Staffs.create({ user: createdUser._id });
-    const populatedStaff = await Staffs.findById(createdStaff._id).populate({
-      path: "user",
-      populate: {
-        path: "role",
-      },
-    });
-
+    await createdStaff.populate("user", "fullName email role");
     res.status(201).json({
       success: "Staff Created Successfully",
-      payload: populatedStaff,
+      payload: createdStaff,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -48,7 +46,7 @@ exports.update = async (req, res) => {
     const updatedStAff = await Users.findByIdAndUpdate(
       user,
       { role },
-      { new: true }
+      { new: true },
     )
       .populate("role")
       .lean();

@@ -110,10 +110,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    role: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Roles",
-    },
+    role: Number,
+    // role: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Roles",
+    // },
     mobile: {
       type: String,
       default: "",
@@ -154,7 +155,7 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 userSchema.methods.matchPassword = function (password) {

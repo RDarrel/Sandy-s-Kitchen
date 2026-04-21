@@ -154,7 +154,6 @@ export const reduxSlice = createSlice({
         state.email = user.email;
         state.auth = user;
         state.id = user._id;
-        state.role = user.role?.name;
         state.message = success;
         state.isSuccess = true;
         state.isLoading = false;

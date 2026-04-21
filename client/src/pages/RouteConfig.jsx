@@ -4,10 +4,10 @@ import { Route } from "react-router-dom";
 import ACCESS from "./platforms/access";
 
 const RouteConfig = () => {
-  const { role = "PRINCIPAL" } = useSelector(({ auth }) => auth);
+  const { auth } = useSelector(({ auth }) => auth);
 
   const handleRoutes = () => {
-    const routes = ACCESS[role || "ADMINISTRATOR"] || [];
+    const routes = ACCESS[auth?.role] || [];
     return routes.map(({ path, component, children }, x) => {
       const handleRoute = (key, path, Component) => (
         <Route key={key} path={path} element={<Component />} />
@@ -18,8 +18,8 @@ const RouteConfig = () => {
           handleRoute(
             `route-${x}-${y}`,
             `/platforms/${path}${child.path}`,
-            child.component
-          )
+            child.component,
+          ),
         );
       }
 

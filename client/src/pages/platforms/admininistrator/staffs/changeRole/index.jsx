@@ -25,6 +25,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RESET, UPDATE } from "@/services/redux/slices/persons/staffs";
 import { toast } from "sonner";
 import { fullName } from "@/services/utilities";
+import { Role } from "@/services/fakeDB";
 
 const ChangeRole = ({ isOpen, setIsOpen, selected }) => {
   const { token } = useSelector(({ auth }) => auth),
@@ -36,7 +37,7 @@ const ChangeRole = ({ isOpen, setIsOpen, selected }) => {
     if (isOpen) {
       const { user = {} } = selected;
       const { role, _id = "" } = user;
-      setForm({ user: _id, role: role?._id });
+      setForm({ user: _id, role });
     }
   }, [isOpen, selected]);
 
@@ -57,7 +58,7 @@ const ChangeRole = ({ isOpen, setIsOpen, selected }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-[25rem]  ">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Change Role</DialogTitle>
           <DialogDescription>{fullName(user?.fullName)}</DialogDescription>
@@ -65,10 +66,12 @@ const ChangeRole = ({ isOpen, setIsOpen, selected }) => {
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-5">
             <div className="grid gap-2">
-              <Label className="font-normal text-gray-700">Role*</Label>
+              <Label>Role*</Label>
               <Select
-                value={form.role ?? ""}
-                onValueChange={(value) => setForm({ ...form, role: value })}
+                value={String(form.role) ?? ""}
+                onValueChange={(value) =>
+                  setForm({ ...form, role: Number(value) })
+                }
                 required={true}
               >
                 <SelectTrigger className="w-full">
@@ -77,24 +80,27 @@ const ChangeRole = ({ isOpen, setIsOpen, selected }) => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Role</SelectLabel>
-                    <SelectItem value="68221276142bcd0fef29b829">
-                      Cashier
-                    </SelectItem>
-                    <SelectItem value="68221270142bcd0fef29b828">
-                      Stockman
-                    </SelectItem>
+                    {Role.collections.map(({ id, label }) => (
+                      <SelectItem key={id} value={String(id)}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
           </div>
-          <DialogFooter className="mt-5">
+          <DialogFooter className="mt-5 gap-2">
             <Button
-              type="submit"
-              disabled={formSubmitted}
-              className="bg-[#FF4F00] hover:bg-[#e64500] transition-colors duration-200 cursor-pointer"
+              type="button"
+              variant="outline"
+              onClick={() => setIsOpen(false)}
             >
-              Update {formSubmitted && <Loader className=" animate-spin" />}
+              Cancel
+            </Button>
+            <Button type="submit" disabled={formSubmitted}>
+              Update{" "}
+              {formSubmitted && <Loader className="h-4 w-4 animate-spin" />}
             </Button>
           </DialogFooter>
         </form>

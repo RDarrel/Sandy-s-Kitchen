@@ -1,3 +1,4 @@
 import Category from "./menu/categories";
 import Type from "./menu/types";
-export { Category, Type };
+import Role from "./roles";
+export { Category, Type, Role };

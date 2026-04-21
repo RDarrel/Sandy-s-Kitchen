@@ -18,9 +18,10 @@ import { Outlet, useLocation } from "react-router-dom";
 import FuelWarning from "./fuelWarning";
 import { useEffect } from "react";
 import { FUEL_CHECKER } from "@/services/redux/slices/assets/stocks";
+import { Role } from "@/services/fakeDB";
 
 export default function Platforms() {
-  const { role, token } = useSelector(({ auth }) => auth);
+  const { auth, token } = useSelector(({ auth }) => auth);
   const dispatch = useDispatch();
   const location = useLocation();
   const pathSegments = location.pathname.split("/").filter(Boolean); // ["platforms", "students", "list"]
@@ -39,7 +40,9 @@ export default function Platforms() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">{capitalize(role)}</BreadcrumbLink>
+                  <BreadcrumbLink href="#">
+                    {Role.getLabel(auth?.role)}
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>

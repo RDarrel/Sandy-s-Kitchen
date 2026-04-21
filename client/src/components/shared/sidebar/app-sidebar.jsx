@@ -14,12 +14,12 @@ import access from "@/pages/platforms/access";
 import { useSelector } from "react-redux";
 
 export function AppSidebar({ ...props }) {
-  const { role } = useSelector(({ auth }) => auth),
+  const { auth } = useSelector(({ auth }) => auth),
     [links, setLinks] = useState([]);
 
   useEffect(() => {
-    setLinks(access[role || "PRINCIPAL"] || []);
-  }, [role]);
+    setLinks(access[auth?.role] || []);
+  }, [auth]);
 
   return (
     <Sidebar collapsible="icon" {...props}>

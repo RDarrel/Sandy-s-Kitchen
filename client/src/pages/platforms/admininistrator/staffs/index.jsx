@@ -1,6 +1,14 @@
 import CustomPagination from "@/components/shared/pagination";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -9,16 +17,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Key } from "lucide-react";
+import { Key, Plus, Search } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import AddStaff from "./add";
 import { useDispatch, useSelector } from "react-redux";
 import { BROWSE } from "@/services/redux/slices/persons/staffs";
 import TableLoading from "@/components/shared/loading/table";
 import { fullName, globalSearch, handlePagination } from "@/services/utilities";
-import { capitalize, isEmpty } from "lodash";
+import { isEmpty } from "lodash";
 import ChangeRole from "./changeRole";
-import Search from "@/components/shared/search";
+import { Role } from "@/services/fakeDB";
 
 const Staffs = () => {
   const { token } = useSelector(({ auth }) => auth),
@@ -33,101 +41,150 @@ const Staffs = () => {
     dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(BROWSE({ token }));
-  }, [token]);
+    if (token) {
+      dispatch(BROWSE({ token }));
+    }
+  }, [dispatch, token]);
 
   useEffect(() => {
-    console.log(collections);
     setStaffs(collections);
   }, [collections]);
 
   useEffect(() => {
-    if (!search) setStaffs(collections);
     if (search) {
-      const results = globalSearch(staffs, search.toUpperCase());
+      const results = globalSearch(collections, search.toUpperCase());
       setStaffs(results);
+      return;
     }
-  }, [search]);
+
+    setStaffs(collections);
+  }, [search, collections]);
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex justify-between">
-          <h2 className="text-[#FF4F00] font-[600] text-2xl">Staff List</h2>
-          <Search search={search} setSearch={setSearch} setIsOpen={setIsOpen} />
-        </CardHeader>
-        <CardContent className={"-mt-5"}>
-          {!isLoading ? (
-            <>
-              <div className="border rounded-md bg-white mt-5">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {!isEmpty(staffs) ? (
-                      <>
-                        {handlePagination(staffs, page, maxPage).map(
-                          (staff) => {
-                            const { user } = staff;
-                            return (
-                              <TableRow key={staff._id}>
-                                <TableCell>{fullName(user.fullName)}</TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>
-                                  {capitalize(user.role?.name)}
-                                </TableCell>
-                                <TableCell>Active</TableCell>
-                                <TableCell>
-                                  <Button
-                                    title="Change Role"
-                                    onClick={() => {
-                                      setSelected(staff);
-                                      setIsChangeRole(true);
-                                    }}
-                                    className={
-                                      "cursor-pointer bg-[#FF4F00] hover:bg-[#e54400]"
-                                    }
-                                  >
-                                    <Key />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            );
-                          }
-                        )}
-                      </>
-                    ) : (
-                      <TableRow>
-                        <TableCell className={"text-center"} colSpan={5}>
-                          No Record.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+      <div className="bg-background p-4 md:p-6">
+        <div className="mx-auto max-w-7xl">
+          <Card className="border-border py-6 shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <CardTitle className="text-2xl text-foreground">
+                    Staffs
+                  </CardTitle>
+                  <CardDescription>
+                    Manage staff accounts and their assigned roles.
+                  </CardDescription>
+                </div>
+
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end lg:max-w-xl">
+                  <div className="relative w-full sm:max-w-xs">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="Search staff..."
+                      className="pl-9"
+                      type="search"
+                    />
+                  </div>
+
+                  <Button onClick={() => setIsOpen(true)}>
+                    <Plus className="h-4 w-4" />
+                    Add Staff
+                  </Button>
+                </div>
               </div>
-              <CustomPagination
-                title="staff"
-                titleExtension="s"
-                page={page}
-                setPage={setPage}
-                maxPage={maxPage}
-                setMaxPage={setMaxPage}
-                datas={staffs}
-              />
-            </>
-          ) : (
-            <TableLoading className={"mt-5"} />
-          )}
-        </CardContent>
-      </Card>
+            </CardHeader>
+
+            <CardContent className="pt-0">
+              {!isLoading ? (
+                <>
+                  <div className="mt-2 overflow-hidden rounded-md border">
+                    <Table>
+                      <TableHeader className="bg-muted/70">
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {!isEmpty(staffs) ? (
+                          handlePagination(staffs, page, maxPage).map(
+                            (staff) => {
+                              const user = staff?.user ?? {};
+                              return (
+                                <TableRow key={staff._id}>
+                                  <TableCell className="font-medium">
+                                    {user?.fullName
+                                      ? fullName(user.fullName)
+                                      : "—"}
+                                  </TableCell>
+                                  <TableCell className="text-muted-foreground">
+                                    {user?.email ?? "—"}
+                                  </TableCell>
+                                  <TableCell>
+                                    {Role.getLabel(user?.role)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge
+                                      variant="secondary"
+                                      className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                                    >
+                                      Active
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <Button
+                                      size="icon"
+                                      variant="outline"
+                                      title="Change Role"
+                                      onClick={() => {
+                                        setSelected(staff);
+                                        setIsChangeRole(true);
+                                      }}
+                                    >
+                                      <Key className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            },
+                          )
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              className="text-center text-muted-foreground"
+                              colSpan={5}
+                            >
+                              No record.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <CustomPagination
+                    title="staff"
+                    titleExtension="s"
+                    page={page}
+                    setPage={setPage}
+                    maxPage={maxPage}
+                    setMaxPage={setMaxPage}
+                    datas={staffs}
+                  />
+                </>
+              ) : (
+                <TableLoading className="mt-4" />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       <AddStaff isOpen={isOpen} setIsOpen={setIsOpen} />
       <ChangeRole
         isOpen={isChangeRole}
