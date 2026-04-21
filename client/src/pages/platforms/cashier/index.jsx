@@ -371,20 +371,21 @@ const Cashier = () => {
     return map;
   }, [menusCollections]);
 
-  const cartLines = useMemo(() => {
-    const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-    return lines
-      .map((line) => ({
-        ...line,
-        id: String(line?.id || ""),
-        menuId: String(line?.menuId || ""),
-        quantity: Math.max(0, Number(line?.quantity) || 0),
-        addOns: Array.isArray(line?.addOns) ? line.addOns : [],
-        signature: String(line?.signature || ""),
-        updatedAt: Number(line?.updatedAt) || 0,
-      }))
-      .filter((line) => line.id && line.menuId && line.quantity > 0);
-  }, [cart]);
+	  const cartLines = useMemo(() => {
+	    const lines = Array.isArray(cart?.lines) ? cart.lines : [];
+	    return lines
+	      .map((line) => ({
+	        ...line,
+	        id: String(line?.id || ""),
+	        menuId: String(line?.menuId || ""),
+	        quantity: Math.max(0, Number(line?.quantity) || 0),
+	        addOns: Array.isArray(line?.addOns) ? line.addOns : [],
+	        signature: String(line?.signature || ""),
+	        updatedAt: Number(line?.updatedAt) || 0,
+	        addedAt: Number(line?.addedAt) || 0,
+	      }))
+	      .filter((line) => line.id && line.menuId && line.quantity > 0);
+	  }, [cart]);
 
   const quantityByMenuId = useMemo(() => {
     const map = new Map();
@@ -394,27 +395,15 @@ const Cashier = () => {
     return map;
   }, [cartLines]);
 
-  const cartEntries = useMemo(() => {
-    return cartLines
-      .map((line) => {
-        const menu = menuById.get(String(line.menuId));
-        if (!menu) return null;
-        return { line, menu };
-      })
-      .filter(Boolean)
-      .sort((a, b) => {
-        const updatedSort =
-          (b?.line?.updatedAt || 0) - (a?.line?.updatedAt || 0);
-        if (updatedSort) return updatedSort;
-        const nameSort = String(a?.menu?.name || "").localeCompare(
-          String(b?.menu?.name || ""),
-        );
-        if (nameSort) return nameSort;
-        return String(a?.line?.signature || "").localeCompare(
-          String(b?.line?.signature || ""),
-        );
-      });
-  }, [cartLines, menuById]);
+	  const cartEntries = useMemo(() => {
+	    return cartLines
+	      .map((line) => {
+	        const menu = menuById.get(String(line.menuId));
+	        if (!menu) return null;
+	        return { line, menu };
+	      })
+	      .filter(Boolean);
+	  }, [cartLines, menuById]);
 
   const cartTotals = useMemo(() => {
     const totalItems = cartEntries.reduce(
@@ -460,10 +449,10 @@ const Cashier = () => {
     return null;
   };
 
-  const addToCart = ({ menuId, addOns = [] }) => {
-    const normalizedMenuId = String(menuId || "");
-    if (!normalizedMenuId) return;
-    const now = Date.now();
+	  const addToCart = ({ menuId, addOns = [] }) => {
+	    const normalizedMenuId = String(menuId || "");
+	    if (!normalizedMenuId) return;
+	    const now = Date.now();
 
     const normalizedAddOns = (Array.isArray(addOns) ? addOns : [])
       .map((item) => ({
@@ -480,52 +469,52 @@ const Cashier = () => {
       normalizedAddOns.map((item) => item._id),
     );
 
-    setCart((prev) => {
-      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
-      const existingIndex = prevLines.findIndex(
-        (line) => String(line?.signature || "") === signature,
-      );
-      if (existingIndex > -1) {
-        const nextLines = [...prevLines];
-        const current = nextLines[existingIndex];
-        nextLines[existingIndex] = {
-          ...current,
-          quantity: (Number(current?.quantity) || 0) + 1,
-          updatedAt: now,
-        };
-        return { version: 2, lines: nextLines };
-      }
+	    setCart((prev) => {
+	      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
+	      const existingIndex = prevLines.findIndex(
+	        (line) => String(line?.signature || "") === signature,
+	      );
+	      if (existingIndex > -1) {
+	        const nextLines = [...prevLines];
+	        const current = nextLines[existingIndex];
+	        nextLines[existingIndex] = {
+	          ...current,
+	          quantity: (Number(current?.quantity) || 0) + 1,
+	          updatedAt: now,
+	          addedAt: now,
+	        };
+	        return { version: 2, lines: nextLines };
+	      }
 
-      const nextLine = {
-        id: createCartLineId(),
-        menuId: normalizedMenuId,
-        quantity: 1,
-        addOns: normalizedAddOns,
-        signature,
-        updatedAt: now,
-      };
-      return { version: 2, lines: [nextLine, ...prevLines] };
-    });
-  };
+	      const nextLine = {
+	        id: createCartLineId(),
+	        menuId: normalizedMenuId,
+	        quantity: 1,
+	        addOns: normalizedAddOns,
+	        signature,
+	        updatedAt: now,
+	        addedAt: now,
+	      };
+	      return { version: 2, lines: [nextLine, ...prevLines] };
+	    });
+	  };
 
-  const incrementLine = (lineId) => {
-    const id = String(lineId || "");
-    if (!id) return;
-    const now = Date.now();
-    setCart((prev) => {
-      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
-      const nextLines = prevLines.map((line) =>
-        String(line?.id) === id
-          ? {
-              ...line,
-              quantity: (Number(line?.quantity) || 0) + 1,
-              updatedAt: now,
-            }
-          : line,
-      );
-      return { version: 2, lines: nextLines };
-    });
-  };
+	  const incrementLine = (lineId) => {
+	    const id = String(lineId || "");
+	    if (!id) return;
+	    setCart((prev) => {
+	      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
+	      const nextLines = prevLines.map((line) =>
+	        String(line?.id) === id
+	          ? {
+	              ...line,
+	              quantity: (Number(line?.quantity) || 0) + 1,
+	            }
+	          : line,
+	      );
+	      return { version: 2, lines: nextLines };
+	    });
+	  };
 
   const decrementLine = (lineId) => {
     const id = String(lineId || "");
@@ -833,31 +822,25 @@ const Cashier = () => {
           <section className="min-w-0">
             <div aria-hidden style={{ height: menuToolbarSpacer }} />
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
-	                  {menusLoading
+	            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
+	              {menusLoading
 	                ? new Array(8).fill(null).map((_, index) => (
-                    <Card
-                      key={index}
-                      className="overflow-hidden rounded-2xl py-0"
-                    >
-                      <Skeleton className="h-40 w-full" />
-                      <div className="space-y-3 px-4 py-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="w-full space-y-2">
-                            <Skeleton className="h-4 w-3/4" />
-                            <Skeleton className="h-3 w-1/2" />
-                          </div>
-                          <Skeleton className="h-4 w-14" />
-                        </div>
-                        <Skeleton className="h-3 w-full" />
-                        <Skeleton className="h-3 w-2/3" />
-                        <div className="grid grid-cols-2 gap-2">
-                          <Skeleton className="h-9 w-full rounded-xl" />
-                          <Skeleton className="h-9 w-full rounded-xl" />
-                        </div>
-                      </div>
-                    </Card>
-                  ))
+	                    <Card
+	                      key={index}
+	                      className="gap-0 overflow-hidden rounded-xl py-0 shadow-sm"
+	                    >
+	                      <Skeleton className="h-40 w-full rounded-b-md" />
+	                      <div className="p-4 pt-3">
+	                        <div className="flex items-start justify-between gap-3">
+	                          <div className="min-w-0 flex-1 space-y-2">
+	                            <Skeleton className="h-4 w-2/3" />
+	                            <Skeleton className="h-3 w-1/3" />
+	                          </div>
+	                          <Skeleton className="h-4 w-12" />
+	                        </div>
+	                      </div>
+	                    </Card>
+	                  ))
 	                : menusFiltered.map((menu) => (
 	                    <MenuCard
 	                      key={menu?._id}
@@ -1273,9 +1256,9 @@ const StatusPill = ({ label, count, tone }) => {
 	          onAdd?.(e);
 	        }
 	      }}
-	      className="group cursor-pointer select-none gap-0 overflow-hidden rounded-2xl py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+	      className="group cursor-pointer select-none gap-0 overflow-hidden rounded-xl py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
 	    >
-	      <div className="relative h-40 overflow-hidden rounded-t-2xl bg-muted/40">
+	      <div className="relative h-40 overflow-hidden rounded-t-xl rounded-b-md bg-muted/40">
 	        {imageSrc ? (
 	          <img
 	            src={imageSrc}
@@ -1327,11 +1310,10 @@ const StatusPill = ({ label, count, tone }) => {
 	            <p className="truncate text-sm font-semibold">
 	              {menu?.name || "—"}
             </p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {categoryName || "Uncategorized"}
-              {menu?.type ? ` • ${String(menu.type)}` : ""}
-            </p>
-          </div>
+	            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+	              {categoryName || "Uncategorized"}
+	            </p>
+	          </div>
 	          <p className="shrink-0 text-sm font-bold">
 	            {Formatter.amount(price)}
 	          </p>
@@ -1352,13 +1334,13 @@ const CartPanel = ({
 }) => {
   const animatedByLineIdRef = useRef(new Map());
 
-  const animateLineEl = useCallback((el, lineId, updatedAt) => {
-    if (!el) return;
-    if (!updatedAt) return;
+	  const animateLineEl = useCallback((el, lineId, addedAt) => {
+	    if (!el) return;
+	    if (!addedAt) return;
 
-    const lastAnimated = animatedByLineIdRef.current.get(lineId);
-    if (lastAnimated === updatedAt) return;
-    animatedByLineIdRef.current.set(lineId, updatedAt);
+	    const lastAnimated = animatedByLineIdRef.current.get(lineId);
+	    if (lastAnimated === addedAt) return;
+	    animatedByLineIdRef.current.set(lineId, addedAt);
 
     try {
       if (typeof window !== "undefined") {
@@ -1410,14 +1392,14 @@ const CartPanel = ({
               .map((item) => item?.name)
               .filter(Boolean);
 
-            return (
-              <div
-                ref={(el) =>
-                  animateLineEl(el, lineId, Number(line?.updatedAt) || 0)
-                }
-                key={lineId}
-                className="rounded-xl border bg-background/40 p-3"
-              >
+	            return (
+	              <div
+	                ref={(el) =>
+	                  animateLineEl(el, lineId, Number(line?.addedAt) || 0)
+	                }
+	                key={lineId}
+	                className="rounded-xl border bg-background/40 p-3"
+	              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-3">
                     <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted/40">
@@ -1531,29 +1513,20 @@ const CartPanel = ({
           {totals.totalItems} item(s) in cart
         </p>
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-10 rounded-xl"
-            disabled={!entries.length}
-            onClick={() => onClear?.()}
-          >
-            <Trash2 className="h-4 w-4" />
-            Clear
-          </Button>
-          <Button
-            type="button"
-            className="h-10 rounded-xl"
-            disabled={!entries.length}
-            onClick={() => {
-              // UI-ready; backend order flow can be wired later.
-            }}
-          >
-            Checkout
-          </Button>
-        </div>
-      </div>
+	        <div className="mt-3">
+	          <Button
+	            type="button"
+	            className="h-10 w-full rounded-xl"
+	            disabled={!entries.length}
+	            onClick={() => {
+	              // UI-ready; backend order flow can be wired later.
+	            }}
+	          >
+	            <ShoppingCart className="h-4 w-4" />
+	            Checkout
+	          </Button>
+	        </div>
+	      </div>
     </div>
   );
 };
