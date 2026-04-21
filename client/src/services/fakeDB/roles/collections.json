@@ -1,0 +1,7 @@
+[
+  { "value": "administrator", "label": "Administrator" },
+  { "value": "cashier", "label": "Cashier" },
+  { "value": "kitchen_staff", "label": "Kitchen Staff" },
+  { "value": "stockman", "label": "Stockman" },
+  { "value": "booking_coordinator", "label": "Booking Coordinator" }
+]
