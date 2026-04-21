@@ -159,20 +159,10 @@ const Cashier = () => {
 			        );
 			      }
 
-			      const duration = 650;
+			      const duration = 520;
 			      const easing = "cubic-bezier(0.22, 1, 0.36, 1)";
 
-			      const targetPulseEl = orderCardRef.current || cartButtonRef.current;
-			      if (targetPulseEl?.animate) {
-			        targetPulseEl.animate(
-			          [
-			            { transform: "translate3d(0,0,0) scale(1)" },
-			            { transform: "translate3d(0,0,0) scale(1.006)" },
-			            { transform: "translate3d(0,0,0) scale(1)" },
-			          ],
-			          { duration: 200, delay: Math.round(duration * 0.52), easing },
-			        );
-			      }
+			      // No pulse on the Current Order card; the cart row animation is enough feedback.
 
 				      const midX = dx * 0.7;
 				      const midY = dy * 0.7;
@@ -193,8 +183,8 @@ const Cashier = () => {
 			      const anim = flyer.animate(
 			        [
 			          { transform: start, opacity: 1 },
-			          { transform: mid, opacity: 1, offset: 0.62 },
-			          { transform: end, opacity: 1, offset: 0.9 },
+			          { transform: mid, opacity: 1, offset: 0.55 },
+			          { transform: end, opacity: 1, offset: 0.88 },
 			          { transform: end, opacity: 0, offset: 1 },
 			        ],
 			        { duration, easing, fill: "both" },
@@ -204,7 +194,7 @@ const Cashier = () => {
 
 			      // Resolve slightly before the end so the cart update "lands" as the card arrives,
 			      // while cleanup still happens on finish/cancel.
-			      const arrivalMs = Math.max(0, Math.round(duration * 0.72));
+			      const arrivalMs = Math.max(0, Math.round(duration * 0.58));
 			      let resolved = false;
 			      let timer = null;
 			      let resolveArrival = null;
