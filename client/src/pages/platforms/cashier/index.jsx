@@ -51,6 +51,7 @@ import {
 	  ChevronLeft,
 	  ChevronRight,
 	  ChevronDown,
+	  Info,
 	  Layers3,
 	  LogOut,
 	  Minus,
@@ -1276,6 +1277,8 @@ const StatusPill = ({ label, count, tone }) => {
 	  const hasAddOns =
 	    Array.isArray(menu?.recommendedAddOns) && menu.recommendedAddOns.length > 0;
 	  const price = Number(menu?.price) || 0;
+	  const description = String(menu?.description || "").trim();
+	  const hasDescription = Boolean(description);
 
 	  return (
 	    <Card
@@ -1344,14 +1347,49 @@ const StatusPill = ({ label, count, tone }) => {
 	          <div className="min-w-0">
 	            <p className="truncate text-sm font-semibold">
 	              {menu?.name || "—"}
-            </p>
-	            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-	              {categoryName || "Uncategorized"}
 	            </p>
 	          </div>
 	          <p className="shrink-0 text-sm font-bold">
 	            {Formatter.amount(price)}
 	          </p>
+	        </div>
+
+	        <div className="mt-1.5 flex items-center justify-between gap-2">
+	          <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+	            {categoryName || "Uncategorized"}
+	          </p>
+	          <Tooltip>
+	            <TooltipTrigger asChild>
+	              <button
+	                type="button"
+	                aria-label="Menu description"
+	                className={`inline-flex h-4 w-4 shrink-0 items-center justify-center leading-none text-muted-foreground/60 transition hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 ${
+	                  hasDescription ? "" : "opacity-35 cursor-default"
+	                }`}
+	                onClick={(e) => {
+	                  e.preventDefault();
+	                  e.stopPropagation();
+	                }}
+	                onPointerDown={(e) => e.stopPropagation()}
+	              >
+		                <Info className="h-3.5 w-3.5" />
+		              </button>
+	            </TooltipTrigger>
+	            <TooltipContent
+	              side="top"
+	              align="end"
+	              sideOffset={2}
+	              className="max-w-[280px]"
+	            >
+	              {hasDescription ? (
+	                <p className="whitespace-normal text-xs leading-5">
+	                  {description}
+	                </p>
+	              ) : (
+	                <p className="text-xs">No description</p>
+	              )}
+	            </TooltipContent>
+	          </Tooltip>
 	        </div>
 	      </div>
 	    </Card>
