@@ -1275,23 +1275,23 @@ const StatusPill = ({ label, count, tone }) => {
 	      }}
 	      className="group cursor-pointer select-none gap-0 overflow-hidden rounded-2xl py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
 	    >
-	      <div className="relative h-40 bg-muted/40">
+	      <div className="relative h-40 overflow-hidden rounded-t-2xl bg-muted/40">
 	        {imageSrc ? (
 	          <img
-            src={imageSrc}
-            alt={menu?.name || "Menu image"}
-            className={`h-full w-full object-cover object-center transition duration-500 group-hover:scale-105 ${
-              isAvailable ? "" : "opacity-70 grayscale-[15%]"
-            }`}
-            loading="lazy"
-          />
+	            src={imageSrc}
+	            alt={menu?.name || "Menu image"}
+	            className={`h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105 ${
+	              isAvailable ? "" : "opacity-70 grayscale-[15%]"
+	            }`}
+	            loading="lazy"
+	          />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary/60 to-muted/40">
             <ChefHat className="h-8 w-8 text-muted-foreground" />
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+	        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
         {quantity > 0 && (
           <Badge
