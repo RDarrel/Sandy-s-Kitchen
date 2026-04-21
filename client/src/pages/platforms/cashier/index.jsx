@@ -192,10 +192,10 @@ const Cashier = () => {
     return () => observer.disconnect();
   }, []);
 
-  const animateAddToOrder = (fromEl, menu) => {
-    try {
-      if (typeof window === "undefined" || typeof document === "undefined")
-        return Promise.resolve();
+	  const animateAddToOrder = (fromEl, menu, options = {}) => {
+	    try {
+	      if (typeof window === "undefined" || typeof document === "undefined")
+	        return Promise.resolve();
       if (!fromEl?.getBoundingClientRect) return Promise.resolve();
       if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches)
         return Promise.resolve();
@@ -209,20 +209,37 @@ const Cashier = () => {
       const fromX = fromRect.left + fromRect.width / 2;
       const fromY = fromRect.top + fromRect.height / 2;
 
-      const targetEl = orderCardRef.current || cartButtonRef.current;
-      const targetRect = targetEl?.getBoundingClientRect?.();
-      const useFallback =
-        !targetRect ||
-        targetRect.width < 8 ||
-        targetRect.height < 8 ||
-        targetRect.bottom < 0;
-      const fallbackRect = cartButtonRef.current?.getBoundingClientRect?.();
-      const toRect = useFallback ? fallbackRect : targetRect;
-      if (!toRect || toRect.width < 8 || toRect.height < 8)
-        return Promise.resolve();
+	      const overrideTargetEl = options?.targetEl || null;
+	      if (overrideTargetEl?.scrollIntoView) {
+	        try {
+	          overrideTargetEl.scrollIntoView({
+	            block: "center",
+	            inline: "nearest",
+	            behavior: "auto",
+	          });
+	        } catch {
+	          // ignore
+	        }
+	      }
 
-      const toX = toRect.left + toRect.width / 2;
-      const toY = toRect.top + Math.min(toRect.height * 0.35, 120);
+	      const primaryTargetEl =
+	        overrideTargetEl || orderCardRef.current || cartButtonRef.current;
+	      const targetRect = primaryTargetEl?.getBoundingClientRect?.();
+	      const useFallback =
+	        !targetRect ||
+	        targetRect.width < 8 ||
+	        targetRect.height < 8 ||
+	        targetRect.bottom < 0;
+	      const fallbackRect = cartButtonRef.current?.getBoundingClientRect?.();
+	      const toRect = useFallback ? fallbackRect : targetRect;
+	      if (!toRect || toRect.width < 8 || toRect.height < 8)
+	        return Promise.resolve();
+
+	      const toX = toRect.left + toRect.width / 2;
+	      const toY =
+	        overrideTargetEl && !useFallback
+	          ? toRect.top + toRect.height / 2
+	          : toRect.top + Math.min(toRect.height * 0.35, 120);
 
       const dx = toX - fromX;
       const dy = toY - fromY;
@@ -855,7 +872,24 @@ const Cashier = () => {
 	                      }
 	                      imageSrc={getMenuImgSrc(menu)}
 	                      onAdd={async (e) => {
-	                        await animateAddToOrder(e?.currentTarget, menu);
+	                        const signature = createCartSignature(
+	                          String(menu?._id || ""),
+	                          [],
+	                        );
+	                        const existingLineId =
+	                          cartLines.find(
+	                            (line) =>
+	                              String(line?.signature || "") === signature,
+	                          )?.id || "";
+	                        const targetLineEl = existingLineId
+	                          ? orderCardRef.current?.querySelector?.(
+	                              `[data-cart-line-id="${String(existingLineId).replaceAll('"', '\\"')}"]`,
+	                            )
+	                          : null;
+
+	                        await animateAddToOrder(e?.currentTarget, menu, {
+	                          targetEl: targetLineEl,
+	                        });
 	                        addToCart({ menuId: menu?._id, addOns: [] });
 	                      }}
 	                    />
@@ -1394,6 +1428,7 @@ const CartPanel = ({
 
 	            return (
 	              <div
+	                data-cart-line-id={lineId}
 	                ref={(el) =>
 	                  animateLineEl(el, lineId, Number(line?.addedAt) || 0)
 	                }
