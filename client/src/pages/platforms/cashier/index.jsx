@@ -37,27 +37,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  ChefHat,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  LogOut,
-  Minus,
-  Plus,
-  Search,
-  ShoppingCart,
-  SlidersHorizontal,
-  Trash2,
-} from "lucide-react";
+	import { Separator } from "@/components/ui/separator";
+	import {
+	  Sheet,
+	  SheetContent,
+	  SheetHeader,
+	  SheetTitle,
+	} from "@/components/ui/sheet";
+	import { Skeleton } from "@/components/ui/skeleton";
+	import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+	import {
+	  ChefHat,
+	  ChevronLeft,
+	  ChevronRight,
+	  ChevronDown,
+	  Layers3,
+	  LogOut,
+	  Minus,
+	  Plus,
+	  Search,
+	  ShoppingCart,
+	  Trash2,
+	} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -1478,17 +1479,48 @@ const CartPanel = ({
                   </Button>
                 </div>
 
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9 rounded-xl"
-                      onClick={() => onCustomize?.(line)}
-                    >
-                      <SlidersHorizontal className="h-4 w-4" />
-                    </Button>
+	                <div className="mt-3 flex items-center justify-between gap-3">
+	                  <div className="flex items-center gap-2">
+	                    {(() => {
+	                      const hasAddOns = Boolean(
+	                        Array.isArray(menu?.recommendedAddOns) &&
+	                          menu.recommendedAddOns.length,
+	                      );
+	                      const tooltip = hasAddOns
+	                        ? "Add-ons"
+	                        : "No add-ons available";
+
+	                      return (
+	                        <Tooltip>
+	                          <TooltipTrigger asChild>
+	                            <span
+	                              className={`inline-flex ${
+	                                hasAddOns ? "" : "cursor-not-allowed"
+	                              }`}
+	                            >
+	                              <Button
+	                                type="button"
+	                                variant="outline"
+	                                size="icon"
+	                                className="h-9 w-9 rounded-xl"
+	                                aria-label={tooltip}
+	                                disabled={!hasAddOns}
+	                                onClick={() => onCustomize?.(line)}
+	                              >
+	                                <Layers3 className="h-4 w-4" />
+	                              </Button>
+	                            </span>
+	                          </TooltipTrigger>
+	                          <TooltipContent
+	                            side="top"
+	                            align="center"
+	                            sideOffset={2}
+	                          >
+	                            {tooltip}
+	                          </TooltipContent>
+	                        </Tooltip>
+	                      );
+	                    })()}
 
                     <div className="flex items-center gap-1 rounded-xl border bg-background px-1.5 py-1">
                       <Button
