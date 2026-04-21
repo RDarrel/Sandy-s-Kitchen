@@ -125,6 +125,18 @@ const Cashier = () => {
 		      // ignore
 		    }
 
+		    // Prevent layout shift when the vertical scrollbar appears/disappears
+		    // (e.g., while loading skeletons vs. full menu list).
+		    const root = document.documentElement;
+		    const prevOverflowY = root.style.overflowY;
+		    const prevScrollbarGutter = root.style.scrollbarGutter;
+		    try {
+		      root.style.scrollbarGutter = "stable";
+		      root.style.overflowY = "scroll";
+		    } catch {
+		      // ignore
+		    }
+
 		    // Ensure the page starts at the top on refresh/navigation.
 		    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 		    setMenuTopGap(initialMenuGap);
@@ -146,7 +158,13 @@ const Cashier = () => {
 		      if (raf) window.cancelAnimationFrame(raf);
 		      try {
 		        if (window.history && previousRestoration)
-			          window.history.scrollRestoration = previousRestoration;
+		          window.history.scrollRestoration = previousRestoration;
+		      } catch {
+		        // ignore
+		      }
+		      try {
+		        root.style.overflowY = prevOverflowY;
+		        root.style.scrollbarGutter = prevScrollbarGutter;
 		      } catch {
 		        // ignore
 		      }
@@ -746,9 +764,9 @@ const Cashier = () => {
       >
 	        <div className="fixed inset-x-0 z-20 bg-background" style={{ top: topbarHeight }}>
           <div className="mx-auto w-full max-w-screen-2xl px-4 lg:px-6">
-            <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
-              <div ref={menuToolbarRef} className="pt-4 pb-0">
-                <div className="rounded-2xl border bg-card p-4 shadow-sm">
+            <div className="grid min-w-0 gap-4 lg:grid-cols-[1fr_380px]">
+              <div ref={menuToolbarRef} className="min-w-0 pt-4 pb-0">
+                <div className="min-w-0 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
                       <div className="relative w-full sm:max-w-[340px]">
@@ -816,8 +834,8 @@ const Cashier = () => {
             <div aria-hidden style={{ height: menuToolbarSpacer }} />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
-              {menusLoading
-                ? new Array(8).fill(null).map((_, index) => (
+	                  {menusLoading
+	                ? new Array(8).fill(null).map((_, index) => (
                     <Card
                       key={index}
                       className="overflow-hidden rounded-2xl py-0"
@@ -840,32 +858,27 @@ const Cashier = () => {
                       </div>
                     </Card>
                   ))
-                : menusFiltered.map((menu) => (
-                    <MenuCard
-                      key={menu?._id}
-                      menu={menu}
-                      categoryName={
-                        categories.find(
-                          (c) => String(c?._id) === String(menu?.category),
-                        )?.name || ""
-                      }
-                      quantity={
-                        quantityByMenuId.get(String(menu?._id || "")) || 0
-                      }
-                      imageSrc={getMenuImgSrc(menu)}
-                      onAdd={async (e) => {
-                        const hasAddOns =
-                          Array.isArray(menu?.recommendedAddOns) &&
-                          menu.recommendedAddOns.length;
-                        if (hasAddOns) return openCustomizeForMenu(menu);
-                        await animateAddToOrder(e?.currentTarget, menu);
-                        addToCart({ menuId: menu?._id, addOns: [] });
-                      }}
-                      onCustomize={() => openCustomizeForMenu(menu)}
-                    />
-                  ))}
-            </div>
-          </section>
+	                : menusFiltered.map((menu) => (
+	                    <MenuCard
+	                      key={menu?._id}
+	                      menu={menu}
+	                      categoryName={
+	                        categories.find(
+	                          (c) => String(c?._id) === String(menu?.category),
+	                        )?.name || ""
+	                      }
+	                      quantity={
+	                        quantityByMenuId.get(String(menu?._id || "")) || 0
+	                      }
+	                      imageSrc={getMenuImgSrc(menu)}
+	                      onAdd={async (e) => {
+	                        await animateAddToOrder(e?.currentTarget, menu);
+	                        addToCart({ menuId: menu?._id, addOns: [] });
+	                      }}
+	                    />
+	                  ))}
+	            </div>
+	          </section>
 
 	          <aside className="hidden lg:block">
 	            <div className="relative" style={{ height: `calc(100dvh - ${topbarHeight}px)` }}>
@@ -1120,7 +1133,7 @@ const CategoryScroller = ({
   );
 
   return (
-    <div className="flex w-full min-w-0 items-center gap-2">
+	    <div className="flex w-full min-w-0 items-center gap-2">
       <button
         type="button"
         aria-label="Scroll categories left"
@@ -1133,7 +1146,7 @@ const CategoryScroller = ({
         <ChevronLeft className="h-4 w-4" />
       </button>
 
-      <div className="relative w-full min-w-0 overflow-hidden">
+	      <div className="relative flex-1 min-w-0 overflow-hidden">
         {canScrollLeft && (
           <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-card to-transparent" />
         )}
@@ -1234,28 +1247,37 @@ const StatusPill = ({ label, count, tone }) => {
   );
 };
 
-const MenuCard = ({
-  menu,
-  categoryName,
-  quantity,
-  imageSrc,
-  onAdd,
-  onCustomize,
-}) => {
-  const isAvailable = Boolean(menu?.isAvailable ?? menu?.isPublish);
-  const hasAddOns =
-    Array.isArray(menu?.recommendedAddOns) && menu.recommendedAddOns.length > 0;
-  const price = Number(menu?.price) || 0;
+	const MenuCard = ({
+	  menu,
+	  categoryName,
+	  quantity,
+	  imageSrc,
+	  onAdd,
+	}) => {
+	  const isAvailable = Boolean(menu?.isAvailable ?? menu?.isPublish);
+	  const hasAddOns =
+	    Array.isArray(menu?.recommendedAddOns) && menu.recommendedAddOns.length > 0;
+	  const price = Number(menu?.price) || 0;
 
-  return (
-    <Card
-      data-menu-card
-      data-menu-id={String(menu?._id || "")}
-      className="group overflow-hidden rounded-2xl py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-    >
-      <div className="relative h-40 bg-muted/40">
-        {imageSrc ? (
-          <img
+	  return (
+	    <Card
+	      data-menu-card
+	      data-menu-id={String(menu?._id || "")}
+	      role="button"
+	      tabIndex={0}
+	      aria-label={`Add ${menu?.name || "menu item"} to current order`}
+	      onClick={onAdd}
+	      onKeyDown={(e) => {
+	        if (e.key === "Enter" || e.key === " ") {
+	          e.preventDefault();
+	          onAdd?.(e);
+	        }
+	      }}
+	      className="group cursor-pointer select-none gap-0 overflow-hidden rounded-2xl py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+	    >
+	      <div className="relative h-40 bg-muted/40">
+	        {imageSrc ? (
+	          <img
             src={imageSrc}
             alt={menu?.name || "Menu image"}
             className={`h-full w-full object-cover object-center transition duration-500 group-hover:scale-105 ${
@@ -1299,46 +1321,25 @@ const MenuCard = ({
         )}
       </div>
 
-      <div className="flex flex-col gap-3 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">
-              {menu?.name || "—"}
+	      <div className="p-4 pt-3">
+	        <div className="flex items-start justify-between gap-3">
+	          <div className="min-w-0">
+	            <p className="truncate text-sm font-semibold">
+	              {menu?.name || "—"}
             </p>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
               {categoryName || "Uncategorized"}
               {menu?.type ? ` • ${String(menu.type)}` : ""}
             </p>
           </div>
-          <p className="shrink-0 text-sm font-bold">
-            {Formatter.amount(price)}
-          </p>
-        </div>
-
-        <div
-          className={`grid gap-2 ${hasAddOns ? "grid-cols-2" : "grid-cols-1"}`}
-        >
-          {hasAddOns ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="h-9 rounded-xl"
-              onClick={onCustomize}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Add-ons
-            </Button>
-          ) : null}
-
-          <Button type="button" className="h-9 rounded-xl" onClick={onAdd}>
-            <Plus className="h-4 w-4" />
-            Add
-          </Button>
-        </div>
-      </div>
-    </Card>
-  );
-};
+	          <p className="shrink-0 text-sm font-bold">
+	            {Formatter.amount(price)}
+	          </p>
+	        </div>
+	      </div>
+	    </Card>
+	  );
+	};
 
 const CartPanel = ({
   entries,
