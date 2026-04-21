@@ -13,30 +13,22 @@ const Authentication = () => {
       {
         src: BG1,
         kicker: "Sandy’s Kitchenette",
-        title: "Freshly prepared meals",
-        subtitle: "Mas masarap kapag bagong luto—perfect for dine-in and takeout.",
-        features: ["Dine-in", "Takeout"],
+        title: "Freshly prepared meals • Dine-in & Takeout",
       },
       {
         src: BG2,
         kicker: "We offer",
-        title: "Catering for your events",
-        subtitle: "Pang-birthday, meeting, or celebration—custom packages na swak sa budget.",
-        features: ["Catering packages", "Custom menu"],
+        title: "Catering • Custom packages for events",
       },
       {
         src: BG3,
         kicker: "We offer",
-        title: "Event venue reservations",
-        subtitle: "Make your moments special—reserve a venue for gatherings and celebrations.",
-        features: ["Venue rental", "Ideal for occasions"],
+        title: "Event venue reservations • Celebrate with us",
       },
       {
         src: BG4,
         kicker: "Good food, good moments",
         title: "Dine • Cater • Celebrate",
-        subtitle: "Explore what Sandy’s Kitchenette offers while you log in—short, sweet, and helpful.",
-        features: ["Food you’ll love", "Events made easy"],
       },
     ],
     []
@@ -44,6 +36,8 @@ const Authentication = () => {
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [isFormFocused, setIsFormFocused] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -71,12 +65,23 @@ const Authentication = () => {
 
   useEffect(() => {
     if (reduceMotion) return;
+    if (!isPageVisible) return;
+    if (isFormFocused) return;
+
     const id = window.setInterval(() => {
       setActiveSlide((idx) => (idx + 1) % slides.length);
-    }, 5200);
+    }, 9000);
 
     return () => window.clearInterval(id);
-  }, [reduceMotion, slides.length]);
+  }, [isFormFocused, isPageVisible, reduceMotion, slides.length]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onVisibility = () => setIsPageVisible(document.visibilityState === "visible");
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
@@ -89,7 +94,11 @@ const Authentication = () => {
             Sandy&apos;s Kitchenette.
           </a>
         </div>
-        <div className="flex flex-1 items-center justify-center">
+        <div
+          className="flex flex-1 items-center justify-center"
+          onFocusCapture={() => setIsFormFocused(true)}
+          onBlurCapture={() => setIsFormFocused(false)}
+        >
           <div className="w-full max-w-xs">
             <LoginForm />
           </div>
@@ -119,12 +128,6 @@ const Authentication = () => {
               <div className="auth-hero-card">
                 <p className="auth-hero-kicker">{slide.kicker}</p>
                 <h2 className="auth-hero-title">{slide.title}</h2>
-                <p className="auth-hero-subtitle">{slide.subtitle}</p>
-                <ul className="auth-hero-features">
-                  {slide.features?.map((f) => (
-                    <li key={f}>{f}</li>
-                  ))}
-                </ul>
               </div>
             </div>
           </div>
