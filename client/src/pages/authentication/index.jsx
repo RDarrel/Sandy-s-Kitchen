@@ -39,7 +39,7 @@ const Authentication = () => {
           "Discover what Sandy’s Kitchenette has for you—great food, catering support, and a venue for memorable events.",
       },
     ],
-    []
+    [],
   );
 
   const [activeSlide, setActiveSlide] = useState(0);
@@ -85,7 +85,8 @@ const Authentication = () => {
 
   useEffect(() => {
     if (typeof document === "undefined") return;
-    const onVisibility = () => setIsPageVisible(document.visibilityState === "visible");
+    const onVisibility = () =>
+      setIsPageVisible(document.visibilityState === "visible");
     onVisibility();
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
@@ -97,7 +98,11 @@ const Authentication = () => {
         <div className="flex justify-center items-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
             <div className="flex size-10 items-center justify-center text-primary-foreground rounded-full">
-              <img src={Logo} alt="Sandy’s Kitchenette" className="h-10 w-10 rounded-full" />
+              <img
+                src={Logo}
+                alt="Sandy’s Kitchenette"
+                className="h-10 w-10 rounded-full"
+              />
             </div>
             Sandy&apos;s Kitchenette.
           </a>
@@ -122,7 +127,10 @@ const Authentication = () => {
         {slides.map((slide, idx) => (
           <div
             key={`${idx}-${slide.src}`}
-            className={["auth-hero-slide", idx === activeSlide ? "is-active" : ""].join(" ")}
+            className={[
+              "auth-hero-slide",
+              idx === activeSlide ? "is-active" : "",
+            ].join(" ")}
             aria-hidden={idx !== activeSlide}
           >
             <img
@@ -134,13 +142,17 @@ const Authentication = () => {
 
             <div className="auth-hero-overlay">
               <div className="auth-hero-card">
-                <div className="auth-hero-textbg">
-                  <p className="auth-hero-kicker">{slide.kicker}</p>
-                  <h2 className="auth-hero-title">{slide.title}</h2>
-                  {slide.subtitle ? (
-                    <p className="auth-hero-subtitle">{slide.subtitle}</p>
-                  ) : null}
-                </div>
+                <p className="auth-hero-kicker">
+                  <span className="auth-hero-blurline">{slide.kicker}</span>
+                </p>
+                <h2 className="auth-hero-title">
+                  <span className="auth-hero-blurline">{slide.title}</span>
+                </h2>
+                {slide.subtitle ? (
+                  <p className="auth-hero-subtitle">
+                    <span className="auth-hero-blurline">{slide.subtitle}</span>
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>
