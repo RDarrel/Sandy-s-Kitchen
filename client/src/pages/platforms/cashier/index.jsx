@@ -1409,8 +1409,8 @@ const CartPanel = ({
   return (
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1 space-y-2 overflow-auto pr-1">
-        {entries.length ? (
-          entries.map(({ menu, line }) => {
+	        {entries.length ? (
+	          entries.map(({ menu, line }) => {
             const lineId = String(line?.id || "");
             const price = Number(menu?.price) || 0;
             const addOnsTotal = (line?.addOns || []).reduce(
@@ -1527,15 +1527,17 @@ const CartPanel = ({
               </div>
             );
           })
-        ) : (
-          <div className="rounded-xl border border-dashed bg-background/40 p-4 text-center">
-            <p className="text-sm font-semibold">Cart is empty</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Add menu items to start an order.
-            </p>
-          </div>
-        )}
-      </div>
+	        ) : (
+	          <div className="flex h-full items-center justify-center rounded-xl border border-dashed bg-background/40 p-6 text-center">
+	            <div>
+	              <p className="text-sm font-semibold">Cart is empty</p>
+	              <p className="mt-1 text-xs text-muted-foreground">
+	                Add menu items to start an order.
+	              </p>
+	            </div>
+	          </div>
+	        )}
+	      </div>
 
       <div className="mt-4 rounded-xl border bg-background/40 p-3">
         <div className="flex items-center justify-between gap-2">
