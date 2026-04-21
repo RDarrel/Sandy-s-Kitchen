@@ -64,6 +64,17 @@
     transform 700ms ease;
 }
 
+.auth-hero-blurline {
+  display: inline;
+  padding: 0.18rem 0.45rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 .auth-hero-card::before {
   content: "";
   position: absolute;

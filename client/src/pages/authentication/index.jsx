@@ -134,11 +134,13 @@ const Authentication = () => {
 
             <div className="auth-hero-overlay">
               <div className="auth-hero-card">
-                <p className="auth-hero-kicker">{slide.kicker}</p>
-                <h2 className="auth-hero-title">{slide.title}</h2>
-                {slide.subtitle ? (
-                  <p className="auth-hero-subtitle">{slide.subtitle}</p>
-                ) : null}
+                <div className="auth-hero-textbg">
+                  <p className="auth-hero-kicker">{slide.kicker}</p>
+                  <h2 className="auth-hero-title">{slide.title}</h2>
+                  {slide.subtitle ? (
+                    <p className="auth-hero-subtitle">{slide.subtitle}</p>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
