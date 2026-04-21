@@ -58,10 +58,10 @@ const ChangeRole = ({ isOpen, setIsOpen, selected }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md ">
         <DialogHeader>
-          <DialogTitle>Change Role</DialogTitle>
-          <DialogDescription>{fullName(user?.fullName)}</DialogDescription>
+          <DialogTitle>{fullName(user?.fullName)}</DialogTitle>
+          <DialogDescription>Change Role</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-5">

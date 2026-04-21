@@ -1,6 +1,10 @@
 import Logo from "../../assets/logos/kitchenette.jpg";
 import "./index.css";
 import LoginForm from "./login";
+import BG1 from "../../assets/backgrounds/bg1.png";
+import BG2 from "../../assets/backgrounds/bg2.png";
+import BG3 from "../../assets/backgrounds/bg3.png";
+import BG4 from "../../assets/backgrounds/bg4.png";
 
 const Authentication = () => {
   return (

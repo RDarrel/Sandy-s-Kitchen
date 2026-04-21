@@ -59,56 +59,56 @@ const access = [
     ],
   },
 
-  {
-    name: "Suppliers",
-    path: "/suppliers",
-    icon: ContactRound,
-    component: Suppliers,
-  },
+  // {
+  //   name: "Suppliers",
+  //   path: "/suppliers",
+  //   icon: ContactRound,
+  //   component: Suppliers,
+  // },
   {
     name: "Staff",
     path: "/staff",
     icon: Users,
     component: Staffs,
   },
-  {
-    name: "Manage Fuel Orders",
-    path: "/Manage-Orders",
-    icon: GitPullRequestArrow,
-    children: [
-      {
-        name: "Order Processing",
-        path: "/Order-Processing",
-        icon: GitPullRequestArrow,
-        component: OrderProcessing,
-      },
-      {
-        name: "Short Deliveries",
-        path: "/Short-Deliveries",
-        icon: GitPullRequestArrow,
-        component: ManageOrders,
-      },
-    ],
-  },
-  {
-    name: "Reports",
-    path: "/reports",
-    icon: BookKey,
-    children: [
-      {
-        name: "Sales ",
-        path: "/sales",
-        icon: GitPullRequestArrow,
-        component: Sales,
-      },
-      {
-        name: "Transactions",
-        path: "/transactions",
-        icon: GitPullRequestArrow,
-        component: Transactions,
-      },
-    ],
-  },
+  // {
+  //   name: "Manage Fuel Orders",
+  //   path: "/Manage-Orders",
+  //   icon: GitPullRequestArrow,
+  //   children: [
+  //     {
+  //       name: "Order Processing",
+  //       path: "/Order-Processing",
+  //       icon: GitPullRequestArrow,
+  //       component: OrderProcessing,
+  //     },
+  //     {
+  //       name: "Short Deliveries",
+  //       path: "/Short-Deliveries",
+  //       icon: GitPullRequestArrow,
+  //       component: ManageOrders,
+  //     },
+  //   ],
+  // },
+  // {
+  //   name: "Reports",
+  //   path: "/reports",
+  //   icon: BookKey,
+  //   children: [
+  //     {
+  //       name: "Sales ",
+  //       path: "/sales",
+  //       icon: GitPullRequestArrow,
+  //       component: Sales,
+  //     },
+  //     {
+  //       name: "Transactions",
+  //       path: "/transactions",
+  //       icon: GitPullRequestArrow,
+  //       component: Transactions,
+  //     },
+  //   ],
+  // },
   {
     name: "Audit Trail",
     path: "/audit",

@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "lucide-react";
 
-export default function LoginForm({ className, ...props }) {
+export default function LoginForm({ className }) {
   const { isLoading } = useSelector(({ auth }) => auth),
     dispatch = useDispatch(),
     navigate = useNavigate();
@@ -24,8 +24,12 @@ export default function LoginForm({ className, ...props }) {
     const { email, password } = e.target;
     dispatch(LOGIN({ email: email.value, password: password.value }))
       .unwrap()
-      .then(() => {
-        navigate("/platforms/dashboard");
+      .then(({ payload }) => {
+        if (payload?.role === 2) {
+          navigate("/cashier");
+        } else {
+          navigate("/platforms/dashboard");
+        }
       })
       .catch((error) => {
         toast.error(error.message, {
