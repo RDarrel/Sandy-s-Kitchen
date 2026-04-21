@@ -14,21 +14,29 @@ const Authentication = () => {
         src: BG1,
         kicker: "Sandy’s Kitchenette",
         title: "Freshly prepared meals • Dine-in & Takeout",
+        subtitle:
+          "Enjoy comfort food made fresh—perfect for quick meals, family dinners, and take-home cravings.",
       },
       {
         src: BG2,
         kicker: "We offer",
         title: "Catering • Custom packages for events",
+        subtitle:
+          "Planning a celebration or meeting? We can cater with flexible packages and menu options to match your occasion.",
       },
       {
         src: BG3,
         kicker: "We offer",
         title: "Event venue reservations • Celebrate with us",
+        subtitle:
+          "Reserve a space for birthdays, gatherings, and special moments—easy scheduling with a cozy venue feel.",
       },
       {
         src: BG4,
         kicker: "Good food, good moments",
         title: "Dine • Cater • Celebrate",
+        subtitle:
+          "Discover what Sandy’s Kitchenette has for you—great food, catering support, and a venue for memorable events.",
       },
     ],
     []
@@ -128,6 +136,9 @@ const Authentication = () => {
               <div className="auth-hero-card">
                 <p className="auth-hero-kicker">{slide.kicker}</p>
                 <h2 className="auth-hero-title">{slide.title}</h2>
+                {slide.subtitle ? (
+                  <p className="auth-hero-subtitle">{slide.subtitle}</p>
+                ) : null}
               </div>
             </div>
           </div>

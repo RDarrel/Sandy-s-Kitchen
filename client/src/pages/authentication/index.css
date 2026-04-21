@@ -104,6 +104,18 @@
   opacity: 0.9;
 }
 
+.auth-hero-subtitle {
+  margin: 0.45rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  opacity: 0.78;
+  max-width: 42rem;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .auth-hero.reduce-motion .auth-hero-slide,
 .auth-hero.reduce-motion .auth-hero-card {
   transition: none !important;
