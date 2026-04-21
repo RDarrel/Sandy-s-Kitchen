@@ -25,7 +25,7 @@ export default function LoginForm({ className }) {
     dispatch(LOGIN({ email: email.value, password: password.value }))
       .unwrap()
       .then(({ payload }) => {
-        if (payload?.role === 2) {
+        if (payload?.user?.role === 2) {
           navigate("/cashier");
         } else {
           navigate("/platforms/dashboard");

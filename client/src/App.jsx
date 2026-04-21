@@ -6,7 +6,7 @@ import RouteConfig from "./pages/RouteConfig";
 import { useDispatch, useSelector } from "react-redux";
 import { VALIDATEREFRESH } from "./services/redux/slices/persons/auth";
 import { useEffect } from "react";
-import Cashier from "./pages/platforms/cashier/dashboard";
+import Cashier from "./pages/platforms/cashier";
 import ClaimStub from "./components/shared/claimStub";
 import Authentication from "./pages/authentication";
 import Arduino from "./pages/arduino";

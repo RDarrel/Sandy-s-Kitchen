@@ -1,12 +1,12 @@
 import { Gauge } from "lucide-react";
-import Dashboard from "./dashboard";
+import Cashier from ".";
 
 const access = [
   {
     name: "Dashboard",
     path: "/dashboard",
     icon: Gauge,
-    component: Dashboard,
+    component: Cashier,
   },
 ];
 
