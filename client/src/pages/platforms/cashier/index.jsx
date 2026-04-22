@@ -44,21 +44,23 @@ import {
 	  SheetHeader,
 	  SheetTitle,
 	} from "@/components/ui/sheet";
-	import { Skeleton } from "@/components/ui/skeleton";
-	import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-	import {
-	  ChefHat,
-	  ChevronLeft,
-	  ChevronRight,
-	  ChevronDown,
-	  Info,
-	  Layers3,
-	  LogOut,
-	  Minus,
-	  Plus,
-	  Search,
-	  ShoppingCart,
-	  Trash2,
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+		  ChefHat,
+		  ChevronLeft,
+		  ChevronRight,
+		  ChevronDown,
+		  Info,
+		  Layers3,
+		  LogOut,
+		  Minus,
+		  Plus,
+		  Search,
+		  ShoppingCart,
+		  TrendingUp,
+		  Trash2,
 	} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -80,6 +82,7 @@ const Cashier = () => {
     isLoading: categoriesLoading,
   } = useSelector(({ menuCategories }) => menuCategories);
 
+  const [topbarTab, setTopbarTab] = useState("menus");
   const [cartOpen, setCartOpen] = useState(false);
   const [cart, setCart] = useState(() => loadCashierCart());
   const [customizeState, setCustomizeState] = useState(null);
@@ -243,15 +246,12 @@ const Cashier = () => {
 	          ? toRect.top + toRect.height / 2
 	          : toRect.top + Math.min(toRect.height * 0.35, 120);
 
-      const dx = toX - fromX;
-      const dy = toY - fromY;
-      const distance = Math.hypot(dx, dy) || 1;
-      const unitX = dx / distance;
-      const unitY = dy / distance;
+	      const dx = toX - fromX;
+	      const dy = toY - fromY;
 
-      const flyer = cardEl
-        ? cardEl.cloneNode(true)
-        : document.createElement("div");
+	      const flyer = cardEl
+	        ? cardEl.cloneNode(true)
+	        : document.createElement("div");
 
       if (!cardEl) {
         flyer.className =
@@ -616,13 +616,6 @@ const Cashier = () => {
 
   const clearCart = () => setCart({ version: 2, lines: [] });
 
-  const openCustomizeForMenu = (menu) => {
-    const menuId = String(menu?._id || "");
-    if (!menuId) return;
-    setCustomSelected([]);
-    setCustomizeState({ mode: "add", menuId, lineId: null });
-  };
-
   const openCustomizeForLine = (line) => {
     const lineId = String(line?.id || "");
     const menuId = String(line?.menuId || "");
@@ -640,10 +633,8 @@ const Cashier = () => {
     setCustomSelected([]);
   };
 
-  const pendingCount = cartTotals.totalItems;
-
   return (
-	    <div className="relative min-h-dvh overflow-x-hidden bg-background text-foreground">
+		    <div className="relative min-h-dvh overflow-x-hidden bg-background text-foreground">
 
       <header
         ref={topbarRef}
@@ -664,9 +655,40 @@ const Cashier = () => {
             </div>
           </div>
 
-          <div className="hidden items-center gap-2 md:flex">
-            <StatusPill label="Pending" count={pendingCount} tone="pending" />
-          </div>
+	          <div className="hidden items-center gap-2 md:flex">
+	            <Tabs
+	              value={topbarTab}
+	              onValueChange={setTopbarTab}
+	              className="w-fit"
+	            >
+		              <TabsList className="h-10 rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
+		                <TabsTrigger
+		                  value="menus"
+		                  className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+		                >
+		                  <ChefHat className="h-4 w-4" />
+		                  Menus
+		                </TabsTrigger>
+		                <TabsTrigger
+		                  value="sales"
+		                  className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+		                >
+		                  <TrendingUp className="h-4 w-4" />
+		                  Sales
+		                  <Badge
+		                    variant="secondary"
+		                    className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
+		                      topbarTab === "sales"
+		                        ? "bg-primary-foreground/15 text-primary-foreground"
+		                        : "bg-background/80 text-foreground"
+		                    }`}
+		                  >
+		                    {`${Formatter.amount(1000)}+`}
+		                  </Badge>
+		                </TabsTrigger>
+		              </TabsList>
+		            </Tabs>
+		          </div>
 
           <div className="flex items-center gap-2">
             <Sheet open={cartOpen} onOpenChange={setCartOpen}>
@@ -689,15 +711,14 @@ const Cashier = () => {
                 <SheetHeader className="pb-2">
                   <SheetTitle>Current order</SheetTitle>
                 </SheetHeader>
-                <CartPanel
-                  entries={cartEntries}
-                  totals={cartTotals}
-                  onIncrement={incrementLine}
-                  onDecrement={decrementLine}
-                  onRemove={removeLine}
-                  onClear={clearCart}
-                  onCustomize={openCustomizeForLine}
-                />
+	                <CartPanel
+	                  entries={cartEntries}
+	                  totals={cartTotals}
+	                  onIncrement={incrementLine}
+	                  onDecrement={decrementLine}
+	                  onRemove={removeLine}
+	                  onCustomize={openCustomizeForLine}
+	                />
               </SheetContent>
             </Sheet>
 
@@ -759,12 +780,37 @@ const Cashier = () => {
           </div>
         </div>
 
-        <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-2 px-4 pb-3 md:hidden lg:px-6">
-          <div className="flex items-center gap-2">
-            <StatusPill label="Pending" count={pendingCount} tone="pending" />
-          </div>
-        </div>
-      </header>
+	        <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-2 px-4 pb-3 md:hidden lg:px-6">
+	          <Tabs value={topbarTab} onValueChange={setTopbarTab} className="w-full">
+		            <TabsList className="h-10 w-full rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
+		              <TabsTrigger
+		                value="menus"
+		                className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+		              >
+		                <ChefHat className="h-4 w-4" />
+		                Menus
+		              </TabsTrigger>
+		              <TabsTrigger
+		                value="sales"
+		                className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+		              >
+		                <TrendingUp className="h-4 w-4" />
+		                Sales
+		                <Badge
+		                  variant="secondary"
+		                  className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
+		                    topbarTab === "sales"
+		                      ? "bg-primary-foreground/15 text-primary-foreground"
+		                      : "bg-background/80 text-foreground"
+		                  }`}
+		                >
+		                  {`${Formatter.amount(1000)}+`}
+		                </Badge>
+		              </TabsTrigger>
+		            </TabsList>
+		          </Tabs>
+		        </div>
+	      </header>
 
       <main
         className="relative mx-auto w-full max-w-screen-2xl px-4 pb-4 lg:px-6 lg:pb-6"
@@ -931,15 +977,14 @@ const Cashier = () => {
                 </div>
                 <Separator />
                 <div className="flex-1 min-h-0 p-4">
-                  <CartPanel
-                    entries={cartEntries}
-                    totals={cartTotals}
-                    onIncrement={incrementLine}
-                    onDecrement={decrementLine}
-                    onRemove={removeLine}
-                    onClear={clearCart}
-                    onCustomize={openCustomizeForLine}
-                  />
+	                  <CartPanel
+	                    entries={cartEntries}
+	                    totals={cartTotals}
+	                    onIncrement={incrementLine}
+	                    onDecrement={decrementLine}
+	                    onRemove={removeLine}
+	                    onCustomize={openCustomizeForLine}
+	                  />
                 </div>
               </div>
             </div>
@@ -1246,31 +1291,11 @@ const CategoryScroller = ({
   );
 };
 
-const StatusPill = ({ label, count, tone }) => {
-  const toneClass =
-    tone === "ready"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
-      : tone === "prepared"
-        ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/35 dark:text-amber-200"
-        : "border-border bg-secondary text-secondary-foreground";
-
-  return (
-    <div
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 ${toneClass}`}
-    >
-      <span className="text-[11px] font-semibold">{label}</span>
-      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-background px-1.5 text-[11px] font-bold text-foreground shadow-xs">
-        {Number(count) || 0}
-      </span>
-    </div>
-  );
-};
-
-	const MenuCard = ({
-	  menu,
-	  categoryName,
-	  quantity,
-	  imageSrc,
+const MenuCard = ({
+  menu,
+  categoryName,
+  quantity,
+  imageSrc,
 	  onAdd,
 	}) => {
 	  const isAvailable = Boolean(menu?.isAvailable ?? menu?.isPublish);
@@ -1402,7 +1427,6 @@ const CartPanel = ({
   onIncrement,
   onDecrement,
   onRemove,
-  onClear,
   onCustomize,
 }) => {
   const animatedByLineIdRef = useRef(new Map());
