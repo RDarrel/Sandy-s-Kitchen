@@ -664,31 +664,31 @@ const Cashier = () => {
               onValueChange={setTopbarTab}
               className="w-fit"
             >
-              <TabsList className="h-10 rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
-                <TabsTrigger
-                  value="menus"
-                  className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-                >
-                  <ChefHat className="h-4 w-4" />
-                  Menus
-                </TabsTrigger>
+	              <TabsList className="h-10 rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
+	                <TabsTrigger
+	                  value="menus"
+	                  className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm"
+	                >
+	                  <ChefHat className="h-4 w-4" />
+	                  Menus
+	                </TabsTrigger>
 
-                <TabsTrigger
-                  value="sales"
-                  className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-                >
-                  <TrendingUp className="h-4 w-4" />
-                  Sales
-                  <Badge
-                    variant="secondary"
-                    className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
-                      topbarTab === "sales"
-                        ? "bg-primary-foreground/15 text-primary-foreground"
-                        : "bg-background/80 text-foreground"
-                    }`}
-                  >
-                    {`${Formatter.amount(1000)}+`}
-                  </Badge>
+	                <TabsTrigger
+	                  value="sales"
+	                  className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm"
+	                >
+	                  <TrendingUp className="h-4 w-4" />
+	                  Sales
+	                  <Badge
+	                    variant="secondary"
+	                    className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
+	                      topbarTab === "sales"
+	                        ? "bg-accent-foreground/15 text-accent-foreground"
+	                        : "bg-background/80 text-foreground"
+	                    }`}
+	                  >
+	                    {`${Formatter.amount(1000)}+`}
+	                  </Badge>
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -790,30 +790,30 @@ const Cashier = () => {
             onValueChange={setTopbarTab}
             className="w-full"
           >
-            <TabsList className="h-10 w-full rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
-              <TabsTrigger
-                value="menus"
-                className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-              >
-                <ChefHat className="h-4 w-4" />
-                Menus
-              </TabsTrigger>
-              <TabsTrigger
-                value="sales"
-                className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-              >
-                <TrendingUp className="h-4 w-4" />
-                Sales
-                <Badge
-                  variant="secondary"
-                  className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
-                    topbarTab === "sales"
-                      ? "bg-primary-foreground/15 text-primary-foreground"
-                      : "bg-background/80 text-foreground"
-                  }`}
-                >
-                  {`${Formatter.amount(1000)}+`}
-                </Badge>
+	            <TabsList className="h-10 w-full rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
+	              <TabsTrigger
+	                value="menus"
+	                className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm"
+	              >
+	                <ChefHat className="h-4 w-4" />
+	                Menus
+	              </TabsTrigger>
+	              <TabsTrigger
+	                value="sales"
+	                className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm"
+	              >
+	                <TrendingUp className="h-4 w-4" />
+	                Sales
+	                <Badge
+	                  variant="secondary"
+	                  className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
+	                    topbarTab === "sales"
+	                      ? "bg-accent-foreground/15 text-accent-foreground"
+	                      : "bg-background/80 text-foreground"
+	                  }`}
+	                >
+	                  {`${Formatter.amount(1000)}+`}
+	                </Badge>
               </TabsTrigger>
             </TabsList>
           </Tabs>

@@ -78,7 +78,7 @@ const Authentication = () => {
 
     const id = window.setInterval(() => {
       setActiveSlide((idx) => (idx + 1) % slides.length);
-    }, 9000);
+    }, 5000);
 
     return () => window.clearInterval(id);
   }, [isFormFocused, isPageVisible, reduceMotion, slides.length]);
