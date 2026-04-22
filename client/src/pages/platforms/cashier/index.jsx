@@ -672,6 +672,7 @@ const Cashier = () => {
                   <ChefHat className="h-4 w-4" />
                   Menus
                 </TabsTrigger>
+
                 <TabsTrigger
                   value="sales"
                   className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
