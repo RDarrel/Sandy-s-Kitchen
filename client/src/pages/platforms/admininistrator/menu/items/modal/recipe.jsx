@@ -270,61 +270,55 @@ const Recipe = ({ form, setForm = () => {} }) => {
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-auto rounded-[10px] border border-border">
-              {filteredInventoryItems.length ? (
-                filteredInventoryItems.map((item) => (
-                  <div
-                    key={item._id}
-                    role="button"
-                    tabIndex={0}
-                    className={`flex cursor-pointer items-center justify-between gap-3 border-b border-border px-3 py-2.5 transition last:border-b-0 hover:bg-muted/40 ${
-                      selectedInventoryIds.includes(item._id)
-                        ? "bg-primary/5"
-                        : ""
-                    }`}
-                    onClick={() => toggleInventoryItem(item)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        toggleInventoryItem(item);
-                      }
-                    }}
-                  >
-                    <div className="min-w-0 flex-1 space-y-1.5">
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {item.name}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        <span className="capitalize">{item.category}</span>
-                        <span className="text-border">&middot;</span>
-                        <span className="capitalize">{item.type}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex shrink-0 flex-col items-end gap-1 text-right">
-                      <p className="text-sm font-semibold text-foreground">
-                        {Formatter.amount(item.cost || 0)}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          toggleInventoryItem(item);
-                        }}
-                        className="text-xs font-medium text-muted-foreground hover:text-foreground"
-                      >
-                        {selectedInventoryIds.includes(item._id)
-                          ? "Remove"
-                          : "Add"}
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex h-full min-h-[220px] items-center justify-center px-4 text-center text-sm text-muted-foreground">
-                  No inventory items matched your search.
-                </div>
-              )}
+	            <div className="min-h-0 flex-1 overflow-auto rounded-[10px] border border-border">
+	              {filteredInventoryItems.length ? (
+	                filteredInventoryItems.map((item) => {
+	                  const isSelected = selectedInventoryIds.includes(item._id);
+	
+	                  return (
+	                    <button
+	                      key={item._id}
+	                      type="button"
+	                      onClick={() => toggleInventoryItem(item)}
+	                      className={`grid w-full grid-cols-[1fr_auto] items-center gap-3 border-b border-border px-4 py-3 text-left transition last:border-b-0 ${
+	                        isSelected
+	                          ? "border-l-4 border-l-primary bg-[color:color-mix(in_srgb,var(--color-primary)_8%,white)]"
+	                          : "hover:bg-muted/15"
+	                      }`}
+	                    >
+	                      <div className="min-w-0 space-y-1.5">
+	                        <p className="truncate text-sm font-semibold text-foreground">
+	                          {item.name}
+	                        </p>
+	                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+	                          <span className="capitalize">{item.category}</span>
+	                          <span className="text-border">&middot;</span>
+	                          <span className="capitalize">{item.type}</span>
+	                        </div>
+	                      </div>
+	
+	                      <div className="text-right">
+	                        <p className="text-sm font-semibold text-foreground">
+	                          {Formatter.amount(item.cost || 0)}
+	                        </p>
+	                        <p
+	                          className={`text-xs font-medium ${
+	                            isSelected
+	                              ? "text-primary"
+	                              : "text-muted-foreground"
+	                          }`}
+	                        >
+	                          {isSelected ? "Added" : "Add"}
+	                        </p>
+	                      </div>
+	                    </button>
+	                  );
+	                })
+	              ) : (
+	                <div className="flex h-full min-h-[220px] items-center justify-center px-4 text-center text-sm text-muted-foreground">
+	                  No inventory items matched your search.
+	                </div>
+	              )}
             </div>
           </div>
         </div>
