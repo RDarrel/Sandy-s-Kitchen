@@ -37,31 +37,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-	import { Separator } from "@/components/ui/separator";
-	import {
-	  Sheet,
-	  SheetContent,
-	  SheetHeader,
-	  SheetTitle,
-	} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-		  ChefHat,
-		  ChevronLeft,
-		  ChevronRight,
-		  ChevronDown,
-		  Info,
-		  Layers3,
-		  LogOut,
-		  Minus,
-		  Plus,
-		  Search,
-		  ShoppingCart,
-		  TrendingUp,
-		  Trash2,
-	} from "lucide-react";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  ChefHat,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Info,
+  Layers3,
+  LogOut,
+  Minus,
+  Plus,
+  Search,
+  ShoppingCart,
+  TrendingUp,
+  Trash2,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -89,19 +93,19 @@ const Cashier = () => {
   const [customSelected, setCustomSelected] = useState([]);
   const orderCardRef = useRef(null);
   const cartButtonRef = useRef(null);
-		  const topbarRef = useRef(null);
-		  const [topbarHeight, setTopbarHeight] = useState(92);
-		  const menuToolbarRef = useRef(null);
-		  const [menuToolbarHeight, setMenuToolbarHeight] = useState(0);
-		  const initialMenuGap = 16;
-		  const [menuTopGap, setMenuTopGap] = useState(initialMenuGap);
+  const topbarRef = useRef(null);
+  const [topbarHeight, setTopbarHeight] = useState(92);
+  const menuToolbarRef = useRef(null);
+  const [menuToolbarHeight, setMenuToolbarHeight] = useState(0);
+  const initialMenuGap = 16;
+  const [menuTopGap, setMenuTopGap] = useState(initialMenuGap);
 
-		  const fixedSectionGap = 16;
-		  const menuToolbarSpacer = (menuToolbarHeight || 128) + menuTopGap;
+  const fixedSectionGap = 16;
+  const menuToolbarSpacer = (menuToolbarHeight || 128) + menuTopGap;
 
-		  useEffect(() => {
-		    const el = menuToolbarRef.current;
-		    if (!el || typeof window === "undefined") return;
+  useEffect(() => {
+    const el = menuToolbarRef.current;
+    if (!el || typeof window === "undefined") return;
 
     const update = () => {
       const next = Math.round(el.getBoundingClientRect()?.height || 0);
@@ -115,66 +119,66 @@ const Cashier = () => {
       return () => window.removeEventListener("resize", update);
     }
 
-		    const observer = new ResizeObserver(() => update());
-		    observer.observe(el);
-		    return () => observer.disconnect();
-		  }, []);
+    const observer = new ResizeObserver(() => update());
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
-		  useEffect(() => {
-		    if (typeof window === "undefined") return;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
-		    const previousRestoration = window.history?.scrollRestoration;
-		    try {
-		      if (window.history) window.history.scrollRestoration = "manual";
-		    } catch {
-		      // ignore
-		    }
+    const previousRestoration = window.history?.scrollRestoration;
+    try {
+      if (window.history) window.history.scrollRestoration = "manual";
+    } catch {
+      // ignore
+    }
 
-		    // Prevent layout shift when the vertical scrollbar appears/disappears
-		    // (e.g., while loading skeletons vs. full menu list).
-		    const root = document.documentElement;
-		    const prevOverflowY = root.style.overflowY;
-		    const prevScrollbarGutter = root.style.scrollbarGutter;
-		    try {
-		      root.style.scrollbarGutter = "stable";
-		      root.style.overflowY = "scroll";
-		    } catch {
-		      // ignore
-		    }
+    // Prevent layout shift when the vertical scrollbar appears/disappears
+    // (e.g., while loading skeletons vs. full menu list).
+    const root = document.documentElement;
+    const prevOverflowY = root.style.overflowY;
+    const prevScrollbarGutter = root.style.scrollbarGutter;
+    try {
+      root.style.scrollbarGutter = "stable";
+      root.style.overflowY = "scroll";
+    } catch {
+      // ignore
+    }
 
-		    // Ensure the page starts at the top on refresh/navigation.
-		    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-		    setMenuTopGap(initialMenuGap);
+    // Ensure the page starts at the top on refresh/navigation.
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    setMenuTopGap(initialMenuGap);
 
-		    let raf = 0;
-		    const onScroll = () => {
-		      if (raf) return;
-		      raf = window.requestAnimationFrame(() => {
-		        raf = 0;
-		        const next = Math.max(0, initialMenuGap - window.scrollY);
-		        setMenuTopGap(next);
-		      });
-		    };
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        const next = Math.max(0, initialMenuGap - window.scrollY);
+        setMenuTopGap(next);
+      });
+    };
 
-		    window.addEventListener("scroll", onScroll, { passive: true });
-		    onScroll();
-		    return () => {
-		      window.removeEventListener("scroll", onScroll);
-		      if (raf) window.cancelAnimationFrame(raf);
-		      try {
-		        if (window.history && previousRestoration)
-		          window.history.scrollRestoration = previousRestoration;
-		      } catch {
-		        // ignore
-		      }
-		      try {
-		        root.style.overflowY = prevOverflowY;
-		        root.style.scrollbarGutter = prevScrollbarGutter;
-		      } catch {
-		        // ignore
-		      }
-		    };
-		  }, []);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+      try {
+        if (window.history && previousRestoration)
+          window.history.scrollRestoration = previousRestoration;
+      } catch {
+        // ignore
+      }
+      try {
+        root.style.overflowY = prevOverflowY;
+        root.style.scrollbarGutter = prevScrollbarGutter;
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const el = topbarRef.current;
@@ -197,10 +201,10 @@ const Cashier = () => {
     return () => observer.disconnect();
   }, []);
 
-	  const animateAddToOrder = (fromEl, menu, options = {}) => {
-	    try {
-	      if (typeof window === "undefined" || typeof document === "undefined")
-	        return Promise.resolve();
+  const animateAddToOrder = (fromEl, menu, options = {}) => {
+    try {
+      if (typeof window === "undefined" || typeof document === "undefined")
+        return Promise.resolve();
       if (!fromEl?.getBoundingClientRect) return Promise.resolve();
       if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches)
         return Promise.resolve();
@@ -214,44 +218,44 @@ const Cashier = () => {
       const fromX = fromRect.left + fromRect.width / 2;
       const fromY = fromRect.top + fromRect.height / 2;
 
-	      const overrideTargetEl = options?.targetEl || null;
-	      if (overrideTargetEl?.scrollIntoView) {
-	        try {
-	          overrideTargetEl.scrollIntoView({
-	            block: "center",
-	            inline: "nearest",
-	            behavior: "auto",
-	          });
-	        } catch {
-	          // ignore
-	        }
-	      }
+      const overrideTargetEl = options?.targetEl || null;
+      if (overrideTargetEl?.scrollIntoView) {
+        try {
+          overrideTargetEl.scrollIntoView({
+            block: "center",
+            inline: "nearest",
+            behavior: "auto",
+          });
+        } catch {
+          // ignore
+        }
+      }
 
-	      const primaryTargetEl =
-	        overrideTargetEl || orderCardRef.current || cartButtonRef.current;
-	      const targetRect = primaryTargetEl?.getBoundingClientRect?.();
-	      const useFallback =
-	        !targetRect ||
-	        targetRect.width < 8 ||
-	        targetRect.height < 8 ||
-	        targetRect.bottom < 0;
-	      const fallbackRect = cartButtonRef.current?.getBoundingClientRect?.();
-	      const toRect = useFallback ? fallbackRect : targetRect;
-	      if (!toRect || toRect.width < 8 || toRect.height < 8)
-	        return Promise.resolve();
+      const primaryTargetEl =
+        overrideTargetEl || orderCardRef.current || cartButtonRef.current;
+      const targetRect = primaryTargetEl?.getBoundingClientRect?.();
+      const useFallback =
+        !targetRect ||
+        targetRect.width < 8 ||
+        targetRect.height < 8 ||
+        targetRect.bottom < 0;
+      const fallbackRect = cartButtonRef.current?.getBoundingClientRect?.();
+      const toRect = useFallback ? fallbackRect : targetRect;
+      if (!toRect || toRect.width < 8 || toRect.height < 8)
+        return Promise.resolve();
 
-	      const toX = toRect.left + toRect.width / 2;
-	      const toY =
-	        overrideTargetEl && !useFallback
-	          ? toRect.top + toRect.height / 2
-	          : toRect.top + Math.min(toRect.height * 0.35, 120);
+      const toX = toRect.left + toRect.width / 2;
+      const toY =
+        overrideTargetEl && !useFallback
+          ? toRect.top + toRect.height / 2
+          : toRect.top + Math.min(toRect.height * 0.35, 120);
 
-	      const dx = toX - fromX;
-	      const dy = toY - fromY;
+      const dx = toX - fromX;
+      const dy = toY - fromY;
 
-	      const flyer = cardEl
-	        ? cardEl.cloneNode(true)
-	        : document.createElement("div");
+      const flyer = cardEl
+        ? cardEl.cloneNode(true)
+        : document.createElement("div");
 
       if (!cardEl) {
         flyer.className =
@@ -390,21 +394,21 @@ const Cashier = () => {
     return map;
   }, [menusCollections]);
 
-	  const cartLines = useMemo(() => {
-	    const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-	    return lines
-	      .map((line) => ({
-	        ...line,
-	        id: String(line?.id || ""),
-	        menuId: String(line?.menuId || ""),
-	        quantity: Math.max(0, Number(line?.quantity) || 0),
-	        addOns: Array.isArray(line?.addOns) ? line.addOns : [],
-	        signature: String(line?.signature || ""),
-	        updatedAt: Number(line?.updatedAt) || 0,
-	        addedAt: Number(line?.addedAt) || 0,
-	      }))
-	      .filter((line) => line.id && line.menuId && line.quantity > 0);
-	  }, [cart]);
+  const cartLines = useMemo(() => {
+    const lines = Array.isArray(cart?.lines) ? cart.lines : [];
+    return lines
+      .map((line) => ({
+        ...line,
+        id: String(line?.id || ""),
+        menuId: String(line?.menuId || ""),
+        quantity: Math.max(0, Number(line?.quantity) || 0),
+        addOns: Array.isArray(line?.addOns) ? line.addOns : [],
+        signature: String(line?.signature || ""),
+        updatedAt: Number(line?.updatedAt) || 0,
+        addedAt: Number(line?.addedAt) || 0,
+      }))
+      .filter((line) => line.id && line.menuId && line.quantity > 0);
+  }, [cart]);
 
   const quantityByMenuId = useMemo(() => {
     const map = new Map();
@@ -414,15 +418,15 @@ const Cashier = () => {
     return map;
   }, [cartLines]);
 
-	  const cartEntries = useMemo(() => {
-	    return cartLines
-	      .map((line) => {
-	        const menu = menuById.get(String(line.menuId));
-	        if (!menu) return null;
-	        return { line, menu };
-	      })
-	      .filter(Boolean);
-	  }, [cartLines, menuById]);
+  const cartEntries = useMemo(() => {
+    return cartLines
+      .map((line) => {
+        const menu = menuById.get(String(line.menuId));
+        if (!menu) return null;
+        return { line, menu };
+      })
+      .filter(Boolean);
+  }, [cartLines, menuById]);
 
   const cartTotals = useMemo(() => {
     const totalItems = cartEntries.reduce(
@@ -468,10 +472,10 @@ const Cashier = () => {
     return null;
   };
 
-	  const addToCart = ({ menuId, addOns = [] }) => {
-	    const normalizedMenuId = String(menuId || "");
-	    if (!normalizedMenuId) return;
-	    const now = Date.now();
+  const addToCart = ({ menuId, addOns = [] }) => {
+    const normalizedMenuId = String(menuId || "");
+    if (!normalizedMenuId) return;
+    const now = Date.now();
 
     const normalizedAddOns = (Array.isArray(addOns) ? addOns : [])
       .map((item) => ({
@@ -488,52 +492,52 @@ const Cashier = () => {
       normalizedAddOns.map((item) => item._id),
     );
 
-	    setCart((prev) => {
-	      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
-	      const existingIndex = prevLines.findIndex(
-	        (line) => String(line?.signature || "") === signature,
-	      );
-	      if (existingIndex > -1) {
-	        const nextLines = [...prevLines];
-	        const current = nextLines[existingIndex];
-	        nextLines[existingIndex] = {
-	          ...current,
-	          quantity: (Number(current?.quantity) || 0) + 1,
-	          updatedAt: now,
-	          addedAt: now,
-	        };
-	        return { version: 2, lines: nextLines };
-	      }
+    setCart((prev) => {
+      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
+      const existingIndex = prevLines.findIndex(
+        (line) => String(line?.signature || "") === signature,
+      );
+      if (existingIndex > -1) {
+        const nextLines = [...prevLines];
+        const current = nextLines[existingIndex];
+        nextLines[existingIndex] = {
+          ...current,
+          quantity: (Number(current?.quantity) || 0) + 1,
+          updatedAt: now,
+          addedAt: now,
+        };
+        return { version: 2, lines: nextLines };
+      }
 
-	      const nextLine = {
-	        id: createCartLineId(),
-	        menuId: normalizedMenuId,
-	        quantity: 1,
-	        addOns: normalizedAddOns,
-	        signature,
-	        updatedAt: now,
-	        addedAt: now,
-	      };
-	      return { version: 2, lines: [nextLine, ...prevLines] };
-	    });
-	  };
+      const nextLine = {
+        id: createCartLineId(),
+        menuId: normalizedMenuId,
+        quantity: 1,
+        addOns: normalizedAddOns,
+        signature,
+        updatedAt: now,
+        addedAt: now,
+      };
+      return { version: 2, lines: [nextLine, ...prevLines] };
+    });
+  };
 
-	  const incrementLine = (lineId) => {
-	    const id = String(lineId || "");
-	    if (!id) return;
-	    setCart((prev) => {
-	      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
-	      const nextLines = prevLines.map((line) =>
-	        String(line?.id) === id
-	          ? {
-	              ...line,
-	              quantity: (Number(line?.quantity) || 0) + 1,
-	            }
-	          : line,
-	      );
-	      return { version: 2, lines: nextLines };
-	    });
-	  };
+  const incrementLine = (lineId) => {
+    const id = String(lineId || "");
+    if (!id) return;
+    setCart((prev) => {
+      const prevLines = Array.isArray(prev?.lines) ? prev.lines : [];
+      const nextLines = prevLines.map((line) =>
+        String(line?.id) === id
+          ? {
+              ...line,
+              quantity: (Number(line?.quantity) || 0) + 1,
+            }
+          : line,
+      );
+      return { version: 2, lines: nextLines };
+    });
+  };
 
   const decrementLine = (lineId) => {
     const id = String(lineId || "");
@@ -634,8 +638,7 @@ const Cashier = () => {
   };
 
   return (
-		    <div className="relative min-h-dvh overflow-x-hidden bg-background text-foreground">
-
+    <div className="relative min-h-dvh overflow-x-hidden bg-background text-foreground">
       <header
         ref={topbarRef}
         className="fixed inset-x-0 top-0 z-30 border-b bg-background"
@@ -655,40 +658,40 @@ const Cashier = () => {
             </div>
           </div>
 
-	          <div className="hidden items-center gap-2 md:flex">
-	            <Tabs
-	              value={topbarTab}
-	              onValueChange={setTopbarTab}
-	              className="w-fit"
-	            >
-		              <TabsList className="h-10 rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
-		                <TabsTrigger
-		                  value="menus"
-		                  className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-		                >
-		                  <ChefHat className="h-4 w-4" />
-		                  Menus
-		                </TabsTrigger>
-		                <TabsTrigger
-		                  value="sales"
-		                  className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-		                >
-		                  <TrendingUp className="h-4 w-4" />
-		                  Sales
-		                  <Badge
-		                    variant="secondary"
-		                    className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
-		                      topbarTab === "sales"
-		                        ? "bg-primary-foreground/15 text-primary-foreground"
-		                        : "bg-background/80 text-foreground"
-		                    }`}
-		                  >
-		                    {`${Formatter.amount(1000)}+`}
-		                  </Badge>
-		                </TabsTrigger>
-		              </TabsList>
-		            </Tabs>
-		          </div>
+          <div className="hidden items-center gap-2 md:flex">
+            <Tabs
+              value={topbarTab}
+              onValueChange={setTopbarTab}
+              className="w-fit"
+            >
+              <TabsList className="h-10 rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
+                <TabsTrigger
+                  value="menus"
+                  className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+                >
+                  <ChefHat className="h-4 w-4" />
+                  Menus
+                </TabsTrigger>
+                <TabsTrigger
+                  value="sales"
+                  className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  Sales
+                  <Badge
+                    variant="secondary"
+                    className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
+                      topbarTab === "sales"
+                        ? "bg-primary-foreground/15 text-primary-foreground"
+                        : "bg-background/80 text-foreground"
+                    }`}
+                  >
+                    {`${Formatter.amount(1000)}+`}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
 
           <div className="flex items-center gap-2">
             <Sheet open={cartOpen} onOpenChange={setCartOpen}>
@@ -711,14 +714,14 @@ const Cashier = () => {
                 <SheetHeader className="pb-2">
                   <SheetTitle>Current order</SheetTitle>
                 </SheetHeader>
-	                <CartPanel
-	                  entries={cartEntries}
-	                  totals={cartTotals}
-	                  onIncrement={incrementLine}
-	                  onDecrement={decrementLine}
-	                  onRemove={removeLine}
-	                  onCustomize={openCustomizeForLine}
-	                />
+                <CartPanel
+                  entries={cartEntries}
+                  totals={cartTotals}
+                  onIncrement={incrementLine}
+                  onDecrement={decrementLine}
+                  onRemove={removeLine}
+                  onCustomize={openCustomizeForLine}
+                />
               </SheetContent>
             </Sheet>
 
@@ -780,50 +783,57 @@ const Cashier = () => {
           </div>
         </div>
 
-	        <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-2 px-4 pb-3 md:hidden lg:px-6">
-	          <Tabs value={topbarTab} onValueChange={setTopbarTab} className="w-full">
-		            <TabsList className="h-10 w-full rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
-		              <TabsTrigger
-		                value="menus"
-		                className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-		              >
-		                <ChefHat className="h-4 w-4" />
-		                Menus
-		              </TabsTrigger>
-		              <TabsTrigger
-		                value="sales"
-		                className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
-		              >
-		                <TrendingUp className="h-4 w-4" />
-		                Sales
-		                <Badge
-		                  variant="secondary"
-		                  className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
-		                    topbarTab === "sales"
-		                      ? "bg-primary-foreground/15 text-primary-foreground"
-		                      : "bg-background/80 text-foreground"
-		                  }`}
-		                >
-		                  {`${Formatter.amount(1000)}+`}
-		                </Badge>
-		              </TabsTrigger>
-		            </TabsList>
-		          </Tabs>
-		        </div>
-	      </header>
+        <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-2 px-4 pb-3 md:hidden lg:px-6">
+          <Tabs
+            value={topbarTab}
+            onValueChange={setTopbarTab}
+            className="w-full"
+          >
+            <TabsList className="h-10 w-full rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
+              <TabsTrigger
+                value="menus"
+                className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+              >
+                <ChefHat className="h-4 w-4" />
+                Menus
+              </TabsTrigger>
+              <TabsTrigger
+                value="sales"
+                className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm"
+              >
+                <TrendingUp className="h-4 w-4" />
+                Sales
+                <Badge
+                  variant="secondary"
+                  className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
+                    topbarTab === "sales"
+                      ? "bg-primary-foreground/15 text-primary-foreground"
+                      : "bg-background/80 text-foreground"
+                  }`}
+                >
+                  {`${Formatter.amount(1000)}+`}
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      </header>
 
       <main
         className="relative mx-auto w-full max-w-screen-2xl px-4 pb-4 lg:px-6 lg:pb-6"
         style={{ paddingTop: topbarHeight }}
       >
-	        <div className="fixed inset-x-0 z-20 bg-background" style={{ top: topbarHeight }}>
+        <div
+          className="fixed inset-x-0 z-20 bg-background"
+          style={{ top: topbarHeight }}
+        >
           <div className="mx-auto w-full max-w-screen-2xl px-4 lg:px-6">
             <div className="grid min-w-0 gap-4 lg:grid-cols-[1fr_380px]">
               <div ref={menuToolbarRef} className="min-w-0 pt-4 pb-0">
                 <div className="min-w-0 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-                      <div className="relative w-full sm:max-w-[340px]">
+                      <div className="relative w-full sm:max-w-[280px]">
                         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
                           value={search}
@@ -887,74 +897,77 @@ const Cashier = () => {
           <section className="min-w-0">
             <div aria-hidden style={{ height: menuToolbarSpacer }} />
 
-	            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
-	              {menusLoading
-	                ? new Array(8).fill(null).map((_, index) => (
-	                    <Card
-	                      key={index}
-	                      className="gap-0 overflow-hidden rounded-xl py-0 shadow-sm"
-	                    >
-	                      <Skeleton className="h-40 w-full rounded-b-md" />
-	                      <div className="p-4 pt-3">
-	                        <div className="flex items-start justify-between gap-3">
-	                          <div className="min-w-0 flex-1 space-y-2">
-	                            <Skeleton className="h-4 w-2/3" />
-	                            <Skeleton className="h-3 w-1/3" />
-	                          </div>
-	                          <Skeleton className="h-4 w-12" />
-	                        </div>
-	                      </div>
-	                    </Card>
-	                  ))
-	                : menusFiltered.map((menu) => (
-	                    <MenuCard
-	                      key={menu?._id}
-	                      menu={menu}
-	                      categoryName={
-	                        categories.find(
-	                          (c) => String(c?._id) === String(menu?.category),
-	                        )?.name || ""
-	                      }
-	                      quantity={
-	                        quantityByMenuId.get(String(menu?._id || "")) || 0
-	                      }
-	                      imageSrc={getMenuImgSrc(menu)}
-	                      onAdd={async (e) => {
-	                        const signature = createCartSignature(
-	                          String(menu?._id || ""),
-	                          [],
-	                        );
-	                        const existingLineId =
-	                          cartLines.find(
-	                            (line) =>
-	                              String(line?.signature || "") === signature,
-	                          )?.id || "";
-	                        const targetLineEl = existingLineId
-	                          ? orderCardRef.current?.querySelector?.(
-	                              `[data-cart-line-id="${String(existingLineId).replaceAll('"', '\\"')}"]`,
-	                            )
-	                          : null;
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
+              {menusLoading
+                ? new Array(8).fill(null).map((_, index) => (
+                    <Card
+                      key={index}
+                      className="gap-0 overflow-hidden rounded-xl py-0 shadow-sm"
+                    >
+                      <Skeleton className="h-40 w-full rounded-b-md" />
+                      <div className="p-4 pt-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1 space-y-2">
+                            <Skeleton className="h-4 w-2/3" />
+                            <Skeleton className="h-3 w-1/3" />
+                          </div>
+                          <Skeleton className="h-4 w-12" />
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                : menusFiltered.map((menu) => (
+                    <MenuCard
+                      key={menu?._id}
+                      menu={menu}
+                      categoryName={
+                        categories.find(
+                          (c) => String(c?._id) === String(menu?.category),
+                        )?.name || ""
+                      }
+                      quantity={
+                        quantityByMenuId.get(String(menu?._id || "")) || 0
+                      }
+                      imageSrc={getMenuImgSrc(menu)}
+                      onAdd={async (e) => {
+                        const signature = createCartSignature(
+                          String(menu?._id || ""),
+                          [],
+                        );
+                        const existingLineId =
+                          cartLines.find(
+                            (line) =>
+                              String(line?.signature || "") === signature,
+                          )?.id || "";
+                        const targetLineEl = existingLineId
+                          ? orderCardRef.current?.querySelector?.(
+                              `[data-cart-line-id="${String(existingLineId).replaceAll('"', '\\"')}"]`,
+                            )
+                          : null;
 
-	                        await animateAddToOrder(e?.currentTarget, menu, {
-	                          targetEl: targetLineEl,
-	                        });
-	                        addToCart({ menuId: menu?._id, addOns: [] });
-	                      }}
-	                    />
-	                  ))}
-	            </div>
-	          </section>
+                        await animateAddToOrder(e?.currentTarget, menu, {
+                          targetEl: targetLineEl,
+                        });
+                        addToCart({ menuId: menu?._id, addOns: [] });
+                      }}
+                    />
+                  ))}
+            </div>
+          </section>
 
-	          <aside className="hidden lg:block">
-	            <div className="relative" style={{ height: `calc(100dvh - ${topbarHeight}px)` }}>
-	              <div
-	                ref={orderCardRef}
-	                className="fixed right-[max(1.5rem,calc((100vw-1536px)/2+1.5rem))] z-20 flex w-[380px] flex-col rounded-2xl border bg-card shadow-sm"
-	                style={{
-	                  top: topbarHeight + fixedSectionGap,
-	                  height: `calc(100dvh - ${topbarHeight + fixedSectionGap}px - 1.5rem)`,
-	                }}
-	              >
+          <aside className="hidden lg:block">
+            <div
+              className="relative"
+              style={{ height: `calc(100dvh - ${topbarHeight}px)` }}
+            >
+              <div
+                ref={orderCardRef}
+                className="fixed right-[max(1.5rem,calc((100vw-1536px)/2+1.5rem))] z-20 flex w-[380px] flex-col rounded-2xl border bg-card shadow-sm"
+                style={{
+                  top: topbarHeight + fixedSectionGap,
+                  height: `calc(100dvh - ${topbarHeight + fixedSectionGap}px - 1.5rem)`,
+                }}
+              >
                 <div className="flex items-center justify-between gap-2 p-4">
                   <div>
                     <p className="text-sm font-semibold">Current order</p>
@@ -977,14 +990,14 @@ const Cashier = () => {
                 </div>
                 <Separator />
                 <div className="flex-1 min-h-0 p-4">
-	                  <CartPanel
-	                    entries={cartEntries}
-	                    totals={cartTotals}
-	                    onIncrement={incrementLine}
-	                    onDecrement={decrementLine}
-	                    onRemove={removeLine}
-	                    onCustomize={openCustomizeForLine}
-	                  />
+                  <CartPanel
+                    entries={cartEntries}
+                    totals={cartTotals}
+                    onIncrement={incrementLine}
+                    onDecrement={decrementLine}
+                    onRemove={removeLine}
+                    onCustomize={openCustomizeForLine}
+                  />
                 </div>
               </div>
             </div>
@@ -1197,7 +1210,7 @@ const CategoryScroller = ({
   );
 
   return (
-	    <div className="flex w-full min-w-0 items-center gap-2">
+    <div className="flex w-full min-w-0 items-center gap-2">
       <button
         type="button"
         aria-label="Scroll categories left"
@@ -1210,7 +1223,7 @@ const CategoryScroller = ({
         <ChevronLeft className="h-4 w-4" />
       </button>
 
-	      <div className="relative flex-1 min-w-0 overflow-hidden">
+      <div className="relative flex-1 min-w-0 overflow-hidden">
         {canScrollLeft && (
           <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-card to-transparent" />
         )}
@@ -1291,53 +1304,48 @@ const CategoryScroller = ({
   );
 };
 
-const MenuCard = ({
-  menu,
-  categoryName,
-  quantity,
-  imageSrc,
-	  onAdd,
-	}) => {
-	  const isAvailable = Boolean(menu?.isAvailable ?? menu?.isPublish);
-	  const hasAddOns =
-	    Array.isArray(menu?.recommendedAddOns) && menu.recommendedAddOns.length > 0;
-	  const price = Number(menu?.price) || 0;
-	  const description = String(menu?.description || "").trim();
-	  const hasDescription = Boolean(description);
+const MenuCard = ({ menu, categoryName, quantity, imageSrc, onAdd }) => {
+  // const isAvailable = Boolean(menu?.isAvailable ?? menu?.isPublish);
+  const isAvailable = true;
+  const hasAddOns =
+    Array.isArray(menu?.recommendedAddOns) && menu.recommendedAddOns.length > 0;
+  const price = Number(menu?.price) || 0;
+  const description = String(menu?.description || "").trim();
+  const hasDescription = Boolean(description);
 
-	  return (
-	    <Card
-	      data-menu-card
-	      data-menu-id={String(menu?._id || "")}
-	      role="button"
-	      tabIndex={0}
-	      aria-label={`Add ${menu?.name || "menu item"} to current order`}
-	      onClick={onAdd}
-	      onKeyDown={(e) => {
-	        if (e.key === "Enter" || e.key === " ") {
-	          e.preventDefault();
-	          onAdd?.(e);
-	        }
-	      }}
-	      className="group cursor-pointer select-none gap-0 overflow-hidden rounded-xl py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-	    >
-	      <div className="relative h-40 overflow-hidden rounded-t-xl rounded-b-md bg-muted/40">
-	        {imageSrc ? (
-	          <img
-	            src={imageSrc}
-	            alt={menu?.name || "Menu image"}
-	            className={`h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105 ${
-	              isAvailable ? "" : "opacity-70 grayscale-[15%]"
-	            }`}
-	            loading="lazy"
-	          />
+  return (
+    <Card
+      data-menu-card
+      data-menu-id={String(menu?._id || "")}
+      role="button"
+      tabIndex={0}
+      aria-label={`Add ${menu?.name || "menu item"} to current order`}
+      onClick={onAdd}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onAdd?.(e);
+        }
+      }}
+      className="group cursor-pointer select-none gap-0 overflow-hidden rounded-xl py-0 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+    >
+      <div className="relative h-40 overflow-hidden rounded-t-xl rounded-b-md bg-muted/40">
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={menu?.name || "Menu image"}
+            className={`h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105 ${
+              isAvailable ? "" : "opacity-70 grayscale-[15%]"
+            }`}
+            loading="lazy"
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary/60 to-muted/40">
             <ChefHat className="h-8 w-8 text-muted-foreground" />
           </div>
         )}
 
-	        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
         {quantity > 0 && (
           <Badge
@@ -1367,59 +1375,59 @@ const MenuCard = ({
         )}
       </div>
 
-	      <div className="p-4 pt-3">
-	        <div className="flex items-start justify-between gap-3">
-	          <div className="min-w-0">
-	            <p className="truncate text-sm font-semibold">
-	              {menu?.name || "—"}
-	            </p>
-	          </div>
-	          <p className="shrink-0 text-sm font-bold">
-	            {Formatter.amount(price)}
-	          </p>
-	        </div>
+      <div className="p-4 pt-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">
+              {menu?.name || "—"}
+            </p>
+          </div>
+          <p className="shrink-0 text-sm font-bold">
+            {Formatter.amount(price)}
+          </p>
+        </div>
 
-	        <div className="mt-1.5 flex items-center justify-between gap-2">
-	          <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-	            {categoryName || "Uncategorized"}
-	          </p>
-	          <Tooltip>
-	            <TooltipTrigger asChild>
-	              <button
-	                type="button"
-	                aria-label="Menu description"
-	                className={`inline-flex h-4 w-4 shrink-0 items-center justify-center leading-none text-muted-foreground/60 transition hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 ${
-	                  hasDescription ? "" : "opacity-35 cursor-default"
-	                }`}
-	                onClick={(e) => {
-	                  e.preventDefault();
-	                  e.stopPropagation();
-	                }}
-	                onPointerDown={(e) => e.stopPropagation()}
-	              >
-		                <Info className="h-3.5 w-3.5" />
-		              </button>
-	            </TooltipTrigger>
-	            <TooltipContent
-	              side="top"
-	              align="end"
-	              sideOffset={2}
-	              className="max-w-[280px]"
-	            >
-	              {hasDescription ? (
-	                <p className="whitespace-normal text-xs leading-5">
-	                  {description}
-	                </p>
-	              ) : (
-	                <p className="text-xs">No description</p>
-	              )}
-	            </TooltipContent>
-	          </Tooltip>
-	        </div>
-	      </div>
-	    </Card>
-	  );
-	};
+        <div className="mt-1.5 flex items-center justify-between gap-2">
+          <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+            {categoryName || "Uncategorized"}
+          </p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                aria-label="Menu description"
+                className={`inline-flex h-4 w-4 shrink-0 items-center justify-center leading-none text-muted-foreground/60 transition hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 ${
+                  hasDescription ? "" : "opacity-35 cursor-default"
+                }`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <Info className="h-3.5 w-3.5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              align="end"
+              sideOffset={2}
+              className="max-w-[280px]"
+            >
+              {hasDescription ? (
+                <p className="whitespace-normal text-xs leading-5">
+                  {description}
+                </p>
+              ) : (
+                <p className="text-xs">No description</p>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
+    </Card>
+  );
+};
 
 const CartPanel = ({
   entries,
@@ -1431,13 +1439,13 @@ const CartPanel = ({
 }) => {
   const animatedByLineIdRef = useRef(new Map());
 
-	  const animateLineEl = useCallback((el, lineId, addedAt) => {
-	    if (!el) return;
-	    if (!addedAt) return;
+  const animateLineEl = useCallback((el, lineId, addedAt) => {
+    if (!el) return;
+    if (!addedAt) return;
 
-	    const lastAnimated = animatedByLineIdRef.current.get(lineId);
-	    if (lastAnimated === addedAt) return;
-	    animatedByLineIdRef.current.set(lineId, addedAt);
+    const lastAnimated = animatedByLineIdRef.current.get(lineId);
+    if (lastAnimated === addedAt) return;
+    animatedByLineIdRef.current.set(lineId, addedAt);
 
     try {
       if (typeof window !== "undefined") {
@@ -1472,8 +1480,8 @@ const CartPanel = ({
   return (
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1 space-y-2 overflow-auto pr-1">
-	        {entries.length ? (
-	          entries.map(({ menu, line }) => {
+        {entries.length ? (
+          entries.map(({ menu, line }) => {
             const lineId = String(line?.id || "");
             const price = Number(menu?.price) || 0;
             const addOnsTotal = (line?.addOns || []).reduce(
@@ -1489,15 +1497,15 @@ const CartPanel = ({
               .map((item) => item?.name)
               .filter(Boolean);
 
-	            return (
-	              <div
-	                data-cart-line-id={lineId}
-	                ref={(el) =>
-	                  animateLineEl(el, lineId, Number(line?.addedAt) || 0)
-	                }
-	                key={lineId}
-	                className="rounded-xl border bg-background/40 p-3"
-	              >
+            return (
+              <div
+                data-cart-line-id={lineId}
+                ref={(el) =>
+                  animateLineEl(el, lineId, Number(line?.addedAt) || 0)
+                }
+                key={lineId}
+                className="rounded-xl border bg-background/40 p-3"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-3">
                     <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted/40">
@@ -1541,48 +1549,48 @@ const CartPanel = ({
                   </Button>
                 </div>
 
-	                <div className="mt-3 flex items-center justify-between gap-3">
-	                  <div className="flex items-center gap-2">
-	                    {(() => {
-	                      const hasAddOns = Boolean(
-	                        Array.isArray(menu?.recommendedAddOns) &&
-	                          menu.recommendedAddOns.length,
-	                      );
-	                      const tooltip = hasAddOns
-	                        ? "Add-ons"
-	                        : "No add-ons available";
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const hasAddOns = Boolean(
+                        Array.isArray(menu?.recommendedAddOns) &&
+                        menu.recommendedAddOns.length,
+                      );
+                      const tooltip = hasAddOns
+                        ? "Add-ons"
+                        : "No add-ons available";
 
-	                      return (
-	                        <Tooltip>
-	                          <TooltipTrigger asChild>
-	                            <span
-	                              className={`inline-flex ${
-	                                hasAddOns ? "" : "cursor-not-allowed"
-	                              }`}
-	                            >
-	                              <Button
-	                                type="button"
-	                                variant="outline"
-	                                size="icon"
-	                                className="h-9 w-9 rounded-xl"
-	                                aria-label={tooltip}
-	                                disabled={!hasAddOns}
-	                                onClick={() => onCustomize?.(line)}
-	                              >
-	                                <Layers3 className="h-4 w-4" />
-	                              </Button>
-	                            </span>
-	                          </TooltipTrigger>
-	                          <TooltipContent
-	                            side="top"
-	                            align="center"
-	                            sideOffset={2}
-	                          >
-	                            {tooltip}
-	                          </TooltipContent>
-	                        </Tooltip>
-	                      );
-	                    })()}
+                      return (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span
+                              className={`inline-flex ${
+                                hasAddOns ? "" : "cursor-not-allowed"
+                              }`}
+                            >
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-9 w-9 rounded-xl"
+                                aria-label={tooltip}
+                                disabled={!hasAddOns}
+                                onClick={() => onCustomize?.(line)}
+                              >
+                                <Layers3 className="h-4 w-4" />
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent
+                            side="top"
+                            align="center"
+                            sideOffset={2}
+                          >
+                            {tooltip}
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    })()}
 
                     <div className="flex items-center gap-1 rounded-xl border bg-background px-1.5 py-1">
                       <Button
@@ -1621,17 +1629,17 @@ const CartPanel = ({
               </div>
             );
           })
-	        ) : (
-	          <div className="flex h-full items-center justify-center rounded-xl border border-dashed bg-background/40 p-6 text-center">
-	            <div>
-	              <p className="text-sm font-semibold">Cart is empty</p>
-	              <p className="mt-1 text-xs text-muted-foreground">
-	                Add menu items to start an order.
-	              </p>
-	            </div>
-	          </div>
-	        )}
-	      </div>
+        ) : (
+          <div className="flex h-full items-center justify-center rounded-xl border border-dashed bg-background/40 p-6 text-center">
+            <div>
+              <p className="text-sm font-semibold">Cart is empty</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Add menu items to start an order.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="mt-4 rounded-xl border bg-background/40 p-3">
         <div className="flex items-center justify-between gap-2">
@@ -1644,20 +1652,20 @@ const CartPanel = ({
           {totals.totalItems} item(s) in cart
         </p>
 
-	        <div className="mt-3">
-	          <Button
-	            type="button"
-	            className="h-10 w-full rounded-xl"
-	            disabled={!entries.length}
-	            onClick={() => {
-	              // UI-ready; backend order flow can be wired later.
-	            }}
-	          >
-	            <ShoppingCart className="h-4 w-4" />
-	            Checkout
-	          </Button>
-	        </div>
-	      </div>
+        <div className="mt-3">
+          <Button
+            type="button"
+            className="h-10 w-full rounded-xl"
+            disabled={!entries.length}
+            onClick={() => {
+              // UI-ready; backend order flow can be wired later.
+            }}
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Checkout
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
