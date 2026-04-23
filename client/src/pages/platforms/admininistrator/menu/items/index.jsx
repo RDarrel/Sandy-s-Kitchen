@@ -35,7 +35,7 @@ const Items = () => {
   }, [token, dispatch]);
 
   return (
-    <div className="menu-items-page min-h-screen bg-background text-foreground p-4 md:p-5 overflow-x-hidden">
+    <div className="menu-items-page  bg-background text-foreground p-4 md:p-5 ">
       <div className="mx-auto max-w-7xl space-y-4">
         <Header />
         <Body />
