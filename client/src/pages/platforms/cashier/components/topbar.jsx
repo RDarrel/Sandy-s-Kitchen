@@ -1,4 +1,8 @@
-import { Formatter } from "@/services/utilities";
+import {
+  Formatter,
+  PresetImage,
+  fullName as formatFullName,
+} from "@/services/utilities";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,12 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  ChefHat,
-  LogOut,
-  ShoppingCart,
-  TrendingUp,
-} from "lucide-react";
+import { ChefHat, LogOut, ShoppingCart, TrendingUp } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -35,6 +34,51 @@ const CashierTopbar = () => {
   );
 
   const headerRef = useRef(null);
+
+  const displayName = useMemo(() => {
+    const obj =
+      auth?.fullName && typeof auth.fullName === "object"
+        ? auth.fullName
+        : null;
+    if (obj) {
+      const formatted = formatFullName(obj);
+      if (
+        formatted &&
+        formatted !== "Datatype mismatch" &&
+        formatted !== "Incomplete"
+      )
+        return formatted;
+    }
+
+    const fallback = [auth?.fname, auth?.lname].filter(Boolean).join(" ");
+    return fallback || "Cashier";
+  }, [auth]);
+
+  const isMale = useMemo(() => {
+    if (typeof auth?.isMale === "boolean") return auth.isMale;
+    const normalized = String(auth?.sex || auth?.gender || "").toLowerCase();
+    if (!normalized) return false;
+    return normalized === "male" || normalized === "m";
+  }, [auth]);
+
+  const avatarSrc = useMemo(() => {
+    const explicit = auth?.img || auth?.avatar || "";
+    if (explicit) return explicit;
+    return PresetImage(Boolean(isMale));
+  }, [auth, isMale]);
+
+  const initials = useMemo(() => {
+    const raw = String(displayName || "").trim();
+    if (!raw) return "?";
+    const cleaned = raw.replace(/[()]/g, "").replace(/\s+/g, " ");
+    const parts = cleaned
+      .split(/[\s,]+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    const first = parts[0]?.[0] || "?";
+    const last = parts.length > 1 ? parts[parts.length - 1]?.[0] : "";
+    return `${first}${last}`.toUpperCase();
+  }, [displayName]);
 
   const cartTotals = useMemo(() => {
     const lines = Array.isArray(cart?.lines) ? cart.lines : [];
@@ -98,7 +142,11 @@ const CashierTopbar = () => {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Tabs value={topbarTab} onValueChange={setTopbarTab} className="w-fit">
+          <Tabs
+            value={topbarTab}
+            onValueChange={setTopbarTab}
+            className="w-fit"
+          >
             <TabsList className="h-10 rounded-xl border bg-card/70 p-1 shadow-sm backdrop-blur">
               <TabsTrigger
                 value="menus"
@@ -148,13 +196,20 @@ const CashierTopbar = () => {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="h-10 rounded-xl px-2">
+              <Button
+                variant="outline"
+                className="h-10 rounded-xl px-2 min-w-40"
+              >
                 <Avatar className="h-7 w-7">
-                  <AvatarImage src={auth?.img || ""} alt={auth?.email || ""} />
+                  <AvatarImage
+                    src={avatarSrc}
+                    alt={auth?.email || displayName}
+                  />
                   <AvatarFallback className="text-xs">
-                    {String(auth?.email || "?")[0]}
+                    {initials}
                   </AvatarFallback>
                 </Avatar>
+                {displayName}
               </Button>
             </DropdownMenuTrigger>
 
@@ -163,17 +218,15 @@ const CashierTopbar = () => {
                 <div className="flex items-center gap-2">
                   <Avatar className="h-9 w-9">
                     <AvatarImage
-                      src={auth?.img || ""}
-                      alt={auth?.email || ""}
+                      src={avatarSrc}
+                      alt={auth?.email || displayName}
                     />
                     <AvatarFallback className="text-xs">
-                      {String(auth?.email || "?")[0]}
+                      {initials}
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">
-                      {auth?.fullName?.fname || auth?.fname || "Cashier"}
-                    </span>
+                    <span className="truncate font-medium">{displayName}</span>
                     <span className="truncate text-xs text-muted-foreground">
                       {auth?.email || ""}
                     </span>
@@ -229,4 +282,3 @@ const CashierTopbar = () => {
 };
 
 export default CashierTopbar;
-

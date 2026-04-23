@@ -6,11 +6,13 @@ import Body from "./body";
 
 const Audit = () => {
   return (
-    <div className="flex-1">
-      <Card>
-        <Header />
-        <Body />
-      </Card>
+    <div className="bg-background p-4 md:p-6">
+      <div className="mx-auto max-w-7xl">
+        <Card>
+          <Header />
+          <Body />
+        </Card>
+      </div>
     </div>
   );
 };
