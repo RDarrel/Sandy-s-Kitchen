@@ -8,10 +8,16 @@ import {
 import {
   ChevronDown,
   EllipsisVertical,
+  Info,
   Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DETAIL_HINT_BY_TYPE,
   EMPTY_CTA_BY_TYPE,
@@ -116,6 +122,28 @@ const MenuItemCard = ({
             </button>
 
             <div className="flex flex-col items-end gap-1.5">
+              {item?.description ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="View description"
+                      title="Description"
+                      className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white/90 text-primary shadow-md backdrop-blur-sm transition hover:bg-white"
+                    >
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="left"
+                    sideOffset={10}
+                    className="max-w-xs"
+                  >
+                    {item.description}
+                  </TooltipContent>
+                </Tooltip>
+              ) : null}
+
               <button
                 type="button"
                 title="Actions"
@@ -165,22 +193,18 @@ const MenuItemCard = ({
         </div>
 
         <div
-          className={`flex flex-1 flex-col bg-card p-4 ${
+          className={`flex flex-1 flex-col bg-card px-4 pb-3 pt-3 ${
             isDetailsOpen
               ? "rounded-b-none border-x-2 border-primary/40 border-b-0"
               : "rounded-b-2xl border-x border-b border-border"
           }`}
         >
-          <p className="truncate text-sm leading-6 text-muted-foreground">
-            {item?.description}
-          </p>
-
           {shouldEnableCollapse ? (
             <CollapsibleTrigger asChild>
               <button
                 type="button"
                 onClick={() => setActiveDetailTab("details")}
-                className="mt-3 flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-border/80 bg-muted/10 px-3 py-2.5 text-left transition hover:border-border hover:bg-muted/20"
+                className="mt-0 flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-border/80 bg-muted/10 px-3 py-2.5 text-left transition hover:border-border hover:bg-muted/20"
               >
                 <div className="flex min-w-0 items-start gap-3">
                   <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/5 text-primary">
@@ -221,7 +245,7 @@ const MenuItemCard = ({
             <button
               type="button"
               onClick={() => onSetup?.(item)}
-              className="mt-3 flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-left transition hover:border-primary/30 hover:bg-primary/10"
+              className="mt-0 flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-left transition hover:border-primary/30 hover:bg-primary/10"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -243,15 +267,15 @@ const MenuItemCard = ({
       </div>
 
       {shouldEnableCollapse ? (
-        <CollapsibleContent className="absolute left-0 top-full z-30 -mt-3 w-full overflow-hidden opacity-100 transition-opacity duration-200 ease-out data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:opacity-100">
+        <CollapsibleContent className="absolute left-0  top-full z-30 -mt-3 w-full overflow-hidden opacity-100 transition-opacity duration-200 ease-out data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:opacity-100">
           <div
-            className={`relative rounded-b-2xl border border-t-0 bg-card px-3 pb-3 pt-4 shadow-none ${
+            className={`relative mb-2 rounded-b-2xl border border-t-0 bg-card px-3 pb-3 pt-4 shadow-none ${
               isDetailsOpen
                 ? "border-2 border-primary/40 border-t-0"
                 : "border-border"
             }`}
           >
-            <div className="pointer-events-none absolute inset-x-6 top-1 h-px bg-border/70" />
+            <div className="pointer-events-none absolute inset-x-6 top-[6px] h-px bg-border/70" />
 
             {hasRecommendedAddOns ? (
               <div className="mb-3">
