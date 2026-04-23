@@ -35,8 +35,8 @@ export default function Platforms() {
       <AppSidebar variant="inset" />
       <SidebarInset>
         <header className="flex h-16 shrink-0 justify-between items-center border-b mb-2 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
+          <div className="flex items-center gap-2 px-5">
+            <SidebarTrigger />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
@@ -53,7 +53,7 @@ export default function Platforms() {
           </div>
           {/* <BellRing className="mr-12 text-[#FF4F00]" /> */}
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 mx-7 mt-5 ">
+        <div className="flex flex-1 flex-col ">
           <Outlet />
         </div>
       </SidebarInset>
