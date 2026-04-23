@@ -116,8 +116,8 @@ const CategoryBody = ({
             </div>
 
             <CustomPagination
-              title="Category"
-              titleExtension="s"
+              title="Categories"
+              titleExtension=" "
               page={page}
               setPage={setPage}
               maxPage={maxPage}
