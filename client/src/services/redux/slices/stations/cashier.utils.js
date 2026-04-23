@@ -35,6 +35,7 @@ export function normalizeCart(cart) {
       signature: String(line?.signature || ""),
       updatedAt: Number(line?.updatedAt) || 0,
       addedAt: Number(line?.addedAt) || 0,
+      attentionAt: Number(line?.attentionAt) || 0,
     }))
     .filter((line) => line.id && line.menuId && line.quantity > 0);
 

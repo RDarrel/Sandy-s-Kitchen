@@ -248,7 +248,7 @@ const CartPanel = ({ entries, totals, onIncrement, onDecrement, onRemove, onCust
                   animateLineEl(
                     el,
                     lineId,
-                    Number(line?.updatedAt) || Number(line?.addedAt) || 0,
+                    Number(line?.attentionAt) || Number(line?.addedAt) || 0,
                   )
                 }
                 key={lineId}
@@ -378,8 +378,14 @@ const CartPanel = ({ entries, totals, onIncrement, onDecrement, onRemove, onCust
       <div className="mt-4 rounded-xl border bg-background/40 p-4">
         <div className="flex items-center justify-between text-sm font-semibold">
           <span>Total</span>
-          <span>{Formatter.amount(totals.totalAmount || 0)}</span>
+          <span className="text-base font-bold">
+            {Formatter.amount(totals.totalAmount || 0)}
+          </span>
         </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {totals.totalItems || 0} item{(totals.totalItems || 0) === 1 ? "" : "s"}{" "}
+          in cart
+        </p>
         <Button
           type="button"
           className="mt-3 h-10 w-full rounded-xl"

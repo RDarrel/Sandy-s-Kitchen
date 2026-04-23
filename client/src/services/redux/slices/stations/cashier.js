@@ -90,6 +90,7 @@ export const reduxSlice = createSlice({
           ...current,
           quantity: (Number(current?.quantity) || 0) + 1,
           updatedAt: now,
+          attentionAt: now,
         };
         state.cart = { version: 2, lines };
         return;
@@ -103,6 +104,7 @@ export const reduxSlice = createSlice({
         signature,
         updatedAt: now,
         addedAt: now,
+        attentionAt: now,
       };
 
       state.cart = { version: 2, lines: [nextLine, ...lines] };
