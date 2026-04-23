@@ -13,6 +13,7 @@ import {
 import { Category } from "@/services/fakeDB";
 import { Formatter } from "@/services/utilities";
 import Cloudinary from "@/services/utilities/cloudinary";
+import { ca } from "date-fns/locale";
 import { ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
@@ -40,9 +41,7 @@ const Bundles = ({ form, setForm = () => {} }) => {
       bundleCategory === "All" || item.category === bundleCategory;
 
     const matchesKeyword =
-      !keyword ||
-      item.name?.toLowerCase().includes(keyword) ||
-      item.category?.toLowerCase().includes(keyword);
+      !keyword || item.name?.toLowerCase().includes(keyword);
 
     return matchesCategory && matchesKeyword;
   });
@@ -126,8 +125,8 @@ const Bundles = ({ form, setForm = () => {} }) => {
                   <SelectGroup>
                     <SelectLabel>Filter Category</SelectLabel>
                     <SelectItem value="All">All Categories</SelectItem>
-                    {Category.collections.map((category, index) => (
-                      <SelectItem key={index} value={category.value}>
+                    {categories.map((category, index) => (
+                      <SelectItem key={index} value={category._id}>
                         {category.name}
                       </SelectItem>
                     ))}
@@ -309,8 +308,8 @@ const Bundles = ({ form, setForm = () => {} }) => {
             )}
           </div>
 
-	          <div className="border-t border-border px-4 py-3">
-	            <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3 text-sm">
+          <div className="border-t border-border px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3 text-sm">
               <span className="font-medium text-muted-foreground">
                 Total estimated bundle cost
               </span>
@@ -318,11 +317,11 @@ const Bundles = ({ form, setForm = () => {} }) => {
                 {Formatter.amount(totalEstimatedBundleCost)}
               </span>
             </div>
-	          </div>
-	        </div>
-	      </div>
-	    </section>
-	  );
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default Bundles;
