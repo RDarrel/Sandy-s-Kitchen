@@ -363,12 +363,12 @@ const CartPanel = ({ entries, totals, onIncrement, onDecrement, onRemove, onCust
             );
           })
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-background/40 p-6 text-center">
+          <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed bg-background/40 p-6 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/40">
               <ShoppingCart className="h-5 w-5 text-muted-foreground" />
             </div>
             <p className="mt-3 text-sm font-semibold">Cart is empty</p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 max-w-[220px] text-xs text-muted-foreground">
               Tap any menu card to add items.
             </p>
           </div>

@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { CartAdd } from "@/services/redux/slices/stations/cashier";
 import { createCartSignature } from "@/services/redux/slices/stations/cashier.utils";
 import CashierBodyHeader from "./header";
+import CashierNoResults from "./no-results";
 
 const CashierBody = () => {
   const dispatch = useDispatch();
@@ -321,6 +322,9 @@ const CashierBody = () => {
                 />
               );
             })}
+        {!menusLoading && (!menusFiltered || menusFiltered.length === 0) ? (
+          <CashierNoResults />
+        ) : null}
       </div>
     </section>
   );
