@@ -243,7 +243,7 @@ const MenuItemCard = ({
       </div>
 
       {shouldEnableCollapse ? (
-        <CollapsibleContent className="absolute left-0 top-full z-30 mt-0 w-full overflow-hidden opacity-100 transition-opacity duration-200 ease-out data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:opacity-100">
+        <CollapsibleContent className="absolute left-0 top-full z-30 -mt-3 w-full overflow-hidden opacity-100 transition-opacity duration-200 ease-out data-[state=closed]:pointer-events-none data-[state=closed]:opacity-0 data-[state=open]:opacity-100">
           <div
             className={`relative rounded-b-2xl border border-t-0 bg-card px-3 pb-3 pt-4 shadow-none ${
               isDetailsOpen
@@ -251,7 +251,7 @@ const MenuItemCard = ({
                 : "border-border"
             }`}
           >
-            <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-border/70" />
+            <div className="pointer-events-none absolute inset-x-6 top-1 h-px bg-border/70" />
 
             {hasRecommendedAddOns ? (
               <div className="mb-3">
