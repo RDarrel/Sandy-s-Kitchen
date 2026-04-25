@@ -17,7 +17,12 @@ const TableLoading = ({
   const columns = new Array(numberOfColumns).fill("");
   return (
     <>
-      <div className={cn("border rounded-md bg-white", className && className)}>
+      <div
+        className={cn(
+          "rounded-md border border-border bg-card",
+          className && className,
+        )}
+      >
         <Table>
           <TableHeader>
             <TableRow>
