@@ -21,6 +21,7 @@ import Items from "./menu/items";
 import Inventory from "./inventory";
 import Categories from "./menu/categories";
 import AddOns from "./menu/addOns";
+import CreateOrder from "./orders/create-order";
 
 const access = [
   {
@@ -71,44 +72,37 @@ const access = [
     icon: Users,
     component: Staffs,
   },
-  // {
-  //   name: "Manage Fuel Orders",
-  //   path: "/Manage-Orders",
-  //   icon: GitPullRequestArrow,
-  //   children: [
-  //     {
-  //       name: "Order Processing",
-  //       path: "/Order-Processing",
-  //       icon: GitPullRequestArrow,
-  //       component: OrderProcessing,
-  //     },
-  //     {
-  //       name: "Short Deliveries",
-  //       path: "/Short-Deliveries",
-  //       icon: GitPullRequestArrow,
-  //       component: ManageOrders,
-  //     },
-  //   ],
-  // },
-  // {
-  //   name: "Reports",
-  //   path: "/reports",
-  //   icon: BookKey,
-  //   children: [
-  //     {
-  //       name: "Sales ",
-  //       path: "/sales",
-  //       icon: GitPullRequestArrow,
-  //       component: Sales,
-  //     },
-  //     {
-  //       name: "Transactions",
-  //       path: "/transactions",
-  //       icon: GitPullRequestArrow,
-  //       component: Transactions,
-  //     },
-  //   ],
-  // },
+
+  {
+    name: "Orders",
+    path: "/orders",
+    icon: Package,
+    children: [
+      {
+        name: "Create Order",
+        path: "/create-order",
+        component: CreateOrder,
+      },
+      {
+        name: "Requests",
+        path: "/requests",
+        component: CreateOrder,
+      },
+      {
+        name: "Order List",
+        path: "/order-list",
+        component: CreateOrder,
+      },
+      {
+        name: "Short Deliveries",
+        path: "/Short-Deliveries",
+        icon: GitPullRequestArrow,
+        component: CreateOrder,
+      },
+    ],
+  },
+  // Requests → Orders → Delivered
+
   {
     name: "Audit Trail",
     path: "/audit",
