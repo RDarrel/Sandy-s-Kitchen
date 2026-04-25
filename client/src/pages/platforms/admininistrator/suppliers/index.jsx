@@ -1,6 +1,13 @@
 import CustomPagination from "@/components/shared/pagination";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -9,16 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pen, Trash } from "lucide-react";
+import { MoreHorizontal, Pen, Plus, Search, Trash } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { BROWSE } from "@/services/redux/slices/assets/suppliers";
+import { BROWSE } from "@/services/redux/slices/procurement/suppliers";
 import TableLoading from "@/components/shared/loading/table";
 import { globalSearch, handlePagination, mobile } from "@/services/utilities";
 import { capitalize, isEmpty } from "lodash";
-import { RESET, DESTROY } from "@/services/redux/slices/assets/suppliers";
+import { RESET, DESTROY } from "@/services/redux/slices/procurement/suppliers";
 import { toast } from "sonner";
-import Search from "@/components/shared/search";
 import CustomModal from "./modal";
 import {
   DropdownMenu,
@@ -48,8 +54,10 @@ const Suppliers = () => {
     dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(BROWSE({ token }));
-  }, [token]);
+    if (token) {
+      dispatch(BROWSE({ token }));
+    }
+  }, [dispatch, token]);
 
   useEffect(() => {
     if (message && isSuccess) {
@@ -60,19 +68,18 @@ const Suppliers = () => {
   }, [message, isSuccess, dispatch]);
 
   useEffect(() => {
-    setSuppliers(collections);
-  }, [collections]);
-
-  useEffect(() => {
-    if (!search) setSuppliers(collections);
     if (search) {
-      const results = globalSearch(suppliers, search.toUpperCase());
+      const results = globalSearch(collections, search.toUpperCase());
       setSuppliers(results);
+      return;
     }
-  }, [search]);
+
+    setSuppliers(collections);
+  }, [search, collections]);
 
   const handleCreate = () => {
     setWillCreate(true);
+    setSelected({});
     setIsOpen(true);
   };
 
@@ -81,60 +88,91 @@ const Suppliers = () => {
   };
 
   return (
-    <div className="bg-background p-4 md:p-6">
-      <div className="mx-auto max-w-7xl">
-        <Card>
-          <CardHeader className="flex justify-between">
-            <h2 className="text-[#FF4F00] font-[600] text-2xl">
-              Supplier List
-            </h2>
-            <Search
-              search={search}
-              setSearch={setSearch}
-              setIsOpen={handleCreate}
-              title="suppliers"
-            />
-          </CardHeader>
-          <CardContent className={"-mt-5"}>
-            {!isLoading ? (
-              <>
-                <div className="border rounded-md bg-white mt-5">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Phone Number</TableHead>
-                        <TableHead>Address</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {!isEmpty(suppliers) ? (
-                        <>
-                          {handlePagination(suppliers, page, maxPage).map(
-                            (supplier, index) => {
+    <>
+      <div className="bg-background p-4 md:p-6">
+        <div className="mx-auto max-w-7xl">
+          <Card className="border-border py-6 shadow-sm">
+            <CardHeader className="space-y-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <CardTitle className="text-2xl text-foreground">
+                    Suppliers
+                  </CardTitle>
+                  <CardDescription>
+                    Manage supplier companies and their contact details.
+                  </CardDescription>
+                </div>
+
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end lg:max-w-xl">
+                  <div className="relative w-full sm:max-w-xs">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="Search supplier..."
+                      className="pl-9"
+                      type="search"
+                    />
+                  </div>
+
+                  <Button onClick={handleCreate}>
+                    <Plus className="h-4 w-4" />
+                    Add Supplier
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-0">
+              {!isLoading ? (
+                <>
+                  <div className="mt-2 overflow-hidden rounded-md border">
+                    <Table>
+                      <TableHeader className="bg-muted/70">
+                        <TableRow>
+                          <TableHead>Company</TableHead>
+                          <TableHead>Contact</TableHead>
+                          <TableHead>Address</TableHead>
+                          <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {!isEmpty(suppliers) ? (
+                          handlePagination(suppliers, page, maxPage).map(
+                            (supplier) => {
                               const {
                                 name = "",
                                 address = "",
-                                phone = "",
+                                contact = {},
                               } = supplier;
                               return (
                                 <TableRow key={supplier._id}>
-                                  <TableCell>{capitalize(name)}</TableCell>
-                                  <TableCell>{mobile(phone)}</TableCell>
-                                  <TableCell>{capitalize(address)}</TableCell>
-                                  <TableCell>
+                                  <TableCell className="font-medium">
+                                    {capitalize(name)}
+                                  </TableCell>
+                                  <TableCell className="text-muted-foreground">
+                                    {contact.person
+                                      ? `${contact.person} (${mobile(contact.mobile)})`
+                                      : mobile(contact.mobile)}
+                                  </TableCell>
+                                  <TableCell className="text-muted-foreground">
+                                    {capitalize(address)}
+                                  </TableCell>
+                                  <TableCell className="text-right">
                                     <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
                                         <Button
-                                          variant="ghost"
-                                          className="flex items-center justify-center"
+                                          size="icon"
+                                          variant="outline"
+                                          title="Actions"
                                         >
-                                          <p className="font-bold mb-2 text-h3 text-[#FF4F00]">
-                                            ...
-                                          </p>
+                                          <MoreHorizontal className="h-4 w-4" />
                                         </Button>
                                       </DropdownMenuTrigger>
-                                      <DropdownMenuContent className="w-[9rem]">
+                                      <DropdownMenuContent
+                                        className="w-[9rem]"
+                                        align="end"
+                                      >
                                         <DropdownMenuLabel>
                                           Actions
                                         </DropdownMenuLabel>
@@ -147,16 +185,21 @@ const Suppliers = () => {
                                               setWillCreate(false);
                                             }}
                                           >
-                                            <Pen />
+                                            <Pen className="mr-2 h-4 w-4" />
                                             Update
                                           </DropdownMenuItem>
                                           <DropdownMenuItem
                                             onClick={() => {
-                                              setDeletedIndex(index);
+                                              setDeletedIndex(
+                                                suppliers.findIndex(
+                                                  ({ _id }) =>
+                                                    _id === supplier._id,
+                                                ),
+                                              );
                                               setShowAlert(true);
                                             }}
                                           >
-                                            <Trash />
+                                            <Trash className="mr-2 h-4 w-4" />
                                             Delete
                                           </DropdownMenuItem>
                                         </DropdownMenuGroup>
@@ -166,34 +209,39 @@ const Suppliers = () => {
                                 </TableRow>
                               );
                             },
-                          )}
-                        </>
-                      ) : (
-                        <TableRow>
-                          <TableCell className={"text-center"} colSpan={5}>
-                            No Record.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-                <CustomPagination
-                  title="Supplier"
-                  titleExtension="s"
-                  page={page}
-                  setPage={setPage}
-                  maxPage={maxPage}
-                  setMaxPage={setMaxPage}
-                  datas={suppliers}
-                />
-              </>
-            ) : (
-              <TableLoading className={"mt-5"} />
-            )}
-          </CardContent>
-        </Card>
+                          )
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              className="text-center text-muted-foreground"
+                              colSpan={4}
+                            >
+                              No record.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <CustomPagination
+                    title="Supplier"
+                    titleExtension="s"
+                    page={page}
+                    setPage={setPage}
+                    maxPage={maxPage}
+                    setMaxPage={setMaxPage}
+                    datas={suppliers}
+                  />
+                </>
+              ) : (
+                <TableLoading className="mt-4" />
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
       <CustomModal
         selected={selected}
         isOpen={isOpen}
@@ -217,10 +265,10 @@ const Suppliers = () => {
         showCancelButton
         className="w-[22rem]"
         buttonTitle="Yes, Delete"
-        buttonClassName="bg-red-600 hover:bg-red-700 cursor-pointer"
+        buttonClassName="bg-red-600 hover:bg-red-700"
         index={deletedIndex}
       />
-    </div>
+    </>
   );
 };
 

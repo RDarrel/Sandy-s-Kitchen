@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { formattedDate, fullName } from "@/services/utilities";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UPDATE, RESET } from "@/services/redux/slices/assets/purchases";
+import { UPDATE, RESET } from "@/services/redux/slices/procurement/purchases";
 
 const CustomModal = ({ isOpen, setIsOpen, selected }) => {
   const { token } = useSelector(({ auth }) => auth),
@@ -46,7 +46,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected }) => {
       toast.success(
         `Purchase has been ${
           isRefund ? "refunded" : "re-delivered"
-        } successfully!`
+        } successfully!`,
       );
       setIsRefund(false);
       setIsOpen(false);
@@ -75,7 +75,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected }) => {
       UPDATE({
         token,
         data: { purchase },
-      })
+      }),
     );
   };
 
@@ -85,7 +85,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected }) => {
       UPDATE({
         token,
         data: { purchase: { _id: selected._id, status: "refunded" } },
-      })
+      }),
     );
   };
 

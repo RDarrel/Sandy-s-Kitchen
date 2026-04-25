@@ -21,7 +21,7 @@ import {
   UPDATE,
   RESET,
   DESTROY,
-} from "@/services/redux/slices/assets/purchases";
+} from "@/services/redux/slices/procurement/purchases";
 
 const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
   const { token, auth } = useSelector(({ auth }) => auth),
@@ -41,7 +41,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
   useEffect(() => {
     if (!formSubmitted && isSuccess && isOpen) {
       toast.success(
-        `Request ${isDeleted ? "deleted" : "updated"} successfully!`
+        `Request ${isDeleted ? "deleted" : "updated"} successfully!`,
       );
       setIsDeleted(false);
       setIsOpen(false);
@@ -77,7 +77,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
       UPDATE({
         token,
         data: { purchase },
-      })
+      }),
     );
   };
 
@@ -87,7 +87,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
       DESTROY({
         token,
         data: { _id: selected._id },
-      })
+      }),
     );
   };
 

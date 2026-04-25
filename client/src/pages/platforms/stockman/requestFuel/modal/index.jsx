@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { RESET, SAVE } from "@/services/redux/slices/assets/purchases";
+import { RESET, SAVE } from "@/services/redux/slices/procurement/purchases";
 import machineLogo from "../../../../../assets/machineLogo.png";
 import { capitalize } from "lodash";
 import { Textarea } from "@/components/ui/textarea";
@@ -108,7 +108,7 @@ const Order = ({ isOpen, setIsOpen, selected }) => {
             date: formattedDate(new Date()),
           },
         },
-      })
+      }),
     ).then((action) => {
       const { payload } = action.payload || {};
       const { liters: litersPayload = {} } = payload;

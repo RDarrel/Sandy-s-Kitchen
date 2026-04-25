@@ -42,7 +42,7 @@ import { toast } from "sonner";
 import { formattedAmount, formattedDate, fullName } from "@/services/utilities";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UPDATE, RESET } from "@/services/redux/slices/assets/purchases";
+import { UPDATE, RESET } from "@/services/redux/slices/procurement/purchases";
 import { cn } from "@/lib/utils";
 import { SetCOLLECTIONS } from "@/services/redux/slices/assets/fuels";
 const MAX_CAPACITY = 5000;
@@ -127,7 +127,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
           role: "administrator",
           supplierName: suppliers.find(({ _id }) => _id === supplier)?.name,
         },
-      })
+      }),
     ).then((action) => {
       if (!readOnly) {
         const { payload } = ({} = action.payload || {});
@@ -135,7 +135,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
         const { liters = {} } = purchase;
         const _fuels = [...fuels];
         const index = _fuels.findIndex(
-          ({ _id }) => _id === purchase?.fuel?._id
+          ({ _id }) => _id === purchase?.fuel?._id,
         );
         const { incoming: cIncoming = 0 } = _fuels[index] || {};
         _fuels[index] = {
@@ -153,7 +153,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
       UPDATE({
         token,
         data: { purchase: { _id: selected._id, status: "denied" } },
-      })
+      }),
     );
   };
 
@@ -270,7 +270,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
                       variant={"outline"}
                       className={cn(
                         " justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
+                        !date && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon />

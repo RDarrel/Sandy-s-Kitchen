@@ -2,8 +2,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Pending from "./pending";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { BROWSE, RESET } from "@/services/redux/slices/assets/purchases";
-import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/assets/suppliers";
+import { BROWSE, RESET } from "@/services/redux/slices/procurement/purchases";
+import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/procurement/suppliers";
 import Received from "./received";
 import Request from "./request";
 
@@ -22,7 +22,7 @@ export function OrderProcessing() {
             stockman: auth?._id,
           }),
         },
-      })
+      }),
     );
     return () => dispatch(RESET());
   }, [dispatch, token, activeTab, auth]);

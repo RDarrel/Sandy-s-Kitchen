@@ -33,7 +33,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { formattedAmount } from "@/services/utilities";
-import { RESET, SAVE } from "@/services/redux/slices/assets/purchases";
+import { RESET, SAVE } from "@/services/redux/slices/procurement/purchases";
 import machineLogo from "../../../../../assets/machineLogo.png";
 import { capitalize } from "lodash";
 
@@ -140,7 +140,7 @@ const Order = ({ isOpen, setIsOpen, selected }) => {
           amount: cost * form.liters,
           status: "incoming",
         },
-      })
+      }),
     ).then((action) => {
       const { payload } = action.payload || {};
       const { liters = {} } = payload;
@@ -246,7 +246,7 @@ const Order = ({ isOpen, setIsOpen, selected }) => {
                       variant={"outline"}
                       className={cn(
                         "w-[300px] justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
+                        !date && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon />

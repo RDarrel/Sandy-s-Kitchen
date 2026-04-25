@@ -15,11 +15,13 @@ import { Loader } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { isEqual } from "lodash";
-import { SAVE, UPDATE } from "@/services/redux/slices/assets/suppliers";
+import { SAVE, UPDATE } from "@/services/redux/slices/procurement/suppliers";
 const _form = {
   name: "",
-  phone: "",
+  contact: {
+    person: "",
+    mobile: "",
+  },
   address: "",
 };
 const CustomModal = ({
@@ -35,9 +37,9 @@ const CustomModal = ({
 
   useEffect(() => {
     if (willCreate) {
-      setForm({});
+      setForm(_form);
     } else {
-      setForm(selected);
+      setForm({ ..._form, ...selected });
     }
   }, [willCreate, selected, isOpen]);
 
@@ -45,7 +47,7 @@ const CustomModal = ({
     if (!formSubmitted && isSuccess && isOpen) {
       setIsOpen(false);
     }
-  }, [formSubmitted, isSuccess, isOpen]);
+  }, [formSubmitted, isSuccess, isOpen, setIsOpen]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -58,51 +60,66 @@ const CustomModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-[35rem]  ">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{willCreate ? "Add" : "Update"} Supplier</DialogTitle>
           <DialogDescription>
-            Enter the supplier’s details. Make sure everything is correct before
+            Enter the supplier's details. Make sure everything is correct before
             saving.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-5">
+            <div className="grid w-full  items-center gap-1.5">
+              <Label htmlFor="company">*Company name</Label>
+              <Input
+                type="text"
+                value={form?.name || ""}
+                onChange={({ target }) =>
+                  setForm({
+                    ...form,
+                    name: target.value,
+                  })
+                }
+                required
+                id="company"
+                placeholder="Enter company name here.."
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-5">
               <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label
-                  htmlFor="company"
-                  className={"text-[#414651] font-[400]"}
-                >
-                  Company name*
-                </Label>
+                <Label htmlFor="person">Contact Person</Label>
                 <Input
                   type="text"
-                  value={form?.name || ""}
+                  value={form?.contact?.person || ""}
                   onChange={({ target }) =>
                     setForm({
                       ...form,
-                      name: target.value,
+                      contact: {
+                        ...form.contact,
+                        person: target.value,
+                      },
                     })
                   }
-                  required
-                  id="company"
-                  placeholder="Enter company name here.."
+                  id="person"
+                  placeholder="Enter contact person here.."
                 />
               </div>
               <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="phone" className={"text-[#414651] font-[400]"}>
-                  Phone Number.*
-                </Label>
+                <Label htmlFor="phone">* Mobile No.</Label>
 
                 <Input
                   type="text"
-                  value={form?.phone || ""}
+                  value={form?.contact?.mobile || ""}
                   required
                   onChange={({ target }) =>
                     setForm({
                       ...form,
-                      phone: target.value,
+                      contact: {
+                        ...form.contact,
+                        mobile: target.value,
+                      },
                     })
                   }
                   id="phone"
@@ -112,9 +129,7 @@ const CustomModal = ({
             </div>
 
             <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="address" className={"text-[#414651] font-[400]"}>
-                Address*
-              </Label>
+              <Label htmlFor="address">*Address</Label>
               <Input
                 type="text"
                 value={form?.address || ""}
@@ -131,12 +146,11 @@ const CustomModal = ({
             </div>
           </div>
           <DialogFooter className="mt-5">
-            <Button
-              type="submit"
-              disabled={formSubmitted}
-              className="bg-[#FF4F00] hover:bg-[#e64500] transition-colors duration-200 cursor-pointer"
-            >
-              Submit {formSubmitted && <Loader className=" animate-spin" />}
+            <Button type="submit" disabled={formSubmitted}>
+              Submit
+              {formSubmitted && (
+                <Loader className="ml-2 h-4 w-4 animate-spin" />
+              )}
             </Button>
           </DialogFooter>
         </form>

@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { formattedAmount, formattedDate, fullName } from "@/services/utilities";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UPDATE, RESET } from "@/services/redux/slices/assets/purchases";
+import { UPDATE, RESET } from "@/services/redux/slices/procurement/purchases";
 import { cn } from "@/lib/utils";
 
 const CustomModal = ({ isOpen, setIsOpen, selected }) => {
@@ -57,7 +57,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected }) => {
       toast.success(
         `Purchase has been ${
           isRefund ? "refunded" : "re-delivered"
-        } successfully!`
+        } successfully!`,
       );
       setIsRefund(false);
       setIsOpen(false);
@@ -94,7 +94,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected }) => {
           ltrs: liters,
           supplierName: selected?.supplier?.name,
         },
-      })
+      }),
     );
   };
 
@@ -111,11 +111,11 @@ const CustomModal = ({ isOpen, setIsOpen, selected }) => {
           fuelName: fuel?.name,
           ltrs: liters?.request,
           amt: `₱${Number(
-            form.liters * fuel?.pricing?.cost
+            form.liters * fuel?.pricing?.cost,
           )?.toLocaleString()}`,
           supplierName: selected?.supplier?.name,
         },
-      })
+      }),
     );
   };
 
@@ -256,7 +256,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected }) => {
                     variant={"outline"}
                     className={cn(
                       " justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
+                      !date && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon />

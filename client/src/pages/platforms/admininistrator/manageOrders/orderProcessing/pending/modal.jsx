@@ -19,7 +19,7 @@ import { formattedAmount, formattedDate, fullName } from "@/services/utilities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UPDATE, RESET } from "@/services/redux/slices/assets/purchases";
+import { UPDATE, RESET } from "@/services/redux/slices/procurement/purchases";
 
 const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
   const { token, auth } = useSelector(({ auth }) => auth),
@@ -94,7 +94,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
           supplierName: supplier?.name,
           ...(discrepancy > 0 && { discrepancyPurchase }),
         },
-      })
+      }),
     );
   };
 
@@ -151,7 +151,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
               {
                 label: "Total Cost",
                 value: `₱${formattedAmount(
-                  fuel?.pricing?.cost * liters?.incoming
+                  fuel?.pricing?.cost * liters?.incoming,
                 )}`,
               },
               {
@@ -195,7 +195,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected, readOnly = false }) => {
                   <Input
                     type="number"
                     value={String(
-                      !readOnly ? form?.received : liters?.received
+                      !readOnly ? form?.received : liters?.received,
                     )}
                     required
                     onChange={({ target }) => {

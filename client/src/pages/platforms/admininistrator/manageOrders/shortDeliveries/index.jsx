@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Review from "./toReview";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { BROWSE, RESET } from "@/services/redux/slices/assets/purchases";
+import { BROWSE, RESET } from "@/services/redux/slices/procurement/purchases";
 import Redelivery from "./redelivery";
 import Resolved from "./resolved";
 import Refunded from "./refunded";
@@ -20,7 +20,7 @@ export function ManageOrders() {
       BROWSE({
         token,
         params: { status: activeTab.toLowerCase(), isShort: true },
-      })
+      }),
     );
     return () => dispatch(RESET());
   }, [dispatch, token, activeTab]);

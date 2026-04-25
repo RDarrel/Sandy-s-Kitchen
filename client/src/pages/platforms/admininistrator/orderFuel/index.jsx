@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
 import { BROWSE } from "@/services/redux/slices/assets/fuels";
-import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/assets/suppliers";
+import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/procurement/suppliers";
 import FuelType from "./fuelType";
 import Order from "./modal";
 

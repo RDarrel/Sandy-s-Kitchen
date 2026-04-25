@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axioKit } from "../../../utilities";
 
-const url = "assets/suppliers";
+const url = "procurement/suppliers";
 
 const initialState = {
   collections: [],
@@ -137,7 +137,7 @@ export const reduxSlice = createSlice({
       .addCase(UPDATE.fulfilled, (state, action) => {
         const { success, payload } = action.payload;
         const index = state.collections.findIndex(
-          ({ _id }) => _id === payload?._id
+          ({ _id }) => _id === payload?._id,
         );
         state.collections[index] = payload;
         state.formSubmitted = false;
