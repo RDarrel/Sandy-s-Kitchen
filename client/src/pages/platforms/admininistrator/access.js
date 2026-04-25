@@ -59,12 +59,12 @@ const access = [
     ],
   },
 
-  // {
-  //   name: "Suppliers",
-  //   path: "/suppliers",
-  //   icon: ContactRound,
-  //   component: Suppliers,
-  // },
+  {
+    name: "Suppliers",
+    path: "/suppliers",
+    icon: ContactRound,
+    component: Suppliers,
+  },
   {
     name: "Staff",
     path: "/staff",
