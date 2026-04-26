@@ -29,7 +29,9 @@ import { toast } from "sonner";
 const CreateOrderCart = () => {
   const dispatch = useDispatch();
   const { cart, supplierMode } = useSelector(({ purchases }) => purchases);
-  const { collections: suppliers = [] } = useSelector(({ suppliers }) => suppliers);
+  const { collections: suppliers = [] } = useSelector(
+    ({ suppliers }) => suppliers,
+  );
   const { collections: inventoryCollections = [] } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
@@ -177,7 +179,7 @@ const CreateOrderCart = () => {
 
   return (
     <>
-      <CardHeader className="space-y-1 pb-2">
+      <CardHeader className="space-y-1 ">
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle className="text-lg">Order Details</CardTitle>
@@ -230,7 +232,7 @@ const CreateOrderCart = () => {
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-3 pt-0 pb-3">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-1 pt-0 ">
         <div
           className={
             entries.length
@@ -243,7 +245,9 @@ const CreateOrderCart = () => {
               const inventoryId = String(line.inventory);
               const fallbackUnitCost = Number(item?.cost) || 0;
               const unitCost =
-                line?.unitCost !== undefined ? Number(line.unitCost) || 0 : fallbackUnitCost;
+                line?.unitCost !== undefined
+                  ? Number(line.unitCost) || 0
+                  : fallbackUnitCost;
               const lineSupplierId = String(line?.supplierId || "all");
               const quantityDraft =
                 quantityDraftById[inventoryId] ?? String(line?.quantity || 1);
@@ -304,7 +308,9 @@ const CreateOrderCart = () => {
                       </div>
 
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Qty</Label>
+                        <Label className="text-xs text-muted-foreground">
+                          Qty
+                        </Label>
                         <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
                           <Button
                             type="button"
@@ -325,17 +331,22 @@ const CreateOrderCart = () => {
                             <Minus className="h-4 w-4" />
                           </Button>
 
-                        <Input
-                          value={quantityDraft}
-                          onChange={(event) => {
-                            const nextValue = event.target.value.replace(/[^\d]/g, "");
+                          <Input
+                            value={quantityDraft}
+                            onChange={(event) => {
+                              const nextValue = event.target.value.replace(
+                                /[^\d]/g,
+                                "",
+                              );
                               setQuantityDraftById((current) => ({
                                 ...current,
                                 [inventoryId]: nextValue,
                               }));
                             }}
                             onBlur={() => {
-                              const nextQty = Number(quantityDraftById[inventoryId]);
+                              const nextQty = Number(
+                                quantityDraftById[inventoryId],
+                              );
                               if (!Number.isFinite(nextQty) || nextQty <= 0) {
                                 setQuantityDraftById((current) => ({
                                   ...current,
@@ -350,11 +361,11 @@ const CreateOrderCart = () => {
                                   quantity: nextQty,
                                 }),
                               );
-                          }}
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          className="h-7 w-14 rounded-lg bg-background text-center text-sm tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
+                            }}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            className="h-7 w-14 rounded-lg bg-background text-center text-sm tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
 
                           <Button
                             type="button"
@@ -364,7 +375,9 @@ const CreateOrderCart = () => {
                             onClick={() => {
                               setQuantityDraftById((current) => ({
                                 ...current,
-                                [inventoryId]: String((Number(line.quantity) || 0) + 1),
+                                [inventoryId]: String(
+                                  (Number(line.quantity) || 0) + 1,
+                                ),
                               }));
                               dispatch(CartIncrement(inventoryId));
                             }}
