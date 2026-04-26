@@ -23,8 +23,9 @@ import {
 } from "@/services/redux/slices/procurement/purchases";
 import { Formatter } from "@/services/utilities";
 import { ClipboardList, Minus, Plus, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
 
 const CreateOrderCart = () => {
   const dispatch = useDispatch();
@@ -35,6 +36,8 @@ const CreateOrderCart = () => {
   );
 
   const [quantityDraftById, setQuantityDraftById] = useState({});
+  const [supplierErrorIds, setSupplierErrorIds] = useState([]);
+  const entryRefById = useRef({});
 
   const supplierOptions = useMemo(() => {
     return (Array.isArray(suppliers) ? suppliers : [])
@@ -129,6 +132,50 @@ const CreateOrderCart = () => {
     return { totalItems, totalAmount };
   }, [entries]);
 
+  useEffect(() => {
+    if (supplierMode !== "different") {
+      setSupplierErrorIds([]);
+    }
+  }, [supplierMode]);
+
+  const handleReview = () => {
+    if (!entries.length) return;
+
+    if (supplierMode !== "different") {
+      setSupplierErrorIds([]);
+      return;
+    }
+
+    const missing = entries.filter(({ line }) => {
+      const supplierId = String(line?.supplierId || "all");
+      return !supplierId || supplierId === "all";
+    });
+
+    if (!missing.length) {
+      setSupplierErrorIds([]);
+      return;
+    }
+
+    const missingIds = missing.map(({ line }) => String(line?.inventoryId || ""));
+    setSupplierErrorIds(missingIds);
+
+    const firstMissing = missing[0];
+    const firstInventoryId = String(firstMissing?.line?.inventoryId || "");
+    const firstItemName = String(firstMissing?.item?.name || "item");
+
+    toast.error(`Select a supplier for "${firstItemName}".`);
+
+    const node = entryRefById.current[firstInventoryId];
+    if (node?.scrollIntoView) {
+      node.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    const trigger = node?.querySelector?.("[data-supplier-trigger]");
+    if (trigger?.focus) {
+      setTimeout(() => trigger.focus(), 250);
+    }
+  };
+
   return (
     <>
       <CardHeader className="space-y-1 pb-2">
@@ -186,11 +233,20 @@ const CreateOrderCart = () => {
               const lineSupplierId = String(line?.supplierId || "all");
               const quantityDraft =
                 quantityDraftById[inventoryId] ?? String(line?.quantity || 1);
+              const supplierHasError =
+                supplierMode === "different" &&
+                supplierErrorIds.includes(inventoryId) &&
+                (lineSupplierId === "all" || !lineSupplierId);
 
               return (
                 <div
                   key={inventoryId}
-                  className="rounded-xl border border-border bg-card/60 p-2.5 shadow-xs"
+                  ref={(node) => {
+                    if (!inventoryId) return;
+                    if (node) entryRefById.current[inventoryId] = node;
+                    else delete entryRefById.current[inventoryId];
+                  }}
+                  className={`rounded-xl border bg-card/60 p-2.5 shadow-xs ${supplierHasError ? "border-destructive/40 bg-destructive/5" : "border-border"}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -313,16 +369,23 @@ const CreateOrderCart = () => {
                         </Label>
                         <Select
                           value={lineSupplierId}
-                          onValueChange={(value) =>
+                          onValueChange={(value) => {
+                            setSupplierErrorIds((current) =>
+                              current.filter((id) => id !== inventoryId),
+                            );
                             dispatch(
                               CartSetLineSupplier({
                                 inventoryId,
                                 supplierId: value || "all",
                               }),
-                            )
-                          }
+                            );
+                          }}
                         >
-                          <SelectTrigger className="h-9 w-full">
+                          <SelectTrigger
+                            className="h-9 w-full"
+                            data-supplier-trigger
+                            aria-invalid={supplierHasError ? "true" : "false"}
+                          >
                             <SelectValue placeholder="Select supplier" />
                           </SelectTrigger>
                           <SelectContent>
@@ -334,6 +397,11 @@ const CreateOrderCart = () => {
                             ))}
                           </SelectContent>
                         </Select>
+                        {supplierHasError ? (
+                          <p className="text-xs text-destructive">
+                            Supplier is required for this item.
+                          </p>
+                        ) : null}
                       </div>
                     ) : null}
                   </div>
@@ -356,22 +424,25 @@ const CreateOrderCart = () => {
 
         <Separator />
 
-        <div className="space-y-2 rounded-xl border border-border bg-card p-3">
-          <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-3 py-2 text-sm">
+          <div className="flex items-center gap-2">
             <span className="text-muted-foreground">Items</span>
-            <span className="font-semibold text-foreground">
-              {totals.totalItems}
-            </span>
+            <span className="font-semibold text-foreground">{totals.totalItems}</span>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Estimated total</span>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Est. total</span>
             <span className="font-semibold text-foreground">
               {Formatter.amount(totals.totalAmount)}
             </span>
           </div>
         </div>
 
-        <Button type="button" className="w-full" disabled={!entries.length}>
+        <Button
+          type="button"
+          className="w-full"
+          disabled={!entries.length}
+          onClick={handleReview}
+        >
           <ClipboardList className="h-4 w-4" />
           Review Order
         </Button>

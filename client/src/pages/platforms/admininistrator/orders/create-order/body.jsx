@@ -127,15 +127,15 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="font-medium text-foreground">
-                          {`${Stock.convertToBaseUnit(
-                            item?.currentStock || 0,
-                            item?.measurement,
-                          )} ${Stock.getUnit(item?.measurement)}`}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
+	                        <TableCell className="font-medium text-foreground">
+	                          {Stock.convertToBaseUnit(
+	                            item?.currentStock || 0,
+	                            item?.measurement,
+	                          )}
+	                        </TableCell>
+	                      </TableRow>
+	                    );
+	                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={2} className="py-14 text-center">
