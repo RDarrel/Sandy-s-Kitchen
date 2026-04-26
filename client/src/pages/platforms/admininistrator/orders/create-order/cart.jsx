@@ -230,7 +230,7 @@ const CreateOrderCart = () => {
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-3 pt-0">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-3 pt-0 pb-3">
         <div
           className={
             entries.length
@@ -280,9 +280,9 @@ const CreateOrderCart = () => {
                     </Button>
                   </div>
 
-                  <div className="mt-2 grid gap-3">
-                    <div className="grid grid-cols-[1fr_140px] items-end gap-3">
-                      <div className="space-y-1.5">
+                  <div className="mt-1.5 grid gap-2">
+                    <div className="grid grid-cols-[1fr_140px] items-end gap-2">
+                      <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">
                           Unit cost
                         </Label>
@@ -303,7 +303,7 @@ const CreateOrderCart = () => {
                         />
                       </div>
 
-                      <div className="space-y-1.5">
+                      <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">Qty</Label>
                         <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
                           <Button
@@ -436,30 +436,34 @@ const CreateOrderCart = () => {
           )}
         </div>
 
-        <Separator />
+        <div className="mt-auto space-y-3 pt-3">
+          <Separator />
 
-        <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-3 py-2 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Items</span>
-            <span className="font-semibold text-foreground">{totals.totalItems}</span>
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-3 py-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Items</span>
+              <span className="font-semibold text-foreground">
+                {totals.totalItems}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Est. total</span>
+              <span className="font-semibold text-foreground">
+                {Formatter.amount(totals.totalAmount)}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Est. total</span>
-            <span className="font-semibold text-foreground">
-              {Formatter.amount(totals.totalAmount)}
-            </span>
-          </div>
+
+          <Button
+            type="button"
+            className="w-full"
+            disabled={!entries.length}
+            onClick={handleReview}
+          >
+            <ClipboardList className="h-4 w-4" />
+            Review Order
+          </Button>
         </div>
-
-        <Button
-          type="button"
-          className="w-full"
-          disabled={!entries.length}
-          onClick={handleReview}
-        >
-          <ClipboardList className="h-4 w-4" />
-          Review Order
-        </Button>
       </CardContent>
     </>
   );

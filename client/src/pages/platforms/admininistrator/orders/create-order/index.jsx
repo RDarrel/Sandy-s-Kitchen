@@ -47,16 +47,16 @@ const CreateOrder = () => {
               </div>
             </div>
 
-            <Card className="border-border shadow-sm hidden lg:flex lg:flex-col lg:sticky lg:top-6 h-[calc(100dvh-6.25rem)] overflow-hidden">
-              <CreateOrderCart />
-            </Card>
+	            <Card className="border-border shadow-sm hidden lg:flex lg:flex-col lg:sticky lg:top-6 h-[calc(100dvh-6.25rem)] overflow-hidden gap-4">
+	              <CreateOrderCart />
+	            </Card>
           </div>
 
-          <div className="mt-6 lg:hidden">
-            <Card className="border-border shadow-sm">
-              <CreateOrderCart />
-            </Card>
-          </div>
+	          <div className="mt-6 lg:hidden">
+	            <Card className="border-border shadow-sm gap-4">
+	              <CreateOrderCart />
+	            </Card>
+	          </div>
         </div>
       </div>
     </>
