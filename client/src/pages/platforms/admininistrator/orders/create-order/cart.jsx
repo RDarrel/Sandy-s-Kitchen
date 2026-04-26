@@ -16,6 +16,7 @@ import {
   CartClear,
   CartRemove,
   SetSupplierMode,
+  SetReviewOpen,
   CartSetLineQuantity,
   CartSetLineUnitCost,
   CartSetLineSupplier,
@@ -25,6 +26,13 @@ import { ClipboardList, Minus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
+
+const measurementLabels = (measurement = "") => {
+  const normalized = String(measurement || "").toLowerCase();
+  if (normalized === "volume") return { unitCost: "Unit cost per Liter", qty: "Liters" };
+  if (normalized === "weight") return { unitCost: "Unit cost per Kg", qty: "Kg" };
+  return { unitCost: "Unit cost per Piece", qty: "Pieces" };
+};
 
 const CreateOrderCart = () => {
   const dispatch = useDispatch();
@@ -119,10 +127,7 @@ const CreateOrderCart = () => {
   }, [entries]);
 
   const totals = useMemo(() => {
-    const totalItems = entries.reduce(
-      (sum, entry) => sum + (entry?.line?.quantity || 0),
-      0,
-    );
+    const totalItems = entries.length;
     const totalAmount = entries.reduce((sum, entry) => {
       const effectiveUnitCost =
         entry?.line?.unitCost !== undefined
@@ -144,6 +149,7 @@ const CreateOrderCart = () => {
 
     if (supplierMode !== "different") {
       setSupplierErrorIds([]);
+      dispatch(SetReviewOpen(true));
       return;
     }
 
@@ -154,6 +160,7 @@ const CreateOrderCart = () => {
 
     if (!missing.length) {
       setSupplierErrorIds([]);
+      dispatch(SetReviewOpen(true));
       return;
     }
 
@@ -248,6 +255,9 @@ const CreateOrderCart = () => {
                 line?.unitCost !== undefined
                   ? Number(line.unitCost) || 0
                   : fallbackUnitCost;
+              const { unitCost: unitCostLabel, qty: qtyLabel } = measurementLabels(
+                item?.measurement,
+              );
               const lineSupplierId = String(line?.supplierId || "all");
               const quantityDraft =
                 quantityDraftById[inventoryId] ?? String(line?.quantity || 1);
@@ -284,16 +294,16 @@ const CreateOrderCart = () => {
                     </Button>
                   </div>
 
-                  <div className="mt-1.5 grid gap-2">
-                    <div className="grid grid-cols-[1fr_140px] items-end gap-2">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Unit cost
-                        </Label>
-                        <Input
-                          type="number"
-                          inputMode="decimal"
-                          min={0}
+	                  <div className=" grid gap-2">
+	                    <div className="grid grid-cols-[1fr_140px] items-end gap-2">
+	                      <div className="space-y-1">
+	                        <Label className="text-xs text-muted-foreground">
+	                          {unitCostLabel}
+	                        </Label>
+	                        <Input
+	                          type="number"
+	                          inputMode="decimal"
+	                          min={0}
                           step="0.01"
                           value={unitCost}
                           onChange={(event) =>
@@ -307,14 +317,14 @@ const CreateOrderCart = () => {
                         />
                       </div>
 
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          Qty
-                        </Label>
-                        <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
-                          <Button
-                            type="button"
-                            size="icon"
+	                      <div className="space-y-1">
+	                        <Label className="text-xs text-muted-foreground">
+	                          {qtyLabel}
+	                        </Label>
+	                        <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
+	                          <Button
+	                            type="button"
+	                            size="icon"
                             variant="ghost"
                             className="h-7 w-7 rounded-lg"
                             onClick={() => {

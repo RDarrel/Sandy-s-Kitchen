@@ -1,12 +1,13 @@
 import { BROWSE } from "@/services/redux/slices/inventory/inventoryItems";
 import { Card } from "@/components/ui/card";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CreateOrderBody from "./body";
 import CreateOrderHeader from "./header";
 import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/procurement/suppliers";
 import CreateOrderCart from "./cart";
 import { ArrowRight } from "lucide-react";
+import ReviewOrderModal from "./review-modal";
 
 const CreateOrder = () => {
   const { token } = useSelector(({ auth }) => auth),
@@ -14,6 +15,51 @@ const CreateOrder = () => {
     [type, setType] = useState("all"),
     [category, setCategory] = useState("all"),
     dispatch = useDispatch();
+
+  const { cart } = useSelector(({ purchases }) => purchases);
+  const { collections: suppliers = [] } = useSelector(({ suppliers }) => suppliers);
+  const { collections: inventoryCollections = [] } = useSelector(
+    ({ inventoryItems }) => inventoryItems,
+  );
+
+  const supplierOptions = useMemo(() => {
+    return (Array.isArray(suppliers) ? suppliers : [])
+      .map((supplier) => ({
+        id: String(supplier?._id || ""),
+        label: String(supplier?.name || "Supplier"),
+      }))
+      .filter((option) => option.id);
+  }, [suppliers]);
+
+  const inventoryById = useMemo(() => {
+    const map = new Map();
+    for (const item of Array.isArray(inventoryCollections)
+      ? inventoryCollections
+      : []) {
+      if (item?._id) map.set(String(item._id), item);
+    }
+    return map;
+  }, [inventoryCollections]);
+
+  const entries = useMemo(() => {
+    const lines = Array.isArray(cart?.lines) ? cart.lines : [];
+    return lines
+      .map((line) => ({
+        inventory: String(line?.inventory || ""),
+        supplierId: String(line?.supplierId || "all"),
+        unitCost: Number.isFinite(Number(line?.unitCost))
+          ? Number(line?.unitCost)
+          : undefined,
+        quantity: Math.max(0, Number(line?.quantity) || 0),
+      }))
+      .filter((line) => line.inventory && line.quantity > 0)
+      .map((line) => {
+        const item = inventoryById.get(line.inventory);
+        if (!item) return null;
+        return { line, item };
+      })
+      .filter(Boolean);
+  }, [cart, inventoryById]);
 
   useEffect(() => {
     if (token) {
@@ -57,10 +103,12 @@ const CreateOrder = () => {
 	              <CreateOrderCart />
 	            </Card>
 	          </div>
-        </div>
-      </div>
-    </>
-  );
+	        </div>
+	      </div>
+
+	      <ReviewOrderModal entries={entries} supplierOptions={supplierOptions} />
+	    </>
+	  );
 };
 
 export default CreateOrder;

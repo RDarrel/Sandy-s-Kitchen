@@ -18,7 +18,7 @@ const DialogOverlay = React.forwardRef((props, ref) => {
       ref={ref}
       className={cn(
         "fixed grid place-items-center inset-0 z-50 bg-black/80 overflow-y-auto",
-        className
+        className,
       )}
       {...rest}
     />
@@ -42,7 +42,7 @@ const DialogContent = React.forwardRef((props, ref) => {
               "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
               "sm:rounded-lg",
               "transition-all ease-out",
-              className
+              className,
             )}
             {...rest}
           >
@@ -63,7 +63,7 @@ const DialogHeader = ({ className, ...props }) => (
   <div
     className={cn(
       "flex flex-col space-y-1.5 text-center sm:text-left",
-      className
+      className,
     )}
     {...props}
   />
@@ -74,7 +74,7 @@ const DialogFooter = ({ className, ...props }) => (
   <div
     className={cn(
       "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
-      className
+      className,
     )}
     {...props}
   />
@@ -88,7 +88,7 @@ const DialogTitle = React.forwardRef((props, ref) => {
       ref={ref}
       className={cn(
         "text-lg font-semibold leading-none tracking-tight",
-        className
+        className,
       )}
       {...rest}
     />

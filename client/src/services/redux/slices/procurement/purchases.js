@@ -8,6 +8,10 @@ const initialState = {
   cartOpen: false,
   cart: { version: 1, lines: [] },
   supplierMode: "same", // "same" | "different"
+  reviewOpen: false,
+  reviewSameSupplierId: "all",
+  reviewSameExpectedDelivery: "",
+  reviewExpectedDeliveryBySupplier: {},
   formSubmitted: false,
   isSuccess: false,
   isLoading: false,
@@ -114,6 +118,43 @@ export const reduxSlice = createSlice({
     },
     SetCartOpen: (state, { payload }) => {
       state.cartOpen = Boolean(payload);
+    },
+    SetReviewOpen: (state, { payload }) => {
+      const nextOpen = Boolean(payload);
+      state.reviewOpen = nextOpen;
+
+      if (!nextOpen) return;
+
+      if (state.supplierMode === "same") {
+        state.reviewSameSupplierId = String(state.reviewSameSupplierId || "all") || "all";
+        state.reviewSameExpectedDelivery = String(state.reviewSameExpectedDelivery || "");
+        return;
+      }
+
+      const cart = normalizeCart(state.cart);
+      const lines = Array.isArray(cart?.lines) ? cart.lines : [];
+      const nextMap = { ...(state.reviewExpectedDeliveryBySupplier || {}) };
+      for (const line of lines) {
+        const supplierId = String(line?.supplierId || "all");
+        if (!supplierId || supplierId === "all") continue;
+        if (nextMap[supplierId] === undefined) nextMap[supplierId] = "";
+      }
+      state.reviewExpectedDeliveryBySupplier = nextMap;
+    },
+    ReviewSetSameSupplierId: (state, { payload }) => {
+      state.reviewSameSupplierId = String(payload || "all") || "all";
+    },
+    ReviewSetSameExpectedDelivery: (state, { payload }) => {
+      state.reviewSameExpectedDelivery = String(payload || "");
+    },
+    ReviewSetSupplierExpectedDelivery: (state, { payload }) => {
+      const supplierId = String(payload?.supplierId || "");
+      if (!supplierId) return;
+      const date = String(payload?.date || "");
+      state.reviewExpectedDeliveryBySupplier = {
+        ...(state.reviewExpectedDeliveryBySupplier || {}),
+        [supplierId]: date,
+      };
     },
     CartClear: (state) => {
       state.cart = { version: 1, lines: [] };
@@ -379,6 +420,10 @@ export const {
   UPDATE_AUTH,
   SetSupplierMode,
   SetCartOpen,
+  SetReviewOpen,
+  ReviewSetSameSupplierId,
+  ReviewSetSameExpectedDelivery,
+  ReviewSetSupplierExpectedDelivery,
   CartClear,
   CartAdd,
   CartSetLineUnitCost,
