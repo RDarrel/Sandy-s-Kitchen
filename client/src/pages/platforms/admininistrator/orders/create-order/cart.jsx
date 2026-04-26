@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -62,20 +61,20 @@ const CreateOrderCart = () => {
     const lines = Array.isArray(cart?.lines) ? cart.lines : [];
     return lines
       .map((line) => ({
-        inventoryId: String(line?.inventoryId || ""),
+        inventory: String(line?.inventory || ""),
         supplierId: String(line?.supplierId || "all"),
         unitCost: Number.isFinite(Number(line?.unitCost))
           ? Number(line?.unitCost)
           : undefined,
         quantity: Math.max(0, Number(line?.quantity) || 0),
       }))
-      .filter((line) => line.inventoryId && line.quantity > 0);
+      .filter((line) => line.inventory && line.quantity > 0);
   }, [cart]);
 
   const entries = useMemo(() => {
     return cartLines
       .map((line) => {
-        const item = inventoryById.get(line.inventoryId);
+        const item = inventoryById.get(line.inventory);
         if (!item) return null;
         return { line, item };
       })
@@ -84,13 +83,13 @@ const CreateOrderCart = () => {
 
   useEffect(() => {
     for (const entry of entries) {
-      const inventoryId = String(entry?.line?.inventoryId || "");
-      if (!inventoryId) continue;
+      const inventory = String(entry?.line?.inventory || "");
+      if (!inventory) continue;
       if (entry?.line?.unitCost !== undefined) continue;
 
       const fallback = Number(entry?.item?.cost);
       if (!Number.isFinite(fallback)) continue;
-      dispatch(CartSetLineUnitCost({ inventoryId, unitCost: fallback }));
+      dispatch(CartSetLineUnitCost({ inventory, unitCost: fallback }));
     }
   }, [dispatch, entries]);
 
@@ -100,12 +99,12 @@ const CreateOrderCart = () => {
       const activeIds = new Set();
 
       for (const entry of entries) {
-        const inventoryId = String(entry?.line?.inventoryId || "");
-        if (!inventoryId) continue;
-        activeIds.add(inventoryId);
+        const inventory = String(entry?.line?.inventory || "");
+        if (!inventory) continue;
+        activeIds.add(inventory);
 
-        if (next[inventoryId] === undefined) {
-          next[inventoryId] = String(entry?.line?.quantity || 1);
+        if (next[inventory] === undefined) {
+          next[inventory] = String(entry?.line?.quantity || 1);
         }
       }
 
@@ -156,11 +155,11 @@ const CreateOrderCart = () => {
       return;
     }
 
-    const missingIds = missing.map(({ line }) => String(line?.inventoryId || ""));
+    const missingIds = missing.map(({ line }) => String(line?.inventory || ""));
     setSupplierErrorIds(missingIds);
 
     const firstMissing = missing[0];
-    const firstInventoryId = String(firstMissing?.line?.inventoryId || "");
+    const firstInventoryId = String(firstMissing?.line?.inventory || "");
     const firstItemName = String(firstMissing?.item?.name || "item");
 
     toast.error(`Select a supplier for "${firstItemName}".`);
@@ -201,17 +200,32 @@ const CreateOrderCart = () => {
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={supplierMode === "same"}
-              onCheckedChange={(next) =>
-                dispatch(SetSupplierMode(next ? "same" : "different"))
-              }
-              aria-label="Same supplier for all items"
-            />
-            <p className="text-xs font-medium text-foreground">
-              Same supplier for all
-            </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <div>
+              <p className="text-xs font-medium text-foreground">
+                One supplier for the whole order?
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={supplierMode === "same" ? "default" : "outline"}
+                className="h-8 rounded-xl px-4 text-xs"
+                onClick={() => dispatch(SetSupplierMode("same"))}
+              >
+                Yes
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={supplierMode !== "same" ? "default" : "outline"}
+                className="h-8 rounded-xl px-4 text-xs"
+                onClick={() => dispatch(SetSupplierMode("different"))}
+              >
+                No
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -226,7 +240,7 @@ const CreateOrderCart = () => {
         >
           {entries.length ? (
             entries.map(({ item, line }) => {
-              const inventoryId = String(line.inventoryId);
+              const inventoryId = String(line.inventory);
               const fallbackUnitCost = Number(item?.cost) || 0;
               const unitCost =
                 line?.unitCost !== undefined ? Number(line.unitCost) || 0 : fallbackUnitCost;
@@ -281,7 +295,7 @@ const CreateOrderCart = () => {
                           onChange={(event) =>
                             dispatch(
                               CartSetLineUnitCost({
-                                inventoryId,
+                                inventory: inventoryId,
                                 unitCost: Number(event.target.value || 0),
                               }),
                             )
@@ -332,7 +346,7 @@ const CreateOrderCart = () => {
 
                               dispatch(
                                 CartSetLineQuantity({
-                                  inventoryId,
+                                  inventory: inventoryId,
                                   quantity: nextQty,
                                 }),
                               );
@@ -375,7 +389,7 @@ const CreateOrderCart = () => {
                             );
                             dispatch(
                               CartSetLineSupplier({
-                                inventoryId,
+                                inventory: inventoryId,
                                 supplierId: value || "all",
                               }),
                             );

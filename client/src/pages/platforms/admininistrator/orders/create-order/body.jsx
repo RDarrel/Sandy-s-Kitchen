@@ -9,7 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CartAdd, CartRemove } from "@/services/redux/slices/procurement/purchases";
+import {
+  CartAdd,
+  CartRemove,
+} from "@/services/redux/slices/procurement/purchases";
 import { Stock, globalSearch } from "@/services/utilities";
 import { capitalize, isEmpty } from "lodash";
 import { useMemo } from "react";
@@ -25,7 +28,7 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
   const cartIds = useMemo(() => {
     const ids = new Set();
     for (const line of Array.isArray(cart?.lines) ? cart.lines : []) {
-      const id = String(line?.inventoryId || "");
+      const id = String(line?.inventory || "");
       if (id) ids.add(id);
     }
     return ids;
@@ -48,17 +51,16 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
     return globalSearch(byCategory, keyword.toUpperCase());
   }, [collections, search, type, category]);
 
-  const addToCart = (inventoryId, unitCost) =>
+  const addToCart = (inventory, unitCost) =>
     dispatch(
       CartAdd({
-        inventoryId: String(inventoryId),
+        inventory: String(inventory),
         quantity: 1,
         unitCost,
       }),
     );
 
-  const removeFromCart = (inventoryId) =>
-    dispatch(CartRemove(String(inventoryId)));
+  const removeFromCart = (inventory) => dispatch(CartRemove(String(inventory)));
 
   const toggleCart = (item, nextChecked) => {
     const id = String(item?._id || "");
@@ -89,7 +91,6 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
                   filtered.map((item) => {
                     const id = String(item?._id || "");
                     const inCart = id ? cartIds.has(id) : false;
-                    const cost = Number(item?.cost) || 0;
 
                     return (
                       <TableRow
@@ -118,24 +119,25 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
                             />
 
                             <div className="space-y-1">
-                            <p className="font-semibold text-foreground">
-                              {capitalize(item?.name || "")}
-                            </p>
-                            <p className="max-w-xs text-xs leading-5 text-muted-foreground">
-                              {item?.description || "No description provided."}
-                            </p>
+                              <p className="font-semibold text-foreground">
+                                {capitalize(item?.name || "")}
+                              </p>
+                              <p className="max-w-xs text-xs leading-5 text-muted-foreground">
+                                {item?.description ||
+                                  "No description provided."}
+                              </p>
                             </div>
                           </div>
                         </TableCell>
-	                        <TableCell className="font-medium text-foreground">
-	                          {Stock.convertToBaseUnit(
-	                            item?.currentStock || 0,
-	                            item?.measurement,
-	                          )}
-	                        </TableCell>
-	                      </TableRow>
-	                    );
-	                  })
+                        <TableCell className="font-medium text-foreground">
+                          {Stock.convertToBaseUnit(
+                            item?.currentStock || 0,
+                            item?.measurement,
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={2} className="py-14 text-center">

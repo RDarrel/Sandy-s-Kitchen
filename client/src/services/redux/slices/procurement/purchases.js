@@ -20,7 +20,7 @@ const normalizeCart = (cart) => {
     version: 1,
     lines: lines
       .map((line) => ({
-        inventoryId: String(line?.inventoryId || ""),
+        inventory: String(line?.inventory || line?.inventoryId || ""),
         supplierId: String(line?.supplierId || "all"),
         unitCost: Number.isFinite(Number(line?.unitCost))
           ? Number(line?.unitCost)
@@ -29,7 +29,7 @@ const normalizeCart = (cart) => {
         addedAt: Number(line?.addedAt) || Date.now(),
         updatedAt: Number(line?.updatedAt) || Date.now(),
       }))
-      .filter((line) => line.inventoryId && line.quantity > 0),
+      .filter((line) => line.inventory && line.quantity > 0),
   };
 };
 
@@ -119,8 +119,8 @@ export const reduxSlice = createSlice({
       state.cart = { version: 1, lines: [] };
     },
     CartAdd: (state, { payload }) => {
-      const inventoryId = String(payload?.inventoryId || "");
-      if (!inventoryId) return;
+      const inventory = String(payload?.inventory || payload?.inventoryId || "");
+      if (!inventory) return;
 
       const nextQuantity = Math.max(1, Number(payload?.quantity) || 1);
       const incomingSupplierId = String(payload?.supplierId || "");
@@ -134,7 +134,7 @@ export const reduxSlice = createSlice({
         : undefined;
       const cart = normalizeCart(state.cart);
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventoryId === inventoryId);
+      const index = lines.findIndex((line) => line.inventory === inventory);
       const stamp = Date.now();
 
       if (index > -1) {
@@ -154,7 +154,7 @@ export const reduxSlice = createSlice({
         version: 1,
         lines: [
           {
-            inventoryId,
+            inventory,
             supplierId,
             unitCost,
             quantity: nextQuantity,
@@ -166,14 +166,14 @@ export const reduxSlice = createSlice({
       };
     },
     CartSetLineUnitCost: (state, { payload }) => {
-      const inventoryId = String(payload?.inventoryId || "");
-      if (!inventoryId) return;
+      const inventory = String(payload?.inventory || payload?.inventoryId || "");
+      if (!inventory) return;
       const unitCost = Number(payload?.unitCost);
       if (!Number.isFinite(unitCost)) return;
 
       const cart = normalizeCart(state.cart);
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventoryId === inventoryId);
+      const index = lines.findIndex((line) => line.inventory === inventory);
       if (index < 0) return;
 
       lines[index] = {
@@ -184,33 +184,33 @@ export const reduxSlice = createSlice({
       state.cart = { version: 1, lines };
     },
     CartSetLineSupplier: (state, { payload }) => {
-      const inventoryId = String(payload?.inventoryId || "");
-      if (!inventoryId) return;
+      const inventory = String(payload?.inventory || payload?.inventoryId || "");
+      if (!inventory) return;
       const supplierId = String(payload?.supplierId || "all") || "all";
 
       const cart = normalizeCart(state.cart);
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventoryId === inventoryId);
+      const index = lines.findIndex((line) => line.inventory === inventory);
       if (index < 0) return;
 
       lines[index] = { ...lines[index], supplierId, updatedAt: Date.now() };
       state.cart = { version: 1, lines };
     },
     CartRemove: (state, { payload }) => {
-      const inventoryId = String(payload || "");
-      if (!inventoryId) return;
+      const inventory = String(payload || "");
+      if (!inventory) return;
       const cart = normalizeCart(state.cart);
       state.cart = {
         version: 1,
-        lines: (cart.lines || []).filter((line) => line.inventoryId !== inventoryId),
+        lines: (cart.lines || []).filter((line) => line.inventory !== inventory),
       };
     },
     CartIncrement: (state, { payload }) => {
-      const inventoryId = String(payload || "");
-      if (!inventoryId) return;
+      const inventory = String(payload || "");
+      if (!inventory) return;
       const cart = normalizeCart(state.cart);
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventoryId === inventoryId);
+      const index = lines.findIndex((line) => line.inventory === inventory);
       if (index < 0) return;
       lines[index] = {
         ...lines[index],
@@ -220,17 +220,17 @@ export const reduxSlice = createSlice({
       state.cart = { version: 1, lines };
     },
     CartDecrement: (state, { payload }) => {
-      const inventoryId = String(payload || "");
-      if (!inventoryId) return;
+      const inventory = String(payload || "");
+      if (!inventory) return;
       const cart = normalizeCart(state.cart);
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventoryId === inventoryId);
+      const index = lines.findIndex((line) => line.inventory === inventory);
       if (index < 0) return;
       const nextQty = (lines[index].quantity || 0) - 1;
       if (nextQty <= 0) {
         state.cart = {
           version: 1,
-          lines: lines.filter((line) => line.inventoryId !== inventoryId),
+          lines: lines.filter((line) => line.inventory !== inventory),
         };
         return;
       }
@@ -238,21 +238,21 @@ export const reduxSlice = createSlice({
       state.cart = { version: 1, lines };
     },
     CartSetLineQuantity: (state, { payload }) => {
-      const inventoryId = String(payload?.inventoryId || "");
-      if (!inventoryId) return;
+      const inventory = String(payload?.inventory || payload?.inventoryId || "");
+      if (!inventory) return;
       const quantity = Number(payload?.quantity);
       if (!Number.isFinite(quantity)) return;
 
       const cart = normalizeCart(state.cart);
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventoryId === inventoryId);
+      const index = lines.findIndex((line) => line.inventory === inventory);
       if (index < 0) return;
 
       const nextQty = Math.floor(Math.max(0, quantity));
       if (nextQty <= 0) {
         state.cart = {
           version: 1,
-          lines: lines.filter((line) => line.inventoryId !== inventoryId),
+          lines: lines.filter((line) => line.inventory !== inventory),
         };
         return;
       }
