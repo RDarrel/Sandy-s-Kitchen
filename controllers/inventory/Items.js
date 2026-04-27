@@ -16,8 +16,8 @@ exports.browse = async (req, res) => {
     const items = await Item.find({
       $or: [{ deletedAt: { $exists: false } }, { deletedAt: null }],
     })
-      .sort({ createdAt: -1 })
-      .lean();
+      .populate("suppliers.supplier")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: "Inventory items Fetched Successfully",
@@ -33,7 +33,7 @@ exports.update = async (req, res) => {
     const { _id } = req.body;
     const item = await Item.findByIdAndUpdate(_id, req.body, {
       new: true,
-    }).lean();
+    }).populate("suppliers.supplier");
 
     res.status(200).json({
       success: "Inventory item updated Successfully",

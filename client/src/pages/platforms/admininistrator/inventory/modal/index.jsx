@@ -36,8 +36,8 @@ const INITIAL_FORM = {
   category: "other",
   minStock: "",
   measurement: "weight",
-  cost: "",
   description: "",
+  suppliers: [],
 };
 
 const unitMap = {
@@ -58,7 +58,6 @@ const InventoryModal = () => {
   const { token } = useSelector(({ auth }) => auth);
   const { showModal, willCreate, formSubmitted, selected, collections } =
     useSelector(({ inventoryItems }) => inventoryItems);
-  const { collections: suppliers } = useSelector(({ suppliers }) => suppliers);
   const [form, setForm] = useState(INITIAL_FORM);
   const dispatch = useDispatch();
 
@@ -154,8 +153,8 @@ const InventoryModal = () => {
       return;
     }
 
-    if (!form.cost || Number(form.cost) <= 0) {
-      toast.error("Please enter a valid cost.");
+    if (!form?.suppliers?.length) {
+      toast.error("Please tag at least one supplier.");
       return;
     }
 
@@ -167,7 +166,7 @@ const InventoryModal = () => {
   };
   return (
     <Dialog open={showModal} onOpenChange={toggle}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto border-border bg-card sm:max-w-3xl">
+      <DialogContent className="border-border bg-card sm:max-w-3xl">
         <DialogHeader className="gap-2">
           <DialogTitle className="text-2xl text-foreground">
             {willCreate ? "Create" : "Update"} Inventory Item
@@ -293,11 +292,17 @@ const InventoryModal = () => {
                   <Input
                     required
                     type="number"
-                    min="0"
+                    min="1"
                     step="1"
-                    value={form.minStock}
+                    value={String(form?.stock?.min || "")}
                     onChange={(event) =>
-                      handleChange("minStock", event.target.value)
+                      setForm((prev) => ({
+                        ...prev,
+                        stock: {
+                          ...prev.stock,
+                          min: Number(event.target.value),
+                        },
+                      }))
                     }
                     placeholder={getCostPlaceholder()}
                   />
@@ -321,7 +326,7 @@ const InventoryModal = () => {
               />
             </div>
 
-            <div>
+            <div className="md:col-span-12">
               <Suppliers form={form} setForm={setForm} />
             </div>
           </div>

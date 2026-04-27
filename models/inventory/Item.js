@@ -58,24 +58,30 @@ const modelSchema = new mongoose.Schema(
           type: Number,
           required: true,
         },
-        isDefault: {
+        isPrimary: {
           type: Boolean,
           default: false,
         },
       },
     ],
-    //per kg, L, pcs cost
-    cost: {
-      type: Number,
-      required: true,
-    },
 
+    stock: {
+      min: {
+        type: Number,
+        default: 0,
+      },
+      current: {
+        type: Number,
+        default: 0,
+      },
+      used: {
+        type: Number,
+        default: 0,
+      },
+    },
     baseUnit: {
       type: String,
       enum: ["g", "ml", "pcs"],
-    },
-    currentStock: {
-      type: Number,
     },
 
     description: {
@@ -89,9 +95,20 @@ const modelSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
 
+modelSchema.virtual("supplier").get(function () {
+  const primary = this.suppliers?.find((item) => item.isPrimary);
+  return primary?.supplier || null;
+});
+
+modelSchema.virtual("cost").get(function () {
+  const primary = this.suppliers?.find((item) => item.isPrimary);
+  return primary?.cost || 0;
+});
 // 🔥 CREATE / SAVE middleware
 modelSchema.pre("save", function (next) {
   this.baseUnit = baseUnitMap[this.measurement];

@@ -60,8 +60,6 @@ const InventoryBody = ({
                 <TableHeader className="bg-muted/70">
                   <TableRow>
                     <TableHead>Item</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Measurement</TableHead>
                     <TableHead>Cost</TableHead>
                     <TableHead>Stock</TableHead>
                     <TableHead>Status</TableHead>
@@ -89,9 +87,23 @@ const InventoryBody = ({
                             </div>
                           </TableCell>
 
-                          <TableCell>{capitalize(item.category)}</TableCell>
-                          <TableCell>{capitalize(item.measurement)}</TableCell>
-                          <TableCell>{`${Formatter.amount(item.cost)} / ${Stock.getUnit(item.measurement)}`}</TableCell>
+                          <TableCell>
+                            <p className="font-medium text-foreground">{`${Formatter.amount(item.cost)} / ${Stock.getUnit(item.measurement)}`}</p>
+                            {item?.supplier ? (
+                              <p className="text-xs text-muted-foreground">
+                                From {item.supplier.name}
+                                {item?.suppliers?.length > 1 && (
+                                  <span className="ml-1">
+                                    (+{item.suppliers.length - 1} more)
+                                  </span>
+                                )}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-muted-foreground">
+                                No supplier
+                              </p>
+                            )}
+                          </TableCell>
                           <TableCell className="font-medium text-foreground">
                             {Stock.convertToBaseUnit(
                               item?.currentStock || 0,
