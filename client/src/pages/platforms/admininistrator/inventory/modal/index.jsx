@@ -33,9 +33,16 @@ const INITIAL_FORM = {
   name: "",
   type: "ingredient",
   category: "other",
+  minStock: "",
   measurement: "weight",
   cost: "",
   description: "",
+};
+
+const unitMap = {
+  weight: "kg",
+  volume: "liter",
+  pieces: "pcs",
 };
 
 const normalizeName = (value = "") =>
@@ -96,7 +103,7 @@ const InventoryModal = () => {
   const { token } = useSelector(({ auth }) => auth);
   const { showModal, willCreate, formSubmitted, selected, collections } =
     useSelector(({ inventoryItems }) => inventoryItems);
-
+  const { collections: suppliers } = useSelector(({ suppliers }) => suppliers);
   const [form, setForm] = useState(INITIAL_FORM);
   const dispatch = useDispatch();
 
@@ -125,27 +132,11 @@ const InventoryModal = () => {
   };
 
   const getCostLabel = () => {
-    switch (form.measurement) {
-      case "weight":
-        return "Cost per kg";
-      case "volume":
-        return "Cost per liter";
-      case "pieces":
-      default:
-        return "Cost per piece";
-    }
+    return `Minimum Stock (${unitMap[form.measurement]})`;
   };
 
   const getCostPlaceholder = () => {
-    switch (form.measurement) {
-      case "weight":
-        return "Enter cost per kg";
-      case "volume":
-        return "Enter cost per liter";
-      case "pieces":
-      default:
-        return "Enter cost per piece";
-    }
+    return `Enter minimum stock (${unitMap[form.measurement]})`;
   };
 
   const hasDuplicateName = isExistingInventoryName(
@@ -219,7 +210,6 @@ const InventoryModal = () => {
       handleUpdate();
     }
   };
-  console.log("form.category", form.category);
   return (
     <Dialog open={showModal} onOpenChange={toggle}>
       <DialogContent className="max-h-[92vh] overflow-y-auto border-border bg-card sm:max-w-3xl">
@@ -349,10 +339,10 @@ const InventoryModal = () => {
                     required
                     type="number"
                     min="0"
-                    step="0.01"
-                    value={form.cost}
+                    step="1"
+                    value={form.minStock}
                     onChange={(event) =>
-                      handleChange("cost", event.target.value)
+                      handleChange("minStock", event.target.value)
                     }
                     placeholder={getCostPlaceholder()}
                   />

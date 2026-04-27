@@ -79,15 +79,16 @@ const access = [
     icon: Package,
     children: [
       {
+        name: "Stock Requests",
+        path: "/stock-requests",
+        component: CreateOrder,
+      },
+      {
         name: "Create Order",
         path: "/create-order",
         component: CreateOrder,
       },
-      {
-        name: "Requests",
-        path: "/requests",
-        component: CreateOrder,
-      },
+
       {
         name: "Order List",
         path: "/order-list",
