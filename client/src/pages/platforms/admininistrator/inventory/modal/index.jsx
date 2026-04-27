@@ -18,7 +18,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { categoryOptions, measurementOptions, typeOptions } from "../config";
-import { AlertCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   SAVE,
@@ -28,6 +27,8 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
+import { isExistingInventoryName, NameWarning } from "./utils";
+import Suppliers from "./suppliers";
 
 const INITIAL_FORM = {
   name: "",
@@ -43,52 +44,6 @@ const unitMap = {
   weight: "kg",
   volume: "liter",
   pieces: "pcs",
-};
-
-const normalizeName = (value = "") =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "")
-    .trim();
-
-const NameWarning = ({ name = "", selectedId, collections = [] }) => {
-  const normalizedName = normalizeName(name);
-
-  if (!normalizedName) {
-    return null;
-  }
-
-  const existingItem = collections.find(
-    (item) =>
-      normalizeName(item.name) === normalizedName && item._id !== selectedId,
-  );
-
-  if (!existingItem) {
-    return null;
-  }
-
-  return (
-    <div className="flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-      <p>
-        "{name.trim()}" already exists. Please use a different inventory item
-        name.
-      </p>
-    </div>
-  );
-};
-
-const isExistingInventoryName = (collections = [], name = "", selectedId) => {
-  const normalizedName = normalizeName(name);
-
-  if (!normalizedName) {
-    return false;
-  }
-
-  return collections.some(
-    (item) =>
-      normalizeName(item.name) === normalizedName && item._id !== selectedId,
-  );
 };
 
 const FormField = ({ label, content, error = "" }) => (
@@ -364,6 +319,10 @@ const InventoryModal = () => {
                   />
                 }
               />
+            </div>
+
+            <div>
+              <Suppliers form={form} setForm={setForm} />
             </div>
           </div>
 

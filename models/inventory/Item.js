@@ -48,6 +48,22 @@ const modelSchema = new mongoose.Schema(
       enum: ["weight", "volume", "pieces"],
       required: true,
     },
+    suppliers: [
+      {
+        supplier: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Supplier",
+        },
+        cost: {
+          type: Number,
+          required: true,
+        },
+        isDefault: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    ],
     //per kg, L, pcs cost
     cost: {
       type: Number,
