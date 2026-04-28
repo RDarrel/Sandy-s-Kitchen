@@ -47,8 +47,7 @@ const CreateOrder = () => {
       .map((line) => ({
         inventory: String(line?.inventory || ""),
         supplier: String(line?.supplier || "all"),
-        unitCost: Number.isFinite(Number(line?.unitCost))
-          ? Number(line?.unitCost)
+        cost: Number.isFinite(Number(line?.cost)) ? Number(line?.cost)
           : undefined,
         quantity: Math.max(0, Number(line?.quantity) || 0),
       }))

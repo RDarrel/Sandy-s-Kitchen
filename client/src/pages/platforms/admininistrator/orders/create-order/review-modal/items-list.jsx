@@ -6,7 +6,7 @@ const ReviewOrderItemsList = ({ rows = [] }) => {
   return (
     <div className="space-y-2">
       {safeRows.map(({ item, line }) => {
-        const unitCost = Number(line?.unitCost ?? item?.cost) || 0;
+        const unitCost = Number(line?.cost ?? item?.cost) || 0;
         const qty = Number(line?.quantity) || 0;
         const key = String(line?.inventory || item?._id || "");
 
@@ -34,4 +34,3 @@ const ReviewOrderItemsList = ({ rows = [] }) => {
 };
 
 export default ReviewOrderItemsList;
-

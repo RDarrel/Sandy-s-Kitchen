@@ -62,8 +62,8 @@ const CreateOrderCart = () => {
       .map((line) => ({
         inventory: String(line?.inventory || ""),
         supplier: String(line?.supplier || "all"),
-        unitCost: Number.isFinite(Number(line?.unitCost))
-          ? Number(line?.unitCost)
+        cost: Number.isFinite(Number(line?.cost))
+          ? Number(line?.cost)
           : undefined,
         quantity: Math.max(0, Number(line?.quantity) || 0),
       }))
@@ -84,11 +84,11 @@ const CreateOrderCart = () => {
     for (const entry of entries) {
       const inventory = String(entry?.line?.inventory || "");
       if (!inventory) continue;
-      if (entry?.line?.unitCost !== undefined) continue;
+      if (entry?.line?.cost !== undefined) continue;
 
       const fallback = Number(entry?.item?.cost);
       if (!Number.isFinite(fallback)) continue;
-      dispatch(CartSetLineUnitCost({ inventory, unitCost: fallback }));
+      dispatch(CartSetLineUnitCost({ inventory, cost: fallback }));
     }
   }, [dispatch, entries]);
 
@@ -119,8 +119,7 @@ const CreateOrderCart = () => {
     const totalItems = entries.length;
     const totalAmount = entries.reduce((sum, entry) => {
       const effectiveUnitCost =
-        entry?.line?.unitCost !== undefined
-          ? Number(entry?.line?.unitCost) || 0
+        entry?.line?.cost !== undefined ? Number(entry?.line?.cost) || 0
           : Number(entry?.item?.cost) || 0;
       return sum + effectiveUnitCost * (entry?.line?.quantity || 0);
     }, 0);
@@ -199,12 +198,11 @@ const CreateOrderCart = () => {
               const inventoryId = String(line.inventory);
               const fallbackUnitCost = Number(item?.cost) || 0;
               const unitCost =
-                line?.unitCost !== undefined
-                  ? Number(line.unitCost) || 0
+                line?.cost !== undefined ? Number(line.cost) || 0
                   : fallbackUnitCost;
               const { unitCost: unitCostLabel, qty: qtyLabel } =
                 measurementLabels(item?.measurement);
-              const lineSupplierId = String(line?.supplier || "all");
+              const lineSupplierId = String(line?.supplier);
               const quantityDraft =
                 quantityDraftById[inventoryId] ?? String(line?.quantity || 1);
               const supplierHasError =
@@ -270,7 +268,7 @@ const CreateOrderCart = () => {
                             dispatch(
                               CartSetLineUnitCost({
                                 inventory: inventoryId,
-                                unitCost: Number(event.target.value || 0),
+                                cost: Number(event.target.value || 0),
                               }),
                             )
                           }

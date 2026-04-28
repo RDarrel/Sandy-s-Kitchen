@@ -53,7 +53,7 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
   const totals = useMemo(() => {
     const totalItems = Array.isArray(entries) ? entries.length : 0;
     const totalAmount = (Array.isArray(entries) ? entries : []).reduce((sum, entry) => {
-      const unitCost = Number(entry?.line?.unitCost ?? entry?.item?.cost) || 0;
+      const unitCost = Number(entry?.line?.cost ?? entry?.item?.cost) || 0;
       return sum + unitCost * (entry?.line?.quantity || 0);
     }, 0);
     return { totalItems, totalAmount };
@@ -70,7 +70,7 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
       .filter(([supplierId]) => supplierId && supplierId !== "all")
       .map(([supplierId, rows]) => {
         const totalAmount = rows.reduce((sum, row) => {
-          const unitCost = Number(row?.line?.unitCost ?? row?.item?.cost) || 0;
+          const unitCost = Number(row?.line?.cost ?? row?.item?.cost) || 0;
           return sum + unitCost * (row?.line?.quantity || 0);
         }, 0);
         const totalItems = rows.length;
@@ -94,7 +94,7 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
       const lines = entries.map(({ item, line }) => {
         const inventory = String(line?.inventory || "");
         const quantity = Number(line?.quantity) || 0;
-        const unitCost = Number(line?.unitCost ?? item?.cost) || 0;
+        const unitCost = Number(line?.cost ?? item?.cost) || 0;
         return {
           inventory,
           quantity,
@@ -148,7 +148,7 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
     const lines = entries.map(({ item, line }) => {
       const inventory = String(line?.inventory || "");
       const quantity = Number(line?.quantity) || 0;
-      const unitCost = Number(line?.unitCost ?? item?.cost) || 0;
+      const unitCost = Number(line?.cost ?? item?.cost) || 0;
       const supplierId = String(line?.supplier || "all");
       return {
         inventory,

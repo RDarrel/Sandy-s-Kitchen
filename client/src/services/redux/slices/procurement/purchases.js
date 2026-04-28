@@ -27,8 +27,9 @@ const normalizeCart = (cart) => {
         inventory: String(line?.inventory || line?.inventoryId || ""),
         // Canonical field is `supplier`; keep backward compatibility with `supplierId`.
         supplier: String(line?.supplier || line?.supplierId || "all"),
-        unitCost: Number.isFinite(Number(line?.unitCost))
-          ? Number(line?.unitCost)
+        // Canonical field is `cost`; keep backward compatibility with `unitCost`.
+        cost: Number.isFinite(Number(line?.cost ?? line?.unitCost))
+          ? Number(line?.cost ?? line?.unitCost)
           : undefined,
         quantity: Math.max(0, Number(line?.quantity) || 0),
         addedAt: Number(line?.addedAt) || Date.now(),
@@ -172,9 +173,8 @@ export const reduxSlice = createSlice({
         payload?.supplier || payload?.supplierId || "",
       );
       const supplier = incomingSupplier;
-      const incomingUnitCost = Number(payload?.unitCost);
-      const unitCost = Number.isFinite(incomingUnitCost)
-        ? Math.max(0, incomingUnitCost)
+      const incomingCost = Number(payload?.cost ?? payload?.unitCost);
+      const cost = Number.isFinite(incomingCost) ? Math.max(0, incomingCost)
         : undefined;
       const cart = normalizeCart(state.cart);
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
@@ -186,10 +186,7 @@ export const reduxSlice = createSlice({
           ...lines[index],
           quantity: (lines[index].quantity || 0) + nextQuantity,
           supplier: lines[index].supplier || supplier,
-          unitCost:
-            lines[index].unitCost !== undefined
-              ? lines[index].unitCost
-              : unitCost,
+          cost: lines[index].cost !== undefined ? lines[index].cost : cost,
           updatedAt: stamp,
         };
         state.cart = { version: 1, lines };
@@ -202,7 +199,7 @@ export const reduxSlice = createSlice({
           {
             inventory,
             supplier,
-            unitCost,
+            cost,
             quantity: nextQuantity,
             addedAt: stamp,
             updatedAt: stamp,
@@ -216,8 +213,8 @@ export const reduxSlice = createSlice({
         payload?.inventory || payload?.inventoryId || "",
       );
       if (!inventory) return;
-      const unitCost = Number(payload?.unitCost);
-      if (!Number.isFinite(unitCost)) return;
+      const cost = Number(payload?.cost ?? payload?.unitCost);
+      if (!Number.isFinite(cost)) return;
 
       const cart = normalizeCart(state.cart);
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
@@ -226,7 +223,7 @@ export const reduxSlice = createSlice({
 
       lines[index] = {
         ...lines[index],
-        unitCost: Math.max(0, unitCost),
+        cost: Math.max(0, cost),
         updatedAt: Date.now(),
       };
       state.cart = { version: 1, lines };
@@ -236,8 +233,7 @@ export const reduxSlice = createSlice({
         payload?.inventory || payload?.inventoryId || "",
       );
       if (!inventory) return;
-      const supplier =
-        String(payload?.supplier || payload?.supplierId || "all") || "all";
+      const supplier = String(payload?.supplier);
 
       const cart = normalizeCart(state.cart);
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
@@ -248,7 +244,6 @@ export const reduxSlice = createSlice({
         ...lines[index],
         supplier,
         updatedAt: Date.now(),
-        cost: Number(payload?.cost),
       };
       state.cart = { version: 1, lines };
     },

@@ -51,12 +51,12 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
     return globalSearch(byCategory, keyword.toUpperCase());
   }, [collections, search, type, category]);
 
-  const addToCart = (inventory, unitCost, supplier) => {
+  const addToCart = (inventory, cost, supplier) => {
     dispatch(
       CartAdd({
         inventory: String(inventory),
         quantity: 1,
-        unitCost,
+        cost,
         supplier: String(supplier),
       }),
     );
