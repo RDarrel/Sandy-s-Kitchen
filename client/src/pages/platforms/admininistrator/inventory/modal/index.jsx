@@ -37,6 +37,9 @@ const INITIAL_FORM = {
   minStock: "",
   measurement: "weight",
   description: "",
+  stock: {
+    min: "",
+  },
   suppliers: [],
 };
 
@@ -44,6 +47,21 @@ const unitMap = {
   weight: "kg",
   volume: "liter",
   pieces: "pcs",
+};
+
+const sanitizeInteger = (value) => String(value ?? "").replace(/[^\d]/g, "");
+
+const sanitizeDecimal = (value, maxDecimals = 2) => {
+  const raw = String(value ?? "");
+  const cleaned = raw.replace(/[^\d.]/g, "");
+  const firstDot = cleaned.indexOf(".");
+  if (firstDot === -1) return cleaned;
+  const whole = cleaned.slice(0, firstDot);
+  const decimals = cleaned
+    .slice(firstDot + 1)
+    .replace(/\./g, "")
+    .slice(0, maxDecimals);
+  return `${whole}.${decimals}`;
 };
 
 const FormField = ({ label, content, error = "" }) => (
@@ -60,6 +78,7 @@ const InventoryModal = () => {
     useSelector(({ inventoryItems }) => inventoryItems);
   const [form, setForm] = useState(INITIAL_FORM);
   const dispatch = useDispatch();
+  const isPieces = String(form?.measurement || "") === "pieces";
 
   const toggle = () => dispatch(TOGGLE());
 
@@ -70,6 +89,14 @@ const InventoryModal = () => {
           ...INITIAL_FORM,
           ...selected,
           cost: selected?.cost ?? "",
+          stock: {
+            ...(selected?.stock || {}),
+            // Keep as string while editing so users can type "1." then "1.5".
+            min:
+              selected?.stock?.min === 0
+                ? "0"
+                : String(selected?.stock?.min ?? ""),
+          },
         });
       } else {
         console.log("running useEffect");
@@ -100,11 +127,17 @@ const InventoryModal = () => {
   );
 
   const handleSave = () => {
+    const stockMinRaw = form?.stock?.min ?? "";
+    const stockMinNumber = stockMinRaw === "" ? undefined : Number(stockMinRaw);
     dispatch(
       SAVE({
         data: {
           ...form,
           cost: Number(form.cost),
+          stock: {
+            ...(form?.stock || {}),
+            min: stockMinNumber,
+          },
         },
         token,
       }),
@@ -123,11 +156,17 @@ const InventoryModal = () => {
   };
 
   const handleUpdate = () => {
+    const stockMinRaw = form?.stock?.min ?? "";
+    const stockMinNumber = stockMinRaw === "" ? undefined : Number(stockMinRaw);
     dispatch(
       UPDATE({
         data: {
           ...form,
           cost: Number(form.cost),
+          stock: {
+            ...(form?.stock || {}),
+            min: stockMinNumber,
+          },
         },
         token,
       }),
@@ -263,9 +302,16 @@ const InventoryModal = () => {
                 content={
                   <Select
                     value={form.measurement}
-                    onValueChange={(value) =>
-                      handleChange("measurement", value)
-                    }
+                    onValueChange={(value) => {
+                      setForm((prev) => ({
+                        ...prev,
+                        measurement: value,
+                        stock: {
+                          ...prev.stock,
+                          min: "",
+                        },
+                      }));
+                    }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select measurement" />
@@ -291,19 +337,55 @@ const InventoryModal = () => {
                 content={
                   <Input
                     required
-                    type="number"
+                    type="text"
+                    inputMode={isPieces ? "numeric" : "decimal"}
+                    pattern={isPieces ? "[0-9]*" : undefined}
+                    autoComplete="off"
                     min="1"
-                    step="1"
-                    value={String(form?.stock?.min || "")}
-                    onChange={(event) =>
+                    value={String(form?.stock?.min ?? "")}
+                    onBeforeInput={(event) => {
+                      if (!isPieces) return;
+                      const data = event.data ?? "";
+                      // Blocks ".", "," and any non-digit before it ever shows up.
+                      if (data && /\D/.test(data)) event.preventDefault();
+                    }}
+                    onKeyDown={(event) => {
+                      if (!isPieces) return;
+                      if (
+                        event.key === "." ||
+                        event.key === "," ||
+                        event.key === "e" ||
+                        event.key === "E"
+                      ) {
+                        event.preventDefault();
+                      }
+                    }}
+                    onPaste={(event) => {
+                      const text = event.clipboardData?.getData("text") ?? "";
+                      const next = isPieces
+                        ? sanitizeInteger(text)
+                        : sanitizeDecimal(text);
+                      event.preventDefault();
                       setForm((prev) => ({
                         ...prev,
                         stock: {
                           ...prev.stock,
-                          min: Number(event.target.value),
+                          min: next,
                         },
-                      }))
-                    }
+                      }));
+                    }}
+                    onChange={(event) => {
+                      const next = isPieces
+                        ? sanitizeInteger(event.target.value)
+                        : sanitizeDecimal(event.target.value);
+                      setForm((prev) => ({
+                        ...prev,
+                        stock: {
+                          ...prev.stock,
+                          min: next,
+                        },
+                      }));
+                    }}
                     placeholder={getCostPlaceholder()}
                   />
                 }
