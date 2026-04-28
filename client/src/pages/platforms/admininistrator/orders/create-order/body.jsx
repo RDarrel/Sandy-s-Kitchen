@@ -51,14 +51,16 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
     return globalSearch(byCategory, keyword.toUpperCase());
   }, [collections, search, type, category]);
 
-  const addToCart = (inventory, unitCost) =>
+  const addToCart = (inventory, unitCost, supplier) => {
     dispatch(
       CartAdd({
         inventory: String(inventory),
         quantity: 1,
         unitCost,
+        supplier: String(supplier),
       }),
     );
+  };
 
   const removeFromCart = (inventory) => dispatch(CartRemove(String(inventory)));
 
@@ -70,7 +72,8 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
     const shouldBeChecked =
       typeof nextChecked === "boolean" ? nextChecked : !currentlyInCart;
 
-    if (shouldBeChecked) addToCart(id, Number(item?.cost) || 0);
+    if (shouldBeChecked)
+      addToCart(id, Number(item?.cost) || 0, item?.supplier?._id);
     else removeFromCart(id);
   };
 

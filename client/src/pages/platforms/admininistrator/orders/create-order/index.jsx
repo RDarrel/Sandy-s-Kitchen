@@ -46,7 +46,7 @@ const CreateOrder = () => {
     return lines
       .map((line) => ({
         inventory: String(line?.inventory || ""),
-        supplierId: String(line?.supplierId || "all"),
+        supplier: String(line?.supplier || "all"),
         unitCost: Number.isFinite(Number(line?.unitCost))
           ? Number(line?.unitCost)
           : undefined,

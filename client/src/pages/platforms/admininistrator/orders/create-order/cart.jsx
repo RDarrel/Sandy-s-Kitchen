@@ -15,7 +15,6 @@ import {
   CartIncrement,
   CartClear,
   CartRemove,
-  SetSupplierMode,
   SetReviewOpen,
   CartSetLineQuantity,
   CartSetLineUnitCost,
@@ -29,17 +28,16 @@ import { toast } from "sonner";
 
 const measurementLabels = (measurement = "") => {
   const normalized = String(measurement || "").toLowerCase();
-  if (normalized === "volume") return { unitCost: "Unit cost per Liter", qty: "Liters" };
-  if (normalized === "weight") return { unitCost: "Unit cost per Kg", qty: "Kg" };
+  if (normalized === "volume")
+    return { unitCost: "Unit cost per Liter", qty: "Liters" };
+  if (normalized === "weight")
+    return { unitCost: "Unit cost per Kg", qty: "Kg" };
   return { unitCost: "Unit cost per Piece", qty: "Pieces" };
 };
 
 const CreateOrderCart = () => {
   const dispatch = useDispatch();
-  const { cart, supplierMode } = useSelector(({ purchases }) => purchases);
-  const { collections: suppliers = [] } = useSelector(
-    ({ suppliers }) => suppliers,
-  );
+  const { cart } = useSelector(({ purchases }) => purchases);
   const { collections: inventoryCollections = [] } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
@@ -47,15 +45,6 @@ const CreateOrderCart = () => {
   const [quantityDraftById, setQuantityDraftById] = useState({});
   const [supplierErrorIds, setSupplierErrorIds] = useState([]);
   const entryRefById = useRef({});
-
-  const supplierOptions = useMemo(() => {
-    return (Array.isArray(suppliers) ? suppliers : [])
-      .map((supplier) => ({
-        id: String(supplier?._id || ""),
-        label: String(supplier?.name || "Supplier"),
-      }))
-      .filter((option) => option.id);
-  }, [suppliers]);
 
   const inventoryById = useMemo(() => {
     const map = new Map();
@@ -72,7 +61,7 @@ const CreateOrderCart = () => {
     return lines
       .map((line) => ({
         inventory: String(line?.inventory || ""),
-        supplierId: String(line?.supplierId || "all"),
+        supplier: String(line?.supplier || "all"),
         unitCost: Number.isFinite(Number(line?.unitCost))
           ? Number(line?.unitCost)
           : undefined,
@@ -138,24 +127,12 @@ const CreateOrderCart = () => {
     return { totalItems, totalAmount };
   }, [entries]);
 
-  useEffect(() => {
-    if (supplierMode !== "different") {
-      setSupplierErrorIds([]);
-    }
-  }, [supplierMode]);
-
   const handleReview = () => {
     if (!entries.length) return;
 
-    if (supplierMode !== "different") {
-      setSupplierErrorIds([]);
-      dispatch(SetReviewOpen(true));
-      return;
-    }
-
     const missing = entries.filter(({ line }) => {
-      const supplierId = String(line?.supplierId || "all");
-      return !supplierId || supplierId === "all";
+      const supplier = String(line?.supplier || "all");
+      return !supplier || supplier === "all";
     });
 
     if (!missing.length) {
@@ -207,36 +184,6 @@ const CreateOrderCart = () => {
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-            <div>
-              <p className="text-xs font-medium text-foreground">
-                One supplier for the whole order?
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant={supplierMode === "same" ? "default" : "outline"}
-                className="h-8 rounded-xl px-4 text-xs"
-                onClick={() => dispatch(SetSupplierMode("same"))}
-              >
-                Yes
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={supplierMode !== "same" ? "default" : "outline"}
-                className="h-8 rounded-xl px-4 text-xs"
-                onClick={() => dispatch(SetSupplierMode("different"))}
-              >
-                No
-              </Button>
-            </div>
-          </div>
-        </div>
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col gap-1 pt-0 ">
@@ -255,16 +202,29 @@ const CreateOrderCart = () => {
                 line?.unitCost !== undefined
                   ? Number(line.unitCost) || 0
                   : fallbackUnitCost;
-              const { unitCost: unitCostLabel, qty: qtyLabel } = measurementLabels(
-                item?.measurement,
-              );
-              const lineSupplierId = String(line?.supplierId || "all");
+              const { unitCost: unitCostLabel, qty: qtyLabel } =
+                measurementLabels(item?.measurement);
+              const lineSupplierId = String(line?.supplier || "all");
               const quantityDraft =
                 quantityDraftById[inventoryId] ?? String(line?.quantity || 1);
               const supplierHasError =
-                supplierMode === "different" &&
                 supplierErrorIds.includes(inventoryId) &&
                 (lineSupplierId === "all" || !lineSupplierId);
+
+              const supplierOptions = (
+                Array.isArray(item?.suppliers) ? item.suppliers : []
+              )
+                .map((row) => ({
+                  id: String(row?.supplier?._id || ""),
+                  label: String(row?.supplier?.name || ""),
+                  cost: row.cost,
+                  isPrimary: Boolean(row?.isPrimary),
+                }))
+                .filter((opt) => opt.id);
+
+              supplierOptions.sort(
+                (a, b) => Number(b.isPrimary) - Number(a.isPrimary),
+              );
 
               return (
                 <div
@@ -294,16 +254,16 @@ const CreateOrderCart = () => {
                     </Button>
                   </div>
 
-	                  <div className=" grid gap-2">
-	                    <div className="grid grid-cols-[1fr_140px] items-end gap-2">
-	                      <div className="space-y-1">
-	                        <Label className="text-xs text-muted-foreground">
-	                          {unitCostLabel}
-	                        </Label>
-	                        <Input
-	                          type="number"
-	                          inputMode="decimal"
-	                          min={0}
+                  <div className=" grid gap-2">
+                    <div className="grid grid-cols-[1fr_140px] items-end gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          {unitCostLabel}
+                        </Label>
+                        <Input
+                          type="number"
+                          inputMode="decimal"
+                          min={0}
                           step="0.01"
                           value={unitCost}
                           onChange={(event) =>
@@ -317,14 +277,14 @@ const CreateOrderCart = () => {
                         />
                       </div>
 
-	                      <div className="space-y-1">
-	                        <Label className="text-xs text-muted-foreground">
-	                          {qtyLabel}
-	                        </Label>
-	                        <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
-	                          <Button
-	                            type="button"
-	                            size="icon"
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          {qtyLabel}
+                        </Label>
+                        <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
+                          <Button
+                            type="button"
+                            size="icon"
                             variant="ghost"
                             className="h-7 w-7 rounded-lg"
                             onClick={() => {
@@ -399,48 +359,66 @@ const CreateOrderCart = () => {
                       </div>
                     </div>
 
-                    {supplierMode === "different" ? (
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">
-                          Supplier
-                        </Label>
-                        <Select
-                          value={lineSupplierId}
-                          onValueChange={(value) => {
-                            setSupplierErrorIds((current) =>
-                              current.filter((id) => id !== inventoryId),
-                            );
-                            dispatch(
-                              CartSetLineSupplier({
-                                inventory: inventoryId,
-                                supplierId: value || "all",
-                              }),
-                            );
-                          }}
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">
+                        Supplier
+                      </Label>
+                      <Select
+                        value={lineSupplierId}
+                        onValueChange={(value) => {
+                          setSupplierErrorIds((current) =>
+                            current.filter((id) => id !== inventoryId),
+                          );
+                          dispatch(
+                            CartSetLineSupplier({
+                              inventory: inventoryId,
+                              supplier: value || "all",
+                              cost: supplierOptions.find(
+                                (option) => option.id === value,
+                              )?.cost,
+                            }),
+                          );
+                        }}
+                      >
+                        <SelectTrigger
+                          className="h-9 w-full"
+                          data-supplier-trigger
+                          aria-invalid={supplierHasError ? "true" : "false"}
                         >
-                          <SelectTrigger
-                            className="h-9 w-full"
-                            data-supplier-trigger
-                            aria-invalid={supplierHasError ? "true" : "false"}
-                          >
-                            <SelectValue placeholder="Select supplier" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Select supplier</SelectItem>
-                            {supplierOptions.map((option) => (
-                              <SelectItem key={option.id} value={option.id}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {supplierHasError ? (
-                          <p className="text-xs text-destructive">
-                            Supplier is required for this item.
-                          </p>
-                        ) : null}
-                      </div>
-                    ) : null}
+                          <SelectValue placeholder="Select supplier" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Select supplier</SelectItem>
+                          {supplierOptions.map((option) => (
+                            <SelectItem key={option.id} value={option.id}>
+                              <span
+                                className={
+                                  option.isPrimary
+                                    ? "font-semibold text-primary"
+                                    : "text-foreground"
+                                }
+                              >
+                                {option.label || "Supplier"}
+                              </span>
+                              <span className="text-muted-foreground">
+                                {" "}
+                                ({Formatter.amount(option.cost)})
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {supplierHasError ? (
+                        <p className="text-xs text-destructive">
+                          Supplier is required for this item.
+                        </p>
+                      ) : null}
+                      {!supplierOptions.length ? (
+                        <p className="text-xs text-muted-foreground">
+                          No suppliers tagged for this item.
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               );

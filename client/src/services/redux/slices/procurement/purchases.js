@@ -25,7 +25,8 @@ const normalizeCart = (cart) => {
     lines: lines
       .map((line) => ({
         inventory: String(line?.inventory || line?.inventoryId || ""),
-        supplierId: String(line?.supplierId || "all"),
+        // Canonical field is `supplier`; keep backward compatibility with `supplierId`.
+        supplier: String(line?.supplier || line?.supplierId || "all"),
         unitCost: Number.isFinite(Number(line?.unitCost))
           ? Number(line?.unitCost)
           : undefined,
@@ -52,7 +53,7 @@ export const BROWSE = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
@@ -111,7 +112,7 @@ export const reduxSlice = createSlice({
         version: 1,
         lines: lines.map((line) => ({
           ...line,
-          supplierId: "all",
+          supplier: "all",
           updatedAt: stamp,
         })),
       };
@@ -126,8 +127,11 @@ export const reduxSlice = createSlice({
       if (!nextOpen) return;
 
       if (state.supplierMode === "same") {
-        state.reviewSameSupplierId = String(state.reviewSameSupplierId || "all") || "all";
-        state.reviewSameExpectedDelivery = String(state.reviewSameExpectedDelivery || "");
+        state.reviewSameSupplierId =
+          String(state.reviewSameSupplierId || "all") || "all";
+        state.reviewSameExpectedDelivery = String(
+          state.reviewSameExpectedDelivery || "",
+        );
         return;
       }
 
@@ -135,7 +139,7 @@ export const reduxSlice = createSlice({
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
       const nextMap = { ...(state.reviewExpectedDeliveryBySupplier || {}) };
       for (const line of lines) {
-        const supplierId = String(line?.supplierId || "all");
+        const supplierId = String(line?.supplier || "all");
         if (!supplierId || supplierId === "all") continue;
         if (nextMap[supplierId] === undefined) nextMap[supplierId] = "";
       }
@@ -160,15 +164,14 @@ export const reduxSlice = createSlice({
       state.cart = { version: 1, lines: [] };
     },
     CartAdd: (state, { payload }) => {
-      const inventory = String(payload?.inventory || payload?.inventoryId || "");
+      const inventory = String(payload?.inventory);
       if (!inventory) return;
 
       const nextQuantity = Math.max(1, Number(payload?.quantity) || 1);
-      const incomingSupplierId = String(payload?.supplierId || "");
-      const supplierId =
-        state.supplierMode === "same"
-          ? "all"
-          : incomingSupplierId || "all";
+      const incomingSupplier = String(
+        payload?.supplier || payload?.supplierId || "",
+      );
+      const supplier = incomingSupplier;
       const incomingUnitCost = Number(payload?.unitCost);
       const unitCost = Number.isFinite(incomingUnitCost)
         ? Math.max(0, incomingUnitCost)
@@ -182,9 +185,11 @@ export const reduxSlice = createSlice({
         lines[index] = {
           ...lines[index],
           quantity: (lines[index].quantity || 0) + nextQuantity,
-          supplierId: lines[index].supplierId || supplierId,
+          supplier: lines[index].supplier || supplier,
           unitCost:
-            lines[index].unitCost !== undefined ? lines[index].unitCost : unitCost,
+            lines[index].unitCost !== undefined
+              ? lines[index].unitCost
+              : unitCost,
           updatedAt: stamp,
         };
         state.cart = { version: 1, lines };
@@ -196,7 +201,7 @@ export const reduxSlice = createSlice({
         lines: [
           {
             inventory,
-            supplierId,
+            supplier,
             unitCost,
             quantity: nextQuantity,
             addedAt: stamp,
@@ -207,7 +212,9 @@ export const reduxSlice = createSlice({
       };
     },
     CartSetLineUnitCost: (state, { payload }) => {
-      const inventory = String(payload?.inventory || payload?.inventoryId || "");
+      const inventory = String(
+        payload?.inventory || payload?.inventoryId || "",
+      );
       if (!inventory) return;
       const unitCost = Number(payload?.unitCost);
       if (!Number.isFinite(unitCost)) return;
@@ -225,16 +232,24 @@ export const reduxSlice = createSlice({
       state.cart = { version: 1, lines };
     },
     CartSetLineSupplier: (state, { payload }) => {
-      const inventory = String(payload?.inventory || payload?.inventoryId || "");
+      const inventory = String(
+        payload?.inventory || payload?.inventoryId || "",
+      );
       if (!inventory) return;
-      const supplierId = String(payload?.supplierId || "all") || "all";
+      const supplier =
+        String(payload?.supplier || payload?.supplierId || "all") || "all";
 
       const cart = normalizeCart(state.cart);
       const lines = Array.isArray(cart?.lines) ? cart.lines : [];
       const index = lines.findIndex((line) => line.inventory === inventory);
       if (index < 0) return;
 
-      lines[index] = { ...lines[index], supplierId, updatedAt: Date.now() };
+      lines[index] = {
+        ...lines[index],
+        supplier,
+        updatedAt: Date.now(),
+        cost: Number(payload?.cost),
+      };
       state.cart = { version: 1, lines };
     },
     CartRemove: (state, { payload }) => {
@@ -243,7 +258,9 @@ export const reduxSlice = createSlice({
       const cart = normalizeCart(state.cart);
       state.cart = {
         version: 1,
-        lines: (cart.lines || []).filter((line) => line.inventory !== inventory),
+        lines: (cart.lines || []).filter(
+          (line) => line.inventory !== inventory,
+        ),
       };
     },
     CartIncrement: (state, { payload }) => {
@@ -275,11 +292,17 @@ export const reduxSlice = createSlice({
         };
         return;
       }
-      lines[index] = { ...lines[index], quantity: nextQty, updatedAt: Date.now() };
+      lines[index] = {
+        ...lines[index],
+        quantity: nextQty,
+        updatedAt: Date.now(),
+      };
       state.cart = { version: 1, lines };
     },
     CartSetLineQuantity: (state, { payload }) => {
-      const inventory = String(payload?.inventory || payload?.inventoryId || "");
+      const inventory = String(
+        payload?.inventory || payload?.inventoryId || "",
+      );
       if (!inventory) return;
       const quantity = Number(payload?.quantity);
       if (!Number.isFinite(quantity)) return;
@@ -298,7 +321,11 @@ export const reduxSlice = createSlice({
         return;
       }
 
-      lines[index] = { ...lines[index], quantity: nextQty, updatedAt: Date.now() };
+      lines[index] = {
+        ...lines[index],
+        quantity: nextQty,
+        updatedAt: Date.now(),
+      };
       state.cart = { version: 1, lines };
     },
     UPDATE_AUTH: (state, data) => {
@@ -372,7 +399,7 @@ export const reduxSlice = createSlice({
         const { success, payload } = action.payload;
         const { purchase, updatingRequest = false } = payload;
         const index = state.collections.findIndex(
-          ({ _id: id }) => id === purchase?._id
+          ({ _id: id }) => id === purchase?._id,
         );
         if (updatingRequest) {
           state.collections[index] = purchase;

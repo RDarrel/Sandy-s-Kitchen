@@ -62,7 +62,7 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
   const groups = useMemo(() => {
     const map = new Map();
     for (const entry of Array.isArray(entries) ? entries : []) {
-      const supplierId = String(entry?.line?.supplierId || "all");
+      const supplierId = String(entry?.line?.supplier || "all");
       if (!map.has(supplierId)) map.set(supplierId, []);
       map.get(supplierId).push(entry);
     }
@@ -99,6 +99,7 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
           inventory,
           quantity,
           unitCost,
+          // Backend expects supplierId; cart line key is `supplier`.
           supplierId: reviewSameSupplierId,
           supplierName: supplierLabelById.get(reviewSameSupplierId) || "Supplier",
           expectedDelivery: reviewSameExpectedDelivery,
@@ -148,7 +149,7 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
       const inventory = String(line?.inventory || "");
       const quantity = Number(line?.quantity) || 0;
       const unitCost = Number(line?.unitCost ?? item?.cost) || 0;
-      const supplierId = String(line?.supplierId || "all");
+      const supplierId = String(line?.supplier || "all");
       return {
         inventory,
         quantity,
@@ -332,4 +333,3 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
 };
 
 export default ReviewOrderModal;
-
