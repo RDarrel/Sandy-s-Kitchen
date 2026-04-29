@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -17,8 +17,8 @@ import {
   SetReviewOpen,
 } from "@/services/redux/slices/procurement/purchases";
 import { Formatter } from "@/services/utilities";
-import { ClipboardList, Minus, Plus, Trash2 } from "lucide-react";
-import { useMemo } from "react";
+import { ClipboardList, Minus, Plus, Search, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const measurementLabels = (measurement = "") => {
@@ -33,6 +33,7 @@ const measurementLabels = (measurement = "") => {
 const CreateOrderCart = () => {
   const dispatch = useDispatch();
   const { cart } = useSelector(({ purchases }) => purchases);
+  const [search, setSearch] = useState("");
 
   const totals = useMemo(() => {
     let totalItems = 0;
@@ -43,6 +44,18 @@ const CreateOrderCart = () => {
     return { totalItems: cart.length, totalAmount };
   }, [cart]);
 
+  const filteredCart = useMemo(() => {
+    const query = String(search || "")
+      .trim()
+      .toLowerCase();
+    if (!query) return Array.isArray(cart) ? cart : [];
+
+    return (Array.isArray(cart) ? cart : []).filter((item) => {
+      const name = String(item?.inventory?.name || "").toLowerCase();
+      return name.includes(query);
+    });
+  }, [cart, search]);
+
   const handleReview = () => {
     if (!cart.length) return;
 
@@ -51,26 +64,38 @@ const CreateOrderCart = () => {
 
   return (
     <>
-      <CardHeader className="space-y-1 ">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <CardTitle className="text-lg">Order Details</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Assign supplier per item, then adjust quantities.
-            </p>
-          </div>
+      <CardHeader className="w-full space-y-1">
+        <div className="min-w-0">
+          <CardTitle className="text-lg">Order Details</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Assign supplier per item, then adjust quantities.
+          </p>
+        </div>
 
+        <CardAction>
           <Button
             type="button"
             size="icon"
             variant="ghost"
-            className="h-9 w-9 rounded-xl"
+            className="h-9 w-9 rounded-xl text-destructive hover:text-destructive"
             disabled={!cart.length}
             onClick={() => dispatch(CartClear())}
             title="Clear selected items"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+        </CardAction>
+
+        <div className="col-span-2">
+          <div className="relative mt-1.5 w-full">
+            <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search item..."
+              className="h-8 w-full pl-9"
+            />
+          </div>
         </div>
       </CardHeader>
 
@@ -82,16 +107,22 @@ const CreateOrderCart = () => {
               : "min-h-0 flex-1 overflow-auto pr-1"
           }
         >
-          {cart.length ? (
-            cart.map((item, index) => {
-              const { inventory, quantity, supplier, cost: unitCost } =
-                item || {};
+          {filteredCart.length ? (
+            filteredCart.map((item, index) => {
+              const {
+                inventory,
+                quantity,
+                supplier,
+                cost: unitCost,
+              } = item || {};
               const { suppliers } = inventory || {};
               const inventoryId = String(inventory?._id);
               const { unitCost: unitCostLabel, qty: qtyLabel } =
                 measurementLabels(inventory?.measurement);
 
-              const supplierOptions = (Array.isArray(suppliers) ? suppliers : [])
+              const supplierOptions = (
+                Array.isArray(suppliers) ? suppliers : []
+              )
                 .map((row) => ({
                   id: String(row?.supplier?._id || ""),
                   label: String(row?.supplier?.name || ""),
@@ -224,8 +255,7 @@ const CreateOrderCart = () => {
                           Subtotal{" "}
                           <span className="font-semibold text-foreground">
                             {Formatter.amount(
-                              (Number(quantity) || 0) *
-                                (Number(unitCost) || 0),
+                              (Number(quantity) || 0) * (Number(unitCost) || 0),
                             )}
                           </span>
                         </p>
@@ -244,7 +274,10 @@ const CreateOrderCart = () => {
                           );
                         }}
                       >
-                        <SelectTrigger className="h-9 w-full" data-supplier-trigger>
+                        <SelectTrigger
+                          className="h-9 w-full"
+                          data-supplier-trigger
+                        >
                           <SelectValue placeholder="Select supplier" />
                         </SelectTrigger>
                         <SelectContent>
@@ -271,19 +304,32 @@ const CreateOrderCart = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    </div>
                   </div>
-                );
-              })
+                </div>
+              );
+            })
           ) : (
             <div className="flex h-full w-full items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 p-10 text-center">
               <div className="space-y-2">
-                <p className="text-sm font-semibold text-foreground">
-                  No selected items yet
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Click any row in the list to select items for ordering.
-                </p>
+                {cart.length && String(search || "").trim() ? (
+                  <>
+                    <p className="text-sm font-semibold text-foreground">
+                      No matching items
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Try a different keyword.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-foreground">
+                      No selected items yet
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Click any row in the list to select items for ordering.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           )}
