@@ -196,11 +196,11 @@ const ReviewOrderModal = ({ entries = [] }) => {
                         <PopoverTrigger asChild>
                           <Button
                             id="date"
-                            variant={"outline"}
-                            className={cn(
-                              "w-[300px] justify-start text-left font-normal",
-                            )}
-                          >
+                              variant={"outline"}
+                              className={cn(
+                                "w-full justify-start text-left font-normal sm:w-[300px]",
+                              )}
+                            >
                             <CalendarIcon />
                             {deliveryWindow?.from ? (
                               deliveryWindow?.to ? (

@@ -14,8 +14,7 @@ const ReviewOrderItemsList = ({ rows = [] }) => {
             className="flex items-center justify-between gap-3 text-sm"
           >
             <div className="flex items-center gap-3 min-w-0">
-              {/* 🔥 QTY Badge */}
-              <div className="flex gap-[0.8px] h-8 min-w-[36px] flex-col items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <div className="flex gap-[0.8px] px-1 h-8 min-w-[36px] flex-col items-center justify-center rounded-md bg-primary text-primary-foreground">
                 <span className="text-[10px] leading-none opacity-80">KG</span>
                 <span className="text-sm font-semibold leading-none">
                   {qty}
@@ -28,7 +27,7 @@ const ReviewOrderItemsList = ({ rows = [] }) => {
                   {inventory?.name || "Item"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {Formatter.amount(unitCost)} each
+                  {Formatter.amount(unitCost)} / kg
                 </p>
               </div>
             </div>
