@@ -33,13 +33,7 @@ const ReviewOrderModal = ({ entries = [] }) => {
   const { cart } = useSelector(({ purchases }) => purchases);
   const [formattedCart, setFormattedCart] = useState([]);
 
-  const {
-    reviewOpen,
-    supplierMode,
-    reviewSameSupplierId,
-    reviewSameExpectedDelivery,
-    reviewExpectedDeliveryBySupplier,
-  } = useSelector(({ purchases }) => purchases);
+  const { reviewOpen } = useSelector(({ purchases }) => purchases);
 
   const supplierLabelById = useMemo(() => {
     const map = new Map();
@@ -106,10 +100,13 @@ const ReviewOrderModal = ({ entries = [] }) => {
         groupsMap.set(key, {
           supplier: key,
           items: [],
-          deliveryWindow: {
-            from: formatDate(item?.deliveryWindow?.from) || defaultWindow.from,
-            to: formatDate(item?.deliveryWindow?.to) || defaultWindow.to,
-          },
+          ...(!Object.values(item?.deliveryWindow || {})?.length && {
+            deliveryWindow: {
+              from:
+                formatDate(item?.deliveryWindow?.from) || defaultWindow.from,
+              to: formatDate(item?.deliveryWindow?.to) || defaultWindow.to,
+            },
+          }),
         });
       }
 
@@ -187,7 +184,7 @@ const ReviewOrderModal = ({ entries = [] }) => {
 
                     <div className="w-full space-y-1 sm:w-80">
                       <Label className="text-xs text-muted-foreground">
-                        Expected delivery
+                        Expected delivery date
                       </Label>
 
                       <Popover>
@@ -210,7 +207,7 @@ const ReviewOrderModal = ({ entries = [] }) => {
                                 <>{Formatter.date(deliveryWindow.from)}</>
                               )
                             ) : (
-                              <span>Pick a date</span>
+                              <span>Pick a date range</span>
                             )}
                           </Button>
                         </PopoverTrigger>
@@ -287,7 +284,7 @@ const ReviewOrderModal = ({ entries = [] }) => {
             Cancel
           </Button>
           <Button type="button" onClick={placeOrder}>
-            Place order
+            Place Order
           </Button>
         </DialogFooter>
       </DialogContent>

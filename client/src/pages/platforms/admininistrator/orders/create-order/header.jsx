@@ -53,7 +53,7 @@ const CreateOrderHeader = ({
       <div>
         <CardTitle className="text-2xl text-foreground">Create Order</CardTitle>
         <CardDescription>
-          Select inventory items to add to your purchase cart.
+          Select items to add to your order cart.
         </CardDescription>
       </div>
 
@@ -63,7 +63,7 @@ const CreateOrderHeader = ({
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search inventory item..."
+            placeholder="Search items..."
             className="pl-9"
             type="search"
           />

@@ -20,6 +20,7 @@ import format from "./format";
 import mobile from "./mobile";
 import capitalize from "./capitalize";
 import Stock from "./stock";
+import Inventory from "./inventory";
 const ENDPOINT = "http://localhost:5000";
 const ENCRYPTION_KEY = "601b422c2548c7598feff2332a8e6eee9";
 //use this to if the system is deployed
@@ -35,6 +36,7 @@ const PresetImage = (gender) => {
 export {
   ENCRYPTION_KEY,
   Stock,
+  Inventory,
   Formatter,
   capitalize,
   ENDPOINT,

@@ -117,7 +117,7 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
                           No inventory items found
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Try another keyword to show matching records.
+                          Try a different search term.
                         </p>
                       </div>
                     </TableCell>

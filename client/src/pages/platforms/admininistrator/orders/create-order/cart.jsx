@@ -1,5 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -16,7 +21,7 @@ import {
   CartUpdate,
   SetReviewOpen,
 } from "@/services/redux/slices/procurement/purchases";
-import { Formatter } from "@/services/utilities";
+import { Formatter, Inventory } from "@/services/utilities";
 import { ClipboardList, Minus, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -68,7 +73,7 @@ const CreateOrderCart = () => {
         <div className="min-w-0">
           <CardTitle className="text-lg">Order Details</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Assign supplier per item, then adjust quantities.
+            Review each item, then set the supplier, unit cost, and quantity.
           </p>
         </div>
 
@@ -92,7 +97,7 @@ const CreateOrderCart = () => {
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search item..."
+              placeholder="Search items..."
               className="h-8 w-full pl-9"
             />
           </div>
@@ -117,8 +122,9 @@ const CreateOrderCart = () => {
               } = item || {};
               const { suppliers } = inventory || {};
               const inventoryId = String(inventory?._id);
-              const { unitCost: unitCostLabel, qty: qtyLabel } =
-                measurementLabels(inventory?.measurement);
+              const { unitCost: unitCostLabel } = measurementLabels(
+                inventory?.measurement,
+              );
 
               const supplierOptions = (
                 Array.isArray(suppliers) ? suppliers : []
@@ -183,7 +189,10 @@ const CreateOrderCart = () => {
 
                       <div className="space-y-1 text-center">
                         <Label className="text-xs text-muted-foreground ">
-                          {qtyLabel}
+                          {Inventory.getUnitByMeasurement(
+                            inventory?.measurement,
+                            false,
+                          )}
                         </Label>
                         <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
                           <Button

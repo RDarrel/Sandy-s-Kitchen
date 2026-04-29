@@ -1,4 +1,4 @@
-import { Formatter } from "@/services/utilities";
+import { Formatter, Inventory } from "@/services/utilities";
 
 const ReviewOrderItemsList = ({ rows = [] }) => {
   const safeRows = Array.isArray(rows) ? rows : [];
@@ -7,6 +7,8 @@ const ReviewOrderItemsList = ({ rows = [] }) => {
     <div className="space-y-2">
       {safeRows.map((item, idx) => {
         const { cost: unitCost, quantity: qty, inventory } = item;
+        const unit =
+          Inventory.getUnitByMeasurement(inventory?.measurement) || "";
 
         return (
           <div
@@ -15,7 +17,9 @@ const ReviewOrderItemsList = ({ rows = [] }) => {
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className="flex gap-[0.8px] px-1 h-8 min-w-[36px] flex-col items-center justify-center rounded-md bg-primary text-primary-foreground">
-                <span className="text-[10px] leading-none opacity-80">KG</span>
+                <span className="text-[10px] leading-none opacity-70">
+                  {unit?.toUpperCase()}
+                </span>
                 <span className="text-sm font-semibold leading-none">
                   {qty}
                 </span>
@@ -27,7 +31,7 @@ const ReviewOrderItemsList = ({ rows = [] }) => {
                   {inventory?.name || "Item"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {Formatter.amount(unitCost)} / kg
+                  {Formatter.amount(unitCost)} / {unit}
                 </p>
               </div>
             </div>
