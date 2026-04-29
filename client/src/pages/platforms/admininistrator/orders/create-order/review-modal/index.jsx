@@ -44,18 +44,24 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
 
   const supplierLabelById = useMemo(() => {
     const map = new Map();
-    for (const option of Array.isArray(supplierOptions) ? supplierOptions : []) {
-      if (option?.id) map.set(String(option.id), String(option.label || "Supplier"));
+    for (const option of Array.isArray(supplierOptions)
+      ? supplierOptions
+      : []) {
+      if (option?.id)
+        map.set(String(option.id), String(option.label || "Supplier"));
     }
     return map;
   }, [supplierOptions]);
 
   const totals = useMemo(() => {
     const totalItems = Array.isArray(entries) ? entries.length : 0;
-    const totalAmount = (Array.isArray(entries) ? entries : []).reduce((sum, entry) => {
-      const unitCost = Number(entry?.line?.cost ?? entry?.item?.cost) || 0;
-      return sum + unitCost * (entry?.line?.quantity || 0);
-    }, 0);
+    const totalAmount = (Array.isArray(entries) ? entries : []).reduce(
+      (sum, entry) => {
+        const unitCost = Number(entry?.line?.cost ?? entry?.item?.cost) || 0;
+        return sum + unitCost * (entry?.line?.quantity || 0);
+      },
+      0,
+    );
     return { totalItems, totalAmount };
   }, [entries]);
 
@@ -101,7 +107,8 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
           unitCost,
           // Backend expects supplierId; cart line key is `supplier`.
           supplierId: reviewSameSupplierId,
-          supplierName: supplierLabelById.get(reviewSameSupplierId) || "Supplier",
+          supplierName:
+            supplierLabelById.get(reviewSameSupplierId) || "Supplier",
           expectedDelivery: reviewSameExpectedDelivery,
         };
       });
@@ -115,7 +122,8 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
             performBy: auth?._id,
             supplierMode: "same",
             supplierId: reviewSameSupplierId,
-            supplierName: supplierLabelById.get(reviewSameSupplierId) || "Supplier",
+            supplierName:
+              supplierLabelById.get(reviewSameSupplierId) || "Supplier",
             expectedDelivery: reviewSameExpectedDelivery,
             totals,
             lines,
@@ -136,7 +144,9 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
     }
 
     for (const group of groups) {
-      const expected = String(reviewExpectedDeliveryBySupplier?.[group.supplierId] || "");
+      const expected = String(
+        reviewExpectedDeliveryBySupplier?.[group.supplierId] || "",
+      );
       if (!expected) {
         toast.error(
           `Select an expected delivery date for "${supplierLabelById.get(group.supplierId) || "Supplier"}".`,
@@ -156,7 +166,9 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
         unitCost,
         supplierId,
         supplierName: supplierLabelById.get(supplierId) || "Supplier",
-        expectedDelivery: String(reviewExpectedDeliveryBySupplier?.[supplierId] || ""),
+        expectedDelivery: String(
+          reviewExpectedDeliveryBySupplier?.[supplierId] || "",
+        ),
       };
     });
 
@@ -197,127 +209,68 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
         </DialogHeader>
 
         <div className="min-h-0 space-y-4 overflow-auto pr-1">
-          {supplierMode === "different" ? (
-            <div className="space-y-4">
-              {groups.map((group) => (
-                <div
-                  key={group.supplierId}
-                  className="rounded-xl border border-border bg-card/60 p-3"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="space-y-0.5">
-                      <p className="text-base font-semibold text-foreground">
-                        {supplierLabelById.get(group.supplierId) || "Supplier"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {group.totalItems} item(s) •{" "}
-                        <span className="text-base font-semibold text-foreground">
-                          {Formatter.amount(group.totalAmount)}
-                        </span>
-                      </p>
-                    </div>
-
-                    <div className="w-full space-y-1 sm:w-56">
-                      <Label className="text-xs text-muted-foreground">
-                        Expected delivery
-                      </Label>
-                      <Input
-                        type="date"
-                        value={String(reviewExpectedDeliveryBySupplier?.[group.supplierId] || "")}
-                        onChange={(event) =>
-                          dispatch(
-                            ReviewSetSupplierExpectedDelivery({
-                              supplierId: group.supplierId,
-                              date: event.target.value,
-                            }),
-                          )
-                        }
-                      />
-                    </div>
+          <div className="space-y-4">
+            {groups.map((group) => (
+              <div
+                key={group.supplierId}
+                className="rounded-xl border border-border bg-card/60 p-3"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="space-y-0.5">
+                    <p className="text-base font-semibold text-foreground">
+                      {supplierLabelById.get(group.supplierId) || "Supplier"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {group.totalItems} item(s) •{" "}
+                      <span className="text-base font-semibold text-foreground">
+                        {Formatter.amount(group.totalAmount)}
+                      </span>
+                    </p>
                   </div>
 
-                  <Separator className="my-3" />
-                  <ReviewOrderItemsList rows={group.rows} />
+                  <div className="w-full space-y-1 sm:w-56">
+                    <Label className="text-xs text-muted-foreground">
+                      Expected delivery
+                    </Label>
+                    <Input
+                      type="date"
+                      value={String(
+                        reviewExpectedDeliveryBySupplier?.[group.supplierId] ||
+                          "",
+                      )}
+                      onChange={(event) =>
+                        dispatch(
+                          ReviewSetSupplierExpectedDelivery({
+                            supplierId: group.supplierId,
+                            date: event.target.value,
+                          }),
+                        )
+                      }
+                    />
+                  </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="rounded-xl border border-border bg-card/60 p-3">
-                <p className="text-sm font-semibold text-foreground">Items</p>
+
                 <Separator className="my-3" />
-                <ReviewOrderItemsList rows={entries} />
+                <ReviewOrderItemsList rows={group.rows} />
               </div>
-            </div>
-          )}
+            ))}
+          </div>
         </div>
 
-        {supplierMode === "same" ? (
-          <div className="rounded-xl border border-border bg-card/60 p-3">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm font-semibold text-foreground">
-                Supplier & delivery
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {totals.totalItems} item(s) •{" "}
-                <span className="text-base font-semibold text-foreground">
-                  {Formatter.amount(totals.totalAmount)}
-                </span>
-              </p>
-            </div>
-            <Separator className="my-3" />
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Supplier</Label>
-                <Select
-                  value={String(reviewSameSupplierId || "all")}
-                  onValueChange={(value) => dispatch(ReviewSetSameSupplierId(value))}
-                >
-                  <SelectTrigger className="h-9 w-full">
-                    <SelectValue placeholder="Select supplier" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Select supplier</SelectItem>
-                    {supplierOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">
-                  Expected delivery
-                </Label>
-                <Input
-                  type="date"
-                  value={String(reviewSameExpectedDelivery || "")}
-                  onChange={(event) =>
-                    dispatch(ReviewSetSameExpectedDelivery(event.target.value))
-                  }
-                />
-              </div>
-            </div>
+        <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Items</span>
+            <span className="font-semibold text-foreground">
+              {totals.totalItems}
+            </span>
           </div>
-        ) : null}
-
-        {supplierMode !== "same" ? (
-          <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Items</span>
-              <span className="font-semibold text-foreground">{totals.totalItems}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Total</span>
-              <span className="text-base font-semibold text-foreground">
-                {Formatter.amount(totals.totalAmount)}
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Total</span>
+            <span className="text-base font-semibold text-foreground">
+              {Formatter.amount(totals.totalAmount)}
+            </span>
           </div>
-        ) : null}
+        </div>
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => close(false)}>
