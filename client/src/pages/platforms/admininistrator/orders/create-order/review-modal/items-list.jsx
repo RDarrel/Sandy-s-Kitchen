@@ -72,11 +72,29 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
           <Input
             value={draftQtyById?.[inventory?._id] ?? qty}
             onChange={(event) => {
-              const nextValue = event.target.value.replace(/[^\d]/g, "");
+              let value = event.target.value;
+
+              const measurement = String(
+                inventory?.measurement || "",
+              ).toLowerCase();
+
+              if (measurement === "pieces") {
+                // numbers only (no decimal)
+                value = value.replace(/[^\d]/g, "");
+              } else {
+                // allow decimal (1 dot only)
+                value = value.replace(/[^0-9.]/g, "");
+
+                // prevent multiple dots
+                const parts = value.split(".");
+                if (parts.length > 2) {
+                  value = parts[0] + "." + parts.slice(1).join("");
+                }
+              }
 
               setDraftQtyById((prev) => ({
                 ...prev,
-                [inventory?._id]: nextValue,
+                [inventory?._id]: value,
               }));
             }}
             onBlur={() => {
