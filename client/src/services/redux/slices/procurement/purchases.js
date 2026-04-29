@@ -7,11 +7,7 @@ const initialState = {
   collections: [],
   cartOpen: false,
   cart: [],
-  supplierMode: "same", // "same" | "different"
   reviewOpen: false,
-  reviewSameSupplierId: "all",
-  reviewSameExpectedDelivery: "",
-  reviewExpectedDeliveryBySupplier: {},
   formSubmitted: false,
   isSuccess: false,
   isLoading: false,
@@ -127,18 +123,7 @@ export const reduxSlice = createSlice({
     ReviewSetSameSupplierId: (state, { payload }) => {
       state.reviewSameSupplierId = String(payload || "all") || "all";
     },
-    ReviewSetSameExpectedDelivery: (state, { payload }) => {
-      state.reviewSameExpectedDelivery = String(payload || "");
-    },
-    ReviewSetSupplierExpectedDelivery: (state, { payload }) => {
-      const supplierId = String(payload?.supplierId || "");
-      if (!supplierId) return;
-      const date = String(payload?.date || "");
-      state.reviewExpectedDeliveryBySupplier = {
-        ...(state.reviewExpectedDeliveryBySupplier || {}),
-        [supplierId]: date,
-      };
-    },
+
     CartClear: (state) => {
       state.cart = [];
     },
@@ -304,8 +289,6 @@ export const {
   SetCartOpen,
   SetReviewOpen,
   ReviewSetSameSupplierId,
-  ReviewSetSameExpectedDelivery,
-  ReviewSetSupplierExpectedDelivery,
   CartClear,
   CartAdd,
   CartRemove,

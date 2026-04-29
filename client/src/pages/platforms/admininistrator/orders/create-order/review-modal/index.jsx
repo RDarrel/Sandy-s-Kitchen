@@ -7,12 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   CartClear,
-  ReviewSetSupplierExpectedDelivery,
   SAVE,
   SetReviewOpen,
 } from "@/services/redux/slices/procurement/purchases";
@@ -196,11 +194,11 @@ const ReviewOrderModal = ({ entries = [] }) => {
                         <PopoverTrigger asChild>
                           <Button
                             id="date"
-                              variant={"outline"}
-                              className={cn(
-                                "w-full justify-start text-left font-normal sm:w-[300px]",
-                              )}
-                            >
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal sm:w-[300px]",
+                            )}
+                          >
                             <CalendarIcon />
                             {deliveryWindow?.from ? (
                               deliveryWindow?.to ? (

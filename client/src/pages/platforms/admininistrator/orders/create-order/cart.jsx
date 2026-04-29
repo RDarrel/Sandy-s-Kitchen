@@ -20,7 +20,6 @@ import { Formatter } from "@/services/utilities";
 import { ClipboardList, Minus, Plus, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "sonner";
 
 const measurementLabels = (measurement = "") => {
   const normalized = String(measurement || "").toLowerCase();
@@ -246,7 +245,9 @@ const CreateOrderCart = () => {
                           <SelectValue placeholder="Select supplier" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">Select supplier</SelectItem>
+                          <SelectItem value="all" disabled>
+                            Select supplier
+                          </SelectItem>
                           {supplierOptions.map((option) => (
                             <SelectItem key={option.id} value={option.id}>
                               <span
