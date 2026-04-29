@@ -221,9 +221,23 @@ const ReviewOrderModal = ({ entries = [] }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="min-h-0 space-y-4 overflow-auto pr-1">
+        <div className="min-h-0 space-y-4 overflow-auto pr-1 ">
           <div className="space-y-3">
             <div className="flex flex-col gap-2 rounded-xl border border-border bg-card/60 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="w-full sm:flex-1">
+                <Label className="text-xs text-muted-foreground">
+                  Search item
+                </Label>
+                <div className="relative mt-1">
+                  <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={itemSearch}
+                    onChange={(event) => setItemSearch(event.target.value)}
+                    placeholder="Search items..."
+                    className="h-9 w-full pl-9"
+                  />
+                </div>
+              </div>
               <div className="w-full sm:w-64">
                 <Label className="text-xs text-muted-foreground">
                   Supplier
@@ -245,21 +259,6 @@ const ReviewOrderModal = ({ entries = [] }) => {
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="w-full sm:flex-1">
-                <Label className="text-xs text-muted-foreground">
-                  Search item
-                </Label>
-                <div className="relative mt-1">
-                  <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    value={itemSearch}
-                    onChange={(event) => setItemSearch(event.target.value)}
-                    placeholder="Search items..."
-                    className="h-9 w-full pl-9"
-                  />
-                </div>
-              </div>
             </div>
 
             {visibleGroups.length ? (
@@ -268,9 +267,9 @@ const ReviewOrderModal = ({ entries = [] }) => {
                 return (
                   <div
                     key={group.supplier}
-                    className="rounded-xl border border-border bg-card/60 p-3"
+                    className="rounded-xl border border-border bg-card/60 p-3 "
                   >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div className=" flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                       <div className="space-y-0.5">
                         <p className="text-base font-semibold text-foreground">
                           {supplierLabelById.get(group.supplier) || "Supplier"}
