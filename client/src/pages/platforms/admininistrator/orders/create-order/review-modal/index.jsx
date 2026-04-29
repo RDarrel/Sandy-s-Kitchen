@@ -137,15 +137,26 @@ const ReviewOrderModal = ({ entries = [] }) => {
     });
 
     setFormattedCart(result);
+  }, [cart, reviewOpen]);
+
+  useEffect(() => {
+    if (!reviewOpen) return;
     setSupplierFilter("all");
     setItemSearch("");
-  }, [cart, reviewOpen]);
+  }, [reviewOpen]);
 
   const supplierFilterOptions = useMemo(() => {
     return (Array.isArray(formattedCart) ? formattedCart : [])
       .map((group) => String(group?.supplier || ""))
       .filter(Boolean);
   }, [formattedCart]);
+
+  useEffect(() => {
+    if (supplierFilter === "all") return;
+    if (!supplierFilterOptions.includes(supplierFilter)) {
+      setSupplierFilter("all");
+    }
+  }, [supplierFilter, supplierFilterOptions]);
 
   const visibleGroups = useMemo(() => {
     const query = String(itemSearch || "")
@@ -201,7 +212,7 @@ const ReviewOrderModal = ({ entries = [] }) => {
   const placeOrder = () => {};
   return (
     <Dialog open={reviewOpen} onOpenChange={close}>
-      <DialogContent className="max-w-3xl max-h-[95dvh] grid-rows-[auto_1fr_auto_auto_auto]">
+      <DialogContent className="max-w-3xl  grid-rows-[auto_1fr_auto_auto_auto]">
         <DialogHeader>
           <DialogTitle>Review Order</DialogTitle>
           <DialogDescription>
@@ -214,8 +225,13 @@ const ReviewOrderModal = ({ entries = [] }) => {
           <div className="space-y-3">
             <div className="flex flex-col gap-2 rounded-xl border border-border bg-card/60 p-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="w-full sm:w-64">
-                <Label className="text-xs text-muted-foreground">Supplier</Label>
-                <Select value={supplierFilter} onValueChange={setSupplierFilter}>
+                <Label className="text-xs text-muted-foreground">
+                  Supplier
+                </Label>
+                <Select
+                  value={supplierFilter}
+                  onValueChange={setSupplierFilter}
+                >
                   <SelectTrigger className="mt-1 h-9 w-full">
                     <SelectValue placeholder="All suppliers" />
                   </SelectTrigger>
@@ -231,7 +247,9 @@ const ReviewOrderModal = ({ entries = [] }) => {
               </div>
 
               <div className="w-full sm:flex-1">
-                <Label className="text-xs text-muted-foreground">Search item</Label>
+                <Label className="text-xs text-muted-foreground">
+                  Search item
+                </Label>
                 <div className="relative mt-1">
                   <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -267,72 +285,72 @@ const ReviewOrderModal = ({ entries = [] }) => {
                           </span>{" "}
                         </p>
                       </div>
-	
+
                       <div className="w-full space-y-1 sm:w-80">
-                      <Label className="text-xs text-muted-foreground">
-                        Expected delivery date
-                      </Label>
+                        <Label className="text-xs text-muted-foreground">
+                          Expected delivery date
+                        </Label>
 
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            id="date"
-                            variant={"outline"}
-                            className={cn(
-                              "w-full justify-start text-left font-normal sm:w-[300px]",
-                            )}
-                          >
-                            <CalendarIcon />
-                            {deliveryWindow?.from ? (
-                              deliveryWindow?.to ? (
-                                <>
-                                  {Formatter.date(deliveryWindow.from)} -{" "}
-                                  {Formatter.date(deliveryWindow.to)}
-                                </>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              id="date"
+                              variant={"outline"}
+                              className={cn(
+                                "w-full justify-start text-left font-normal sm:w-[300px]",
+                              )}
+                            >
+                              <CalendarIcon />
+                              {deliveryWindow?.from ? (
+                                deliveryWindow?.to ? (
+                                  <>
+                                    {Formatter.date(deliveryWindow.from)} -{" "}
+                                    {Formatter.date(deliveryWindow.to)}
+                                  </>
+                                ) : (
+                                  <>{Formatter.date(deliveryWindow.from)}</>
+                                )
                               ) : (
-                                <>{Formatter.date(deliveryWindow.from)}</>
-                              )
-                            ) : (
-                              <span>Pick a date range</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            initialFocus
-                            mode="range"
-                            defaultMonth={deliveryWindow?.from}
-                            selected={deliveryWindow}
-                            onSelect={(range) => {
-                              if (!range) return;
+                                <span>Pick a date range</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              initialFocus
+                              mode="range"
+                              defaultMonth={deliveryWindow?.from}
+                              selected={deliveryWindow}
+                              onSelect={(range) => {
+                                if (!range) return;
 
-                              // Case: pinili ulit yung parehong date (gawin from=to)
-                              if (range.from && !range.to) {
-                                handleDateChange(
-                                  { from: range.from, to: range.from },
-                                  group.supplier,
-                                );
-                              } else {
-                                handleDateChange(range, group.supplier);
-                              }
-                            }}
-                            numberOfMonths={2}
-                            disabled={(day) => {
-                              const today = new Date();
-                              today.setHours(0, 0, 0, 0);
-                              return day < today;
-                            }}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                                // Case: pinili ulit yung parehong date (gawin from=to)
+                                if (range.from && !range.to) {
+                                  handleDateChange(
+                                    { from: range.from, to: range.from },
+                                    group.supplier,
+                                  );
+                                } else {
+                                  handleDateChange(range, group.supplier);
+                                }
+                              }}
+                              numberOfMonths={2}
+                              disabled={(day) => {
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                return day < today;
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     </div>
-                  </div>
 
-                  <Separator className="my-3" />
-                  <ReviewOrderItemsList rows={group.items} />
-                </div>
-              );
-            })
+                    <Separator className="my-3" />
+                    <ReviewOrderItemsList rows={group.items} />
+                  </div>
+                );
+              })
             ) : (
               <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 p-10 text-center">
                 <div className="space-y-2">
