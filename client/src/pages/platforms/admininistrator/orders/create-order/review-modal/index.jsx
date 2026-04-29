@@ -7,8 +7,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   CartClear,
   SAVE,
@@ -25,13 +33,15 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Search } from "lucide-react";
 const ReviewOrderModal = ({ entries = [] }) => {
   const dispatch = useDispatch();
   const { token, auth } = useSelector(({ auth }) => auth);
   const { collections: suppliers } = useSelector(({ suppliers }) => suppliers);
   const { cart } = useSelector(({ purchases }) => purchases);
   const [formattedCart, setFormattedCart] = useState([]);
+  const [supplierFilter, setSupplierFilter] = useState("all");
+  const [itemSearch, setItemSearch] = useState("");
 
   const { reviewOpen } = useSelector(({ purchases }) => purchases);
 
@@ -127,7 +137,50 @@ const ReviewOrderModal = ({ entries = [] }) => {
     });
 
     setFormattedCart(result);
+    setSupplierFilter("all");
+    setItemSearch("");
   }, [cart, reviewOpen]);
+
+  const supplierFilterOptions = useMemo(() => {
+    return (Array.isArray(formattedCart) ? formattedCart : [])
+      .map((group) => String(group?.supplier || ""))
+      .filter(Boolean);
+  }, [formattedCart]);
+
+  const visibleGroups = useMemo(() => {
+    const query = String(itemSearch || "")
+      .trim()
+      .toLowerCase();
+    const baseGroups =
+      supplierFilter !== "all"
+        ? (Array.isArray(formattedCart) ? formattedCart : []).filter(
+            (group) => String(group?.supplier || "") === supplierFilter,
+          )
+        : Array.isArray(formattedCart)
+          ? formattedCart
+          : [];
+
+    if (!query) return baseGroups;
+
+    return baseGroups
+      .map((group) => {
+        const items = (Array.isArray(group?.items) ? group.items : []).filter(
+          (item) => {
+            const name = String(item?.inventory?.name || "").toLowerCase();
+            return name.includes(query);
+          },
+        );
+
+        const totalAmount = items.reduce((sum, item) => {
+          const unitCost = Number(item?.cost) || 0;
+          const qty = Number(item?.quantity) || 0;
+          return sum + unitCost * qty;
+        }, 0);
+
+        return { ...group, items, totalAmount };
+      })
+      .filter((group) => (group?.items || []).length);
+  }, [formattedCart, itemSearch, supplierFilter]);
 
   const handleDateChange = (newDate, supplier) => {
     console.log("newDate", newDate, "supplier", supplier);
@@ -158,31 +211,64 @@ const ReviewOrderModal = ({ entries = [] }) => {
         </DialogHeader>
 
         <div className="min-h-0 space-y-4 overflow-auto pr-1">
-          <div className="space-y-4">
-            {formattedCart.map((group) => {
-              const { deliveryWindow } = group;
-              return (
-                <div
-                  key={group.supplier}
-                  className="rounded-xl border border-border bg-card/60 p-3"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="space-y-0.5">
-                      <p className="text-base font-semibold text-foreground">
-                        {supplierLabelById.get(group.supplier) || "Supplier"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          {group.items?.length} item(s)
-                        </span>{" "}
-                        <span className="mx-1 text-muted-foreground">•</span>
-                        <span className="text-base font-semibold text-foreground">
-                          {Formatter.amount(group.totalAmount)}
-                        </span>{" "}
-                      </p>
-                    </div>
+          <div className="space-y-3">
+            <div className="flex flex-col gap-2 rounded-xl border border-border bg-card/60 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="w-full sm:w-64">
+                <Label className="text-xs text-muted-foreground">Supplier</Label>
+                <Select value={supplierFilter} onValueChange={setSupplierFilter}>
+                  <SelectTrigger className="mt-1 h-9 w-full">
+                    <SelectValue placeholder="All suppliers" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All suppliers</SelectItem>
+                    {supplierFilterOptions.map((supplierId) => (
+                      <SelectItem key={supplierId} value={supplierId}>
+                        {supplierLabelById.get(supplierId) || "Supplier"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-                    <div className="w-full space-y-1 sm:w-80">
+              <div className="w-full sm:flex-1">
+                <Label className="text-xs text-muted-foreground">Search item</Label>
+                <div className="relative mt-1">
+                  <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={itemSearch}
+                    onChange={(event) => setItemSearch(event.target.value)}
+                    placeholder="Search items..."
+                    className="h-9 w-full pl-9"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {visibleGroups.length ? (
+              visibleGroups.map((group) => {
+                const { deliveryWindow } = group;
+                return (
+                  <div
+                    key={group.supplier}
+                    className="rounded-xl border border-border bg-card/60 p-3"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                      <div className="space-y-0.5">
+                        <p className="text-base font-semibold text-foreground">
+                          {supplierLabelById.get(group.supplier) || "Supplier"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          <span className="font-medium text-foreground">
+                            {group.items?.length} item(s)
+                          </span>{" "}
+                          <span className="mx-1 text-muted-foreground">•</span>
+                          <span className="text-base font-semibold text-foreground">
+                            {Formatter.amount(group.totalAmount)}
+                          </span>{" "}
+                        </p>
+                      </div>
+	
+                      <div className="w-full space-y-1 sm:w-80">
                       <Label className="text-xs text-muted-foreground">
                         Expected delivery date
                       </Label>
@@ -246,7 +332,19 @@ const ReviewOrderModal = ({ entries = [] }) => {
                   <ReviewOrderItemsList rows={group.items} />
                 </div>
               );
-            })}
+            })
+            ) : (
+              <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 p-10 text-center">
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    No matching items
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Try a different supplier or search term.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
