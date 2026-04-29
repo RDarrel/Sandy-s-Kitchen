@@ -43,6 +43,8 @@ const ReviewOrderModal = ({ entries = [] }) => {
   const [supplierFilter, setSupplierFilter] = useState("all");
   const [itemSearch, setItemSearch] = useState("");
 
+  const [draftQtyById, setDraftQtyById] = useState({});
+
   const { reviewOpen } = useSelector(({ purchases }) => purchases);
 
   const supplierLabelById = useMemo(() => {
@@ -54,17 +56,14 @@ const ReviewOrderModal = ({ entries = [] }) => {
     return map;
   }, [suppliers]);
 
-  const totals = useMemo(() => {
-    const totalItems = Array.isArray(entries) ? entries.length : 0;
-    const totalAmount = (Array.isArray(cart) ? cart : []).reduce(
-      (sum, entry) => {
-        const unitCost = Number(entry?.cost ?? entry?.cost) || 0;
-        return sum + unitCost * (entry?.quantity || 0);
-      },
-      0,
-    );
-    return { totalItems, totalAmount };
-  }, [cart]);
+  const totalAmount = (Array.isArray(cart) ? cart : []).reduce((sum, entry) => {
+    const id = String(entry?.inventory?._id || "");
+
+    const displayQty = Number(draftQtyById[id] ?? entry.quantity) || 0;
+    const unitCost = Number(entry?.cost) || 0;
+
+    return sum + displayQty * unitCost;
+  }, 0);
 
   const formatDate = (date) => {
     if (!date) return null;
@@ -194,7 +193,6 @@ const ReviewOrderModal = ({ entries = [] }) => {
   }, [formattedCart, itemSearch, supplierFilter]);
 
   const handleDateChange = (newDate, supplier) => {
-    console.log("newDate", newDate, "supplier", supplier);
     const _formattedCart = [...formattedCart];
     const groupIndex = _formattedCart.findIndex(
       (group) => group.supplier === supplier,
@@ -213,7 +211,12 @@ const ReviewOrderModal = ({ entries = [] }) => {
 
   return (
     <Dialog open={reviewOpen} onOpenChange={close}>
-      <DialogContent className="max-w-3xl  grid-rows-[auto_1fr_auto_auto_auto]">
+      <DialogContent
+        className="max-w-3xl  grid-rows-[auto_1fr_auto_auto_auto]"
+        onInteractOutside={(event) => {
+          event.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Review Order</DialogTitle>
           <DialogDescription>
@@ -233,6 +236,7 @@ const ReviewOrderModal = ({ entries = [] }) => {
                   <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
                   <Input
                     value={itemSearch}
+                    type="search"
                     onChange={(event) => setItemSearch(event.target.value)}
                     placeholder="Search items..."
                     className="h-9 w-full pl-9"
@@ -269,6 +273,8 @@ const ReviewOrderModal = ({ entries = [] }) => {
                   group={group}
                   supplierLabelById={supplierLabelById}
                   handleDateChange={handleDateChange}
+                  setDraftQtyById={setDraftQtyById}
+                  draftQtyById={draftQtyById}
                 />
               ))
             ) : (
@@ -309,7 +315,7 @@ const ReviewOrderModal = ({ entries = [] }) => {
                 Total amount
               </span>
               <span className="text-base font-semibold leading-none text-foreground">
-                {Formatter.amount(totals.totalAmount)}
+                {Formatter.amount(totalAmount)}
               </span>
             </div>
           </div>
@@ -330,91 +336,103 @@ const ReviewOrderModal = ({ entries = [] }) => {
 
 export default ReviewOrderModal;
 
-const SupplierRaw = memo(({ group, supplierLabelById, handleDateChange }) => {
-  const { deliveryWindow } = group;
-  return (
-    <div
-      key={group.supplier}
-      className="rounded-xl border border-border bg-card/60 p-3 "
-    >
-      <div className=" flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-0.5">
-          <p className="text-base font-semibold text-foreground">
-            {supplierLabelById.get(group.supplier) || "Supplier"}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">
-              {group.items?.length} item(s)
-            </span>{" "}
-            <span className="mx-1 text-muted-foreground">•</span>
-            <span className="text-base font-semibold text-foreground">
-              {Formatter.amount(group.totalAmount)}
-            </span>{" "}
-          </p>
-        </div>
+const SupplierRaw = memo(
+  ({
+    group,
+    supplierLabelById,
+    handleDateChange,
+    draftQtyById,
+    setDraftQtyById,
+  }) => {
+    const { deliveryWindow } = group;
+    return (
+      <div
+        key={group.supplier}
+        className="rounded-xl border border-border bg-card/60 p-3 "
+      >
+        <div className=" flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-0.5">
+            <p className="text-base font-semibold text-foreground">
+              {supplierLabelById.get(group.supplier) || "Supplier"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">
+                {group.items?.length} item(s)
+              </span>{" "}
+              <span className="mx-1 text-muted-foreground">•</span>
+              <span className="text-base font-semibold text-foreground">
+                {Formatter.amount(group.totalAmount)}
+              </span>{" "}
+            </p>
+          </div>
 
-        <div className="w-full space-y-1 sm:w-80">
-          <Label className="text-xs text-muted-foreground">
-            Expected delivery date
-          </Label>
+          <div className="w-full space-y-1 sm:w-80">
+            <Label className="text-xs text-muted-foreground">
+              Expected delivery date
+            </Label>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                id="date"
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal sm:w-[300px]",
-                )}
-              >
-                <CalendarIcon />
-                {deliveryWindow?.from ? (
-                  deliveryWindow?.to ? (
-                    <>
-                      {Formatter.date(deliveryWindow.from)} -{" "}
-                      {Formatter.date(deliveryWindow.to)}
-                    </>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal sm:w-[300px]",
+                  )}
+                >
+                  <CalendarIcon />
+                  {deliveryWindow?.from ? (
+                    deliveryWindow?.to ? (
+                      <>
+                        {Formatter.date(deliveryWindow.from)} -{" "}
+                        {Formatter.date(deliveryWindow.to)}
+                      </>
+                    ) : (
+                      <>{Formatter.date(deliveryWindow.from)}</>
+                    )
                   ) : (
-                    <>{Formatter.date(deliveryWindow.from)}</>
-                  )
-                ) : (
-                  <span>Pick a date range</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={deliveryWindow?.from}
-                selected={deliveryWindow}
-                onSelect={(range) => {
-                  if (!range) return;
+                    <span>Pick a date range</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={deliveryWindow?.from}
+                  selected={deliveryWindow}
+                  onSelect={(range) => {
+                    if (!range) return;
 
-                  // Case: pinili ulit yung parehong date (gawin from=to)
-                  if (range.from && !range.to) {
-                    handleDateChange(
-                      { from: range.from, to: range.from },
-                      group.supplier,
-                    );
-                  } else {
-                    handleDateChange(range, group.supplier);
-                  }
-                }}
-                numberOfMonths={2}
-                disabled={(day) => {
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  return day < today;
-                }}
-              />
-            </PopoverContent>
-          </Popover>
+                    // Case: pinili ulit yung parehong date (gawin from=to)
+                    if (range.from && !range.to) {
+                      handleDateChange(
+                        { from: range.from, to: range.from },
+                        group.supplier,
+                      );
+                    } else {
+                      handleDateChange(range, group.supplier);
+                    }
+                  }}
+                  numberOfMonths={2}
+                  disabled={(day) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return day < today;
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
-      </div>
 
-      <Separator className="my-3" />
-      <ReviewOrderItemsList rows={group.items} />
-    </div>
-  );
-});
+        <Separator className="my-3" />
+        <ReviewOrderItemsList
+          rows={group.items}
+          setDraftQtyById={setDraftQtyById}
+          draftQtyById={draftQtyById}
+        />
+      </div>
+    );
+  },
+);

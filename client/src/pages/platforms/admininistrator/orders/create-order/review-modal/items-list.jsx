@@ -7,10 +7,9 @@ import {
 } from "@/services/redux/slices/procurement/purchases";
 import { Trash2 } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useMemo } from "react";
 
-const ReviewOrderItemsList = ({ rows = [] }) => {
-  const dispatch = useDispatch();
+const ReviewOrderItemsList = ({ rows = [], draftQtyById, setDraftQtyById }) => {
   const safeRows = Array.isArray(rows) ? rows : [];
 
   return (
@@ -24,7 +23,12 @@ const ReviewOrderItemsList = ({ rows = [] }) => {
         </div>
       ) : null}
       {safeRows.map((item, idx) => (
-        <ItemRaw key={item?.inventory?._id || idx} item={item} />
+        <ItemRaw
+          key={item?.inventory?._id || idx}
+          item={item}
+          draftQtyById={draftQtyById}
+          setDraftQtyById={setDraftQtyById}
+        />
       ))}
     </div>
   );
@@ -32,19 +36,18 @@ const ReviewOrderItemsList = ({ rows = [] }) => {
 
 export default ReviewOrderItemsList;
 
-const ItemRaw = memo(({ item }) => {
+const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
   const { cost: unitCost, quantity: qty, inventory } = item;
-  const [localQty, setLocalQty] = useState(String(qty ?? 0));
 
-  useEffect(() => {
-    setLocalQty(String(qty ?? 0));
-  }, [qty]);
   const { unit, subtotal } = useMemo(() => {
     const unit = Inventory.getUnitByMeasurement(inventory?.measurement) || "";
-    const subtotal = (Number(unitCost) || 0) * (Number(qty) || 0);
+    const subtotal =
+      (Number(unitCost) || 0) *
+      (Number(draftQtyById[inventory?._id] ?? qty) || 0);
     return { unit, subtotal };
-  }, [inventory, unitCost, qty]);
+  }, [inventory, unitCost, qty, draftQtyById]);
   const dispatch = useDispatch();
+
   return (
     <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/20 px-2.5 py-2 text-sm sm:grid-cols-[1fr_110px_130px_120px] sm:items-center">
       <div className="min-w-0">
@@ -67,16 +70,24 @@ const ItemRaw = memo(({ item }) => {
         <span className="text-xs text-muted-foreground sm:hidden">Qty</span>
         <div className="flex w-full items-center gap-2 sm:w-auto">
           <Input
-            value={localQty}
+            value={draftQtyById?.[inventory?._id] ?? qty}
             onChange={(event) => {
               const nextValue = event.target.value.replace(/[^\d]/g, "");
-              setLocalQty(nextValue);
+
+              setDraftQtyById((prev) => ({
+                ...prev,
+                [inventory?._id]: nextValue,
+              }));
             }}
             onBlur={() => {
+              const nextQty = Math.max(
+                0,
+                Number(draftQtyById[inventory?._id] ?? qty) || 0,
+              );
               dispatch(
                 CartUpdate({
                   inventory,
-                  quantity: Math.max(0, Number(localQty) || 0),
+                  quantity: nextQty,
                 }),
               );
             }}
