@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axioKit } from "../../../utilities";
 
-const url = "assets/purchases";
+const url = "procurement/purchases";
 
 const initialState = {
   collections: [],
   cartOpen: false,
-  cart: { version: 1, lines: [] },
+  cart: [],
   supplierMode: "same", // "same" | "different"
   reviewOpen: false,
   reviewSameSupplierId: "all",
@@ -121,30 +121,8 @@ export const reduxSlice = createSlice({
     SetCartOpen: (state, { payload }) => {
       state.cartOpen = Boolean(payload);
     },
-    SetReviewOpen: (state, { payload }) => {
-      const nextOpen = Boolean(payload);
-      state.reviewOpen = nextOpen;
-
-      if (!nextOpen) return;
-
-      if (state.supplierMode === "same") {
-        state.reviewSameSupplierId =
-          String(state.reviewSameSupplierId || "all") || "all";
-        state.reviewSameExpectedDelivery = String(
-          state.reviewSameExpectedDelivery || "",
-        );
-        return;
-      }
-
-      const cart = normalizeCart(state.cart);
-      const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const nextMap = { ...(state.reviewExpectedDeliveryBySupplier || {}) };
-      for (const line of lines) {
-        const supplierId = String(line?.supplier || "all");
-        if (!supplierId || supplierId === "all") continue;
-        if (nextMap[supplierId] === undefined) nextMap[supplierId] = "";
-      }
-      state.reviewExpectedDeliveryBySupplier = nextMap;
+    SetReviewOpen: (state, _) => {
+      state.reviewOpen = !state.reviewOpen;
     },
     ReviewSetSameSupplierId: (state, { payload }) => {
       state.reviewSameSupplierId = String(payload || "all") || "all";
@@ -162,167 +140,49 @@ export const reduxSlice = createSlice({
       };
     },
     CartClear: (state) => {
-      state.cart = { version: 1, lines: [] };
+      state.cart = [];
     },
     CartAdd: (state, { payload }) => {
       const inventory = String(payload?.inventory);
       if (!inventory) return;
-
-      const nextQuantity = Math.max(1, Number(payload?.quantity) || 1);
-      const incomingSupplier = String(
-        payload?.supplier || payload?.supplierId || "",
+      const isExistIdx = state.cart?.findIndex(
+        ({ inventory }) => inventory?._id === payload?._id,
       );
-      const supplier = incomingSupplier;
-      const incomingCost = Number(payload?.cost ?? payload?.unitCost);
-      const cost = Number.isFinite(incomingCost) ? Math.max(0, incomingCost)
-        : undefined;
-      const cart = normalizeCart(state.cart);
-      const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventory === inventory);
-      const stamp = Date.now();
-
-      if (index > -1) {
-        lines[index] = {
-          ...lines[index],
-          quantity: (lines[index].quantity || 0) + nextQuantity,
-          supplier: lines[index].supplier || supplier,
-          cost: lines[index].cost !== undefined ? lines[index].cost : cost,
-          updatedAt: stamp,
-        };
-        state.cart = { version: 1, lines };
-        return;
+      const _cart = [...state.cart];
+      if (isExistIdx > -1) {
+        _cart.splice(isExistIdx, 1);
+      } else {
+        _cart.unshift({
+          inventory: payload,
+          cost: payload?.cost,
+          supplier: payload?.supplier?._id,
+          quantity: 1,
+        });
       }
-
-      state.cart = {
-        version: 1,
-        lines: [
-          {
-            inventory,
-            supplier,
-            cost,
-            quantity: nextQuantity,
-            addedAt: stamp,
-            updatedAt: stamp,
-          },
-          ...lines,
-        ],
-      };
+      state.cart = _cart;
     },
-    CartSetLineUnitCost: (state, { payload }) => {
-      const inventory = String(
-        payload?.inventory || payload?.inventoryId || "",
+    CartUpdate: (state, { payload }) => {
+      const index = state.cart?.findIndex(
+        ({ inventory }) => inventory?._id === payload?.inventory?._id,
       );
-      if (!inventory) return;
-      const cost = Number(payload?.cost ?? payload?.unitCost);
-      if (!Number.isFinite(cost)) return;
-
-      const cart = normalizeCart(state.cart);
-      const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventory === inventory);
       if (index < 0) return;
-
-      lines[index] = {
-        ...lines[index],
-        cost: Math.max(0, cost),
-        updatedAt: Date.now(),
+      const _cart = [...state.cart];
+      _cart[index] = {
+        ..._cart[index],
+        ...payload,
       };
-      state.cart = { version: 1, lines };
-    },
-    CartSetLineSupplier: (state, { payload }) => {
-      const inventory = String(
-        payload?.inventory || payload?.inventoryId || "",
-      );
-      if (!inventory) return;
-      const supplier = String(payload?.supplier);
-
-      const cart = normalizeCart(state.cart);
-      const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventory === inventory);
-      if (index < 0) return;
-
-      lines[index] = {
-        ...lines[index],
-        supplier,
-        updatedAt: Date.now(),
-      };
-      state.cart = { version: 1, lines };
+      state.cart = _cart;
     },
     CartRemove: (state, { payload }) => {
-      const inventory = String(payload || "");
-      if (!inventory) return;
-      const cart = normalizeCart(state.cart);
-      state.cart = {
-        version: 1,
-        lines: (cart.lines || []).filter(
-          (line) => line.inventory !== inventory,
-        ),
-      };
-    },
-    CartIncrement: (state, { payload }) => {
-      const inventory = String(payload || "");
-      if (!inventory) return;
-      const cart = normalizeCart(state.cart);
-      const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventory === inventory);
-      if (index < 0) return;
-      lines[index] = {
-        ...lines[index],
-        quantity: (lines[index].quantity || 0) + 1,
-        updatedAt: Date.now(),
-      };
-      state.cart = { version: 1, lines };
-    },
-    CartDecrement: (state, { payload }) => {
-      const inventory = String(payload || "");
-      if (!inventory) return;
-      const cart = normalizeCart(state.cart);
-      const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventory === inventory);
-      if (index < 0) return;
-      const nextQty = (lines[index].quantity || 0) - 1;
-      if (nextQty <= 0) {
-        state.cart = {
-          version: 1,
-          lines: lines.filter((line) => line.inventory !== inventory),
-        };
-        return;
-      }
-      lines[index] = {
-        ...lines[index],
-        quantity: nextQty,
-        updatedAt: Date.now(),
-      };
-      state.cart = { version: 1, lines };
-    },
-    CartSetLineQuantity: (state, { payload }) => {
-      const inventory = String(
-        payload?.inventory || payload?.inventoryId || "",
+      const _cart = [...state.cart];
+      const index = _cart?.findIndex(
+        ({ inventory }) => inventory?._id === payload,
       );
-      if (!inventory) return;
-      const quantity = Number(payload?.quantity);
-      if (!Number.isFinite(quantity)) return;
-
-      const cart = normalizeCart(state.cart);
-      const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const index = lines.findIndex((line) => line.inventory === inventory);
       if (index < 0) return;
-
-      const nextQty = Math.floor(Math.max(0, quantity));
-      if (nextQty <= 0) {
-        state.cart = {
-          version: 1,
-          lines: lines.filter((line) => line.inventory !== inventory),
-        };
-        return;
-      }
-
-      lines[index] = {
-        ...lines[index],
-        quantity: nextQty,
-        updatedAt: Date.now(),
-      };
-      state.cart = { version: 1, lines };
+      _cart.splice(index, 1);
+      state.cart = _cart;
     },
+
     UPDATE_AUTH: (state, data) => {
       state.auth = { ...state.auth, ...data.payload };
       state.information = { ...state.information, isFreshman: false };
@@ -448,12 +308,8 @@ export const {
   ReviewSetSupplierExpectedDelivery,
   CartClear,
   CartAdd,
-  CartSetLineUnitCost,
-  CartSetLineSupplier,
   CartRemove,
-  CartIncrement,
-  CartDecrement,
-  CartSetLineQuantity,
+  CartUpdate,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

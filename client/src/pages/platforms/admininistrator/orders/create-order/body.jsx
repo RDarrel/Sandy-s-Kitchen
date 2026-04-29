@@ -9,10 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  CartAdd,
-  CartRemove,
-} from "@/services/redux/slices/procurement/purchases";
+import { CartAdd } from "@/services/redux/slices/procurement/purchases";
 import { Stock, globalSearch } from "@/services/utilities";
 import { capitalize, isEmpty } from "lodash";
 import { useMemo } from "react";
@@ -24,15 +21,6 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
     ({ inventoryItems }) => inventoryItems,
   );
   const { cart } = useSelector(({ purchases }) => purchases);
-
-  const cartIds = useMemo(() => {
-    const ids = new Set();
-    for (const line of Array.isArray(cart?.lines) ? cart.lines : []) {
-      const id = String(line?.inventory || "");
-      if (id) ids.add(id);
-    }
-    return ids;
-  }, [cart]);
 
   const filtered = useMemo(() => {
     const safeCollections = Array.isArray(collections) ? collections : [];
@@ -51,30 +39,8 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
     return globalSearch(byCategory, keyword.toUpperCase());
   }, [collections, search, type, category]);
 
-  const addToCart = (inventory, cost, supplier) => {
-    dispatch(
-      CartAdd({
-        inventory: String(inventory),
-        quantity: 1,
-        cost,
-        supplier: String(supplier),
-      }),
-    );
-  };
-
-  const removeFromCart = (inventory) => dispatch(CartRemove(String(inventory)));
-
-  const toggleCart = (item, nextChecked) => {
-    const id = String(item?._id || "");
-    if (!id) return;
-
-    const currentlyInCart = cartIds.has(id);
-    const shouldBeChecked =
-      typeof nextChecked === "boolean" ? nextChecked : !currentlyInCart;
-
-    if (shouldBeChecked)
-      addToCart(id, Number(item?.cost) || 0, item?.supplier?._id);
-    else removeFromCart(id);
+  const addToCart = (inventory) => {
+    dispatch(CartAdd(inventory));
   };
 
   return (
@@ -93,19 +59,21 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
                 {!isEmpty(filtered) ? (
                   filtered.map((item) => {
                     const id = String(item?._id || "");
-                    const inCart = id ? cartIds.has(id) : false;
+                    const inCart = cart.some(
+                      ({ inventory }) => String(inventory?._id) === id,
+                    );
 
                     return (
                       <TableRow
                         key={id}
                         className={`cursor-pointer transition-colors hover:bg-muted/40 ${inCart ? "bg-accent/10" : ""}`}
                         tabIndex={0}
-                        onClick={() => toggleCart(item)}
+                        onClick={() => addToCart(item)}
                         onKeyDown={(event) => {
                           if (!id) return;
                           if (event.key === "Enter" || event.key === " ") {
                             event.preventDefault();
-                            toggleCart(item);
+                            addToCart(item);
                           }
                         }}
                       >
@@ -113,8 +81,8 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
                           <div className="flex items-start gap-3">
                             <Checkbox
                               checked={inCart}
-                              onCheckedChange={(next) => {
-                                toggleCart(item, Boolean(next));
+                              onCheckedChange={() => {
+                                addToCart(item);
                               }}
                               onClick={(event) => event.stopPropagation()}
                               aria-label={`Select ${item?.name || "item"}`}

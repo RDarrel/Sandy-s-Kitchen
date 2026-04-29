@@ -11,29 +11,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   CartClear,
-  ReviewSetSameExpectedDelivery,
-  ReviewSetSameSupplierId,
   ReviewSetSupplierExpectedDelivery,
   SAVE,
   SetReviewOpen,
 } from "@/services/redux/slices/procurement/purchases";
 import { Formatter } from "@/services/utilities";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { toast } from "sonner";
 import ReviewOrderItemsList from "./items-list";
-
-const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
+const ReviewOrderModal = ({ entries = [] }) => {
   const dispatch = useDispatch();
   const { token, auth } = useSelector(({ auth }) => auth);
+  const { collections: suppliers } = useSelector(({ suppliers }) => suppliers);
+  const { cart } = useSelector(({ purchases }) => purchases);
+  const [formattedCart, setFormattedCart] = useState([]);
+
   const {
     reviewOpen,
     supplierMode,
@@ -44,159 +45,112 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
 
   const supplierLabelById = useMemo(() => {
     const map = new Map();
-    for (const option of Array.isArray(supplierOptions)
-      ? supplierOptions
-      : []) {
-      if (option?.id)
-        map.set(String(option.id), String(option.label || "Supplier"));
+    for (const option of Array.isArray(suppliers) ? suppliers : []) {
+      if (option?._id)
+        map.set(String(option._id), String(option.name || "Supplier"));
     }
     return map;
-  }, [supplierOptions]);
+  }, [suppliers]);
 
   const totals = useMemo(() => {
     const totalItems = Array.isArray(entries) ? entries.length : 0;
-    const totalAmount = (Array.isArray(entries) ? entries : []).reduce(
+    const totalAmount = (Array.isArray(cart) ? cart : []).reduce(
       (sum, entry) => {
-        const unitCost = Number(entry?.line?.cost ?? entry?.item?.cost) || 0;
-        return sum + unitCost * (entry?.line?.quantity || 0);
+        const unitCost = Number(entry?.cost ?? entry?.cost) || 0;
+        return sum + unitCost * (entry?.quantity || 0);
       },
       0,
     );
     return { totalItems, totalAmount };
-  }, [entries]);
+  }, [cart]);
 
-  const groups = useMemo(() => {
-    const map = new Map();
-    for (const entry of Array.isArray(entries) ? entries : []) {
-      const supplierId = String(entry?.line?.supplier || "all");
-      if (!map.has(supplierId)) map.set(supplierId, []);
-      map.get(supplierId).push(entry);
-    }
-    return Array.from(map.entries())
-      .filter(([supplierId]) => supplierId && supplierId !== "all")
-      .map(([supplierId, rows]) => {
-        const totalAmount = rows.reduce((sum, row) => {
-          const unitCost = Number(row?.line?.cost ?? row?.item?.cost) || 0;
-          return sum + unitCost * (row?.line?.quantity || 0);
-        }, 0);
-        const totalItems = rows.length;
-        return { supplierId, rows, totalAmount, totalItems };
-      });
-  }, [entries]);
+  const formatDate = (date) => {
+    if (!date) return null;
 
-  const close = (nextOpen) => dispatch(SetReviewOpen(Boolean(nextOpen)));
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  const placeOrder = () => {
-    if (!entries?.length) return close(false);
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+      .format(new Date(date))
+      .replace(/\//g, "-");
+  };
 
-    if (supplierMode === "same") {
-      if (!reviewSameSupplierId || reviewSameSupplierId === "all") {
-        return toast.error("Select a supplier for this order.");
-      }
-      if (!reviewSameExpectedDelivery) {
-        return toast.error("Select an expected delivery date.");
-      }
+  const getDefaultDeliveryWindow = () => {
+    const now = new Date();
 
-      const lines = entries.map(({ item, line }) => {
-        const inventory = String(line?.inventory || "");
-        const quantity = Number(line?.quantity) || 0;
-        const unitCost = Number(line?.cost ?? item?.cost) || 0;
-        return {
-          inventory,
-          quantity,
-          unitCost,
-          // Backend expects supplierId; cart line key is `supplier`.
-          supplierId: reviewSameSupplierId,
-          supplierName:
-            supplierLabelById.get(reviewSameSupplierId) || "Supplier",
-          expectedDelivery: reviewSameExpectedDelivery,
-        };
-      });
+    const from = new Date(now);
+    from.setDate(from.getDate() + 1);
 
-      dispatch(
-        SAVE({
-          token,
-          data: {
-            role: "administrator",
-            action: "createOrder",
-            performBy: auth?._id,
-            supplierMode: "same",
-            supplierId: reviewSameSupplierId,
-            supplierName:
-              supplierLabelById.get(reviewSameSupplierId) || "Supplier",
-            expectedDelivery: reviewSameExpectedDelivery,
-            totals,
-            lines,
+    const to = new Date(now);
+    to.setDate(to.getDate() + 3);
+
+    return {
+      from: formatDate(from),
+      to: formatDate(to),
+    };
+  };
+
+  useEffect(() => {
+    if (!reviewOpen) return;
+
+    const groupsMap = new Map();
+
+    cart.forEach((item) => {
+      const key = item?.supplier;
+
+      if (!groupsMap.has(key)) {
+        const defaultWindow = getDefaultDeliveryWindow();
+
+        groupsMap.set(key, {
+          supplier: key,
+          items: [],
+          deliveryWindow: {
+            from: formatDate(item?.deliveryWindow?.from) || defaultWindow.from,
+            to: formatDate(item?.deliveryWindow?.to) || defaultWindow.to,
           },
-        }),
-      )
-        .unwrap()
-        .then(() => {
-          toast.success("Order created.");
-          dispatch(CartClear());
-          close(false);
-        })
-        .catch(() => {
-          toast.error("Failed to create order.");
         });
-
-      return;
-    }
-
-    for (const group of groups) {
-      const expected = String(
-        reviewExpectedDeliveryBySupplier?.[group.supplierId] || "",
-      );
-      if (!expected) {
-        toast.error(
-          `Select an expected delivery date for "${supplierLabelById.get(group.supplierId) || "Supplier"}".`,
-        );
-        return;
       }
-    }
 
-    const lines = entries.map(({ item, line }) => {
-      const inventory = String(line?.inventory || "");
-      const quantity = Number(line?.quantity) || 0;
-      const unitCost = Number(line?.cost ?? item?.cost) || 0;
-      const supplierId = String(line?.supplier || "all");
+      groupsMap.get(key).items.push(item);
+    });
+
+    const result = Array.from(groupsMap.values()).map((group) => {
+      const totalAmount = group.items.reduce((sum, item) => {
+        const unitCost = Number(item?.cost) || 0;
+        const qty = Number(item?.quantity) || 0;
+        return sum + unitCost * qty;
+      }, 0);
+
       return {
-        inventory,
-        quantity,
-        unitCost,
-        supplierId,
-        supplierName: supplierLabelById.get(supplierId) || "Supplier",
-        expectedDelivery: String(
-          reviewExpectedDeliveryBySupplier?.[supplierId] || "",
-        ),
+        ...group,
+        totalAmount,
       };
     });
 
-    dispatch(
-      SAVE({
-        token,
-        data: {
-          role: "administrator",
-          action: "createOrder",
-          performBy: auth?._id,
-          supplierMode: "different",
-          expectedDeliveryBySupplier: reviewExpectedDeliveryBySupplier || {},
-          totals,
-          lines,
-        },
-      }),
-    )
-      .unwrap()
-      .then(() => {
-        toast.success("Order created.");
-        dispatch(CartClear());
-        close(false);
-      })
-      .catch(() => {
-        toast.error("Failed to create order.");
-      });
+    setFormattedCart(result);
+  }, [cart, reviewOpen]);
+
+  const handleDateChange = (newDate, supplier) => {
+    console.log("newDate", newDate, "supplier", supplier);
+    const _formattedCart = [...formattedCart];
+    const groupIndex = _formattedCart.findIndex(
+      (group) => group.supplier === supplier,
+    );
+    if (groupIndex !== -1) {
+      _formattedCart[groupIndex] = {
+        ..._formattedCart[groupIndex],
+        deliveryWindow: newDate,
+      };
+    }
+    setFormattedCart(_formattedCart);
   };
 
+  const close = (nextOpen) => dispatch(SetReviewOpen(Boolean(nextOpen)));
+  const placeOrder = () => {};
   return (
     <Dialog open={reviewOpen} onOpenChange={close}>
       <DialogContent className="max-w-3xl max-h-[95dvh] grid-rows-[auto_1fr_auto_auto_auto]">
@@ -210,65 +164,123 @@ const ReviewOrderModal = ({ entries = [], supplierOptions = [] }) => {
 
         <div className="min-h-0 space-y-4 overflow-auto pr-1">
           <div className="space-y-4">
-            {groups.map((group) => (
-              <div
-                key={group.supplierId}
-                className="rounded-xl border border-border bg-card/60 p-3"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                  <div className="space-y-0.5">
-                    <p className="text-base font-semibold text-foreground">
-                      {supplierLabelById.get(group.supplierId) || "Supplier"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {group.totalItems} item(s) •{" "}
-                      <span className="text-base font-semibold text-foreground">
-                        {Formatter.amount(group.totalAmount)}
-                      </span>
-                    </p>
+            {formattedCart.map((group) => {
+              const { deliveryWindow } = group;
+              return (
+                <div
+                  key={group.supplier}
+                  className="rounded-xl border border-border bg-card/60 p-3"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="space-y-0.5">
+                      <p className="text-base font-semibold text-foreground">
+                        {supplierLabelById.get(group.supplier) || "Supplier"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">
+                          {group.items?.length} item(s)
+                        </span>{" "}
+                        <span className="mx-1 text-muted-foreground">•</span>
+                        <span className="text-base font-semibold text-foreground">
+                          {Formatter.amount(group.totalAmount)}
+                        </span>{" "}
+                      </p>
+                    </div>
+
+                    <div className="w-full space-y-1 sm:w-80">
+                      <Label className="text-xs text-muted-foreground">
+                        Expected delivery
+                      </Label>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date"
+                            variant={"outline"}
+                            className={cn(
+                              "w-[300px] justify-start text-left font-normal",
+                            )}
+                          >
+                            <CalendarIcon />
+                            {deliveryWindow?.from ? (
+                              deliveryWindow?.to ? (
+                                <>
+                                  {Formatter.date(deliveryWindow.from)} -{" "}
+                                  {Formatter.date(deliveryWindow.to)}
+                                </>
+                              ) : (
+                                <>{Formatter.date(deliveryWindow.from)}</>
+                              )
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={deliveryWindow?.from}
+                            selected={deliveryWindow}
+                            onSelect={(range) => {
+                              if (!range) return;
+
+                              // Case: pinili ulit yung parehong date (gawin from=to)
+                              if (range.from && !range.to) {
+                                handleDateChange(
+                                  { from: range.from, to: range.from },
+                                  group.supplier,
+                                );
+                              } else {
+                                handleDateChange(range, group.supplier);
+                              }
+                            }}
+                            numberOfMonths={2}
+                            disabled={(day) => {
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              return day < today;
+                            }}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
 
-                  <div className="w-full space-y-1 sm:w-56">
-                    <Label className="text-xs text-muted-foreground">
-                      Expected delivery
-                    </Label>
-                    <Input
-                      type="date"
-                      value={String(
-                        reviewExpectedDeliveryBySupplier?.[group.supplierId] ||
-                          "",
-                      )}
-                      onChange={(event) =>
-                        dispatch(
-                          ReviewSetSupplierExpectedDelivery({
-                            supplierId: group.supplierId,
-                            date: event.target.value,
-                          }),
-                        )
-                      }
-                    />
-                  </div>
+                  <Separator className="my-3" />
+                  <ReviewOrderItemsList rows={group.items} />
                 </div>
-
-                <Separator className="my-3" />
-                <ReviewOrderItemsList rows={group.rows} />
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Items</span>
-            <span className="font-semibold text-foreground">
-              {totals.totalItems}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">Total</span>
-            <span className="text-base font-semibold text-foreground">
-              {Formatter.amount(totals.totalAmount)}
-            </span>
+        <div className="rounded-xl border border-border bg-card/70 px-3 py-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs text-muted-foreground">Items</span>
+                <span className="text-sm font-semibold text-foreground">
+                  {cart.length}
+                </span>
+              </div>
+              <span className="h-4 w-px bg-border/70" aria-hidden="true" />
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs text-muted-foreground">Suppliers</span>
+                <span className="text-sm font-semibold text-foreground">
+                  {formattedCart.length}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-baseline justify-between gap-3 rounded-lg bg-background/40 px-3 py-2 sm:justify-end sm:text-right">
+              <span className="text-xs text-muted-foreground">
+                Total amount
+              </span>
+              <span className="text-base font-semibold leading-none text-foreground">
+                {Formatter.amount(totals.totalAmount)}
+              </span>
+            </div>
           </div>
         </div>
 

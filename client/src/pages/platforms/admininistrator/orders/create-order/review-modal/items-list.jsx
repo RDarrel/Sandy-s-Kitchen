@@ -5,24 +5,35 @@ const ReviewOrderItemsList = ({ rows = [] }) => {
 
   return (
     <div className="space-y-2">
-      {safeRows.map(({ item, line }) => {
-        const unitCost = Number(line?.cost ?? item?.cost) || 0;
-        const qty = Number(line?.quantity) || 0;
-        const key = String(line?.inventory || item?._id || "");
+      {safeRows.map((item, idx) => {
+        const { cost: unitCost, quantity: qty, inventory } = item;
 
         return (
           <div
-            key={key}
-            className="flex items-start justify-between gap-3 text-sm"
+            key={idx}
+            className="flex items-center justify-between gap-3 text-sm"
           >
-            <div className="min-w-0">
-              <p className="truncate font-medium text-foreground">
-                {item?.name || "Item"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {qty} × {Formatter.amount(unitCost)}
-              </p>
+            <div className="flex items-center gap-3 min-w-0">
+              {/* 🔥 QTY Badge */}
+              <div className="flex gap-[0.8px] h-8 min-w-[36px] flex-col items-center justify-center rounded-md bg-primary text-primary-foreground">
+                <span className="text-[10px] leading-none opacity-80">KG</span>
+                <span className="text-sm font-semibold leading-none">
+                  {qty}
+                </span>
+              </div>
+
+              {/* Item info */}
+              <div className="min-w-0">
+                <p className="truncate font-medium text-foreground">
+                  {inventory?.name || "Item"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {Formatter.amount(unitCost)} each
+                </p>
+              </div>
             </div>
+
+            {/* Total */}
             <p className="font-semibold text-foreground">
               {Formatter.amount(unitCost * qty)}
             </p>
