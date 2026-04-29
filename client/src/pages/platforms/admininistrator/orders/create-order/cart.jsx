@@ -84,18 +84,14 @@ const CreateOrderCart = () => {
         >
           {cart.length ? (
             cart.map((item, index) => {
-              const {
-                inventory,
-                quantity,
-                supplier,
-                cost: unitCost,
-              } = item || {};
+              const { inventory, quantity, supplier, cost: unitCost } =
+                item || {};
               const { suppliers } = inventory || {};
               const inventoryId = String(inventory?._id);
               const { unitCost: unitCostLabel, qty: qtyLabel } =
                 measurementLabels(inventory?.measurement);
 
-              const supplierOptions = suppliers
+              const supplierOptions = (Array.isArray(suppliers) ? suppliers : [])
                 .map((row) => ({
                   id: String(row?.supplier?._id || ""),
                   label: String(row?.supplier?.name || ""),
@@ -111,7 +107,7 @@ const CreateOrderCart = () => {
               return (
                 <div
                   key={`${inventoryId}-${index}`}
-                  className={`rounded-xl border bg-card/60 p-2.5 shadow-xs  border-border`}
+                  className="rounded-xl border border-border bg-card/60 p-2.5 shadow-xs"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -131,7 +127,7 @@ const CreateOrderCart = () => {
                     </Button>
                   </div>
 
-                  <div className=" grid gap-2">
+                  <div className="grid gap-2">
                     <div className="grid grid-cols-[1fr_140px] items-end gap-2">
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">
@@ -154,8 +150,8 @@ const CreateOrderCart = () => {
                         />
                       </div>
 
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
+                      <div className="space-y-1 text-center">
+                        <Label className="text-xs text-muted-foreground ">
                           {qtyLabel}
                         </Label>
                         <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
@@ -185,7 +181,6 @@ const CreateOrderCart = () => {
                                 /[^\d]/g,
                                 "",
                               );
-                              console.log("nextValue", nextValue);
 
                               dispatch(
                                 CartUpdate({
@@ -221,9 +216,20 @@ const CreateOrderCart = () => {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-xs text-muted-foreground">
-                        Supplier
-                      </Label>
+                      <div className="flex items-end justify-between gap-3">
+                        <Label className="text-xs text-muted-foreground">
+                          Supplier
+                        </Label>
+                        <p className="text-xs text-muted-foreground tabular-nums">
+                          Subtotal{" "}
+                          <span className="font-semibold text-foreground">
+                            {Formatter.amount(
+                              (Number(quantity) || 0) *
+                                (Number(unitCost) || 0),
+                            )}
+                          </span>
+                        </p>
+                      </div>
                       <Select
                         value={supplier}
                         onValueChange={(value) => {
@@ -238,10 +244,7 @@ const CreateOrderCart = () => {
                           );
                         }}
                       >
-                        <SelectTrigger
-                          className="h-9 w-full"
-                          data-supplier-trigger
-                        >
+                        <SelectTrigger className="h-9 w-full" data-supplier-trigger>
                           <SelectValue placeholder="Select supplier" />
                         </SelectTrigger>
                         <SelectContent>
@@ -268,10 +271,10 @@ const CreateOrderCart = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })
           ) : (
             <div className="flex h-full w-full items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 p-10 text-center">
               <div className="space-y-2">

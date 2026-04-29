@@ -96,24 +96,6 @@ export const reduxSlice = createSlice({
   name: url,
   initialState,
   reducers: {
-    SetSupplierMode: (state, { payload }) => {
-      const nextMode = payload === "same" ? "same" : "different";
-      state.supplierMode = nextMode;
-
-      if (nextMode !== "same") return;
-
-      const cart = normalizeCart(state.cart);
-      const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-      const stamp = Date.now();
-      state.cart = {
-        version: 1,
-        lines: lines.map((line) => ({
-          ...line,
-          supplier: "all",
-          updatedAt: stamp,
-        })),
-      };
-    },
     SetCartOpen: (state, { payload }) => {
       state.cartOpen = Boolean(payload);
     },
@@ -168,10 +150,6 @@ export const reduxSlice = createSlice({
       state.cart = _cart;
     },
 
-    UPDATE_AUTH: (state, data) => {
-      state.auth = { ...state.auth, ...data.payload };
-      state.information = { ...state.information, isFreshman: false };
-    },
     PROGRESS: (state, data) => {
       state.progress = data.payload;
     },
@@ -284,8 +262,6 @@ export const {
   UPLOADBAR,
   IMAGE,
   SETROUTE,
-  UPDATE_AUTH,
-  SetSupplierMode,
   SetCartOpen,
   SetReviewOpen,
   ReviewSetSameSupplierId,
