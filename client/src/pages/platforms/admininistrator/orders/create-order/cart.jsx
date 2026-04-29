@@ -1,3 +1,5 @@
+import { memo, useCallback, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import {
   CardAction,
@@ -23,49 +25,288 @@ import {
 } from "@/services/redux/slices/procurement/purchases";
 import { Formatter, Inventory } from "@/services/utilities";
 import { ClipboardList, Minus, Plus, Search, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 const measurementLabels = (measurement = "") => {
   const normalized = String(measurement || "").toLowerCase();
-  if (normalized === "volume")
+
+  if (normalized === "volume") {
     return { unitCost: "Unit cost per Liter", qty: "Liters" };
-  if (normalized === "weight")
+  }
+
+  if (normalized === "weight") {
     return { unitCost: "Unit cost per Kg", qty: "Kg" };
+  }
+
   return { unitCost: "Unit cost per Piece", qty: "Pieces" };
 };
 
+const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
+  const { inventory, quantity, supplier, cost: unitCost } = item || {};
+  const inventoryId = String(inventory?._id || "");
+
+  const unitCostLabel = useMemo(() => {
+    return measurementLabels(inventory?.measurement).unitCost;
+  }, [inventory?.measurement]);
+
+  const unitLabel = useMemo(() => {
+    return Inventory.getUnitByMeasurement(inventory?.measurement, false);
+  }, [inventory?.measurement]);
+
+  const supplierOptions = useMemo(() => {
+    const options = (
+      Array.isArray(inventory?.suppliers) ? inventory.suppliers : []
+    )
+      .map((row) => ({
+        id: String(row?.supplier?._id || ""),
+        label: String(row?.supplier?.name || ""),
+        cost: row?.cost,
+        isPrimary: Boolean(row?.isPrimary),
+      }))
+      .filter((option) => option.id);
+
+    return options.sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+  }, [inventory?.suppliers]);
+
+  const subtotal = useMemo(() => {
+    return Formatter.amount((Number(quantity) || 0) * (Number(unitCost) || 0));
+  }, [quantity, unitCost]);
+
+  const handleRemove = useCallback(() => {
+    onRemove(inventoryId);
+  }, [onRemove, inventoryId]);
+
+  const handleCostChange = useCallback(
+    (event) => {
+      onUpdate({
+        inventory,
+        cost: Number(event.target.value || 0),
+      });
+    },
+    [onUpdate, inventory],
+  );
+
+  const handleQuantityChange = useCallback(
+    (event) => {
+      const nextValue = event.target.value.replace(/[^\d]/g, "");
+
+      onUpdate({
+        inventory,
+        quantity: Number(nextValue) || 1,
+      });
+    },
+    [onUpdate, inventory],
+  );
+
+  const handleDecrease = useCallback(() => {
+    const qty = Math.max(1, Number(quantity || 0) - 1);
+
+    onUpdate({
+      inventory,
+      quantity: qty,
+    });
+  }, [onUpdate, inventory, quantity]);
+
+  const handleIncrease = useCallback(() => {
+    onUpdate({
+      inventory,
+      quantity: Number(quantity || 0) + 1,
+    });
+  }, [onUpdate, inventory, quantity]);
+
+  const handleSupplierChange = useCallback(
+    (value) => {
+      const selectedSupplier = supplierOptions.find(
+        (option) => option.id === value,
+      );
+
+      onUpdate({
+        inventory,
+        cost: selectedSupplier?.cost ?? unitCost,
+        supplier: value || "all",
+      });
+    },
+    [onUpdate, inventory, supplierOptions, unitCost],
+  );
+
+  return (
+    <div className="rounded-xl border border-border bg-card/60 p-2.5 shadow-xs">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">
+            {inventory?.name || "Item"}
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 rounded-xl"
+          onClick={handleRemove}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="grid gap-2">
+        <div className="grid grid-cols-[1fr_140px] items-end gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">
+              {unitCostLabel}
+            </Label>
+
+            <Input
+              type="number"
+              inputMode="decimal"
+              min={1}
+              step="0.01"
+              value={unitCost ?? ""}
+              onChange={handleCostChange}
+            />
+          </div>
+
+          <div className="space-y-1 text-center">
+            <Label className="text-xs text-muted-foreground">{unitLabel}</Label>
+
+            <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 rounded-lg"
+                onClick={handleDecrease}
+                title="Decrease quantity"
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+
+              <Input
+                value={quantity ?? 1}
+                onChange={handleQuantityChange}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="h-7 w-14 rounded-lg bg-background text-center text-sm tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 rounded-lg"
+                onClick={handleIncrease}
+                title="Increase quantity"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex items-end justify-between gap-3">
+            <Label className="text-xs text-muted-foreground">Supplier</Label>
+
+            <p className="text-xs text-muted-foreground tabular-nums">
+              Subtotal{" "}
+              <span className="font-semibold text-foreground">{subtotal}</span>
+            </p>
+          </div>
+
+          <Select
+            value={supplier || "all"}
+            onValueChange={handleSupplierChange}
+          >
+            <SelectTrigger className="h-9 w-full" data-supplier-trigger>
+              <SelectValue placeholder="Select supplier" />
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem value="all" disabled>
+                Select supplier
+              </SelectItem>
+
+              {supplierOptions.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  <span
+                    className={
+                      option.isPrimary
+                        ? "font-semibold text-primary"
+                        : "text-foreground"
+                    }
+                  >
+                    {option.label || "Supplier"}
+                  </span>
+
+                  <span className="text-muted-foreground">
+                    {" "}
+                    ({Formatter.amount(option.cost)})
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 const CreateOrderCart = () => {
   const dispatch = useDispatch();
-  const { cart } = useSelector(({ purchases }) => purchases);
+  const { cart = [] } = useSelector(({ purchases }) => purchases);
   const [search, setSearch] = useState("");
 
   const totals = useMemo(() => {
-    let totalItems = 0;
     const totalAmount = cart.reduce((sum, { quantity = 0, cost = 0 }) => {
-      totalItems += Number(quantity || 0);
       return sum + Number(quantity || 0) * Number(cost || 0);
     }, 0);
-    return { totalItems: cart.length, totalAmount };
+
+    return {
+      totalItems: cart.length,
+      totalAmount,
+    };
   }, [cart]);
 
   const filteredCart = useMemo(() => {
+    const safeCart = Array.isArray(cart) ? cart : [];
     const query = String(search || "")
       .trim()
       .toLowerCase();
-    if (!query) return Array.isArray(cart) ? cart : [];
 
-    return (Array.isArray(cart) ? cart : []).filter((item) => {
+    if (!query) return safeCart;
+
+    return safeCart.filter((item) => {
       const name = String(item?.inventory?.name || "").toLowerCase();
       return name.includes(query);
     });
   }, [cart, search]);
 
-  const handleReview = () => {
-    if (!cart.length) return;
+  const handleSearchChange = useCallback((event) => {
+    setSearch(event.target.value);
+  }, []);
 
+  const handleClear = useCallback(() => {
+    dispatch(CartClear());
+  }, [dispatch]);
+
+  const handleUpdate = useCallback(
+    (payload) => {
+      dispatch(CartUpdate(payload));
+    },
+    [dispatch],
+  );
+
+  const handleRemove = useCallback(
+    (inventoryId) => {
+      dispatch(CartRemove(inventoryId));
+    },
+    [dispatch],
+  );
+
+  const handleReview = useCallback(() => {
+    if (!cart.length) return;
     dispatch(SetReviewOpen());
-  };
+  }, [dispatch, cart.length]);
 
   return (
     <>
@@ -84,7 +325,7 @@ const CreateOrderCart = () => {
             variant="ghost"
             className="h-9 w-9 rounded-xl text-destructive hover:text-destructive"
             disabled={!cart.length}
-            onClick={() => dispatch(CartClear())}
+            onClick={handleClear}
             title="Clear selected items"
           >
             <Trash2 className="h-4 w-4" />
@@ -94,9 +335,10 @@ const CreateOrderCart = () => {
         <div className="col-span-2">
           <div className="relative mt-1.5 w-full">
             <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+
             <Input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={handleSearchChange}
               placeholder="Search items..."
               className="h-8 w-full pl-9"
             />
@@ -104,7 +346,7 @@ const CreateOrderCart = () => {
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-1 pt-0 ">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-1 pt-0">
         <div
           className={
             cart.length
@@ -113,208 +355,16 @@ const CreateOrderCart = () => {
           }
         >
           {filteredCart.length ? (
-            filteredCart.map((item, index) => {
-              const {
-                inventory,
-                quantity,
-                supplier,
-                cost: unitCost,
-              } = item || {};
-              const { suppliers } = inventory || {};
-              const inventoryId = String(inventory?._id);
-              const { unitCost: unitCostLabel } = measurementLabels(
-                inventory?.measurement,
-              );
-
-              const supplierOptions = (
-                Array.isArray(suppliers) ? suppliers : []
-              )
-                .map((row) => ({
-                  id: String(row?.supplier?._id || ""),
-                  label: String(row?.supplier?.name || ""),
-                  cost: row.cost,
-                  isPrimary: Boolean(row?.isPrimary),
-                }))
-                .filter((opt) => opt.id);
-
-              supplierOptions.sort(
-                (a, b) => Number(b.isPrimary) - Number(a.isPrimary),
-              );
+            filteredCart.map((item) => {
+              const inventoryId = String(item?.inventory?._id || "");
 
               return (
-                <div
-                  key={`${inventoryId}-${index}`}
-                  className="rounded-xl border border-border bg-card/60 p-2.5 shadow-xs"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {inventory?.name || "Item"}
-                      </p>
-                    </div>
-
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 rounded-xl"
-                      onClick={() => dispatch(CartRemove(inventory?._id))}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <div className="grid grid-cols-[1fr_140px] items-end gap-2">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">
-                          {unitCostLabel}
-                        </Label>
-                        <Input
-                          type="number"
-                          inputMode="decimal"
-                          min={1}
-                          step="0.01"
-                          value={unitCost}
-                          onChange={(event) =>
-                            dispatch(
-                              CartUpdate({
-                                inventory,
-                                cost: Number(event.target.value || 0),
-                              }),
-                            )
-                          }
-                        />
-                      </div>
-
-                      <div className="space-y-1 text-center">
-                        <Label className="text-xs text-muted-foreground ">
-                          {Inventory.getUnitByMeasurement(
-                            inventory?.measurement,
-                            false,
-                          )}
-                        </Label>
-                        <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7 rounded-lg"
-                            onClick={() => {
-                              const qty = Math.max(
-                                0,
-                                Number(item.quantity || 0) - 1,
-                              );
-                              dispatch(
-                                CartUpdate({ inventory, quantity: qty }),
-                              );
-                            }}
-                            title="Decrease quantity"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-
-                          <Input
-                            value={quantity}
-                            onChange={(event) => {
-                              const nextValue = event.target.value.replace(
-                                /[^\d]/g,
-                                "",
-                              );
-
-                              dispatch(
-                                CartUpdate({
-                                  inventory,
-                                  quantity: Number(nextValue) || 1,
-                                }),
-                              );
-                            }}
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            className="h-7 w-14 rounded-lg bg-background text-center text-sm tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          />
-
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7 rounded-lg"
-                            onClick={() => {
-                              dispatch(
-                                CartUpdate({
-                                  inventory,
-                                  quantity: Number(item.quantity || 0) + 1,
-                                }),
-                              );
-                            }}
-                            title="Increase quantity"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <div className="flex items-end justify-between gap-3">
-                        <Label className="text-xs text-muted-foreground">
-                          Supplier
-                        </Label>
-                        <p className="text-xs text-muted-foreground tabular-nums">
-                          Subtotal{" "}
-                          <span className="font-semibold text-foreground">
-                            {Formatter.amount(
-                              (Number(quantity) || 0) * (Number(unitCost) || 0),
-                            )}
-                          </span>
-                        </p>
-                      </div>
-                      <Select
-                        value={supplier}
-                        onValueChange={(value) => {
-                          dispatch(
-                            CartUpdate({
-                              inventory,
-                              cost: supplierOptions.find(
-                                (option) => option.id === value,
-                              )?.cost,
-                              supplier: value || "all",
-                            }),
-                          );
-                        }}
-                      >
-                        <SelectTrigger
-                          className="h-9 w-full"
-                          data-supplier-trigger
-                        >
-                          <SelectValue placeholder="Select supplier" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all" disabled>
-                            Select supplier
-                          </SelectItem>
-                          {supplierOptions.map((option) => (
-                            <SelectItem key={option.id} value={option.id}>
-                              <span
-                                className={
-                                  option.isPrimary
-                                    ? "font-semibold text-primary"
-                                    : "text-foreground"
-                                }
-                              >
-                                {option.label || "Supplier"}
-                              </span>
-                              <span className="text-muted-foreground">
-                                {" "}
-                                ({Formatter.amount(option.cost)})
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
+                <CartItemRow
+                  key={inventoryId}
+                  item={item}
+                  onUpdate={handleUpdate}
+                  onRemove={handleRemove}
+                />
               );
             })
           ) : (
@@ -354,6 +404,7 @@ const CreateOrderCart = () => {
                 {totals.totalItems}
               </span>
             </div>
+
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Est. total</span>
               <span className="font-semibold text-foreground">

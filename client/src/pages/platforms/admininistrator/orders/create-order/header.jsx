@@ -44,8 +44,7 @@ const CreateOrderHeader = ({
   category = "all",
   setCategory,
 }) => {
-  const categoryList =
-    type !== "all" ? categoryOptions[type] || [] : [];
+  const categoryList = type !== "all" ? categoryOptions[type] || [] : [];
   const categoryDisabled = type === "all";
 
   return (

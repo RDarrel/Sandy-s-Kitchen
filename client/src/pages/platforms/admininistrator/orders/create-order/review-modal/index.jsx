@@ -23,7 +23,7 @@ import {
   SetReviewOpen,
 } from "@/services/redux/slices/procurement/purchases";
 import { Formatter } from "@/services/utilities";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ReviewOrderItemsList from "./items-list";
 import {
@@ -210,6 +210,7 @@ const ReviewOrderModal = ({ entries = [] }) => {
 
   const close = (nextOpen) => dispatch(SetReviewOpen(Boolean(nextOpen)));
   const placeOrder = () => {};
+
   return (
     <Dialog open={reviewOpen} onOpenChange={close}>
       <DialogContent className="max-w-3xl  grid-rows-[auto_1fr_auto_auto_auto]">
@@ -262,94 +263,14 @@ const ReviewOrderModal = ({ entries = [] }) => {
             </div>
 
             {visibleGroups.length ? (
-              visibleGroups.map((group) => {
-                const { deliveryWindow } = group;
-                return (
-                  <div
-                    key={group.supplier}
-                    className="rounded-xl border border-border bg-card/60 p-3 "
-                  >
-                    <div className=" flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                      <div className="space-y-0.5">
-                        <p className="text-base font-semibold text-foreground">
-                          {supplierLabelById.get(group.supplier) || "Supplier"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          <span className="font-medium text-foreground">
-                            {group.items?.length} item(s)
-                          </span>{" "}
-                          <span className="mx-1 text-muted-foreground">•</span>
-                          <span className="text-base font-semibold text-foreground">
-                            {Formatter.amount(group.totalAmount)}
-                          </span>{" "}
-                        </p>
-                      </div>
-
-                      <div className="w-full space-y-1 sm:w-80">
-                        <Label className="text-xs text-muted-foreground">
-                          Expected delivery date
-                        </Label>
-
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              id="date"
-                              variant={"outline"}
-                              className={cn(
-                                "w-full justify-start text-left font-normal sm:w-[300px]",
-                              )}
-                            >
-                              <CalendarIcon />
-                              {deliveryWindow?.from ? (
-                                deliveryWindow?.to ? (
-                                  <>
-                                    {Formatter.date(deliveryWindow.from)} -{" "}
-                                    {Formatter.date(deliveryWindow.to)}
-                                  </>
-                                ) : (
-                                  <>{Formatter.date(deliveryWindow.from)}</>
-                                )
-                              ) : (
-                                <span>Pick a date range</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              initialFocus
-                              mode="range"
-                              defaultMonth={deliveryWindow?.from}
-                              selected={deliveryWindow}
-                              onSelect={(range) => {
-                                if (!range) return;
-
-                                // Case: pinili ulit yung parehong date (gawin from=to)
-                                if (range.from && !range.to) {
-                                  handleDateChange(
-                                    { from: range.from, to: range.from },
-                                    group.supplier,
-                                  );
-                                } else {
-                                  handleDateChange(range, group.supplier);
-                                }
-                              }}
-                              numberOfMonths={2}
-                              disabled={(day) => {
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0);
-                                return day < today;
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-
-                    <Separator className="my-3" />
-                    <ReviewOrderItemsList rows={group.items} />
-                  </div>
-                );
-              })
+              visibleGroups.map((group) => (
+                <SupplierRaw
+                  key={group.supplier}
+                  group={group}
+                  supplierLabelById={supplierLabelById}
+                  handleDateChange={handleDateChange}
+                />
+              ))
             ) : (
               <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 p-10 text-center">
                 <div className="space-y-2">
@@ -408,3 +329,92 @@ const ReviewOrderModal = ({ entries = [] }) => {
 };
 
 export default ReviewOrderModal;
+
+const SupplierRaw = memo(({ group, supplierLabelById, handleDateChange }) => {
+  const { deliveryWindow } = group;
+  return (
+    <div
+      key={group.supplier}
+      className="rounded-xl border border-border bg-card/60 p-3 "
+    >
+      <div className=" flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-0.5">
+          <p className="text-base font-semibold text-foreground">
+            {supplierLabelById.get(group.supplier) || "Supplier"}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">
+              {group.items?.length} item(s)
+            </span>{" "}
+            <span className="mx-1 text-muted-foreground">•</span>
+            <span className="text-base font-semibold text-foreground">
+              {Formatter.amount(group.totalAmount)}
+            </span>{" "}
+          </p>
+        </div>
+
+        <div className="w-full space-y-1 sm:w-80">
+          <Label className="text-xs text-muted-foreground">
+            Expected delivery date
+          </Label>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal sm:w-[300px]",
+                )}
+              >
+                <CalendarIcon />
+                {deliveryWindow?.from ? (
+                  deliveryWindow?.to ? (
+                    <>
+                      {Formatter.date(deliveryWindow.from)} -{" "}
+                      {Formatter.date(deliveryWindow.to)}
+                    </>
+                  ) : (
+                    <>{Formatter.date(deliveryWindow.from)}</>
+                  )
+                ) : (
+                  <span>Pick a date range</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={deliveryWindow?.from}
+                selected={deliveryWindow}
+                onSelect={(range) => {
+                  if (!range) return;
+
+                  // Case: pinili ulit yung parehong date (gawin from=to)
+                  if (range.from && !range.to) {
+                    handleDateChange(
+                      { from: range.from, to: range.from },
+                      group.supplier,
+                    );
+                  } else {
+                    handleDateChange(range, group.supplier);
+                  }
+                }}
+                numberOfMonths={2}
+                disabled={(day) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  return day < today;
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+
+      <Separator className="my-3" />
+      <ReviewOrderItemsList rows={group.items} />
+    </div>
+  );
+});
