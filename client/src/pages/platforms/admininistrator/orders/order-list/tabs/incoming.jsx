@@ -7,6 +7,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SetShowOrderDetails } from "@/services/redux/slices/procurement/purchases";
 import { Formatter } from "@/services/utilities";
 import { capitalize } from "lodash";
 import {

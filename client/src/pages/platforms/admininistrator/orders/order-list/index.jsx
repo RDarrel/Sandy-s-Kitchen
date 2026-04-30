@@ -13,6 +13,7 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import IncomingOrdersTab from "./tabs/incoming";
 import ReceivedOrdersTab from "./tabs/delivered";
+import ReceiveOrderModal from "./modal";
 import { Search, Truck } from "lucide-react";
 
 const incomingStatuses = new Set([
@@ -46,7 +47,10 @@ const OrderList = () => {
     return () => dispatch(RESET());
   }, [dispatch, token]);
 
-  const purchases = Array.isArray(collections) ? collections : [];
+  const purchases = useMemo(
+    () => (Array.isArray(collections) ? collections : []),
+    [collections],
+  );
 
   const counts = useMemo(() => {
     let incoming = 0;
@@ -184,6 +188,7 @@ const OrderList = () => {
             </CardContent>
           </Card>
         </Tabs>
+        <ReceiveOrderModal />
       </div>
     </div>
   );
