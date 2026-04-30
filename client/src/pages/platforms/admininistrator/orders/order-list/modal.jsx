@@ -191,20 +191,20 @@ const ReceiveOrderModal = () => {
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <DialogTitle className="text-lg">
-	                    Receive supplier order
+                    Receive supplier delivery
                   </DialogTitle>
                   <Badge variant="secondary" className="rounded-full">
                     {counts.total} item(s)
                   </Badge>
                   {counts.flagged ? (
                     <Badge className="rounded-full bg-destructive/15 text-destructive hover:bg-destructive/15">
-	                      {counts.flagged} needs review
+                      {counts.flagged} mismatch
                     </Badge>
                   ) : null}
                 </div>
                 <DialogDescription className="text-sm leading-snug">
-                  Record what was delivered by the supplier. Enter the received quantity and
-                  expiry date (if applicable).
+                  Confirm items delivered by the supplier. Enter received
+                  quantities and expiry dates (optional).
                 </DialogDescription>
               </div>
 
@@ -264,28 +264,31 @@ const ReceiveOrderModal = () => {
                 No items found for this order.
               </div>
 	            ) : (
-		              <div className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
-		                <Table className="min-w-[860px]">
-		                  <TableHeader className="bg-muted/30">
-		                    <TableRow className="hover:bg-muted/30">
-		                      <TableHead className="sticky top-0 z-10 bg-muted/30 px-5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-		                        <span className="flex items-center gap-2">
-		                          <Package className="h-3.5 w-3.5 text-muted-foreground" />
-		                          Item
-		                        </span>
-		                      </TableHead>
-		                      <TableHead className="sticky top-0 z-10 bg-muted/30 px-5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-		                        Ordered
-		                      </TableHead>
-		                      <TableHead className="sticky top-0 z-10 w-[280px] bg-muted/30 px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-		                        Received
-		                      </TableHead>
-		                      <TableHead className="sticky top-0 z-10 bg-muted/30 px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-		                        Expiry date
-		                      </TableHead>
-		                    </TableRow>
-		                  </TableHeader>
-	
+              <div className="overflow-hidden rounded-xl border border-border bg-card/60 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/50">
+                <Table className="min-w-[980px]">
+                  <TableHeader className="bg-muted/30">
+                    <TableRow className="hover:bg-muted/30">
+	                      <TableHead className="sticky top-0 z-10 bg-muted/30 px-5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+	                        <span className="flex items-center gap-2">
+	                          <Package className="h-3.5 w-3.5 text-muted-foreground" />
+	                          Item
+	                        </span>
+	                      </TableHead>
+                      <TableHead className="sticky top-0 z-10 bg-muted/30 px-5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                        Ordered qty
+                      </TableHead>
+                      <TableHead className="sticky top-0 z-10 w-[280px] bg-muted/30 px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                        Received qty
+                      </TableHead>
+                      <TableHead className="sticky top-0 z-10 bg-muted/30 px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                        Expiry date
+                      </TableHead>
+                      <TableHead className="sticky top-0 z-10 w-[220px] bg-muted/30 px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                        Short qty
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+
 	                  <TableBody>
 	                    {items.map((item) => {
 	                      const key = getItemKey(item);
@@ -296,27 +299,36 @@ const ReceiveOrderModal = () => {
 	                      const expected = round2(getOrderedQty(item));
 	                      const received = round2(toNumber(receivedByKey[key]));
 	                      const discrepancy = round2(expected - received);
+	                      const hasMismatch = discrepancy !== 0;
 	                      const isOver = discrepancy < 0;
+	                      const shortQty = Math.max(0, discrepancy);
 	                      const unitCost = getUnitCost(item);
-	                      // variance UI intentionally hidden for now (still computed for totals)
+	                      const shortAmount =
+	                        unitCost === null ? null : Math.max(0, shortQty) * unitCost;
 	                      const receivedAmount =
 	                        unitCost === null
 	                          ? null
 	                          : Math.max(0, received) * unitCost;
-	
+
+	                      const inputHighlightClass = hasMismatch
+	                        ? isOver
+	                          ? "border-destructive/60 focus-visible:ring-destructive/20"
+	                          : "border-accent/60 focus-visible:ring-accent/20"
+	                        : "";
+
 	                      return (
 	                        <TableRow
 	                          key={key || name}
-	                          className="hover:bg-muted/5"
+	                          className={`hover:bg-muted/5 ${hasMismatch ? "bg-destructive/5" : ""}`}
 	                        >
-		                          <TableCell className="whitespace-normal px-5 py-2.5">
-		                            <p className="truncate font-medium text-foreground">
-		                              {name}
-		                            </p>
-		                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-		                              <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground/80">
-		                                {unit || "-"}
-		                              </span>
+	                          <TableCell className="whitespace-normal px-5 py-2.5">
+	                            <p className="truncate font-medium text-foreground">
+	                              {name}
+	                            </p>
+	                            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+	                              <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground/80">
+	                                {unit || "-"}
+	                              </span>
 	                              {unitCost === null ? (
 	                                <span>Unit cost: -</span>
 	                              ) : (
@@ -326,9 +338,9 @@ const ReceiveOrderModal = () => {
 	                                    {Formatter.amount(unitCost)}
 	                                  </span>
 	                                </span>
-		                              )}
-		                            </div>
-		                          </TableCell>
+	                              )}
+	                            </div>
+	                          </TableCell>
 
 		                          <TableCell className="px-5 py-2.5 text-right font-semibold tabular-nums text-foreground">
 		                            {formatQty(expected)}{" "}
@@ -337,17 +349,17 @@ const ReceiveOrderModal = () => {
 		                            </span>
 		                          </TableCell>
 		
-		                          <TableCell className="w-[280px] px-5 py-2.5">
-		                            <div className="flex flex-col items-center gap-1">
+                          <TableCell className="w-[280px] px-5 py-2.5">
+                            <div className="flex flex-col items-center gap-1">
 		                              <Label
 		                                className="sr-only"
 		                                htmlFor={`received-${key}`}
 		                              >
 		                                Received quantity
 		                              </Label>
-		                              <div className="relative w-[140px]">
-		                                <Input
-		                                  id={`received-${key}`}
+                              <div className="relative w-[140px]">
+                                <Input
+                                  id={`received-${key}`}
 		                                  type="text"
 		                                  min={0}
 	                                  step="0.01"
@@ -366,28 +378,28 @@ const ReceiveOrderModal = () => {
 	                                      ...prev,
 	                                      [key]: normalizeQtyInput(raw),
 	                                    }));
-	                                  }}
-	                                  placeholder="0"
-	                                  className={`h-8 w-full bg-background pr-12 text-right tabular-nums ${isOver ? "border-destructive/60 focus-visible:ring-destructive/20" : ""}`}
-	                                />
-		                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
-		                                  {unit || "-"}
-		                                </span>
-		                              </div>
+                                  }}
+                                  placeholder="0"
+                                  className={`h-8 w-full bg-background pr-12 text-right tabular-nums ${inputHighlightClass}`}
+                                />
+                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                                  {unit || "-"}
+                                </span>
+                              </div>
+
+                              <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
+                                <span className="font-medium">Line total</span>
+                                <span className="font-semibold tabular-nums text-foreground">
+                                  {receivedAmount === null
+                                    ? "-"
+                                    : Formatter.amount(receivedAmount)}
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
 	
-		                              <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-		                                <span className="font-medium">Amount:</span>
-		                                <span className="font-semibold tabular-nums text-foreground">
-		                                  {receivedAmount === null
-		                                    ? "-"
-		                                    : Formatter.amount(receivedAmount)}
-		                                </span>
-		                              </div>
-		                            </div>
-		                          </TableCell>
-	
-		                          <TableCell className="px-5 py-2.5">
-		                            <div className="mx-auto w-[150px]">
+                          <TableCell className="px-5 py-2.5">
+                            <div className="mx-auto w-[150px]">
 		                              <Label
 		                                className="sr-only"
 	                                htmlFor={`expiry-${key}`}
@@ -408,18 +420,44 @@ const ReceiveOrderModal = () => {
 	                                }}
 	                                className="h-8 w-full bg-background text-sm"
 	                              />
-	                            </div>
-	                          </TableCell>
-	                        </TableRow>
-	                      );
-	                    })}
-	                  </TableBody>
-	                </Table>
+                            </div>
+                          </TableCell>
+
+                          <TableCell className="w-[220px] px-5 py-2.5">
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="relative w-[140px]">
+                                <Input
+                                  type="text"
+                                  value={formatQty(shortQty)}
+                                  disabled
+                                  className={`h-8 w-full border-dashed bg-muted/20 pr-12 text-right font-semibold tabular-nums disabled:cursor-not-allowed disabled:opacity-100 ${shortQty > 0 ? "border-destructive/40 text-destructive" : "border-border/70 text-muted-foreground"}`}
+                                />
+                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                                  {unit || "-"}
+                                </span>
+                              </div>
+                              <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
+                                <span className="font-medium">Line total</span>
+                                <span
+                                  className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
+                                >
+                                  {shortAmount === null
+                                    ? "-"
+                                    : Formatter.amount(shortAmount)}
+                                </span>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
 
                 <div className="flex flex-col gap-2 border-t border-border bg-muted/10 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-xs text-muted-foreground">
                     {counts.flagged
-                      ? `${counts.flagged} item(s) need review (variance != 0).`
+                      ? `${counts.flagged} item(s) have a mismatch from the supplier order.`
                       : "All items match the supplier order."}
                   </div>
 	                  <div className="flex items-baseline justify-between gap-6 sm:justify-end">
