@@ -135,8 +135,6 @@ const ReceiveOrderModal = () => {
   };
 
   const supplierName = purchase?.supplier?.name || "Supplier";
-  const purchaseId = String(purchase?._id || "");
-  const status = String(purchase?.status || "incoming");
 
   const counts = useMemo(() => {
     const total = items.length;
@@ -208,19 +206,7 @@ const ReceiveOrderModal = () => {
                 </DialogDescription>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                {purchaseId ? (
-                  <Badge
-                    variant="outline"
-                    className="rounded-full bg-background"
-                  >
-                    #{purchaseId.slice(-6).toUpperCase()}
-                  </Badge>
-                ) : null}
-                <Badge variant="outline" className="rounded-full bg-background">
-                  {capitalize(status)}
-                </Badge>
-              </div>
+              {/* header badges removed; keep only dialog close icon */}
             </div>
 
             <div className="grid gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-3">
