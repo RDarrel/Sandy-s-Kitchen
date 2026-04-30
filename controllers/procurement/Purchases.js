@@ -7,7 +7,7 @@ exports.save = async (req, res) => {
     await Promise.all(
       createdPurchase.map(async (purchase) => {
         const purchaseItems = cart.filter(
-          ({ supplier }) => supplier === purchase.supplier,
+          ({ supplier }) => String(supplier) === String(purchase.supplier),
         );
         await PurchaseItem.create(purchaseItems);
       }),

@@ -22,6 +22,7 @@ import Inventory from "./inventory";
 import Categories from "./menu/categories";
 import AddOns from "./menu/addOns";
 import CreateOrder from "./orders/create-order";
+import OrderList from "./orders/order-list";
 
 const access = [
   {
@@ -92,7 +93,7 @@ const access = [
       {
         name: "Order List",
         path: "/order-list",
-        component: CreateOrder,
+        component: OrderList,
       },
       {
         name: "Short Deliveries",

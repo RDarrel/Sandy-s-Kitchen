@@ -36,11 +36,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Search, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
+import Spinner from "@/components/shared/spinner";
 const ReviewOrderModal = () => {
   const dispatch = useDispatch();
   const { token } = useSelector(({ auth }) => auth);
   const { collections: suppliers } = useSelector(({ suppliers }) => suppliers);
-  const { cart } = useSelector(({ purchases }) => purchases);
+  const { cart, formSubmitted } = useSelector(({ purchases }) => purchases);
   const [formattedCart, setFormattedCart] = useState([]);
   const [supplierFilter, setSupplierFilter] = useState("all");
   const [itemSearch, setItemSearch] = useState("");
@@ -57,7 +58,6 @@ const ReviewOrderModal = () => {
     }
     return map;
   }, [suppliers]);
-
   const totalAmount = (Array.isArray(cart) ? cart : []).reduce((sum, entry) => {
     const id = String(entry?.inventory?._id || "");
 
@@ -399,7 +399,9 @@ const ReviewOrderModal = () => {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Place order</Button>
+                <Button type="submit" disabled={formSubmitted}>
+                  Place order <Spinner formSubmitted={formSubmitted} />
+                </Button>
               </DialogFooter>
             </div>
           </div>
