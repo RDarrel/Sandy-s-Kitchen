@@ -7,8 +7,17 @@ import {
 } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Formatter } from "@/services/utilities";
-import { CalendarRange, ChevronDown, Clock, Package, Truck } from "lucide-react";
+import {
+  CalendarRange,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Package,
+  Phone,
+  Truck,
+} from "lucide-react";
 import { memo, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 const statusMeta = {
   request: {
@@ -91,12 +100,9 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
 
         const purchaseId = String(purchase?._id || "");
         const isOpen = Boolean(openById[purchaseId]);
-
+        console.log("purchase", purchase);
         const itemsCount =
-          Number(purchase?.itemsCount) ||
-          (Array.isArray(purchase?.items) ? purchase.items.length : 0) ||
-          (Array.isArray(purchase?.orders) ? purchase.orders.length : 0) ||
-          0;
+          (Array.isArray(purchase?.orders) ? purchase.orders.length : 0) || 0;
 
         const items = Array.isArray(purchase?.items)
           ? purchase.items
@@ -110,11 +116,19 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
           purchase?.supplier?.label ||
           "Supplier";
 
+        const supplierContactRaw = purchase?.supplier?.contact?.mobile || "";
+        const supplierContact = supplierContactRaw
+          ? String(supplierContactRaw).trim()
+          : "";
+        const supplierContactHref = supplierContact
+          ? `tel:${supplierContact.replace(/[^\d+]/g, "")}`
+          : "";
+
         const deliveryFrom = purchase?.deliveryWindow?.from;
         const deliveryTo = purchase?.deliveryWindow?.to;
         const deliveryLabel =
           deliveryFrom && deliveryTo
-            ? `${Formatter.date(deliveryFrom)} – ${Formatter.date(deliveryTo)}`
+            ? `${Formatter.date(deliveryFrom)} - ${Formatter.date(deliveryTo)}`
             : deliveryFrom
               ? Formatter.date(deliveryFrom)
               : "Not set";
@@ -123,45 +137,62 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
 
         return (
           <div
-            key={purchase?._id || supplierName}
+            key={purchaseId || supplierName}
             className="rounded-xl border border-border bg-card/60 p-4 shadow-sm"
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-base font-semibold text-foreground">
-                    {supplierName}
-                  </p>
-                  <Badge
-                    variant="outline"
-                    className={`rounded-full ${meta.className}`}
-                  >
-                    <StatusIcon className="h-3 w-3" />
-                    {meta.label}
-                  </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="rounded-full px-2 py-0 text-[11px]"
-                    title="Number of items in this order"
-                  >
-                    <Package className="h-3 w-3" />
-                    {itemsCount} item(s)
-                  </Badge>
-                </div>
+	                <div className="flex flex-wrap items-center gap-2">
+	                  <p className="truncate text-base font-semibold text-foreground">
+	                    {supplierName}
+	                  </p>
+	                  <Badge
+	                    variant="outline"
+	                    className={`rounded-full ${meta.className}`}
+	                  >
+	                    <StatusIcon className="h-3 w-3" />
+	                    {meta.label}
+	                  </Badge>
+	                </div>
 
-                <p className="text-xs text-muted-foreground">
-                  Order ID:{" "}
+                <p className="truncate text-xs text-muted-foreground">
+                  Address:{" "}
                   <span className="font-medium text-foreground/90">
-                    {String(purchase?._id || "—").slice(-8)}
+                    {purchase?.supplier?.address
+                      ? purchase.supplier.address
+                      : "-"}
                   </span>
                 </p>
               </div>
 
-              <div className="flex flex-col items-start gap-1 sm:items-end">
-                <p className="text-xs text-muted-foreground">Total amount</p>
-                <p className="text-base font-semibold tabular-nums text-foreground">
-                  {Formatter.amount(purchase?.totalAmount || 0)}
-                </p>
+              <div className="w-full sm:w-auto">
+                <div className="flex items-end justify-start gap-3 sm:justify-end">
+                  <div className="flex flex-col items-start leading-none sm:items-end">
+                    <span className="text-[11px] font-medium text-muted-foreground">
+                      Total amount
+                    </span>
+                    <span className="text-lg font-semibold tabular-nums text-foreground">
+                      {Formatter.amount(purchase?.totalAmount || 0)}
+                    </span>
+                  </div>
+
+                  <div className="h-8 w-px bg-border/70" aria-hidden="true" />
+
+                  {canReceive ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-8 whitespace-nowrap px-3"
+                      title="UI-only for now. Receiving flow will be wired after backend is finalized."
+                      onClick={() => {
+                        toast("Receive action is UI-only for now.");
+                      }}
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Mark received
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             </div>
 
@@ -169,109 +200,114 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
               <div className="flex items-center gap-2">
                 <CalendarRange className="h-4 w-4 text-muted-foreground" />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Delivery window</p>
-                  <p className="truncate font-medium text-foreground">
+                  <p className="text-xs text-muted-foreground">
+                    Delivery window
+                  </p>
+                  <p className="truncate font-semibold text-foreground">
                     {deliveryLabel}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Package className="h-4 w-4 text-muted-foreground" />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Created</p>
-                  <p className="truncate font-medium text-foreground">
-                    {purchase?.createdAt ? Formatter.date(purchase.createdAt) : "—"}
+                  <p className="text-xs text-muted-foreground">
+                    Items to deliver
+                  </p>
+                  <p className="truncate font-semibold tabular-nums text-foreground">
+                    {itemsCount} item(s)
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4 text-muted-foreground" />
+                <Phone className="h-4 w-4 text-muted-foreground" />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Next step</p>
-                  <p className="truncate font-medium text-foreground">
-                    {statusKey === "incoming"
-                      ? "Receive and record delivery"
-                      : "Wait for supplier confirmation"}
+                  <p className="text-xs text-muted-foreground">
+                    Supplier contact
                   </p>
+                  {supplierContact ? (
+                    <a
+                      href={supplierContactHref}
+                      className="truncate font-medium text-foreground hover:underline"
+                      title="Call supplier"
+                    >
+                      {supplierContact}
+                    </a>
+                  ) : (
+                    <p className="truncate font-medium text-muted-foreground">
+                      Not provided
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <Collapsible
-                open={isOpen}
-                onOpenChange={(next) =>
-                  setOpenById((prev) => ({ ...prev, [purchaseId]: next }))
-                }
-              >
-                <div className="flex items-center gap-2">
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2 text-muted-foreground hover:text-foreground"
-                    >
-                      View items
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                      />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <span className="text-xs text-muted-foreground">
-                    {itemsCount ? `${itemsCount} item(s)` : "No items found"}
-                  </span>
-                </div>
-
-                <CollapsibleContent className="mt-2">
-                  {items.length ? (
-                    <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-                      <div className="grid grid-cols-[1fr_auto] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
-                        <span>Item</span>
-                        <span className="text-right">Qty</span>
-                      </div>
-                      <div className="divide-y divide-border/70">
-                        {items.map((item) => (
-                          <div
-                            key={item?._id || item?.inventory?._id || item?.name}
-                            className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-sm"
-                          >
-                            <span className="truncate font-medium text-foreground">
-                              {item?.inventory?.name || item?.name || "Item"}
-                            </span>
-                            <span className="text-right font-semibold tabular-nums text-foreground">
-                              {Number(item?.quantity?.order ?? item?.quantity) || 0}{" "}
-                              <span className="text-xs font-medium text-muted-foreground">
-                                {item?.unit || ""}
-                              </span>
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-xl border border-dashed border-border bg-muted/10 p-4 text-xs text-muted-foreground">
-                      Items for this order aren&apos;t available yet (UI-only for
-                      now).
-                    </div>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
-
-              {canReceive ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  className="h-8"
-                  disabled
-                  title="UI-only for now. Receiving flow will be wired after backend is finalized."
+            {itemsCount ? (
+              <div className="mt-3">
+                <Collapsible
+                  open={isOpen}
+                  onOpenChange={(next) =>
+                    setOpenById((prev) => ({ ...prev, [purchaseId]: next }))
+                  }
                 >
-                  Mark received
-                </Button>
-              ) : null}
-            </div>
+                  <div className="flex items-center gap-2">
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                      >
+                        View items
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        />
+                      </Button>
+                    </CollapsibleTrigger>
+                  </div>
+
+                  <CollapsibleContent className="mt-2">
+                    {items.length ? (
+                      <div className="overflow-hidden rounded-xl border border-border bg-card/40">
+                        <div className="grid grid-cols-[1fr_auto] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                          <span>Item</span>
+                          <span className="text-right">Qty</span>
+                        </div>
+                        <div className="divide-y divide-border/70">
+                          {items.map((item) => (
+                            <div
+                              key={
+                                item?._id || item?.inventory?._id || item?.name
+                              }
+                              className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-sm"
+                            >
+                              <span className="truncate font-medium text-foreground">
+                                {item?.inventory?.name || item?.name || "Item"}
+                              </span>
+                              <span className="text-right font-semibold tabular-nums text-foreground">
+                                {Number(
+                                  item?.quantity?.order ?? item?.quantity,
+                                ) || 0}{" "}
+                                <span className="text-xs font-medium text-muted-foreground">
+                                  {item?.unit || ""}
+                                </span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-border bg-muted/10 p-4 text-xs text-muted-foreground">
+                        Items for this order aren't available yet (UI-only for
+                        now).
+                      </div>
+                    )}
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            ) : null}
           </div>
         );
       })}
@@ -280,4 +316,3 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
 };
 
 export default memo(IncomingOrdersTab);
-

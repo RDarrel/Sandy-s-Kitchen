@@ -181,65 +181,65 @@ const ReceivedOrdersTab = ({ orders = [], isLoading }) => {
             </div>
 
             <div className="mt-3">
-              <Collapsible
-                open={isOpen}
-                onOpenChange={(next) =>
-                  setOpenById((prev) => ({ ...prev, [purchaseId]: next }))
-                }
-              >
-                <div className="flex items-center gap-2">
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2 text-muted-foreground hover:text-foreground"
-                    >
-                      View items
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                      />
-                    </Button>
-                  </CollapsibleTrigger>
-                  <span className="text-xs text-muted-foreground">
-                    {itemsCount ? `${itemsCount} item(s)` : "No items found"}
-                  </span>
-                </div>
+              {itemsCount ? (
+                <Collapsible
+                  open={isOpen}
+                  onOpenChange={(next) =>
+                    setOpenById((prev) => ({ ...prev, [purchaseId]: next }))
+                  }
+                >
+                  <div className="flex items-center gap-2">
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                      >
+                        View items
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        />
+                      </Button>
+                    </CollapsibleTrigger>
+                  </div>
 
-                <CollapsibleContent className="mt-2">
-                  {items.length ? (
-                    <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-                      <div className="grid grid-cols-[1fr_auto] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
-                        <span>Item</span>
-                        <span className="text-right">Qty</span>
-                      </div>
-                      <div className="divide-y divide-border/70">
-                        {items.map((item) => (
-                          <div
-                            key={item?._id || item?.name}
-                            className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-sm"
-                          >
-                            <span className="truncate font-medium text-foreground">
-                              {item?.name || "Item"}
-                            </span>
-                            <span className="text-right font-semibold tabular-nums text-foreground">
-                              {Number(item?.quantity?.order) || 0}{" "}
-                              <span className="text-xs font-medium text-muted-foreground">
-                                {item?.unit || ""}
+                  <CollapsibleContent className="mt-2">
+                    {items.length ? (
+                      <div className="overflow-hidden rounded-xl border border-border bg-card/40">
+                        <div className="grid grid-cols-[1fr_auto] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                          <span>Item</span>
+                          <span className="text-right">Qty</span>
+                        </div>
+                        <div className="divide-y divide-border/70">
+                          {items.map((item) => (
+                            <div
+                              key={item?._id || item?.name}
+                              className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-sm"
+                            >
+                              <span className="truncate font-medium text-foreground">
+                                {item?.name || "Item"}
                               </span>
-                            </span>
-                          </div>
-                        ))}
+                              <span className="text-right font-semibold tabular-nums text-foreground">
+                                {Number(item?.quantity?.order) || 0}{" "}
+                                <span className="text-xs font-medium text-muted-foreground">
+                                  {item?.unit || ""}
+                                </span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-xl border border-dashed border-border bg-muted/10 p-4 text-xs text-muted-foreground">
-                      Items for this order aren&apos;t available yet (older orders
-                      may have been created before item tracking was added).
-                    </div>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-border bg-muted/10 p-4 text-xs text-muted-foreground">
+                        Items for this order aren&apos;t available yet (older
+                        orders may have been created before item tracking was
+                        added).
+                      </div>
+                    )}
+                  </CollapsibleContent>
+                </Collapsible>
+              ) : null}
             </div>
           </div>
         );
@@ -249,4 +249,3 @@ const ReceivedOrdersTab = ({ orders = [], isLoading }) => {
 };
 
 export default memo(ReceivedOrdersTab);
-
