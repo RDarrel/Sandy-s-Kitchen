@@ -248,7 +248,7 @@ const ReviewOrderModal = () => {
   return (
     <Dialog open={reviewOpen} onOpenChange={close}>
       <DialogContent
-        className="max-w-4xl p-0 sm:rounded-xl"
+        className="max-w-4xl p-1 "
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
