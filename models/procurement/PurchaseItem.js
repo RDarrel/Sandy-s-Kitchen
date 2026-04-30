@@ -57,6 +57,6 @@ const modelSchema = new mongoose.Schema(
   },
 );
 
-const Entity = mongoose.model("Purchase", modelSchema);
+const Entity = mongoose.model("PurchaseItem", modelSchema);
 
 module.exports = Entity;

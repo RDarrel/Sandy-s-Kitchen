@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -22,7 +23,7 @@ import {
   SAVE,
   SetReviewOpen,
 } from "@/services/redux/slices/procurement/purchases";
-import { Formatter } from "@/services/utilities";
+import { Formatter, Inventory } from "@/services/utilities";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ReviewOrderItemsList from "./items-list";
@@ -33,10 +34,11 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Search } from "lucide-react";
-const ReviewOrderModal = ({ entries = [] }) => {
+import { CalendarIcon, Search, ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
+const ReviewOrderModal = () => {
   const dispatch = useDispatch();
-  const { token, auth } = useSelector(({ auth }) => auth);
+  const { token } = useSelector(({ auth }) => auth);
   const { collections: suppliers } = useSelector(({ suppliers }) => suppliers);
   const { cart } = useSelector(({ purchases }) => purchases);
   const [formattedCart, setFormattedCart] = useState([]);
@@ -207,128 +209,201 @@ const ReviewOrderModal = ({ entries = [] }) => {
   };
 
   const close = (nextOpen) => dispatch(SetReviewOpen(Boolean(nextOpen)));
-  const placeOrder = () => {};
+  const placeOrder = (e) => {
+    e.preventDefault();
+    const _cart = [...cart].map((c) => ({
+      ...c,
+      inventory: c?.inventory?._id,
+      unit: Inventory.getUnitByMeasurement(
+        c?.inventory?.measurement,
+      )?.toLowerCase(),
+      quantity: {
+        incoming: Number(c.quantity) || 0,
+      },
+    }));
+    const purchases = formattedCart.map((group) => ({
+      supplier: group.supplier,
+      deliveryWindow: group.deliveryWindow,
+      totalAmount: group.totalAmount,
+      status: "incoming",
+    }));
+
+    dispatch(SAVE({ data: { cart: _cart, purchases }, token }))
+      .unwrap()
+      .then(() => {
+        setDraftQtyById({});
+        setFormattedCart([]);
+        setSupplierFilter("all");
+        setItemSearch("");
+        dispatch(CartClear());
+        close(false);
+        toast.success("Order placed successfully.");
+      })
+      .catch((error) => {
+        toast.error("Failed to place order. Please try again.");
+        console.error("Error placing order:", error);
+      });
+  };
 
   return (
     <Dialog open={reviewOpen} onOpenChange={close}>
       <DialogContent
-        className="max-w-3xl  grid-rows-[auto_1fr_auto_auto_auto]"
+        className="max-w-4xl p-0 sm:rounded-xl"
         onInteractOutside={(event) => {
           event.preventDefault();
         }}
       >
-        <DialogHeader>
-          <DialogTitle>Review Order</DialogTitle>
-          <DialogDescription>
-            Double-check the items and quantities carefully. Once you place this
-            order, it can’t be edited.
-          </DialogDescription>
-        </DialogHeader>
+        <form
+          onSubmit={placeOrder}
+          className="grid min-h-0 flex-1 grid-rows-[auto_1fr_auto]"
+        >
+          <div className="rounded-t-xl border-b border-border bg-card/70 px-5 py-4 pr-16">
+            <DialogHeader className="space-y-2 text-left">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="grid h-8 w-8 place-items-center rounded-lg border border-border bg-background/70 shadow-sm">
+                      <ShoppingBag className="h-4 w-4 text-foreground" />
+                    </div>
+                    <div className="min-w-0">
+                      <DialogTitle className="truncate text-lg">
+                        Review order
+                      </DialogTitle>
+                      <DialogDescription className="hidden text-sm leading-snug sm:block">
+                        Double-check items, quantities, and delivery windows
+                        before placing the order.
+                      </DialogDescription>
+                    </div>
+                  </div>
+                </div>
 
-        <div className="min-h-0 space-y-4 overflow-auto pr-1 ">
-          <div className="space-y-3">
-            <div className="flex flex-col gap-2 rounded-xl border border-border bg-card/60 p-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="w-full sm:flex-1">
-                <Label className="text-xs text-muted-foreground">
-                  Search item
-                </Label>
-                <div className="relative mt-1">
-                  <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    value={itemSearch}
-                    type="search"
-                    onChange={(event) => setItemSearch(event.target.value)}
-                    placeholder="Search items..."
-                    className="h-9 w-full pl-9"
-                  />
+                <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
+                  <Badge variant="secondary" className="rounded-full">
+                    Final review
+                  </Badge>
+                  <div className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-muted-foreground">
+                    Total:{" "}
+                    <span className="font-semibold text-foreground">
+                      {Formatter.amount(totalAmount)}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="w-full sm:w-64">
-                <Label className="text-xs text-muted-foreground">
-                  Supplier
-                </Label>
-                <Select
-                  value={supplierFilter}
-                  onValueChange={setSupplierFilter}
+            </DialogHeader>
+          </div>
+
+          <div className="min-h-0 overflow-auto px-5 mt-4 ">
+            <div className="space-y-4">
+              <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm">
+                <div className="grid gap-3 sm:grid-cols-2 sm:items-end">
+                  <div className="w-full">
+                    <Label className="text-xs text-muted-foreground">
+                      Search item
+                    </Label>
+                    <div className="relative mt-1">
+                      <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        value={itemSearch}
+                        type="search"
+                        onChange={(event) => setItemSearch(event.target.value)}
+                        placeholder="Search items..."
+                        className="h-10 w-full pl-9"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="w-full">
+                    <Label className="text-xs text-muted-foreground">
+                      Supplier
+                    </Label>
+                    <Select
+                      value={supplierFilter}
+                      onValueChange={setSupplierFilter}
+                    >
+                      <SelectTrigger className="mt-1 h-10 w-full">
+                        <SelectValue placeholder="All suppliers" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All suppliers</SelectItem>
+                        {supplierFilterOptions.map((supplierId) => (
+                          <SelectItem key={supplierId} value={supplierId}>
+                            {supplierLabelById.get(supplierId) || "Supplier"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {visibleGroups.length ? (
+                <div className="space-y-3">
+                  {visibleGroups.map((group) => (
+                    <SupplierRaw
+                      key={group.supplier}
+                      group={group}
+                      supplierLabelById={supplierLabelById}
+                      handleDateChange={handleDateChange}
+                      setDraftQtyById={setDraftQtyById}
+                      draftQtyById={draftQtyById}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 p-10 text-center">
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-foreground">
+                      No matching items
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Try a different supplier or search term.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t border-border bg-background/80 px-5 mt-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xs text-muted-foreground">Items</span>
+                  <span className="text-sm font-semibold tabular-nums text-foreground">
+                    {cart.length}
+                  </span>
+                </div>
+                <span className="h-4 w-px bg-border/70" aria-hidden="true" />
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xs text-muted-foreground">
+                    Suppliers
+                  </span>
+                  <span className="text-sm font-semibold tabular-nums text-foreground">
+                    {formattedCart.length}
+                  </span>
+                </div>
+                <span className="h-4 w-px bg-border/70" aria-hidden="true" />
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xs text-muted-foreground">Total</span>
+                  <span className="text-base font-semibold leading-none tabular-nums text-foreground">
+                    {Formatter.amount(totalAmount)}
+                  </span>
+                </div>
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => close(false)}
                 >
-                  <SelectTrigger className="mt-1 h-9 w-full">
-                    <SelectValue placeholder="All suppliers" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All suppliers</SelectItem>
-                    {supplierFilterOptions.map((supplierId) => (
-                      <SelectItem key={supplierId} value={supplierId}>
-                        {supplierLabelById.get(supplierId) || "Supplier"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {visibleGroups.length ? (
-              visibleGroups.map((group) => (
-                <SupplierRaw
-                  key={group.supplier}
-                  group={group}
-                  supplierLabelById={supplierLabelById}
-                  handleDateChange={handleDateChange}
-                  setDraftQtyById={setDraftQtyById}
-                  draftQtyById={draftQtyById}
-                />
-              ))
-            ) : (
-              <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 p-10 text-center">
-                <div className="space-y-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    No matching items
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Try a different supplier or search term.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border bg-card/70 px-3 py-2">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-xs text-muted-foreground">Items</span>
-                <span className="text-sm font-semibold text-foreground">
-                  {cart.length}
-                </span>
-              </div>
-              <span className="h-4 w-px bg-border/70" aria-hidden="true" />
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-xs text-muted-foreground">Suppliers</span>
-                <span className="text-sm font-semibold text-foreground">
-                  {formattedCart.length}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-baseline justify-between gap-3 rounded-lg bg-background/40 px-3 py-2 sm:justify-end sm:text-right">
-              <span className="text-xs text-muted-foreground">
-                Total amount
-              </span>
-              <span className="text-base font-semibold leading-none text-foreground">
-                {Formatter.amount(totalAmount)}
-              </span>
+                  Cancel
+                </Button>
+                <Button type="submit">Place order</Button>
+              </DialogFooter>
             </div>
           </div>
-        </div>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => close(false)}>
-            Cancel
-          </Button>
-          <Button type="button" onClick={placeOrder}>
-            Place Order
-          </Button>
-        </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
@@ -345,53 +420,70 @@ const SupplierRaw = memo(
     setDraftQtyById,
   }) => {
     const { deliveryWindow } = group;
+    const itemsCount = (Array.isArray(group?.items) ? group.items : []).length;
+
+    const toDate = (value) => {
+      if (!value) return undefined;
+      if (value instanceof Date) return value;
+      const maybeDate = new Date(value);
+      return Number.isNaN(maybeDate.getTime()) ? undefined : maybeDate;
+    };
+
+    const safeDeliveryWindow = {
+      from: toDate(deliveryWindow?.from),
+      to: toDate(deliveryWindow?.to),
+    };
     return (
       <div
         key={group.supplier}
-        className="rounded-xl border border-border bg-card/60 p-3 "
+        className="rounded-xl border border-border bg-card/60 p-4 shadow-sm"
       >
-        <div className=" flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-0.5">
-            <p className="text-base font-semibold text-foreground">
-              {supplierLabelById.get(group.supplier) || "Supplier"}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-base font-semibold text-foreground">
+                {supplierLabelById.get(group.supplier) || "Supplier"}
+              </p>
+              <Badge variant="secondary" className="rounded-full">
+                {itemsCount} item(s)
+              </Badge>
+            </div>
+            <p className="text-sm font-semibold tabular-nums text-foreground">
+              {Formatter.amount(group.totalAmount)}
             </p>
             <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">
-                {group.items?.length} item(s)
-              </span>{" "}
-              <span className="mx-1 text-muted-foreground">•</span>
-              <span className="text-base font-semibold text-foreground">
-                {Formatter.amount(group.totalAmount)}
-              </span>{" "}
+              Set expected delivery range for this supplier.
             </p>
           </div>
 
           <div className="w-full space-y-1 sm:w-80">
             <Label className="text-xs text-muted-foreground">
-              Expected delivery date
+              Expected delivery range
             </Label>
 
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   id="date"
-                  variant={"outline"}
+                  variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal sm:w-[300px]",
+                    "h-10 w-full justify-start gap-2 text-left font-normal sm:w-[300px]",
                   )}
                 >
-                  <CalendarIcon />
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                   {deliveryWindow?.from ? (
                     deliveryWindow?.to ? (
                       <>
-                        {Formatter.date(deliveryWindow.from)} -{" "}
+                        {Formatter.date(deliveryWindow.from)} –{" "}
                         {Formatter.date(deliveryWindow.to)}
                       </>
                     ) : (
                       <>{Formatter.date(deliveryWindow.from)}</>
                     )
                   ) : (
-                    <span>Pick a date range</span>
+                    <span className="text-muted-foreground">
+                      Pick a date range
+                    </span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -399,12 +491,11 @@ const SupplierRaw = memo(
                 <Calendar
                   initialFocus
                   mode="range"
-                  defaultMonth={deliveryWindow?.from}
-                  selected={deliveryWindow}
+                  defaultMonth={safeDeliveryWindow?.from}
+                  selected={safeDeliveryWindow}
                   onSelect={(range) => {
                     if (!range) return;
 
-                    // Case: pinili ulit yung parehong date (gawin from=to)
                     if (range.from && !range.to) {
                       handleDateChange(
                         { from: range.from, to: range.from },
@@ -426,7 +517,7 @@ const SupplierRaw = memo(
           </div>
         </div>
 
-        <Separator className="my-3" />
+        <Separator className="my-4" />
         <ReviewOrderItemsList
           rows={group.items}
           setDraftQtyById={setDraftQtyById}

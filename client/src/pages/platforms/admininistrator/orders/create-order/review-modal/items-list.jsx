@@ -15,10 +15,10 @@ const ReviewOrderItemsList = ({ rows = [], draftQtyById, setDraftQtyById }) => {
   return (
     <div className="space-y-2">
       {safeRows.length ? (
-        <div className="hidden grid-cols-[1fr_110px_130px_120px] gap-2 px-2.5 text-xs text-muted-foreground sm:grid">
+        <div className="hidden grid-cols-[1fr_110px_130px_120px] gap-2 px-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80 sm:grid">
           <span>Item</span>
           <span>Unit cost</span>
-          <span>Quantity</span>
+          <span className="text-center">Quantity</span>
           <span className="text-right">Subtotal</span>
         </div>
       ) : null}
@@ -48,9 +48,9 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
   }, [inventory, unitCost, qty, draftQtyById]);
   const dispatch = useDispatch();
   return (
-    <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/20 px-2.5 py-2 text-sm sm:grid-cols-[1fr_110px_130px_120px] sm:items-center">
+    <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/30 px-3 py-3 text-sm shadow-sm transition-colors hover:bg-background/40 sm:grid-cols-[1fr_110px_130px_120px] sm:items-center">
       <div className="min-w-0">
-        <p className="truncate font-medium text-foreground">
+        <p className="truncate font-semibold text-foreground">
           {inventory?.name || "Item"}
         </p>
       </div>
@@ -59,7 +59,7 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
         <span className="text-xs text-muted-foreground sm:hidden">
           Unit cost
         </span>
-        <p className="font-medium text-foreground tabular-nums">
+        <p className="font-medium tabular-nums text-foreground">
           {Formatter.amount(unitCost)}{" "}
           <span className="text-xs text-muted-foreground">/ {unit || "—"}</span>
         </p>
@@ -70,6 +70,7 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
         <div className="flex w-full items-center gap-2 sm:w-auto">
           <Input
             value={draftQtyById?.[inventory?._id] ?? qty}
+            required
             onChange={(event) => {
               let value = event.target.value;
 
@@ -95,7 +96,7 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
             }}
             inputMode="numeric"
             pattern="[0-9]*"
-            className="h-8 w-24 rounded-md bg-background text-center text-sm tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none sm:w-24"
+            className="h-9 w-24 rounded-md bg-background text-center text-sm tabular-nums shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none sm:w-24"
           />
           <span className="text-xs text-muted-foreground">{unit}</span>
         </div>

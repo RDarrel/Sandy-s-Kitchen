@@ -14,27 +14,6 @@ const initialState = {
   message: "",
 };
 
-const normalizeCart = (cart) => {
-  const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-  return {
-    version: 1,
-    lines: lines
-      .map((line) => ({
-        inventory: String(line?.inventory || line?.inventoryId || ""),
-        // Canonical field is `supplier`; keep backward compatibility with `supplierId`.
-        supplier: String(line?.supplier || line?.supplierId || "all"),
-        // Canonical field is `cost`; keep backward compatibility with `unitCost`.
-        cost: Number.isFinite(Number(line?.cost ?? line?.unitCost))
-          ? Number(line?.cost ?? line?.unitCost)
-          : undefined,
-        quantity: Math.max(0, Number(line?.quantity) || 0),
-        addedAt: Number(line?.addedAt) || Date.now(),
-        updatedAt: Number(line?.updatedAt) || Date.now(),
-      }))
-      .filter((line) => line.inventory && line.quantity > 0),
-  };
-};
-
 export const BROWSE = createAsyncThunk(
   `${url}`,
   ({ token, params }, thunkAPI) => {
