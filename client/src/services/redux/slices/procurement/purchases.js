@@ -131,6 +131,15 @@ export const reduxSlice = createSlice({
       state.cart = _cart;
     },
 
+    SetShowOrderDetails: (state, { payload }) => {
+      state.showOrderDetails = true;
+      state.selected = payload;
+    },
+
+    ToggleShowOrderDetails: (state, _) => {
+      state.showOrderDetails = !state.showOrderDetails;
+    },
+
     PROGRESS: (state, data) => {
       state.progress = data.payload;
     },
@@ -250,6 +259,8 @@ export const {
   CartAdd,
   CartRemove,
   CartUpdate,
+  SetShowOrderDetails,
+  ToggleShowOrderDetails,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

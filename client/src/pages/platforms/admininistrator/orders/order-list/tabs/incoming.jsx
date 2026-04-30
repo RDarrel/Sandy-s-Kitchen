@@ -19,6 +19,7 @@ import {
   Truck,
 } from "lucide-react";
 import { memo, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
 import { toast } from "sonner";
 
 const statusMeta = {
@@ -69,6 +70,7 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
   const [openById, setOpenById] = useState({});
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(5);
+  const dispatch = useDispatch();
 
   if (isLoading) {
     return (
@@ -182,9 +184,8 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
                       type="button"
                       size="sm"
                       className="h-8 whitespace-nowrap px-3"
-                      title="UI-only for now. Receiving flow will be wired after backend is finalized."
                       onClick={() => {
-                        toast("Receive action is UI-only for now.");
+                        dispatch(SetShowOrderDetails(purchase));
                       }}
                     >
                       <CheckCircle2 className="h-4 w-4" />
