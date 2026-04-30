@@ -112,7 +112,7 @@ const OrderList = () => {
     <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto w-full max-w-7xl">
         <Tabs value={tab} onValueChange={setTab} className="w-full gap-0">
-          <Card className="bg-card/60 py-0 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/50">
+          <Card className="bg-card/60 gap-4 py-0 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/50">
             <CardHeader className="gap-3 border-b border-border/70 px-5 pt-4 sm:px-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-start gap-3">
