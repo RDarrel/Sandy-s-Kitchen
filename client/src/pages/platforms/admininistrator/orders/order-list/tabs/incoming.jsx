@@ -1,3 +1,4 @@
+import CustomPagination from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -111,11 +112,7 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
             ? purchase.orders
             : [];
 
-        const supplierName =
-          purchase?.supplier?.name ||
-          purchase?.supplier?.company ||
-          purchase?.supplier?.label ||
-          "Supplier";
+        const supplierName = purchase?.supplier?.name || "Supplier";
 
         const supplierContactRaw = purchase?.supplier?.contact?.mobile || "";
         const supplierContact = supplierContactRaw
@@ -328,6 +325,7 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
           </div>
         );
       })}
+      <CustomPagination />
     </div>
   );
 };
