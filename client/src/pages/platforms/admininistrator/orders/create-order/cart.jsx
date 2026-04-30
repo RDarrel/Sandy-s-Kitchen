@@ -87,11 +87,13 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
 
   const handleQuantityChange = useCallback(
     (event) => {
-      const nextValue = event.target.value.replace(/[^\d]/g, "");
-
+      const nextValue = event.target.value;
       onUpdate({
         inventory,
-        quantity: Number(nextValue) || 1,
+        quantity: Inventory.sanitizeQtyInp(
+          inventory?.measurement,
+          String(nextValue || 1),
+        ),
       });
     },
     [onUpdate, inventory],
@@ -149,8 +151,8 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
       </div>
 
       <div className="grid gap-2">
-        <div className="grid grid-cols-[1fr_140px] items-end gap-2">
-          <div className="space-y-1">
+        <div className="grid grid-cols-[120px_1fr] items-end gap-2">
+          <div className="space-y-1 ">
             <Label className="text-xs text-muted-foreground">
               {unitCostLabel}
             </Label>
@@ -168,7 +170,7 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
           <div className="space-y-1 text-center">
             <Label className="text-xs text-muted-foreground">{unitLabel}</Label>
 
-            <div className="flex items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
+            <div className="flex   items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
               <Button
                 type="button"
                 size="icon"
@@ -185,7 +187,7 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
                 onChange={handleQuantityChange}
                 inputMode="numeric"
                 pattern="[0-9]*"
-                className="h-7 w-14 rounded-lg bg-background text-center text-sm tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="h-7 w-20 rounded-lg bg-background text-center text-sm tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
 
               <Button

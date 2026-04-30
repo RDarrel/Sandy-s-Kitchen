@@ -47,7 +47,6 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
     return { unit, subtotal };
   }, [inventory, unitCost, qty, draftQtyById]);
   const dispatch = useDispatch();
-
   return (
     <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/20 px-2.5 py-2 text-sm sm:grid-cols-[1fr_110px_130px_120px] sm:items-center">
       <div className="min-w-0">
@@ -74,27 +73,12 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
             onChange={(event) => {
               let value = event.target.value;
 
-              const measurement = String(
-                inventory?.measurement || "",
-              ).toLowerCase();
-
-              if (measurement === "pieces") {
-                // numbers only (no decimal)
-                value = value.replace(/[^\d]/g, "");
-              } else {
-                // allow decimal (1 dot only)
-                value = value.replace(/[^0-9.]/g, "");
-
-                // prevent multiple dots
-                const parts = value.split(".");
-                if (parts.length > 2) {
-                  value = parts[0] + "." + parts.slice(1).join("");
-                }
-              }
-
               setDraftQtyById((prev) => ({
                 ...prev,
-                [inventory?._id]: value,
+                [inventory?._id]: Inventory.sanitizeQtyInp(
+                  inventory?.measurement,
+                  value,
+                ),
               }));
             }}
             onBlur={() => {
