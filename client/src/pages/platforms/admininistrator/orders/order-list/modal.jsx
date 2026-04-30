@@ -182,8 +182,8 @@ const ReceiveOrderModal = () => {
 
   return (
     <Dialog open={showOrderDetails} onOpenChange={close}>
-      <DialogContent className="w-[95vw] p-0 sm:max-w-5xl lg:max-w-7xl">
-        <form onSubmit={handleSubmit} className="flex max-h-[85vh] flex-col">
+      <DialogContent className="max-h-[90vh] w-[95vw] overflow-y-auto p-0 sm:max-w-5xl lg:max-w-7xl">
+        <form onSubmit={handleSubmit}>
           <DialogHeader className="space-y-2 border-b border-border px-6 pb-4 pt-6 text-left">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
@@ -244,12 +244,12 @@ const ReceiveOrderModal = () => {
 
           <Separator />
 
-          <div className="flex-1 overflow-y-auto bg-muted/10 px-6 py-5">
+          <div className="bg-muted/10 px-6 py-5">
             {!items.length ? (
               <div className="rounded-xl border border-dashed border-border bg-muted/10 p-5 text-sm text-muted-foreground">
                 No items found for this order.
               </div>
-	            ) : (
+            ) : (
               <div className="overflow-hidden rounded-xl border border-border bg-card/60 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/50">
                 <Table className="min-w-[980px]">
                   <TableHeader className="bg-muted/30">
@@ -374,7 +374,7 @@ const ReceiveOrderModal = () => {
                               </div>
 
                               <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                                <span className="font-medium">Line total</span>
+                                <span className="font-medium">Total amount</span>
                                 <span className="font-semibold tabular-nums text-foreground">
                                   {receivedAmount === null
                                     ? "-"
@@ -423,7 +423,7 @@ const ReceiveOrderModal = () => {
                                 </span>
                               </div>
                               <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                                <span className="font-medium">Line total</span>
+                                <span className="font-medium">Total amount</span>
                                 <span
                                   className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
                                 >
