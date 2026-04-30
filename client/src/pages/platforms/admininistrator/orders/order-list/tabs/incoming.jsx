@@ -67,6 +67,8 @@ const OrderSkeleton = () => (
 const IncomingOrdersTab = ({ orders = [], isLoading }) => {
   const rows = useMemo(() => (Array.isArray(orders) ? orders : []), [orders]);
   const [openById, setOpenById] = useState({});
+  const [page, setPage] = useState(1);
+  const [maxPage, setMaxPage] = useState(5);
 
   if (isLoading) {
     return (
@@ -102,7 +104,6 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
 
         const purchaseId = String(purchase?._id || "");
         const isOpen = Boolean(openById[purchaseId]);
-        console.log("purchase", purchase);
         const itemsCount =
           (Array.isArray(purchase?.orders) ? purchase.orders.length : 0) || 0;
 
@@ -300,9 +301,7 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
                                     "Item"}
                                 </span>
                                 <span className="pl-2 font-semibold tabular-nums text-foreground">
-                                  {Number(
-                                    item?.quantity?.order ?? item?.quantity,
-                                  ) || 0}{" "}
+                                  {Number(item?.quantity?.incoming) || 0}{" "}
                                   <span className="text-xs font-medium text-muted-foreground">
                                     {capitalize(item?.unit) || ""}
                                   </span>
@@ -325,7 +324,14 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
           </div>
         );
       })}
-      <CustomPagination />
+      <CustomPagination
+        title="Incoming order"
+        datas={orders}
+        page={page}
+        maxPage={maxPage}
+        setPage={setPage}
+        setMaxPage={setMaxPage}
+      />
     </div>
   );
 };

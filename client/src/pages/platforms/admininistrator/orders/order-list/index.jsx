@@ -68,12 +68,7 @@ const OrderList = () => {
     if (!normalizedQuery) return purchases;
 
     return purchases.filter((purchase) => {
-      const supplierName =
-        purchase?.supplier?.name ||
-        purchase?.supplier?.company ||
-        purchase?.supplier?.label ||
-        "";
-
+      const supplierName = purchase?.supplier?.name || "";
       const status = getPurchaseStatus(purchase);
       const totalAmount = String(purchase?.totalAmount ?? "");
       const createdAt = String(purchase?.createdAt ?? "");
@@ -113,28 +108,28 @@ const OrderList = () => {
       <div className="mx-auto w-full max-w-7xl">
         <Tabs value={tab} onValueChange={setTab} className="w-full gap-0">
           <Card className="bg-card/60 gap-4 py-0 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/50">
-	            <CardHeader className="relative gap-3 border-b border-border/70 px-5 pb-4 pt-4 sm:px-6 sm:pr-[26rem]">
-	              <div className="flex items-center gap-3">
-	                <div className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-background/70 shadow-sm">
-	                  <Truck className="h-4 w-4 text-foreground" />
-	                </div>
-	                <div className="min-w-0">
-	                  <CardTitle className="text-lg">Supplier orders</CardTitle>
-	                  <CardDescription className="text-sm">
-	                    Track purchase orders from request to receiving.
-	                  </CardDescription>
-	                </div>
-	              </div>
+            <CardHeader className="relative gap-3 border-b border-border/70 px-5 pb-4 pt-4 sm:px-6 sm:pr-[26rem]">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-background/70 shadow-sm">
+                  <Truck className="h-4 w-4 text-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <CardTitle className="text-lg">Supplier orders</CardTitle>
+                  <CardDescription className="text-sm">
+                    Track purchase orders from request to receiving.
+                  </CardDescription>
+                </div>
+              </div>
 
-	              <div className="relative w-full sm:absolute sm:right-6 sm:top-1/2 sm:w-96 sm:-translate-y-1/2">
-	                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-	                <Input
-	                  value={query}
-	                  onChange={(event) => setQuery(event.target.value)}
-	                  placeholder="Search supplier, status, amount..."
-	                  className="h-10 bg-background/60 pl-9"
-	                />
-	              </div>
+              <div className="relative w-full sm:absolute sm:right-6 sm:top-1/2 sm:w-96 sm:-translate-y-1/2">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Search supplier, status, amount..."
+                  className="h-10 bg-background/60 pl-9"
+                />
+              </div>
 
               {message ? (
                 <div className="rounded-xl border border-border bg-destructive/10 px-4 py-3 text-sm text-foreground">
@@ -145,11 +140,11 @@ const OrderList = () => {
                 </div>
               ) : null}
 
-	              <TabsList className="h-10 w-fit rounded-full border border-border bg-muted/30 p-1">
-	                <TabsTrigger
-	                  value="incoming"
-	                  className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
-	                >
+              <TabsList className="h-10 w-fit rounded-full border border-border bg-muted/30 p-1">
+                <TabsTrigger
+                  value="incoming"
+                  className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                >
                   Incoming
                   <Badge
                     variant="secondary"

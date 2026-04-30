@@ -7,6 +7,8 @@ const initialState = {
   collections: [],
   cartOpen: false,
   cart: [],
+  selected: {},
+  showOrderDetails: false,
   reviewOpen: false,
   formSubmitted: false,
   isSuccess: false,
@@ -170,7 +172,6 @@ export const reduxSlice = createSlice({
       })
 
       .addCase(SAVE.pending, (state) => {
-        console.log("pending savinggggg");
         state.formSubmitted = true;
         state.isSuccess = false;
         state.message = "";
