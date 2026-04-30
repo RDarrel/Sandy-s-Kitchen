@@ -182,7 +182,7 @@ const ReceiveOrderModal = () => {
 
   return (
     <Dialog open={showOrderDetails} onOpenChange={close}>
-      <DialogContent className="flex max-h-[90vh] w-[95vw] flex-col overflow-hidden p-0 sm:max-w-5xl lg:max-w-7xl">
+      <DialogContent className="flex max-h-[95vh] w-[95vw] flex-col overflow-hidden p-0 sm:max-w-5xl lg:max-w-7xl">
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <DialogHeader className="sticky top-0 z-30 space-y-2 border-b border-border bg-background/90 px-6 pb-4 pt-6 text-left backdrop-blur supports-[backdrop-filter]:bg-background/70">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -250,31 +250,31 @@ const ReceiveOrderModal = () => {
                 <div className="rounded-xl border border-dashed border-border bg-muted/10 p-5 text-sm text-muted-foreground">
                   No items found for this order.
                 </div>
-	              ) : (
-	                <div className="rounded-xl border border-border bg-card/60 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/50">
-                <Table className="min-w-[980px]">
-                  <TableHeader className="bg-muted/30">
-                    <TableRow className="hover:bg-muted/30">
-                      <TableHead className="px-5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        <span className="flex items-center gap-2">
-                          <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                          Item
-                        </span>
-                      </TableHead>
-                      <TableHead className="px-5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        Ordered qty
-                      </TableHead>
-                      <TableHead className="w-[280px] px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        Received qty
-                      </TableHead>
-                      <TableHead className="px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        Expiry date
-                      </TableHead>
-                      <TableHead className="w-[220px] px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        Short qty
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
+              ) : (
+                <div className="rounded-xl border border-border bg-card/60 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/50">
+                  <Table className="min-w-[980px]">
+                    <TableHeader className="bg-muted/30">
+                      <TableRow className="hover:bg-muted/30">
+                        <TableHead className="px-5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                          <span className="flex items-center gap-2">
+                            <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                            Item
+                          </span>
+                        </TableHead>
+                        <TableHead className="px-5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                          Ordered qty
+                        </TableHead>
+                        <TableHead className="w-[280px] px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                          Received qty
+                        </TableHead>
+                        <TableHead className="px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                          Expiry date
+                        </TableHead>
+                        <TableHead className="w-[220px] px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                          Short qty
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
 
                     <TableBody>
                       {items.map((item) => {
