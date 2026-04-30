@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Formatter } from "@/services/utilities";
+import { capitalize } from "lodash";
 import {
   CalendarRange,
   CheckCircle2,
@@ -281,31 +282,37 @@ const IncomingOrdersTab = ({ orders = [], isLoading }) => {
                   <CollapsibleContent className="mt-3">
                     {items.length ? (
                       <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-                        <div className="grid grid-cols-[1fr_auto] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                        <div className="grid grid-cols-[1fr_120px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
                           <span>Item</span>
-                          <span className="text-right">Qty</span>
+                          <span className="pl-2">Qty</span>
                         </div>
-                        <div className="divide-y divide-border/70">
-                          {items.map((item) => (
-                            <div
-                              key={
-                                item?._id || item?.inventory?._id || item?.name
-                              }
-                              className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-sm"
-                            >
-                              <span className="truncate font-medium text-foreground">
-                                {item?.inventory?.name || item?.name || "Item"}
-                              </span>
-                              <span className="text-right font-semibold tabular-nums text-foreground">
-                                {Number(
-                                  item?.quantity?.order ?? item?.quantity,
-                                ) || 0}{" "}
-                                <span className="text-xs font-medium text-muted-foreground">
-                                  {item?.unit || ""}
+                        <div className="max-h-56 overflow-y-auto">
+                          <div className="divide-y divide-border/70">
+                            {items.map((item) => (
+                              <div
+                                key={
+                                  item?._id ||
+                                  item?.inventory?._id ||
+                                  item?.name
+                                }
+                                className="grid grid-cols-[1fr_120px] items-center gap-2 px-3 py-2 text-sm"
+                              >
+                                <span className="truncate font-medium text-foreground">
+                                  {item?.inventory?.name ||
+                                    item?.name ||
+                                    "Item"}
                                 </span>
-                              </span>
-                            </div>
-                          ))}
+                                <span className="pl-2 font-semibold tabular-nums text-foreground">
+                                  {Number(
+                                    item?.quantity?.order ?? item?.quantity,
+                                  ) || 0}{" "}
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    {capitalize(item?.unit) || ""}
+                                  </span>
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     ) : (
