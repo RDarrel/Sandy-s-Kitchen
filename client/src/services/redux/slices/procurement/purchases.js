@@ -60,6 +60,24 @@ export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   }
 });
 
+export const RECEIVE_DELIVERY = createAsyncThunk(
+  `${url}/receive-delivery`,
+  (form, thunkAPI) => {
+    try {
+      return axioKit.update(url, form.data, form.token, "receive-delivery");
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const DESTROY = createAsyncThunk(`${url}/destroy`, (form, thunkAPI) => {
   try {
     return axioKit.destroy(url, form.data, form.token);
@@ -193,6 +211,32 @@ export const reduxSlice = createSlice({
         state.formSubmitted = false;
       })
       .addCase(SAVE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
+      })
+
+      .addCase(RECEIVE_DELIVERY.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(RECEIVE_DELIVERY.fulfilled, (state, action) => {
+        const { success, payload } = action.payload;
+        const { purchase, updatingRequest = false } = payload;
+        const index = state.collections.findIndex(
+          ({ _id: id }) => id === purchase?._id,
+        );
+        if (updatingRequest) {
+          state.collections[index] = purchase;
+        } else {
+          state.collections.splice(index, 1);
+        }
+        state.formSubmitted = false;
+        state.message = success;
+        state.isSuccess = true;
+      })
+      .addCase(RECEIVE_DELIVERY.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;

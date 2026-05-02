@@ -40,7 +40,7 @@ const modelSchema = new mongoose.Schema(
       required: true,
     },
 
-    expiryDate: {
+    expirationDate: {
       type: Date,
     },
 

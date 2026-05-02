@@ -23,6 +23,11 @@ const modelSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    unit: {
+      type: String,
+      enum: ["kg", "g", "l", "ml", "pcs"],
+      required: true,
+    },
 
     source: {
       type: String,

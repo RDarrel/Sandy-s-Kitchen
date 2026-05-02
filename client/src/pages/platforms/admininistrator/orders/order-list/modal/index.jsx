@@ -37,30 +37,28 @@ const ReceiveOrderModal = () => {
   const purchase = useMemo(() => selected ?? null, [selected]);
 
   const items = useMemo(() => getItemsFromPurchase(purchase), [purchase]);
-  const [receivedByKey, setReceivedByKey] = useState({});
-  const [expiryByKey, setExpiryByKey] = useState({});
+  const [editableItems, setEditableItems] = useState([]);
   const [notes, setNotes] = useState("");
   const minExpiryDate = useMemo(() => getTodayISO(), []);
   const dispatch = useDispatch();
 
   useEffect(() => {
     if (!showOrderDetails) {
-      setReceivedByKey({});
-      setExpiryByKey({});
+      setEditableItems([]);
       setNotes("");
       return;
     }
 
-    const initial = {};
-    const initialExpiry = {};
-    for (const item of items) {
-      const key = getItemKey(item);
-      if (!key) continue;
-      initial[key] = normalizeQtyInput(getOrderedQty(item));
-      initialExpiry[key] = "";
-    }
-    setReceivedByKey(initial);
-    setExpiryByKey(initialExpiry);
+    setEditableItems(
+      items.map((item) => ({
+        ...item,
+        quantity: {
+          ...(item?.quantity || {}),
+          received: normalizeQtyInput(getOrderedQty(item)),
+        },
+        expirationDate: "",
+      })),
+    );
   }, [items, showOrderDetails]);
 
   const close = (nextOpen) => {
@@ -71,74 +69,70 @@ const ReceiveOrderModal = () => {
   const supplierName = purchase?.supplier?.name || "Supplier";
 
   const counts = useMemo(() => {
-    const total = items.length;
-    const flagged = items.reduce((sum, item) => {
+    const total = editableItems.length;
+    const flagged = editableItems.reduce((sum, item) => {
       const key = getItemKey(item);
       if (!key) return sum;
       const expected = round2(getOrderedQty(item));
-      const received = round2(toNumber(receivedByKey[key]));
+      const received = round2(toNumber(item?.quantity?.received));
       return sum + (round2(expected - received) !== 0 ? 1 : 0);
     }, 0);
     return { total, flagged };
-  }, [items, receivedByKey]);
+  }, [editableItems]);
 
   const grandSubtotal = useMemo(() => {
-    return items.reduce((sum, item) => {
+    return editableItems.reduce((sum, item) => {
       const key = getItemKey(item);
       if (!key) return sum;
       const unitCost = getUnitCost(item);
       if (unitCost === null) return sum;
-      const received = round2(toNumber(receivedByKey[key]));
+      const received = round2(toNumber(item?.quantity?.received));
       return sum + Math.max(0, received) * unitCost;
     }, 0);
-  }, [items, receivedByKey]);
+  }, [editableItems]);
 
   const grandVariance = useMemo(() => {
-    return items.reduce((sum, item) => {
+    return editableItems.reduce((sum, item) => {
       const key = getItemKey(item);
       if (!key) return sum;
       const unitCost = getUnitCost(item);
       if (unitCost === null) return sum;
       const expected = round2(getOrderedQty(item));
-      const received = round2(toNumber(receivedByKey[key]));
+      const received = round2(toNumber(item?.quantity?.received));
       const discrepancy = round2(expected - received);
       return sum + discrepancy * unitCost;
     }, 0);
-  }, [items, receivedByKey]);
+  }, [editableItems]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log("items", items);
-    console.log("recivedByKey", receivedByKey);
-    console.log("expiryByKey", expiryByKey);
-    const formattedItems = [...items].map((item) => {
-      const key = getItemKey(item);
-      return {
-        ...item,
-        quantity: {
-          ...item.quantity,
-          received: toNumber(receivedByKey[key]),
-        },
-        expiry: expiryByKey[key] || null,
-      };
-    });
+
+    const formattedItems = editableItems.map((item) => ({
+      ...item,
+      quantity: {
+        ...(item?.quantity || {}),
+        received: toNumber(item?.quantity?.received),
+      },
+      expirationDate: item?.expirationDate ? String(item.expirationDate) : null,
+    }));
     const _purchase = {
       ...purchase,
       received: {
         date: new Date().toISOString(),
         by: auth._id,
         amount: Number(grandSubtotal),
-        note: "",
+        note: String(notes || "").trim(),
       },
       shortDeliveryAmount: Number(grandVariance),
       isShortDelivery: grandVariance > 0,
     };
-    console.log("formattedItems", formattedItems);
+
     toast.message("Not saved yet", {
       description:
         "This screen is ready, but saving is not wired to the server.",
     });
   };
+  console.log("editableItems", editableItems);
 
   return (
     <Dialog open={showOrderDetails} onOpenChange={close}>
@@ -206,17 +200,14 @@ const ReceiveOrderModal = () => {
             <Separator />
 
             <div className="bg-muted/10 px-6 py-5">
-              {!items.length ? (
+              {!editableItems.length ? (
                 <div className="rounded-xl border border-dashed border-border bg-muted/10 p-5 text-sm text-muted-foreground">
                   No items found for this order.
                 </div>
               ) : (
                 <ReceiveOrderItemsTable
-                  items={items}
-                  receivedByKey={receivedByKey}
-                  setReceivedByKey={setReceivedByKey}
-                  expiryByKey={expiryByKey}
-                  setExpiryByKey={setExpiryByKey}
+                  items={editableItems}
+                  setItems={setEditableItems}
                   minExpiryDate={minExpiryDate}
                   counts={counts}
                   grandSubtotal={grandSubtotal}

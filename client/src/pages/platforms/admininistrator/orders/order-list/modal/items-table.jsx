@@ -23,10 +23,7 @@ import {
 
 const ReceiveOrderItemsTable = ({
   items = [],
-  receivedByKey,
-  setReceivedByKey,
-  expiryByKey,
-  setExpiryByKey,
+  setItems,
   minExpiryDate,
   counts,
   grandSubtotal,
@@ -65,7 +62,7 @@ const ReceiveOrderItemsTable = ({
             const unitRaw = String(item?.unit || "").trim();
             const unit = capitalize(unitRaw) || "";
             const expected = round2(getOrderedQty(item));
-            const received = round2(toNumber(receivedByKey[key]));
+            const received = round2(toNumber(item?.quantity?.received));
             const discrepancy = round2(expected - received);
             const hasMismatch = discrepancy !== 0;
             const isOver = discrepancy < 0;
@@ -127,11 +124,11 @@ const ReceiveOrderItemsTable = ({
                       <Input
                         id={`received-${key}`}
                         type="number"
-                        min={1}
+                        min={0}
                         max={expected}
                         step="0.01"
                         inputMode="decimal"
-                        value={receivedByKey[key] ?? ""}
+                        value={item?.quantity?.received ?? ""}
                         onKeyDown={(event) => {
                           if (
                             event.key === "e" ||
@@ -145,10 +142,19 @@ const ReceiveOrderItemsTable = ({
                         onChange={(event) => {
                           const raw = event.target.value;
                           if (raw === "") {
-                            setReceivedByKey((prev) => ({
-                              ...prev,
-                              [key]: "",
-                            }));
+                            setItems((prev) =>
+                              prev.map((entry) =>
+                                getItemKey(entry) === key
+                                  ? {
+                                      ...entry,
+                                      quantity: {
+                                        ...(entry?.quantity || {}),
+                                        received: "",
+                                      },
+                                    }
+                                  : entry,
+                              ),
+                            );
                             return;
                           }
 
@@ -160,18 +166,36 @@ const ReceiveOrderItemsTable = ({
                               Number.isFinite(nextNumber) ? nextNumber : 0,
                             ),
                           );
-                          setReceivedByKey((prev) => ({
-                            ...prev,
-                            [key]: clampedNumber,
-                          }));
+                          setItems((prev) =>
+                            prev.map((entry) =>
+                              getItemKey(entry) === key
+                                ? {
+                                    ...entry,
+                                    quantity: {
+                                      ...(entry?.quantity || {}),
+                                      received: clampedNumber,
+                                    },
+                                  }
+                                : entry,
+                            ),
+                          );
                         }}
                         onBlur={(event) => {
                           const raw = event.target.value;
                           if (raw === "") {
-                            setReceivedByKey((prev) => ({
-                              ...prev,
-                              [key]: "",
-                            }));
+                            setItems((prev) =>
+                              prev.map((entry) =>
+                                getItemKey(entry) === key
+                                  ? {
+                                      ...entry,
+                                      quantity: {
+                                        ...(entry?.quantity || {}),
+                                        received: "",
+                                      },
+                                    }
+                                  : entry,
+                              ),
+                            );
                             return;
                           }
 
@@ -183,10 +207,19 @@ const ReceiveOrderItemsTable = ({
                               Number.isFinite(normalized) ? normalized : 0,
                             ),
                           );
-                          setReceivedByKey((prev) => ({
-                            ...prev,
-                            [key]: clampedNumber,
-                          }));
+                          setItems((prev) =>
+                            prev.map((entry) =>
+                              getItemKey(entry) === key
+                                ? {
+                                    ...entry,
+                                    quantity: {
+                                      ...(entry?.quantity || {}),
+                                      received: clampedNumber,
+                                    },
+                                  }
+                                : entry,
+                            ),
+                          );
                         }}
                         placeholder="0"
                         className={`h-8 w-full bg-background pr-12 text-right tabular-nums ${inputHighlightClass}`}
@@ -215,17 +248,21 @@ const ReceiveOrderItemsTable = ({
                     <Input
                       id={`expiry-${key}`}
                       type="date"
-                      required
                       min={minExpiryDate}
-                      value={tracksExpiration ? (expiryByKey[key] ?? "") : ""}
+                      value={
+                        tracksExpiration ? String(item?.expirationDate ?? "") : ""
+                      }
                       disabled={!tracksExpiration}
                       onChange={(event) => {
                         if (!tracksExpiration) return;
                         const raw = event.target.value;
-                        setExpiryByKey((prev) => ({
-                          ...prev,
-                          [key]: raw,
-                        }));
+                        setItems((prev) =>
+                          prev.map((entry) =>
+                            getItemKey(entry) === key
+                              ? { ...entry, expirationDate: raw }
+                              : entry,
+                          ),
+                        );
                       }}
                       className="h-8 w-full bg-background text-sm disabled:cursor-not-allowed disabled:bg-muted/30"
                     />

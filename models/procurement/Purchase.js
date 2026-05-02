@@ -31,6 +31,7 @@ const modelSchema = new mongoose.Schema(
           "incoming",
           "received",
           //For short shipments
+          "review",
           "redelivery",
           "refunded",
           "resolved",
