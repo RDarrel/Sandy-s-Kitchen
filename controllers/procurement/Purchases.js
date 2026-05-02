@@ -32,7 +32,7 @@ exports.save = async (req, res) => {
 
 exports.browse = async (req, res) => {
   try {
-    const purchases = await Purchase.find()
+    const purchases = await Purchase.find({ status: req.query.status })
       .sort({ createdAt: -1 })
       .populate("supplier")
       .lean();
@@ -142,7 +142,7 @@ const handleInsertStock = async (purchase, orders, session) => {
       source: "purchase",
       reference: purchase._id,
       unit: order.unit,
-      createdBy: purchase.request?.by || null,
+      createdBy: purchase.received?.by || null,
     };
   });
 
@@ -211,7 +211,7 @@ exports.receive_delivery = async (req, res) => {
 
     return res.status(200).json({
       message: "Delivery received successfully.",
-      payload: purchase?._id,
+      payload: req.body?.purchase?._id,
     });
   } catch (error) {
     return res.status(400).json({

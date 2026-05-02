@@ -5,6 +5,7 @@ const url = "procurement/purchases";
 
 const initialState = {
   collections: [],
+  filtered: [],
   cartOpen: false,
   cart: [],
   selected: {},
@@ -189,7 +190,7 @@ export const reduxSlice = createSlice({
       })
       .addCase(BROWSE.fulfilled, (state, action) => {
         const { payload } = action.payload;
-        state.collections = payload;
+        state.collections = state.filtered = payload;
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
@@ -223,10 +224,14 @@ export const reduxSlice = createSlice({
       })
       .addCase(RECEIVE_DELIVERY.fulfilled, (state, action) => {
         const { success, payload } = action.payload;
-        const index = state.collections.findIndex(({ _id }) => _id === payload);
-        if (index > -1) {
-          state.collections.splice(index, 1);
-        }
+        const updateCollections = (collections) => {
+          const index = collections.findIndex(({ _id }) => _id === payload);
+          if (index > -1) {
+            collections.splice(index, 1);
+          }
+        };
+        updateCollections(state.collections);
+        updateCollections(state.filtered);
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;

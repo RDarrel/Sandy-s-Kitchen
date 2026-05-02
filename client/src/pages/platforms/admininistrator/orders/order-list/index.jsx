@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Card,
@@ -8,104 +7,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BROWSE, RESET } from "@/services/redux/slices/procurement/purchases";
-import { memo, useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { memo, useState } from "react";
+import { useSelector } from "react-redux";
 import IncomingOrdersTab from "./tabs/incoming";
 import ReceivedOrdersTab from "./tabs/delivered";
 import ReceiveOrderModal from "./modal";
 import { Search, Truck } from "lucide-react";
 
-const incomingStatuses = new Set([
-  "pending",
-  "request",
-  "incoming",
-  "redelivery",
-]);
-const receivedStatuses = new Set([
-  "received",
-  "resolved",
-  "refunded",
-  "cancelled",
-]);
-
-const getPurchaseStatus = (purchase) =>
-  String(purchase?.status || "pending").toLowerCase();
-
 const OrderList = () => {
-  const dispatch = useDispatch();
-  const { token } = useSelector(({ auth }) => auth);
-  const { collections, isLoading, message } = useSelector(
-    ({ purchases }) => purchases,
-  );
+  const { message } = useSelector(({ purchases }) => purchases);
 
   const [tab, setTab] = useState("incoming");
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    dispatch(BROWSE({ token, params: {} }));
-    return () => dispatch(RESET());
-  }, [dispatch, token]);
-
-  const purchases = useMemo(
-    () => (Array.isArray(collections) ? collections : []),
-    [collections],
-  );
-
-  const counts = useMemo(() => {
-    let incoming = 0;
-    let received = 0;
-
-    for (const purchase of purchases) {
-      const status = getPurchaseStatus(purchase);
-      if (receivedStatuses.has(status)) received += 1;
-      else if (incomingStatuses.has(status) || status) incoming += 1;
-    }
-
-    return { incoming, received };
-  }, [purchases]);
-
-  const filteredPurchases = useMemo(() => {
-    const normalizedQuery = String(query || "")
-      .trim()
-      .toLowerCase();
-    if (!normalizedQuery) return purchases;
-
-    return purchases.filter((purchase) => {
-      const supplierName = purchase?.supplier?.name || "";
-      const status = getPurchaseStatus(purchase);
-      const totalAmount = String(purchase?.totalAmount ?? "");
-      const createdAt = String(purchase?.createdAt ?? "");
-
-      return (
-        String(supplierName).toLowerCase().includes(normalizedQuery) ||
-        status.includes(normalizedQuery) ||
-        totalAmount.includes(normalizedQuery) ||
-        createdAt.toLowerCase().includes(normalizedQuery) ||
-        String(purchase?._id || "")
-          .toLowerCase()
-          .includes(normalizedQuery)
-      );
-    });
-  }, [purchases, query]);
-
-  const incomingOrders = useMemo(
-    () =>
-      filteredPurchases.filter((purchase) => {
-        const status = getPurchaseStatus(purchase);
-        if (receivedStatuses.has(status)) return false;
-        return incomingStatuses.has(status) || Boolean(status);
-      }),
-    [filteredPurchases],
-  );
-
-  const receivedOrders = useMemo(
-    () =>
-      filteredPurchases.filter((purchase) =>
-        receivedStatuses.has(getPurchaseStatus(purchase)),
-      ),
-    [filteredPurchases],
-  );
 
   return (
     <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
@@ -150,40 +63,22 @@ const OrderList = () => {
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
                   Incoming
-                  <Badge
-                    variant="secondary"
-                    className="rounded-full px-2 py-0 text-[11px]"
-                  >
-                    {counts.incoming}
-                  </Badge>
                 </TabsTrigger>
                 <TabsTrigger
                   value="received"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
                   Received
-                  <Badge
-                    variant="secondary"
-                    className="rounded-full px-2 py-0 text-[11px]"
-                  >
-                    {counts.received}
-                  </Badge>
                 </TabsTrigger>
               </TabsList>
             </CardHeader>
 
             <CardContent className="px-5 pb-5  sm:px-6">
               <TabsContent value="incoming" className="mt-0">
-                <IncomingOrdersTab
-                  orders={incomingOrders}
-                  isLoading={isLoading}
-                />
+                <IncomingOrdersTab />
               </TabsContent>
               <TabsContent value="received" className="mt-0">
-                <ReceivedOrdersTab
-                  orders={receivedOrders}
-                  isLoading={isLoading}
-                />
+                <ReceivedOrdersTab />
               </TabsContent>
             </CardContent>
           </Card>
