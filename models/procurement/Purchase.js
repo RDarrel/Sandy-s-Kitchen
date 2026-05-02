@@ -61,7 +61,7 @@ const modelSchema = new mongoose.Schema(
       },
       by: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "Users",
       },
       at: {
         type: Date,

@@ -26,7 +26,7 @@ const modelSchema = new mongoose.Schema(
       },
       default: "unit",
     },
-    expiryDate: {
+    expirationDate: {
       type: Date,
     },
     quantity: {
@@ -49,6 +49,14 @@ const modelSchema = new mongoose.Schema(
       order: {
         type: Number,
       },
+    },
+    originalPurchase: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Purchase",
+    },
+    parentPurchase: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Purchase",
     },
 
     deletedAt: {

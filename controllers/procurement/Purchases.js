@@ -35,6 +35,7 @@ exports.browse = async (req, res) => {
     const purchases = await Purchase.find({ status: req.query.status })
       .sort({ createdAt: -1 })
       .populate("supplier")
+      .populate("received.by", "fullName")
       .lean();
 
     const orders = await Promise.all(
@@ -88,6 +89,8 @@ const handleShortOrder = async (purchase, orders, session) => {
         _id: undefined,
         isShort: true,
         totalAmount: purchase?.shortDeliveryAmount || 0,
+        originalPurchase: purchase?.originalPurchase || purchase._id,
+        parentPurchase: purchase._id,
         status: "review",
       },
     ],
