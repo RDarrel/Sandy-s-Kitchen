@@ -230,7 +230,7 @@ const ReceiveOrderItemsTable = ({
                     </div>
 
                     <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                      <span className="font-medium">Total amount</span>
+                      <span className="font-medium">Subtotal</span>
                       <span className="font-semibold tabular-nums text-foreground">
                         {receivedAmount === null
                           ? "-"
@@ -250,7 +250,9 @@ const ReceiveOrderItemsTable = ({
                       type="date"
                       min={minExpiryDate}
                       value={
-                        tracksExpiration ? String(item?.expirationDate ?? "") : ""
+                        tracksExpiration
+                          ? String(item?.expirationDate ?? "")
+                          : ""
                       }
                       disabled={!tracksExpiration}
                       onChange={(event) => {
@@ -283,7 +285,7 @@ const ReceiveOrderItemsTable = ({
                       </span>
                     </div>
                     <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                      <span className="font-medium">Total amount</span>
+                      <span className="font-medium">Subtotal</span>
                       <span
                         className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
                       >

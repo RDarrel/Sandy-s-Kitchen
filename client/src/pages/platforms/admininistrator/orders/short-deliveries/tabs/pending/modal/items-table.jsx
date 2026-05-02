@@ -10,7 +10,7 @@ const ShortDeliveryItemsTable = ({ items }) => {
         <span className="text-right">Ordered Qty</span>
         <span className="text-right">Received Qty</span>
         <span className="text-right">Short Qty</span>
-        <span className="text-right">Total amount</span>
+        <span className="text-right">Short amount</span>
       </div>
 
       <div className="max-h-72 overflow-y-auto">
@@ -63,12 +63,10 @@ const ShortDeliveryItemsTable = ({ items }) => {
                   </span>
                 </span>
 
-                <span className="w-full justify-self-stretch">
-                  <span className="flex w-full items-center justify-center gap-1 rounded-md border border-destructive/30 bg-destructive/5 px-2 py-0.5 text-center font-semibold tabular-nums text-destructive">
-                    {Number.isFinite(shortQty) ? shortQty : 0}
-                    <span className="text-xs font-medium text-destructive/80">
-                      {capitalize(item?.unit) || ""}
-                    </span>
+                <span className="inline-flex items-center justify-end gap-1 rounded-md border border-destructive/30 bg-destructive/5 px-2 py-0.5 text-right font-semibold tabular-nums text-destructive">
+                  {Number.isFinite(shortQty) ? shortQty : 0}
+                  <span className="text-xs font-medium text-destructive/80">
+                    {capitalize(item?.unit) || ""}
                   </span>
                 </span>
 
@@ -85,4 +83,3 @@ const ShortDeliveryItemsTable = ({ items }) => {
 };
 
 export default ShortDeliveryItemsTable;
-

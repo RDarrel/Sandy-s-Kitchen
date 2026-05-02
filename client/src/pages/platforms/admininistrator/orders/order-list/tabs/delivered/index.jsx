@@ -1,4 +1,4 @@
-import CustomPagination from "@/components/shared/pagination";
+﻿import CustomPagination from "@/components/shared/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -190,7 +190,9 @@ const ReceivedOrdersTab = () => {
                   </p>
                 </div>
                 <div className="flex flex-col items-start gap-1 sm:items-end">
-                  <p className="text-xs text-muted-foreground">Total received</p>
+                  <p className="text-xs text-muted-foreground">
+                    Total received
+                  </p>
                   <p className="text-base font-semibold tabular-nums text-foreground">
                     {Formatter.amount(totals.received)}
                   </p>
