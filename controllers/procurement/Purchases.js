@@ -231,7 +231,7 @@ exports.receive_delivery = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { _id, status } = req.body || {};
+    const { _id, status, deliveryWindow } = req.body || {};
     const purchaseId = String(_id || "");
 
     if (!purchaseId) {
@@ -245,9 +245,33 @@ exports.update = async (req, res) => {
       return res.status(400).json({ error: "Invalid purchase status." });
     }
 
+    const updateDoc = { status: nextStatus };
+
+    if (nextStatus === "redelivery" && deliveryWindow) {
+      const from = deliveryWindow?.from;
+      const to = deliveryWindow?.to;
+
+      const fromDate = from ? new Date(from) : null;
+      const toDate = to ? new Date(to) : null;
+
+      if (
+        !fromDate ||
+        Number.isNaN(fromDate.getTime()) ||
+        !toDate ||
+        Number.isNaN(toDate.getTime())
+      ) {
+        return res.status(400).json({ error: "Invalid delivery period." });
+      }
+
+      updateDoc.deliveryWindow = {
+        from: fromDate,
+        to: toDate,
+      };
+    }
+
     const purchase = await Purchase.findByIdAndUpdate(
       purchaseId,
-      { $set: { status: nextStatus } },
+      { $set: updateDoc },
       { new: true },
     )
       .populate("supplier")

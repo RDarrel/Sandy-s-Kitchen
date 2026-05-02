@@ -1,4 +1,4 @@
-import Spinner from "@/components/shared/spinner";
+﻿import Spinner from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,21 +8,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import {
   ToggleShortDeliveryActionModal,
   UPDATE,
 } from "@/services/redux/slices/procurement/purchases";
 import { Formatter, fullName } from "@/services/utilities";
+import { cn } from "@/lib/utils";
 import { capitalize } from "lodash";
 import {
   CalendarClock,
+  CalendarIcon,
   HandCoins,
   ReceiptText,
   Truck,
   UserRound,
 } from "lucide-react";
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 
@@ -37,7 +46,7 @@ const getItemsFromPurchase = (purchase) => {
 };
 
 const formatReceivedBy = (receivedBy) => {
-  if (!receivedBy) return "—";
+  if (!receivedBy) return "â€”";
   if (typeof receivedBy === "string") return receivedBy.slice(-8);
 
   if (receivedBy?.fullName && typeof receivedBy.fullName === "object") {
@@ -53,14 +62,14 @@ const formatReceivedBy = (receivedBy) => {
     receivedBy?.username ||
     receivedBy?.email ||
     String(receivedBy?._id || "").slice(-8) ||
-    "—"
+    "â€”"
   );
 };
 
 const formatDateTime = (value) => {
-  if (!value) return "—";
+  if (!value) return "â€”";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "â€”";
 
   return new Intl.DateTimeFormat(undefined, {
     year: "numeric",
@@ -69,6 +78,36 @@ const formatDateTime = (value) => {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+};
+
+const formatDate = (date) => {
+  if (!date) return null;
+
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(new Date(date))
+    .replace(/\//g, "-");
+};
+
+const getDefaultDeliveryWindow = () => {
+  const now = new Date();
+
+  const from = new Date(now);
+  from.setDate(from.getDate() + 1);
+
+  const to = new Date(now);
+  to.setDate(to.getDate() + 3);
+
+  return {
+    from: formatDate(from),
+    to: formatDate(to),
+  };
 };
 
 const ShortDeliveryActionModal = () => {
@@ -89,20 +128,26 @@ const ShortDeliveryActionModal = () => {
 
   const [action, setAction] = useState(null);
   const resolvedAction = action || shortDeliveryActionType || "redelivery";
+  const [deliveryWindow, setDeliveryWindow] = useState(getDefaultDeliveryWindow);
+
+  useEffect(() => {
+    if (!shortDeliveryActionOpen) return;
+    setDeliveryWindow(getDefaultDeliveryWindow());
+  }, [shortDeliveryActionOpen]);
 
   const headerMeta = useMemo(() => {
     if (resolvedAction === "refunded") {
       return {
         title: "Refund short delivery",
         description:
-          "You’re about to mark this short delivery as refunded. Review the details below, then confirm.",
+          "You're about to mark this short delivery as refunded. Review the details below, then confirm.",
       };
     }
 
     return {
       title: "Confirm redelivery",
       description:
-        "You’re about to mark this short delivery for redelivery. Review the details below, then confirm.",
+        "You're about to mark this short delivery for redelivery. Review the details below, then confirm.",
     };
   }, [resolvedAction]);
 
@@ -137,6 +182,13 @@ const ShortDeliveryActionModal = () => {
     if (!purchaseId) return;
     if (!token) return;
 
+    if (nextStatus === "redelivery") {
+      if (!(deliveryWindow?.from && deliveryWindow?.to)) {
+        toast.error("Please set a delivery period.");
+        return;
+      }
+    }
+
     try {
       await dispatch(
         UPDATE({
@@ -144,6 +196,12 @@ const ShortDeliveryActionModal = () => {
           data: {
             _id: purchaseId,
             status: nextStatus,
+            ...(nextStatus === "redelivery" && {
+              deliveryWindow: {
+                from: deliveryWindow?.from,
+                to: deliveryWindow?.to,
+              },
+            }),
           },
         }),
       ).unwrap();
@@ -200,8 +258,8 @@ const ShortDeliveryActionModal = () => {
             </div>
           </div>
 
-          <div className="grid gap-3 rounded-xl border border-border bg-background/40 p-4 text-sm sm:grid-cols-3">
-            <div className="flex items-center gap-2">
+	          <div className="grid gap-3 rounded-xl border border-border bg-background/40 p-4 text-sm sm:grid-cols-3">
+	            <div className="flex items-center gap-2">
               <UserRound className="h-4 w-4 text-muted-foreground" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Received by</p>
@@ -227,10 +285,10 @@ const ShortDeliveryActionModal = () => {
                   {items.length} item(s)
                 </p>
               </div>
-            </div>
-          </div>
+	            </div>
+	          </div>
 
-          <div className="overflow-hidden rounded-xl border border-border bg-card/40">
+	          <div className="overflow-hidden rounded-xl border border-border bg-card/40">
             <div className="grid grid-cols-[1.4fr_170px_140px_140px_160px_170px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium tracking-wide text-muted-foreground/80">
               <span>Item</span>
               <span className="text-right">Cost / Unit</span>
@@ -271,7 +329,7 @@ const ShortDeliveryActionModal = () => {
                       <span className="text-right font-semibold tabular-nums text-foreground">
                         {Number.isFinite(unitCost)
                           ? `${Formatter.amount(unitCost)} / ${capitalize(item?.unit) || ""}`
-                          : "—"}
+                          : "â€”"}
                       </span>
                       <span className="text-right font-semibold tabular-nums text-foreground">
                         {Number.isFinite(orderedQty) ? orderedQty : 0}{" "}
@@ -293,7 +351,7 @@ const ShortDeliveryActionModal = () => {
                       </span>
                       <span className="text-right font-semibold tabular-nums text-foreground">
                         {totalAmount === null
-                          ? "—"
+                          ? "â€”"
                           : Formatter.amount(totalAmount)}
                       </span>
                     </div>
@@ -304,43 +362,124 @@ const ShortDeliveryActionModal = () => {
           </div>
         </div>
 
-        <Separator />
+	        <Separator />
 
-        <DialogFooter className="gap-2 sm:gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setAction(null);
-              dispatch(ToggleShortDeliveryActionModal());
-            }}
-            disabled={formSubmitted}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant={resolvedAction === "refunded" ? "destructive" : "default"}
-            disabled={!token || formSubmitted}
-            onClick={() => handleConfirm(resolvedAction)}
-          >
-            {resolvedAction === "refunded" ? (
-              <>
-                <HandCoins className="h-4 w-4" />
-                Confirm refund
-              </>
-            ) : (
-              <>
-                <Truck className="h-4 w-4" />
-                Confirm redelivery
-              </>
-            )}
-            <Spinner formSubmitted={formSubmitted} />
-          </Button>
-        </DialogFooter>
+		        <DialogFooter className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		          {resolvedAction === "redelivery" ? (
+		            <div className="flex w-full items-center gap-3 sm:w-auto">
+		              <Label className="whitespace-nowrap text-xs text-muted-foreground">
+		                Delivery period
+		              </Label>
+		              <Popover>
+		                <PopoverTrigger asChild>
+		                  <Button
+		                    type="button"
+		                    variant="outline"
+		                    className={cn(
+		                      "h-10 w-full justify-start gap-2 text-left font-normal sm:w-[360px]",
+		                    )}
+		                  >
+	                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    {deliveryWindow?.from ? (
+                      deliveryWindow?.to ? (
+                        <>
+                          {Formatter.date(deliveryWindow.from)} –{" "}
+                          {Formatter.date(deliveryWindow.to)}
+                        </>
+                      ) : (
+                        <>{Formatter.date(deliveryWindow.from)}</>
+                      )
+                    ) : (
+	                      <span className="text-muted-foreground">
+	                        Pick a date range
+	                      </span>
+	                    )}
+	                  </Button>
+	                </PopoverTrigger>
+	                <PopoverContent className="w-auto p-0" align="start">
+	                  <Calendar
+	                    initialFocus
+	                    mode="range"
+	                    numberOfMonths={2}
+	                    defaultMonth={
+	                      deliveryWindow?.from
+	                        ? new Date(deliveryWindow.from)
+	                        : undefined
+	                    }
+	                    selected={{
+	                      from: deliveryWindow?.from
+	                        ? new Date(deliveryWindow.from)
+	                        : undefined,
+	                      to: deliveryWindow?.to
+	                        ? new Date(deliveryWindow.to)
+	                        : undefined,
+	                    }}
+	                    onSelect={(range) => {
+	                      if (!range) return;
+	                      const from = range.from ? formatDate(range.from) : null;
+	                      const to = range.to ? formatDate(range.to) : from;
+	                      if (!from) return;
+	                      setDeliveryWindow({ from, to });
+	                    }}
+	                    disabled={(day) => {
+	                      const today = new Date();
+	                      today.setHours(0, 0, 0, 0);
+	                      return day < today;
+	                    }}
+	                  />
+	                </PopoverContent>
+	              </Popover>
+	            </div>
+	          ) : (
+	            <div />
+	          )}
+
+	          <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+	            <Button
+	              type="button"
+	              variant="outline"
+	              className="h-10"
+	              onClick={() => {
+	                setAction(null);
+	                dispatch(ToggleShortDeliveryActionModal());
+	              }}
+	              disabled={formSubmitted}
+	            >
+	              Cancel
+	            </Button>
+	            <Button
+	              type="button"
+	              className="h-10"
+	              variant={
+	                resolvedAction === "refunded" ? "destructive" : "default"
+	              }
+	              disabled={
+	                !token ||
+	                formSubmitted ||
+              (resolvedAction === "redelivery" &&
+                !(deliveryWindow?.from && deliveryWindow?.to))
+            }
+	              onClick={() => handleConfirm(resolvedAction)}
+	            >
+	              {resolvedAction === "refunded" ? (
+	                <>
+	                  <HandCoins className="h-4 w-4" />
+	                  Confirm refund
+	                </>
+	              ) : (
+	                <>
+	                  <Truck className="h-4 w-4" />
+	                  Confirm redelivery
+	                </>
+	              )}
+	              <Spinner formSubmitted={formSubmitted} />
+	            </Button>
+	          </div>
+	        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
 
 export default memo(ShortDeliveryActionModal);
+
