@@ -48,6 +48,11 @@ const modelSchema = new mongoose.Schema(
       enum: ["weight", "volume", "pieces"],
       required: true,
     },
+    //Track expiration date
+    trackExpiration: {
+      type: Boolean,
+      default: false,
+    },
     suppliers: [
       {
         supplier: {

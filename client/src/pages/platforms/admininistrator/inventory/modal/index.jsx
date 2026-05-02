@@ -36,6 +36,7 @@ const INITIAL_FORM = {
   category: "other",
   minStock: "",
   measurement: "weight",
+  trackExpiration: false,
   description: "",
   stock: {
     min: "",
@@ -113,11 +114,11 @@ const InventoryModal = () => {
   };
 
   const getCostLabel = () => {
-    return `Minimum Stock (${unitMap[form.measurement]})`;
+    return `Reorder Level (${unitMap[form.measurement]})`;
   };
 
   const getCostPlaceholder = () => {
-    return `Enter minimum stock (${unitMap[form.measurement]})`;
+    return `Enter reorder level (${unitMap[form.measurement]})`;
   };
 
   const hasDuplicateName = isExistingInventoryName(
@@ -241,7 +242,7 @@ const InventoryModal = () => {
               />
             </div>
 
-            <div className="md:col-span-6">
+            <div className="md:col-span-3">
               <FormField
                 label="Type"
                 content={
@@ -271,8 +272,7 @@ const InventoryModal = () => {
                 }
               />
             </div>
-
-            <div className="md:col-span-4">
+            <div className="md:col-span-3">
               <FormField
                 label="Category"
                 content={
@@ -331,7 +331,39 @@ const InventoryModal = () => {
               />
             </div>
 
-            <div className="md:col-span-4">
+            <div className="md:col-span-3">
+              <FormField
+                label="Has expiration date?"
+                content={
+                  <div className="flex h-[37px] p-1 w-full items-center gap-1 rounded-md border border-input bg-background p-0.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className={`h-7 flex-1 ${form.trackExpiration ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : "hover:bg-muted"}`}
+                      aria-pressed={form.trackExpiration}
+                      onClick={() =>
+                        setForm((prev) => ({ ...prev, trackExpiration: true }))
+                      }
+                    >
+                      Yes
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className={`h-7 flex-1 ${!form.trackExpiration ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" : "hover:bg-muted"}`}
+                      aria-pressed={!form.trackExpiration}
+                      onClick={() =>
+                        setForm((prev) => ({ ...prev, trackExpiration: false }))
+                      }
+                    >
+                      No
+                    </Button>
+                  </div>
+                }
+              />
+            </div>
+
+            <div className="md:col-span-5">
               <FormField
                 label={getCostLabel()}
                 content={

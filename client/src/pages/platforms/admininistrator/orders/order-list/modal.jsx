@@ -174,6 +174,7 @@ const ReceiveOrderModal = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    console.log("items", items);
     toast.message("Not saved yet", {
       description:
         "This screen is ready, but saving is not wired to the server.",
@@ -189,7 +190,7 @@ const ReceiveOrderModal = () => {
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <DialogTitle className="text-lg">
-                    Receive supplier delivery
+                    Receive delivery
                   </DialogTitle>
                   <Badge variant="secondary" className="rounded-full">
                     {counts.total} item(s)
@@ -201,8 +202,8 @@ const ReceiveOrderModal = () => {
                   ) : null}
                 </div>
                 <DialogDescription className="text-sm leading-snug">
-                  Confirm items delivered by the supplier. Enter received
-                  quantities and expiry dates (optional).
+                  Confirm the delivered items. Enter the received quantity and
+                  expiration date (if needed).
                 </DialogDescription>
               </div>
 
@@ -211,7 +212,7 @@ const ReceiveOrderModal = () => {
 
             <div className="grid gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-3">
               <div className="space-y-1">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
                   Supplier
                 </p>
                 <p className="truncate text-sm font-semibold text-foreground">
@@ -219,16 +220,16 @@ const ReceiveOrderModal = () => {
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Total amount
+                <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
+                  Total Amount
                 </p>
                 <p className="truncate text-sm font-semibold tabular-nums text-foreground">
                   {Formatter.amount(purchase?.totalAmount || 0)}
                 </p>
               </div>
               <div className="space-y-1">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Delivery window
+                <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
+                  Delivery Period
                 </p>
                 <p className="truncate text-sm font-semibold text-foreground">
                   {purchase?.deliveryWindow?.from &&
@@ -262,16 +263,16 @@ const ReceiveOrderModal = () => {
                           </span>
                         </TableHead>
                         <TableHead className="px-5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-                          Ordered qty
+                          Ordered Qty
                         </TableHead>
                         <TableHead className="w-[280px] px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-                          Received qty
+                          Received Qty
                         </TableHead>
                         <TableHead className="px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
                           Expiry date
                         </TableHead>
                         <TableHead className="w-[220px] px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-                          Short qty
+                          Short Qty
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -298,6 +299,9 @@ const ReceiveOrderModal = () => {
                           unitCost === null
                             ? null
                             : Math.max(0, received) * unitCost;
+                        const tracksExpiration = Boolean(
+                          item?.inventory?.trackExpiration ?? false,
+                        );
 
                         const inputHighlightClass = hasMismatch
                           ? isOver
@@ -401,15 +405,21 @@ const ReceiveOrderModal = () => {
                                   id={`expiry-${key}`}
                                   type="date"
                                   min={minExpiryDate}
-                                  value={expiryByKey[key] ?? ""}
+                                  value={
+                                    tracksExpiration
+                                      ? (expiryByKey[key] ?? "")
+                                      : ""
+                                  }
+                                  disabled={!tracksExpiration}
                                   onChange={(event) => {
+                                    if (!tracksExpiration) return;
                                     const raw = event.target.value;
                                     setExpiryByKey((prev) => ({
                                       ...prev,
                                       [key]: raw,
                                     }));
                                   }}
-                                  className="h-8 w-full bg-background text-sm"
+                                  className="h-8 w-full bg-background text-sm disabled:cursor-not-allowed disabled:bg-muted/30"
                                 />
                               </div>
                             </TableCell>
@@ -450,13 +460,13 @@ const ReceiveOrderModal = () => {
                   <div className="flex flex-col gap-2 border-t border-border bg-muted/10 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
                     <div className="text-xs text-muted-foreground">
                       {counts.flagged
-                        ? `${counts.flagged} item(s) have a mismatch from the supplier order.`
-                        : "All items match the supplier order."}
+                        ? `${counts.flagged} items do not match the order.`
+                        : "All items match the order.."}
                     </div>
                     <div className="flex items-baseline justify-between gap-6 sm:justify-end">
                       <div className="text-right">
                         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-                          Total received value
+                          Total Received
                         </span>
                         <div className="text-base font-semibold tabular-nums text-foreground">
                           {Formatter.amount(grandSubtotal)}
@@ -464,7 +474,7 @@ const ReceiveOrderModal = () => {
                       </div>
                       <div className="text-right">
                         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-                          Total variance
+                          Total Difference
                         </span>
                         <div
                           className={`text-base font-semibold tabular-nums ${grandVariance === 0 ? "text-muted-foreground" : "text-destructive"}`}
@@ -490,7 +500,7 @@ const ReceiveOrderModal = () => {
               </Button>
               <Button type="submit" className="gap-2">
                 <CheckCircle2 className="h-4 w-4" />
-                Save received (UI only)
+                Confirm Delivery
               </Button>
             </DialogFooter>
           </div>
