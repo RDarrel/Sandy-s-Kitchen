@@ -140,6 +140,7 @@ export const reduxSlice = createSlice({
       };
       state.cart = _cart;
     },
+
     CartRemove: (state, { payload }) => {
       const _cart = [...state.cart];
       const index = _cart?.findIndex(
@@ -158,7 +159,11 @@ export const reduxSlice = createSlice({
     ToggleShowOrderDetails: (state, _) => {
       state.showOrderDetails = !state.showOrderDetails;
     },
-
+    SEARCH: (state, { payload }) => {
+      state.filtered = state.collections.filter(({ supplier }) => {
+        return supplier?.name.toLowerCase().includes(payload.toLowerCase());
+      });
+    },
     PROGRESS: (state, data) => {
       state.progress = data.payload;
     },
@@ -305,6 +310,7 @@ export const {
   CartUpdate,
   SetShowOrderDetails,
   ToggleShowOrderDetails,
+  SEARCH,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

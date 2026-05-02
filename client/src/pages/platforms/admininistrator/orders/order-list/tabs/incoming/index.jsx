@@ -6,10 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  BROWSE,
-  SetShowOrderDetails,
-} from "@/services/redux/slices/procurement/purchases";
+import { SetShowOrderDetails } from "@/services/redux/slices/procurement/purchases";
 import { Formatter } from "@/services/utilities";
 import { capitalize } from "lodash";
 import {
@@ -21,7 +18,7 @@ import {
   Phone,
   Truck,
 } from "lucide-react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import IncomingSkeleton from "./skeleton";
 
@@ -52,16 +49,11 @@ const IncomingOrdersTab = () => {
   const { filtered: orders, isLoading } = useSelector(
     ({ purchases }) => purchases,
   );
-  const { token } = useSelector(({ auth }) => auth);
   const rows = useMemo(() => (Array.isArray(orders) ? orders : []), [orders]);
   const [openById, setOpenById] = useState({});
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(5);
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(BROWSE({ token, params: { status: "incoming" } }));
-  }, [dispatch, token]);
 
   if (isLoading) {
     return <IncomingSkeleton />;

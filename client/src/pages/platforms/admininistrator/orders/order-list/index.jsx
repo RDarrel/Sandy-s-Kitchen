@@ -7,18 +7,33 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { memo, useState } from "react";
-import { useSelector } from "react-redux";
+import { memo, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import IncomingOrdersTab from "./tabs/incoming";
 import ReceivedOrdersTab from "./tabs/delivered";
 import ReceiveOrderModal from "./modal";
 import { Search, Truck } from "lucide-react";
+import {
+  BROWSE,
+  RESET,
+  SEARCH,
+} from "@/services/redux/slices/procurement/purchases";
 
 const OrderList = () => {
   const { message } = useSelector(({ purchases }) => purchases);
-
+  const { token } = useSelector(({ auth }) => auth);
   const [tab, setTab] = useState("incoming");
   const [query, setQuery] = useState("");
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(BROWSE({ token, params: { status: tab } }));
+    return () => dispatch(RESET());
+  }, [dispatch, token, tab]);
+
+  useEffect(() => {
+    dispatch(SEARCH(query));
+  }, [query, dispatch]);
 
   return (
     <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
@@ -45,6 +60,7 @@ const OrderList = () => {
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search supplier, status, amount..."
                   className="h-10 bg-background/60 pl-9"
+                  type="search"
                 />
               </div>
 

@@ -5,10 +5,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Formatter } from "@/services/utilities";
-import { CalendarRange, ChevronDown, Package, PackageCheck } from "lucide-react";
+import {
+  CalendarRange,
+  ChevronDown,
+  Package,
+  PackageCheck,
+} from "lucide-react";
 import { memo, useMemo, useState } from "react";
+import DeliveredSkeleton from "./skeleton";
+import { useSelector } from "react-redux";
 
 const statusMeta = {
   received: {
@@ -29,37 +35,14 @@ const statusMeta = {
   },
 };
 
-const OrderSkeleton = () => (
-  <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm">
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-56" />
-        <Skeleton className="h-3 w-40" />
-      </div>
-      <div className="flex items-center gap-2">
-        <Skeleton className="h-6 w-24 rounded-full" />
-      </div>
-    </div>
-    <div className="mt-3 grid gap-2 sm:grid-cols-3">
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-3 w-full" />
-    </div>
-  </div>
-);
-
-const ReceivedOrdersTab = ({ orders = [], isLoading }) => {
+const ReceivedOrdersTab = () => {
+  const { filtered: orders, isLoading } = useSelector(
+    ({ purchases }) => purchases,
+  );
   const rows = useMemo(() => (Array.isArray(orders) ? orders : []), [orders]);
   const [openById, setOpenById] = useState({});
-
   if (isLoading) {
-    return (
-      <div className="space-y-3">
-        <OrderSkeleton />
-        <OrderSkeleton />
-        <OrderSkeleton />
-      </div>
-    );
+    return <DeliveredSkeleton />;
   }
 
   if (!rows.length) {
@@ -153,7 +136,9 @@ const ReceivedOrdersTab = ({ orders = [], isLoading }) => {
               <div className="flex items-center gap-2">
                 <CalendarRange className="h-4 w-4 text-muted-foreground" />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Delivery window</p>
+                  <p className="text-xs text-muted-foreground">
+                    Delivery window
+                  </p>
                   <p className="truncate font-medium text-foreground">
                     {deliveryLabel}
                   </p>
@@ -206,33 +191,33 @@ const ReceivedOrdersTab = ({ orders = [], isLoading }) => {
 
                   <CollapsibleContent className="mt-2">
                     {items.length ? (
-	                      <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-	                        <div className="grid grid-cols-[1fr_auto] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
-	                          <span>Item</span>
-	                          <span className="text-right">Qty</span>
-	                        </div>
-	                        <div className="max-h-56 overflow-y-auto">
-	                          <div className="divide-y divide-border/70">
-	                            {items.map((item) => (
-	                              <div
-	                                key={item?._id || item?.name}
-	                                className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-sm"
-	                              >
-	                                <span className="truncate font-medium text-foreground">
-	                                  {item?.name || "Item"}
-	                                </span>
-	                                <span className="text-right font-semibold tabular-nums text-foreground">
-	                                  {Number(item?.quantity?.order) || 0}{" "}
-	                                  <span className="text-xs font-medium text-muted-foreground">
-	                                    {item?.unit || ""}
-	                                  </span>
-	                                </span>
-	                              </div>
-	                            ))}
-	                          </div>
-	                        </div>
-	                      </div>
-	                    ) : (
+                      <div className="overflow-hidden rounded-xl border border-border bg-card/40">
+                        <div className="grid grid-cols-[1fr_auto] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                          <span>Item</span>
+                          <span className="text-right">Qty</span>
+                        </div>
+                        <div className="max-h-56 overflow-y-auto">
+                          <div className="divide-y divide-border/70">
+                            {items.map((item) => (
+                              <div
+                                key={item?._id || item?.name}
+                                className="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2 text-sm"
+                              >
+                                <span className="truncate font-medium text-foreground">
+                                  {item?.name || "Item"}
+                                </span>
+                                <span className="text-right font-semibold tabular-nums text-foreground">
+                                  {Number(item?.quantity?.order) || 0}{" "}
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    {item?.unit || ""}
+                                  </span>
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
                       <div className="rounded-xl border border-dashed border-border bg-muted/10 p-4 text-xs text-muted-foreground">
                         Items for this order aren&apos;t available yet (older
                         orders may have been created before item tracking was
