@@ -28,17 +28,17 @@ import {
 } from "./utils";
 
 const ReceiveOrderModal = () => {
-  const dispatch = useDispatch();
   const { showOrderDetails, selected } = useSelector(
     ({ purchases }) => purchases,
   );
-
+  const { auth, token } = useSelector(({ auth }) => auth);
   const purchase = useMemo(() => selected ?? null, [selected]);
 
   const items = useMemo(() => getItemsFromPurchase(purchase), [purchase]);
   const [receivedByKey, setReceivedByKey] = useState({});
   const [expiryByKey, setExpiryByKey] = useState({});
   const minExpiryDate = useMemo(() => getTodayISO(), []);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (!showOrderDetails) {
@@ -97,94 +97,146 @@ const ReceiveOrderModal = () => {
       if (unitCost === null) return sum;
       const expected = round2(getOrderedQty(item));
       const received = round2(toNumber(receivedByKey[key]));
-      return sum + (received - expected) * unitCost;
+      const discrepancy = round2(expected - received);
+      return sum + discrepancy * unitCost;
     }, 0);
   }, [items, receivedByKey]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-
-    if (!items.length) {
-      toast.error("No items to receive.");
-      return;
-    }
-
-    toast.success("Saved received quantities (UI only).");
-    close(false);
+    console.log("items", items);
+    console.log("recivedByKey", receivedByKey);
+    console.log("expiryByKey", expiryByKey);
+    const formattedItems = [...items].map((item) => {
+      const key = getItemKey(item);
+      return {
+        ...item,
+        quantity: {
+          ...item.quantity,
+          received: toNumber(receivedByKey[key]),
+        },
+        expiry: expiryByKey[key] || null,
+      };
+    });
+    const _purchase = {
+      ...purchase,
+      received: {
+        date: new Date().toISOString(),
+        by: auth._id,
+        amount: Number(grandSubtotal),
+        note: "",
+      },
+      shortDeliveryAmount: Number(grandVariance),
+      isShortDelivery: grandVariance > 0,
+    };
+    console.log("formattedItems", formattedItems);
+    toast.message("Not saved yet", {
+      description:
+        "This screen is ready, but saving is not wired to the server.",
+    });
   };
 
   return (
     <Dialog open={showOrderDetails} onOpenChange={close}>
-      <DialogContent className="border-border bg-card p-0 sm:max-w-5xl">
-        <form onSubmit={handleSubmit}>
-          <div className="flex max-h-[calc(100vh-6rem)] min-h-0 flex-col overflow-hidden">
-            <DialogHeader className="gap-2 px-6 pt-6">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <DialogTitle className="text-2xl text-foreground">
-                    Receive order
+      <DialogContent className="flex max-h-[95vh] w-[95vw] flex-col overflow-hidden p-0 sm:max-w-5xl lg:max-w-7xl">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <DialogHeader className="sticky top-0 z-30 space-y-2 border-b border-border bg-background/90 px-6 pb-4 pt-6 text-left backdrop-blur supports-[backdrop-filter]:bg-background/70">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <DialogTitle className="text-lg">
+                    Receive delivery
                   </DialogTitle>
-                  <DialogDescription className="mt-1">
-                    Verify quantities received from {supplierName}.
-                  </DialogDescription>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">
-                    {counts.total} item{counts.total === 1 ? "" : "s"}
+                  <Badge variant="secondary" className="rounded-full">
+                    {counts.total} item(s)
                   </Badge>
-                  <Badge
-                    variant={counts.flagged ? "destructive" : "outline"}
-                    className={!counts.flagged ? "text-muted-foreground" : ""}
-                  >
-                    {counts.flagged
-                      ? `${counts.flagged} mismatch`
-                      : "All matched"}
-                  </Badge>
+                  {counts.flagged ? (
+                    <Badge className="rounded-full bg-destructive/15 text-destructive hover:bg-destructive/15">
+                      {counts.flagged} mismatch
+                    </Badge>
+                  ) : null}
                 </div>
+                <DialogDescription className="text-sm leading-snug">
+                  Confirm the delivered items. Enter the received quantity and
+                  expiration date (if needed).
+                </DialogDescription>
               </div>
-            </DialogHeader>
 
-            <div className="min-h-0 flex-1 overflow-auto">
-              <Separator />
-
-              <div className="bg-muted/10 px-6 py-5">
-                {!items.length ? (
-                  <div className="rounded-xl border border-dashed border-border bg-muted/10 p-5 text-sm text-muted-foreground">
-                    No items found for this order.
-                  </div>
-                ) : (
-                  <ReceiveOrderItemsTable
-                    items={items}
-                    receivedByKey={receivedByKey}
-                    setReceivedByKey={setReceivedByKey}
-                    expiryByKey={expiryByKey}
-                    setExpiryByKey={setExpiryByKey}
-                    minExpiryDate={minExpiryDate}
-                    counts={counts}
-                    grandSubtotal={grandSubtotal}
-                    grandVariance={grandVariance}
-                  />
-                )}
-              </div>
+              {/* header badges removed; keep only dialog close icon */}
             </div>
 
+            <div className="grid gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-3">
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
+                  Supplier
+                </p>
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {supplierName}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
+                  Total Amount
+                </p>
+                <p className="truncate text-sm font-semibold tabular-nums text-foreground">
+                  {Formatter.amount(purchase?.totalAmount || 0)}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
+                  Delivery Period
+                </p>
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {purchase?.deliveryWindow?.from &&
+                  purchase?.deliveryWindow?.to
+                    ? `${Formatter.date(purchase.deliveryWindow.from)} - ${Formatter.date(purchase.deliveryWindow.to)}`
+                    : purchase?.deliveryWindow?.from
+                      ? Formatter.date(purchase.deliveryWindow.from)
+                      : "Not set"}
+                </p>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="min-h-0 flex-1 overflow-auto">
             <Separator />
 
-            <DialogFooter className="gap-2 px-6 py-4 sm:gap-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => close(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" className="gap-2">
-                <CheckCircle2 className="h-4 w-4" />
-                Save received (UI only)
-              </Button>
-            </DialogFooter>
+            <div className="bg-muted/10 px-6 py-5">
+              {!items.length ? (
+                <div className="rounded-xl border border-dashed border-border bg-muted/10 p-5 text-sm text-muted-foreground">
+                  No items found for this order.
+                </div>
+              ) : (
+                <ReceiveOrderItemsTable
+                  items={items}
+                  receivedByKey={receivedByKey}
+                  setReceivedByKey={setReceivedByKey}
+                  expiryByKey={expiryByKey}
+                  setExpiryByKey={setExpiryByKey}
+                  minExpiryDate={minExpiryDate}
+                  counts={counts}
+                  grandSubtotal={grandSubtotal}
+                  grandVariance={grandVariance}
+                />
+              )}
+            </div>
           </div>
+
+          <Separator />
+
+          <DialogFooter className="gap-2 px-6 py-4 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => close(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" className="gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              Confirm Delivery
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

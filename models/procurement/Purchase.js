@@ -55,6 +55,9 @@ const modelSchema = new mongoose.Schema(
     },
 
     received: {
+      date: {
+        type: Date,
+      },
       by: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -62,7 +65,10 @@ const modelSchema = new mongoose.Schema(
       at: {
         type: Date,
       },
-      notes: {
+      amount: {
+        type: Number,
+      },
+      note: {
         type: String,
       },
     },

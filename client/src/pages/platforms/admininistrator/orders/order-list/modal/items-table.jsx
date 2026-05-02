@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Formatter } from "@/services/utilities";
 import { capitalize } from "lodash";
+import { Package } from "lucide-react";
 import {
   formatQty,
   getItemKey,
@@ -36,20 +37,23 @@ const ReceiveOrderItemsTable = ({
       <Table className="min-w-[980px]">
         <TableHeader className="bg-muted/30">
           <TableRow className="hover:bg-muted/30">
-            <TableHead className="px-5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-              Item
+            <TableHead className="px-5 text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
+              <span className="flex items-center gap-2">
+                <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                Item
+              </span>
             </TableHead>
-            <TableHead className="px-5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-              Ordered qty
+            <TableHead className="px-5 text-right text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
+              Ordered Qty
             </TableHead>
-            <TableHead className="w-[280px] px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-              Received qty
+            <TableHead className="w-[280px] px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
+              Received Qty
             </TableHead>
-            <TableHead className="px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-              Expiry date
+            <TableHead className="px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
+              Expiration Date
             </TableHead>
-            <TableHead className="w-[220px] px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-              Short qty
+            <TableHead className="w-[220px] px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
+              Short Qty
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -72,7 +76,9 @@ const ReceiveOrderItemsTable = ({
             const receivedAmount =
               unitCost === null ? null : Math.max(0, received) * unitCost;
             const tracksExpiration = Boolean(
-              item?.inventory?.trackExpiration ?? item?.trackExpiration ?? false,
+              item?.inventory?.trackExpiration ??
+              item?.trackExpiration ??
+              false,
             );
 
             const inputHighlightClass = hasMismatch
@@ -120,23 +126,66 @@ const ReceiveOrderItemsTable = ({
                     <div className="relative w-[140px]">
                       <Input
                         id={`received-${key}`}
-                        type="text"
-                        min={0}
+                        type="number"
+                        min={1}
+                        max={expected}
                         step="0.01"
                         inputMode="decimal"
                         value={receivedByKey[key] ?? ""}
+                        onKeyDown={(event) => {
+                          if (
+                            event.key === "e" ||
+                            event.key === "E" ||
+                            event.key === "+" ||
+                            event.key === "-"
+                          ) {
+                            event.preventDefault();
+                          }
+                        }}
                         onChange={(event) => {
                           const raw = event.target.value;
+                          if (raw === "") {
+                            setReceivedByKey((prev) => ({
+                              ...prev,
+                              [key]: "",
+                            }));
+                            return;
+                          }
+
+                          const nextNumber = Number(raw);
+                          const clampedNumber = Math.min(
+                            expected,
+                            Math.max(
+                              0,
+                              Number.isFinite(nextNumber) ? nextNumber : 0,
+                            ),
+                          );
                           setReceivedByKey((prev) => ({
                             ...prev,
-                            [key]: raw,
+                            [key]: clampedNumber,
                           }));
                         }}
                         onBlur={(event) => {
                           const raw = event.target.value;
+                          if (raw === "") {
+                            setReceivedByKey((prev) => ({
+                              ...prev,
+                              [key]: "",
+                            }));
+                            return;
+                          }
+
+                          const normalized = Number(normalizeQtyInput(raw));
+                          const clampedNumber = Math.min(
+                            expected,
+                            Math.max(
+                              0,
+                              Number.isFinite(normalized) ? normalized : 0,
+                            ),
+                          );
                           setReceivedByKey((prev) => ({
                             ...prev,
-                            [key]: normalizeQtyInput(raw),
+                            [key]: clampedNumber,
                           }));
                         }}
                         placeholder="0"
@@ -166,8 +215,9 @@ const ReceiveOrderItemsTable = ({
                     <Input
                       id={`expiry-${key}`}
                       type="date"
+                      required
                       min={minExpiryDate}
-                      value={tracksExpiration ? expiryByKey[key] ?? "" : ""}
+                      value={tracksExpiration ? (expiryByKey[key] ?? "") : ""}
                       disabled={!tracksExpiration}
                       onChange={(event) => {
                         if (!tracksExpiration) return;
@@ -216,13 +266,13 @@ const ReceiveOrderItemsTable = ({
       <div className="flex flex-col gap-2 border-t border-border bg-muted/10 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="text-xs text-muted-foreground">
           {counts.flagged
-            ? `${counts.flagged} item(s) have a mismatch from the supplier order.`
-            : "All items match the supplier order."}
+            ? `${counts.flagged} items do not match the order.`
+            : "All items match the order.."}
         </div>
         <div className="flex items-baseline justify-between gap-6 sm:justify-end">
           <div className="text-right">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-              Total received value
+              Total Received
             </span>
             <div className="text-base font-semibold tabular-nums text-foreground">
               {Formatter.amount(grandSubtotal)}
@@ -230,7 +280,7 @@ const ReceiveOrderItemsTable = ({
           </div>
           <div className="text-right">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-              Total variance
+              Total Difference
             </span>
             <div
               className={`text-base font-semibold tabular-nums ${grandVariance === 0 ? "text-muted-foreground" : "text-destructive"}`}
