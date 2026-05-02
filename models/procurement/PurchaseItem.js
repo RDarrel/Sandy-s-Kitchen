@@ -26,6 +26,9 @@ const modelSchema = new mongoose.Schema(
       },
       default: "unit",
     },
+    expiryDate: {
+      type: Date,
+    },
     quantity: {
       request: {
         type: Number,

@@ -8,7 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { ToggleShowOrderDetails } from "@/services/redux/slices/procurement/purchases";
 import { Formatter } from "@/services/utilities";
 import { CheckCircle2 } from "lucide-react";
@@ -37,6 +39,7 @@ const ReceiveOrderModal = () => {
   const items = useMemo(() => getItemsFromPurchase(purchase), [purchase]);
   const [receivedByKey, setReceivedByKey] = useState({});
   const [expiryByKey, setExpiryByKey] = useState({});
+  const [notes, setNotes] = useState("");
   const minExpiryDate = useMemo(() => getTodayISO(), []);
   const dispatch = useDispatch();
 
@@ -44,6 +47,7 @@ const ReceiveOrderModal = () => {
     if (!showOrderDetails) {
       setReceivedByKey({});
       setExpiryByKey({});
+      setNotes("");
       return;
     }
 
@@ -224,18 +228,40 @@ const ReceiveOrderModal = () => {
 
           <Separator />
 
-          <DialogFooter className="gap-2 px-6 py-4 sm:gap-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => close(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" className="gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              Confirm Delivery
-            </Button>
+          <DialogFooter className="flex flex-col gap-3 px-6 py-4">
+            <div className="w-full">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <Label
+                  htmlFor="receive-order-notes"
+                  className="shrink-0 whitespace-nowrap text-[11px] font-medium tracking-wide text-muted-foreground"
+                >
+                  Remarks
+                </Label>
+                <Textarea
+                  id="receive-order-notes"
+                  value={notes}
+                  onChange={(event) => setNotes(event.target.value)}
+                  placeholder="Enter remarks..."
+                  className="min-h-[40px] w-full resize-none bg-background text-sm sm:flex-1"
+                  rows={1}
+                />
+              </div>
+            </div>
+
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => close(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="w-full gap-2 sm:w-auto">
+                <CheckCircle2 className="h-4 w-4" />
+                Confirm Delivery
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>
