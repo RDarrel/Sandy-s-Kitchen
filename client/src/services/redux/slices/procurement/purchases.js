@@ -11,6 +11,9 @@ const initialState = {
   selected: {},
   showOrderDetails: false,
   reviewOpen: false,
+  shortDeliveryActionOpen: false,
+  shortDeliveryActionSelected: null,
+  shortDeliveryActionType: null,
   formSubmitted: false,
   isSuccess: false,
   isLoading: false,
@@ -159,6 +162,20 @@ export const reduxSlice = createSlice({
     ToggleShowOrderDetails: (state, _) => {
       state.showOrderDetails = !state.showOrderDetails;
     },
+
+    OpenShortDeliveryActionModal: (state, { payload }) => {
+      state.shortDeliveryActionOpen = true;
+      state.shortDeliveryActionSelected = payload?.purchase ?? null;
+      state.shortDeliveryActionType = payload?.type ?? null;
+    },
+
+    ToggleShortDeliveryActionModal: (state, _) => {
+      state.shortDeliveryActionOpen = !state.shortDeliveryActionOpen;
+      if (!state.shortDeliveryActionOpen) {
+        state.shortDeliveryActionSelected = null;
+        state.shortDeliveryActionType = null;
+      }
+    },
     SEARCH: (state, { payload }) => {
       state.filtered = state.collections.filter(({ supplier }) => {
         return supplier?.name.toLowerCase().includes(payload.toLowerCase());
@@ -255,14 +272,20 @@ export const reduxSlice = createSlice({
       .addCase(UPDATE.fulfilled, (state, action) => {
         const { success, payload } = action.payload;
         const { purchase, updatingRequest = false } = payload;
-        const index = state.collections.findIndex(
-          ({ _id: id }) => id === purchase?._id,
-        );
-        if (updatingRequest) {
-          state.collections[index] = purchase;
-        } else {
-          state.collections.splice(index, 1);
-        }
+        const updateCollections = (collections) => {
+          const index = collections.findIndex(
+            ({ _id: id }) => id === purchase?._id,
+          );
+          if (index < 0) return;
+          if (updatingRequest) {
+            collections[index] = purchase;
+          } else {
+            collections.splice(index, 1);
+          }
+        };
+
+        updateCollections(state.collections);
+        updateCollections(state.filtered);
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
@@ -310,6 +333,8 @@ export const {
   CartUpdate,
   SetShowOrderDetails,
   ToggleShowOrderDetails,
+  OpenShortDeliveryActionModal,
+  ToggleShortDeliveryActionModal,
   SEARCH,
 } = reduxSlice.actions;
 

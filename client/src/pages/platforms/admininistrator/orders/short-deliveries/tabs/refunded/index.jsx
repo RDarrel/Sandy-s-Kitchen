@@ -126,24 +126,19 @@ const RefundedShortDeliveriesTab = () => {
                     <PackageCheck className="h-3 w-3" />
                     {meta.label}
                   </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="rounded-full px-2 py-0 text-[11px]"
-                  >
-                    <Package className="h-3 w-3" />
-                    {itemsCount} item(s)
-                  </Badge>
                 </div>
                 <p className="truncate text-xs text-muted-foreground">
                   Address:{" "}
                   <span className="font-medium text-foreground/90">
-                    {purchase?.supplier?.address ? purchase.supplier.address : "-"}
+                    {purchase?.supplier?.address
+                      ? purchase.supplier.address
+                      : "-"}
                   </span>
                 </p>
               </div>
 
               <div className="flex flex-col items-start gap-1 sm:ml-auto sm:items-end">
-                <p className="text-xs text-muted-foreground">Total amount</p>
+                <p className="text-xs text-muted-foreground">Refunded Amount</p>
                 <p className="text-base font-semibold tabular-nums text-foreground">
                   {Formatter.amount(purchase?.totalAmount || 0)}
                 </p>
@@ -202,7 +197,7 @@ const RefundedShortDeliveriesTab = () => {
                       <PackageCheck className="h-4 w-4 text-muted-foreground" />
                       <div className="min-w-0">
                         <p className="text-xs text-muted-foreground">
-                          Received date
+                          Refunded date
                         </p>
                         <p className="truncate font-semibold text-foreground">
                           {formatDateTime(receivedAt)}
@@ -215,14 +210,14 @@ const RefundedShortDeliveriesTab = () => {
                 <CollapsibleContent className="mt-2">
                   {items.length ? (
                     <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-	                      <div className="grid grid-cols-[1fr_170px_140px_140px_140px_170px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium tracking-wide text-muted-foreground/80">
-	                        <span>Item</span>
-	                        <span className="text-right">Cost / Unit</span>
-	                        <span className="text-right">Ordered Qty</span>
-	                        <span className="text-right">Received Qty</span>
-	                        <span className="text-right">Short Qty</span>
-	                        <span className="text-right">Total amount</span>
-	                      </div>
+                      <div className="grid grid-cols-[1fr_170px_140px_140px_140px_170px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium tracking-wide text-muted-foreground/80">
+                        <span>Item</span>
+                        <span className="text-right">Cost / Unit</span>
+                        <span className="text-right">Ordered Qty</span>
+                        <span className="text-right">Received Qty</span>
+                        <span className="text-right">Short Qty</span>
+                        <span className="text-right">Total amount</span>
+                      </div>
                       <div className="max-h-56 overflow-y-auto">
                         <div className="divide-y divide-border/70">
                           {items.map((item) => {
@@ -233,58 +228,66 @@ const RefundedShortDeliveriesTab = () => {
                             );
                             const shortQty = Number(item?.quantity?.order ?? 0);
                             const orderedQty =
-                              (Number.isFinite(firstDelivery) ? firstDelivery : 0) +
+                              (Number.isFinite(firstDelivery)
+                                ? firstDelivery
+                                : 0) +
                               (Number.isFinite(shortQty) ? shortQty : 0);
-	                            const receivedQty =
-	                              orderedQty -
-	                              (Number.isFinite(shortQty) ? shortQty : 0);
-	                            const unitCostRaw =
-	                              item?.cost ?? item?.inventory?.cost ?? 0;
-	                            const unitCost = Number(unitCostRaw);
-		                            const totalAmount = Number.isFinite(unitCost)
-		                              ? unitCost *
-		                                (Number.isFinite(shortQty) ? shortQty : 0)
-		                              : null;
+                            const receivedQty =
+                              orderedQty -
+                              (Number.isFinite(shortQty) ? shortQty : 0);
+                            const unitCostRaw =
+                              item?.cost ?? item?.inventory?.cost ?? 0;
+                            const unitCost = Number(unitCostRaw);
+                            const totalAmount = Number.isFinite(unitCost)
+                              ? unitCost *
+                                (Number.isFinite(shortQty) ? shortQty : 0)
+                              : null;
 
-	                            return (
+                            return (
                               <div
                                 key={
                                   item?._id ||
                                   item?.inventory?._id ||
                                   item?.name
                                 }
-		                                className="grid grid-cols-[1fr_170px_140px_140px_140px_170px] items-center gap-2 px-3 py-2 text-sm"
-	                              >
-	                                <span className="truncate font-medium text-foreground">
-	                                  {item?.inventory?.name || item?.name || "Item"}
-	                                </span>
-	                                <span className="text-right font-semibold tabular-nums text-foreground">
-	                                  {Number.isFinite(unitCost)
-	                                    ? `${Formatter.amount(unitCost)} / ${capitalize(item?.unit) || ""}`
-	                                    : "\u2014"}
-	                                </span>
-	                                <span className="text-right font-semibold tabular-nums text-foreground">
-	                                  {Number.isFinite(orderedQty) ? orderedQty : 0}{" "}
-	                                  <span className="text-xs font-medium text-muted-foreground">
-	                                    {capitalize(item?.unit) || ""}
-	                                  </span>
+                                className="grid grid-cols-[1fr_170px_140px_140px_140px_170px] items-center gap-2 px-3 py-2 text-sm"
+                              >
+                                <span className="truncate font-medium text-foreground">
+                                  {item?.inventory?.name ||
+                                    item?.name ||
+                                    "Item"}
                                 </span>
                                 <span className="text-right font-semibold tabular-nums text-foreground">
-                                  {Number.isFinite(receivedQty) ? receivedQty : 0}{" "}
+                                  {Number.isFinite(unitCost)
+                                    ? `${Formatter.amount(unitCost)} / ${capitalize(item?.unit) || ""}`
+                                    : "\u2014"}
+                                </span>
+                                <span className="text-right font-semibold tabular-nums text-foreground">
+                                  {Number.isFinite(orderedQty) ? orderedQty : 0}{" "}
                                   <span className="text-xs font-medium text-muted-foreground">
                                     {capitalize(item?.unit) || ""}
                                   </span>
                                 </span>
-	                                <span className="inline-flex items-center justify-end gap-1 rounded-md border border-destructive/30 bg-destructive/5 px-2 py-0.5 text-right font-semibold tabular-nums text-destructive">
-	                                  {Number.isFinite(shortQty) ? shortQty : 0}
-	                                  <span className="text-xs font-medium text-destructive/80">
-	                                    {capitalize(item?.unit) || ""}
-	                                  </span>
-	                                </span>
-	                                <span className="text-right font-bold tabular-nums text-foreground">
-	                                  {totalAmount === null ? "\u2014" : Formatter.amount(totalAmount)}
-	                                </span>
-	                              </div>
+                                <span className="text-right font-semibold tabular-nums text-foreground">
+                                  {Number.isFinite(receivedQty)
+                                    ? receivedQty
+                                    : 0}{" "}
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    {capitalize(item?.unit) || ""}
+                                  </span>
+                                </span>
+                                <span className="inline-flex items-center justify-end gap-1 rounded-md border border-destructive/30 bg-destructive/5 px-2 py-0.5 text-right font-semibold tabular-nums text-destructive">
+                                  {Number.isFinite(shortQty) ? shortQty : 0}
+                                  <span className="text-xs font-medium text-destructive/80">
+                                    {capitalize(item?.unit) || ""}
+                                  </span>
+                                </span>
+                                <span className="text-right font-bold tabular-nums text-foreground">
+                                  {totalAmount === null
+                                    ? "\u2014"
+                                    : Formatter.amount(totalAmount)}
+                                </span>
+                              </div>
                             );
                           })}
                         </div>
@@ -306,5 +309,3 @@ const RefundedShortDeliveriesTab = () => {
 };
 
 export default memo(RefundedShortDeliveriesTab);
-
-

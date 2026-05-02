@@ -18,6 +18,7 @@ import {
 import PendingShortDeliveriesTab from "./tabs/pending";
 import ReceivedShortDeliveriesTab from "./tabs/received";
 import RefundedShortDeliveriesTab from "./tabs/refunded";
+import ShortDeliveryActionModal from "./tabs/pending/modal";
 
 const statusByTab = {
   pending: "review",
@@ -75,15 +76,6 @@ const ShortDeliveries = () => {
                 />
               </div>
 
-              {message ? (
-                <div className="rounded-xl border border-border bg-destructive/10 px-4 py-3 text-sm text-foreground">
-                  <span className="font-medium">
-                    Couldn&apos;t load short deliveries.
-                  </span>{" "}
-                  <span className="text-muted-foreground">{message}</span>
-                </div>
-              ) : null}
-
               <TabsList className="h-10 w-fit rounded-full border border-border bg-muted/30 p-1">
                 <TabsTrigger
                   value="pending"
@@ -119,6 +111,7 @@ const ShortDeliveries = () => {
             </CardContent>
           </Card>
         </Tabs>
+        <ShortDeliveryActionModal />
       </div>
     </div>
   );
