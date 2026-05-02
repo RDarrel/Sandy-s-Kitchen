@@ -32,7 +32,11 @@ exports.save = async (req, res) => {
 
 exports.browse = async (req, res) => {
   try {
-    const purchases = await Purchase.find({ status: req.query.status })
+    const { status, isShort = false } = req.query;
+    const purchases = await Purchase.find({
+      status,
+      ...(isShort && { isShort: true }),
+    })
       .sort({ createdAt: -1 })
       .populate("supplier")
       .populate("received.by", "fullName")
@@ -222,5 +226,43 @@ exports.receive_delivery = async (req, res) => {
     });
   } finally {
     await session.endSession();
+  }
+};
+
+exports.update = async (req, res) => {
+  try {
+    const { _id, status } = req.body || {};
+    const purchaseId = String(_id || "");
+
+    if (!purchaseId) {
+      return res.status(400).json({ error: "Purchase ID is required." });
+    }
+
+    const nextStatus = String(status || "").toLowerCase();
+    const allowedStatuses = ["review", "redelivery", "refunded", "resolved"];
+
+    if (!allowedStatuses.includes(nextStatus)) {
+      return res.status(400).json({ error: "Invalid purchase status." });
+    }
+
+    const purchase = await Purchase.findByIdAndUpdate(
+      purchaseId,
+      { $set: { status: nextStatus } },
+      { new: true },
+    )
+      .populate("supplier")
+      .populate("received.by", "fullName")
+      .lean();
+
+    if (!purchase) {
+      return res.status(404).json({ error: "Purchase not found." });
+    }
+
+    return res.status(200).json({
+      success: "Purchase updated successfully.",
+      payload: { purchase },
+    });
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
   }
 };

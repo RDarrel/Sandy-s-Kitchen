@@ -23,6 +23,7 @@ import Categories from "./menu/categories";
 import AddOns from "./menu/addOns";
 import CreateOrder from "./orders/create-order";
 import OrderList from "./orders/order-list";
+import ShortDeliveries from "./orders/short-deliveries";
 
 const access = [
   {
@@ -99,7 +100,7 @@ const access = [
         name: "Short Deliveries",
         path: "/Short-Deliveries",
         icon: GitPullRequestArrow,
-        component: CreateOrder,
+        component: ShortDeliveries,
       },
     ],
   },

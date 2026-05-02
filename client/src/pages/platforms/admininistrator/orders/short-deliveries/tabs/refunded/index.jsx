@@ -1,5 +1,4 @@
-import CustomPagination from "@/components/shared/pagination";
-import { Badge } from "@/components/ui/badge";
+﻿import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -7,21 +6,19 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Formatter, fullName } from "@/services/utilities";
+import { capitalize } from "lodash";
 import { ChevronDown, Package, PackageCheck, UserRound } from "lucide-react";
 import { memo, useMemo, useState } from "react";
-import DeliveredSkeleton from "./skeleton";
 import { useSelector } from "react-redux";
-import { capitalize } from "lodash";
+import ShortDeliveriesSkeleton from "../skeleton";
 
 const getItemsFromPurchase = (purchase) => {
   if (!purchase) return [];
-
   const items = Array.isArray(purchase?.items)
     ? purchase.items
     : Array.isArray(purchase?.orders)
       ? purchase.orders
       : [];
-
   return Array.isArray(items) ? items : [];
 };
 
@@ -61,45 +58,30 @@ const formatDateTime = (value) => {
 };
 
 const statusMeta = {
-  received: {
-    label: "Received",
-    className: "border-secondary/40 bg-secondary/40 text-secondary-foreground",
-  },
-  resolved: {
-    label: "Resolved",
-    className: "border-secondary/40 bg-secondary/40 text-secondary-foreground",
-  },
   refunded: {
     label: "Refunded",
     className: "border-accent/40 bg-accent/20 text-accent-foreground",
   },
-  cancelled: {
-    label: "Cancelled",
-    className: "border-destructive/40 bg-destructive/10 text-foreground",
-  },
 };
 
-const ReceivedOrdersTab = () => {
+const RefundedShortDeliveriesTab = () => {
   const { filtered: orders, isLoading } = useSelector(
     ({ purchases }) => purchases,
   );
   const rows = useMemo(() => (Array.isArray(orders) ? orders : []), [orders]);
   const [openById, setOpenById] = useState({});
-  const [page, setPage] = useState(1);
-  const [maxPage, setMaxPage] = useState(5);
-  if (isLoading) {
-    return <DeliveredSkeleton />;
-  }
+
+  if (isLoading) return <ShortDeliveriesSkeleton />;
 
   if (!rows.length) {
     return (
       <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 p-7 text-center sm:p-8">
         <div className="space-y-2">
           <p className="text-sm font-semibold text-foreground">
-            No received orders yet
+            No refunded short deliveries
           </p>
           <p className="text-xs text-muted-foreground">
-            Completed supplier orders will appear here once recorded.
+            Refund records will show up here once processed.
           </p>
         </div>
       </div>
@@ -109,8 +91,8 @@ const ReceivedOrdersTab = () => {
   return (
     <div className="space-y-3">
       {rows.map((purchase) => {
-        const statusKey = String(purchase?.status || "received").toLowerCase();
-        const meta = statusMeta[statusKey] || statusMeta.received;
+        const statusKey = String(purchase?.status || "refunded").toLowerCase();
+        const meta = statusMeta[statusKey] || statusMeta.refunded;
 
         const purchaseId = String(purchase?._id || "");
         const isOpen = Boolean(openById[purchaseId]);
@@ -125,33 +107,6 @@ const ReceivedOrdersTab = () => {
 
         const receivedAt =
           purchase?.received?.at || purchase?.updatedAt || purchase?.createdAt;
-        const totals = items.reduce(
-          (acc, item) => {
-            const unitCost = Number(item?.cost ?? item?.inventory?.cost ?? 0);
-            const orderedQty = Number(
-              item?.quantity?.incoming ??
-                item?.quantity?.order ??
-                item?.quantity?.request ??
-                0,
-            );
-            const receivedQty = Number(item?.quantity?.received ?? 0);
-
-            const orderedAmount =
-              Number.isFinite(unitCost) && Number.isFinite(orderedQty)
-                ? unitCost * orderedQty
-                : 0;
-            const receivedAmount =
-              Number.isFinite(unitCost) && Number.isFinite(receivedQty)
-                ? unitCost * receivedQty
-                : 0;
-
-            acc.ordered += orderedAmount;
-            acc.received += receivedAmount;
-            return acc;
-          },
-          { ordered: 0, received: 0 },
-        );
-        const difference = totals.ordered - totals.received;
 
         return (
           <div
@@ -171,38 +126,27 @@ const ReceivedOrdersTab = () => {
                     <PackageCheck className="h-3 w-3" />
                     {meta.label}
                   </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="rounded-full px-2 py-0 text-[11px]"
+                  >
+                    <Package className="h-3 w-3" />
+                    {itemsCount} item(s)
+                  </Badge>
                 </div>
                 <p className="truncate text-xs text-muted-foreground">
                   Address:{" "}
                   <span className="font-medium text-foreground/90">
-                    {purchase?.supplier?.address
-                      ? purchase.supplier.address
-                      : "-"}
+                    {purchase?.supplier?.address ? purchase.supplier.address : "-"}
                   </span>
                 </p>
               </div>
 
-              <div className="grid w-full gap-3 sm:ml-auto sm:w-auto sm:grid-cols-3 sm:items-end sm:text-right">
-                <div className="flex flex-col items-start gap-1 sm:items-end">
-                  <p className="text-xs text-muted-foreground">Total ordered</p>
-                  <p className="text-base font-semibold tabular-nums text-foreground">
-                    {Formatter.amount(totals.ordered)}
-                  </p>
-                </div>
-                <div className="flex flex-col items-start gap-1 sm:items-end">
-                  <p className="text-xs text-muted-foreground">Total received</p>
-                  <p className="text-base font-semibold tabular-nums text-foreground">
-                    {Formatter.amount(totals.received)}
-                  </p>
-                </div>
-                <div className="flex flex-col items-start gap-1 sm:items-end">
-                  <p className="text-xs text-muted-foreground">Difference</p>
-                  <p
-                    className={`text-base font-semibold tabular-nums ${difference === 0 ? "text-muted-foreground" : "text-destructive"}`}
-                  >
-                    {Formatter.amount(difference)}
-                  </p>
-                </div>
+              <div className="flex flex-col items-start gap-1 sm:ml-auto sm:items-end">
+                <p className="text-xs text-muted-foreground">Total amount</p>
+                <p className="text-base font-semibold tabular-nums text-foreground">
+                  {Formatter.amount(purchase?.totalAmount || 0)}
+                </p>
               </div>
             </div>
 
@@ -213,7 +157,7 @@ const ReceivedOrdersTab = () => {
                   setOpenById((prev) => ({ ...prev, [purchaseId]: next }))
                 }
               >
-                <div className="mt-4 text-sm p-3">
+                <div className="mt-4 text-sm">
                   <div className="grid gap-3 sm:grid-cols-3">
                     <div className="flex items-center gap-2">
                       <UserRound className="h-4 w-4 text-muted-foreground" />
@@ -238,7 +182,7 @@ const ReceivedOrdersTab = () => {
                           >
                             <span className="min-w-0">
                               <span className="block text-xs text-muted-foreground">
-                                Items received
+                                Items
                               </span>
                               <span className="flex min-w-0 items-center gap-1 font-semibold leading-none tabular-nums text-foreground">
                                 <span className="truncate leading-none">
@@ -271,80 +215,84 @@ const ReceivedOrdersTab = () => {
                 <CollapsibleContent className="mt-2">
                   {items.length ? (
                     <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-                      <div className="grid grid-cols-[1fr_150px_150px_170px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
-                        <span>Item</span>
-                        <span>Received Qty</span>
-                        <span>Expiration Date</span>
-                        <span>Short Qty</span>
-                      </div>
+	                      <div className="grid grid-cols-[1fr_170px_140px_140px_140px_170px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium tracking-wide text-muted-foreground/80">
+	                        <span>Item</span>
+	                        <span className="text-right">Cost / Unit</span>
+	                        <span className="text-right">Ordered Qty</span>
+	                        <span className="text-right">Received Qty</span>
+	                        <span className="text-right">Short Qty</span>
+	                        <span className="text-right">Total amount</span>
+	                      </div>
                       <div className="max-h-56 overflow-y-auto">
                         <div className="divide-y divide-border/70">
-                          {items.map((item) =>
-                            (() => {
-                              const receivedQty = Number(
-                                item?.quantity?.received ?? 0,
-                              );
-                              const incomingQty = Number(
-                                item?.quantity?.incoming ??
-                                  item?.quantity?.order ??
-                                  item?.quantity?.request ??
-                                  0,
-                              );
-                              const shortQty = Math.max(
+                          {items.map((item) => {
+                            const firstDelivery = Number(
+                              item?.quantity?.firstDelivery ??
+                                item?.quantity?.received ??
                                 0,
-                                (Number.isFinite(incomingQty)
-                                  ? incomingQty
-                                  : 0) -
-                                  (Number.isFinite(receivedQty)
-                                    ? receivedQty
-                                    : 0),
-                              );
+                            );
+                            const shortQty = Number(item?.quantity?.order ?? 0);
+                            const orderedQty =
+                              (Number.isFinite(firstDelivery) ? firstDelivery : 0) +
+                              (Number.isFinite(shortQty) ? shortQty : 0);
+	                            const receivedQty =
+	                              orderedQty -
+	                              (Number.isFinite(shortQty) ? shortQty : 0);
+	                            const unitCostRaw =
+	                              item?.cost ?? item?.inventory?.cost ?? 0;
+	                            const unitCost = Number(unitCostRaw);
+		                            const totalAmount = Number.isFinite(unitCost)
+		                              ? unitCost *
+		                                (Number.isFinite(shortQty) ? shortQty : 0)
+		                              : null;
 
-                              return (
-                                <div
-                                  key={
-                                    item?._id ||
-                                    item?.inventory?._id ||
-                                    item?.name
-                                  }
-                                  className="grid grid-cols-[1fr_150px_150px_170px] items-center gap-2 px-3 py-2 text-sm"
-                                >
-                                  <span className="truncate font-medium text-foreground">
-                                    {item?.inventory?.name ||
-                                      item?.name ||
-                                      "Item"}
+	                            return (
+                              <div
+                                key={
+                                  item?._id ||
+                                  item?.inventory?._id ||
+                                  item?.name
+                                }
+		                                className="grid grid-cols-[1fr_170px_140px_140px_140px_170px] items-center gap-2 px-3 py-2 text-sm"
+	                              >
+	                                <span className="truncate font-medium text-foreground">
+	                                  {item?.inventory?.name || item?.name || "Item"}
+	                                </span>
+	                                <span className="text-right font-semibold tabular-nums text-foreground">
+	                                  {Number.isFinite(unitCost)
+	                                    ? `${Formatter.amount(unitCost)} / ${capitalize(item?.unit) || ""}`
+	                                    : "\u2014"}
+	                                </span>
+	                                <span className="text-right font-semibold tabular-nums text-foreground">
+	                                  {Number.isFinite(orderedQty) ? orderedQty : 0}{" "}
+	                                  <span className="text-xs font-medium text-muted-foreground">
+	                                    {capitalize(item?.unit) || ""}
+	                                  </span>
+                                </span>
+                                <span className="text-right font-semibold tabular-nums text-foreground">
+                                  {Number.isFinite(receivedQty) ? receivedQty : 0}{" "}
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    {capitalize(item?.unit) || ""}
                                   </span>
-                                  <span className=" font-semibold tabular-nums text-foreground">
-                                    {Number.isFinite(receivedQty)
-                                      ? receivedQty
-                                      : 0}{" "}
-                                    <span className="text-xs font-medium text-muted-foreground">
-                                      {capitalize(item?.unit) || ""}
-                                    </span>
-                                  </span>
-                                  <span className=" text-xs font-medium text-muted-foreground">
-                                    {item?.expirationDate
-                                      ? Formatter.date(item.expirationDate)
-                                      : "—"}
-                                  </span>
-                                  <span className="font-semibold tabular-nums text-foreground">
-                                    {shortQty ? shortQty : "—"}{" "}
-                                    <span className="text-xs font-medium text-muted-foreground">
-                                      {shortQty ? capitalize(item?.unit) : ""}
-                                    </span>
-                                  </span>
-                                </div>
-                              );
-                            })(),
-                          )}
+                                </span>
+	                                <span className="inline-flex items-center justify-end gap-1 rounded-md border border-destructive/30 bg-destructive/5 px-2 py-0.5 text-right font-semibold tabular-nums text-destructive">
+	                                  {Number.isFinite(shortQty) ? shortQty : 0}
+	                                  <span className="text-xs font-medium text-destructive/80">
+	                                    {capitalize(item?.unit) || ""}
+	                                  </span>
+	                                </span>
+	                                <span className="text-right font-bold tabular-nums text-foreground">
+	                                  {totalAmount === null ? "\u2014" : Formatter.amount(totalAmount)}
+	                                </span>
+	                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div className="rounded-xl border border-dashed border-border bg-muted/10 p-4 text-xs text-muted-foreground">
-                      Items for this order aren&apos;t available yet (older
-                      orders may have been created before item tracking was
-                      added).
+                      Items for this record aren&apos;t available yet.
                     </div>
                   )}
                 </CollapsibleContent>
@@ -353,16 +301,10 @@ const ReceivedOrdersTab = () => {
           </div>
         );
       })}
-      <CustomPagination
-        title="Received order"
-        datas={orders}
-        page={page}
-        maxPage={maxPage}
-        setPage={setPage}
-        setMaxPage={setMaxPage}
-      />
     </div>
   );
 };
 
-export default memo(ReceivedOrdersTab);
+export default memo(RefundedShortDeliveriesTab);
+
+
