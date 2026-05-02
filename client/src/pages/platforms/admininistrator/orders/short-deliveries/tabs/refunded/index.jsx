@@ -1,4 +1,5 @@
-﻿import { Badge } from "@/components/ui/badge";
+﻿import CustomPagination from "@/components/shared/pagination";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -70,6 +71,8 @@ const RefundedShortDeliveriesTab = () => {
   );
   const rows = useMemo(() => (Array.isArray(orders) ? orders : []), [orders]);
   const [openById, setOpenById] = useState({});
+  const [page, setPage] = useState(1);
+  const [maxPage, setMaxPage] = useState(5);
 
   if (isLoading) return <ShortDeliveriesSkeleton />;
 
@@ -304,8 +307,19 @@ const RefundedShortDeliveriesTab = () => {
           </div>
         );
       })}
+    
+      <CustomPagination
+        title="Refunded short delivery"
+        datas={orders}
+        page={page}
+        maxPage={maxPage}
+        setPage={setPage}
+        setMaxPage={setMaxPage}
+      />
     </div>
   );
 };
 
 export default memo(RefundedShortDeliveriesTab);
+
+
