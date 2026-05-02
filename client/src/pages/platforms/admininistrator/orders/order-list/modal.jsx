@@ -256,22 +256,22 @@ const ReceiveOrderModal = () => {
                   <Table className="min-w-[980px]">
                     <TableHeader className="bg-muted/30">
                       <TableRow className="hover:bg-muted/30">
-                        <TableHead className="px-5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                        <TableHead className="px-5 text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
                           <span className="flex items-center gap-2">
                             <Package className="h-3.5 w-3.5 text-muted-foreground" />
                             Item
                           </span>
                         </TableHead>
-                        <TableHead className="px-5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                        <TableHead className="px-5 text-right text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
                           Ordered Qty
                         </TableHead>
-                        <TableHead className="w-[280px] px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                        <TableHead className="w-[280px] px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
                           Received Qty
                         </TableHead>
-                        <TableHead className="px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
-                          Expiry date
+                        <TableHead className="px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
+                          Expiration Date
                         </TableHead>
-                        <TableHead className="w-[220px] px-5 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/90">
+                        <TableHead className="w-[220px] px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
                           Short Qty
                         </TableHead>
                       </TableRow>
