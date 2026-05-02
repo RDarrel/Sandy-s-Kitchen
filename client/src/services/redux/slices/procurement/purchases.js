@@ -223,13 +223,8 @@ export const reduxSlice = createSlice({
       })
       .addCase(RECEIVE_DELIVERY.fulfilled, (state, action) => {
         const { success, payload } = action.payload;
-        const { purchase, updatingRequest = false } = payload;
-        const index = state.collections.findIndex(
-          ({ _id: id }) => id === purchase?._id,
-        );
-        if (updatingRequest) {
-          state.collections[index] = purchase;
-        } else {
+        const index = state.collections.findIndex(({ _id }) => _id === payload);
+        if (index > -1) {
           state.collections.splice(index, 1);
         }
         state.formSubmitted = false;

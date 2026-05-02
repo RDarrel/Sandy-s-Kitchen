@@ -44,7 +44,7 @@ const modelSchema = new mongoose.Schema(
     },
 
     createdBy: {
-      type: ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
   },

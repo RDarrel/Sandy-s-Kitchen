@@ -1,6 +1,9 @@
 const Purchase = require("../../models/procurement/Purchase");
 const PurchaseItem = require("../../models/procurement/PurchaseItem");
 const InventoryItem = require("../../models/inventory/Item");
+const StockBatch = require("../../models/inventory/StockBatch");
+const StockMovement = require("../../models/inventory/StockMovement");
+
 exports.save = async (req, res) => {
   try {
     const { cart, purchases } = req.body;
@@ -84,7 +87,7 @@ const handleShortOrder = async (purchase, orders, session) => {
         ...purchase,
         _id: undefined,
         isShort: true,
-        amount: purchase?.shortDeliveryAmount || 0,
+        totalAmount: purchase?.shortDeliveryAmount || 0,
         status: "review",
       },
     ],
@@ -122,6 +125,7 @@ const handleInsertStock = async (purchase, orders, session) => {
         unit: order.unit,
       }),
       unit: order.unit,
+      costPerUnit: order.cost,
       expirationDate: order.expirationDate || null,
     })),
     { session },
@@ -138,6 +142,7 @@ const handleInsertStock = async (purchase, orders, session) => {
       source: "purchase",
       reference: purchase._id,
       unit: order.unit,
+      createdBy: purchase.request?.by || null,
     };
   });
 
@@ -199,24 +204,14 @@ exports.receive_delivery = async (req, res) => {
         { session },
       );
 
-      await Purchase.findByIdAndUpdate(
-        purchase._id,
-        {
-          status: "received",
-          received: {
-            date: new Date(),
-            by: req.user._id,
-            amount: purchase.amount,
-          },
-        },
-        { session },
-      );
+      await Purchase.findByIdAndUpdate(purchase._id, purchase, { session });
 
       await handleInsertStock(purchase, orders, session);
     });
 
     return res.status(200).json({
       message: "Delivery received successfully.",
+      payload: purchase?._id,
     });
   } catch (error) {
     return res.status(400).json({

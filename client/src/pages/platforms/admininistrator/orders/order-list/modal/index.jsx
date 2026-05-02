@@ -11,7 +11,10 @@ import {
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { ToggleShowOrderDetails } from "@/services/redux/slices/procurement/purchases";
+import {
+  RECEIVE_DELIVERY,
+  ToggleShowOrderDetails,
+} from "@/services/redux/slices/procurement/purchases";
 import { Formatter } from "@/services/utilities";
 import { CheckCircle2 } from "lucide-react";
 import { memo, useEffect, useMemo, useState } from "react";
@@ -28,9 +31,10 @@ import {
   round2,
   toNumber,
 } from "./utils";
+import Spinner from "@/components/shared/spinner";
 
 const ReceiveOrderModal = () => {
-  const { showOrderDetails, selected } = useSelector(
+  const { showOrderDetails, selected, formSubmitted } = useSelector(
     ({ purchases }) => purchases,
   );
   const { auth, token } = useSelector(({ auth }) => auth);
@@ -113,6 +117,8 @@ const ReceiveOrderModal = () => {
         ...(item?.quantity || {}),
         received: toNumber(item?.quantity?.received),
       },
+      inventory: item?.inventory?._id,
+      measurement: item?.inventory?.measurement,
       expirationDate: item?.expirationDate ? String(item.expirationDate) : null,
     }));
     const _purchase = {
@@ -123,14 +129,30 @@ const ReceiveOrderModal = () => {
         amount: Number(grandSubtotal),
         note: String(notes || "").trim(),
       },
+      status: "received",
       shortDeliveryAmount: Number(grandVariance),
       isShortDelivery: grandVariance > 0,
     };
 
-    toast.message("Not saved yet", {
-      description:
-        "This screen is ready, but saving is not wired to the server.",
-    });
+    delete _purchase.orders;
+
+    dispatch(
+      RECEIVE_DELIVERY({
+        data: { purchase: _purchase, orders: formattedItems },
+        token,
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        close(false);
+        setEditableItems([]);
+        setNotes("");
+        toast.success("Delivery received successfully.");
+      })
+      .catch((error) => {
+        toast.error("Failed to receive delivery.");
+        console.error(error);
+      });
   };
   console.log("editableItems", editableItems);
 
@@ -248,9 +270,13 @@ const ReceiveOrderModal = () => {
               >
                 Cancel
               </Button>
-              <Button type="submit" className="w-full gap-2 sm:w-auto">
+              <Button
+                type="submit"
+                className="w-full gap-2 sm:w-auto"
+                disabled={formSubmitted || !editableItems.length}
+              >
                 <CheckCircle2 className="h-4 w-4" />
-                Confirm Delivery
+                Confirm Delivery <Spinner formSubmitted={formSubmitted} />
               </Button>
             </div>
           </DialogFooter>
