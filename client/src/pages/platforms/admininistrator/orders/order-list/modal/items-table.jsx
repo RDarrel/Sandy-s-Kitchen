@@ -273,6 +273,7 @@ const ReceiveOrderItemsTable = ({
                       id={`expiry-${key}`}
                       type="date"
                       min={minExpiryDate}
+                      required
                       value={
                         tracksExpiration
                           ? String(item?.expirationDate ?? "")

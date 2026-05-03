@@ -154,7 +154,6 @@ const ReceiveOrderModal = () => {
         console.error(error);
       });
   };
-  console.log("editableItems", editableItems);
 
   return (
     <Dialog open={showOrderDetails} onOpenChange={close}>
