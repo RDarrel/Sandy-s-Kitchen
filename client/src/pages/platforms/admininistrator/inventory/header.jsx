@@ -102,7 +102,7 @@ const SummaryCard = ({
 
 const InventoryHeader = () => {
   const { token } = useSelector(({ auth }) => auth);
-  const { params, collections, cluster, search } = useSelector(
+  const { params, collections, search } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
   const dispatch = useDispatch();
@@ -130,13 +130,23 @@ const InventoryHeader = () => {
   }, [collections]);
 
   const stockFilterMeta = useMemo(() => {
+    const paramsWithoutStatus = Object.fromEntries(
+      Object.entries(params || {}).filter(([key]) => key !== "status"),
+    );
+
+    const baseRows = (collections || []).filter((item) =>
+      Object.entries(paramsWithoutStatus).every(
+        ([key, value]) => !value || value === "all" || item?.[key] === value,
+      ),
+    );
+
     const counts = {
       "In Stock": 0,
       "Low Stock": 0,
       "Out of Stock": 0,
     };
 
-    (cluster || []).forEach((item) => {
+    baseRows.forEach((item) => {
       const status = item?.stockStatus;
       counts[status] = (counts[status] || 0) + 1;
     });
@@ -145,13 +155,10 @@ const InventoryHeader = () => {
       counts,
       options: stockOptions.map((option) => ({
         ...option,
-        label:
-          (counts[option.value] || 0) > 0
-            ? `${option.label} (${counts[option.value]})`
-            : option.label,
+        label: `${option.label} (${counts[option.value] || 0})`,
       })),
     };
-  }, [cluster]);
+  }, [collections, params]);
 
   return (
     <>
