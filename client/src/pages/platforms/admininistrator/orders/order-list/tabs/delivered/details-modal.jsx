@@ -119,6 +119,15 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
     });
   }, [purchase]);
   const hasShortDelivery = Boolean(purchase?.hasShortDelivery);
+  const additionalReceivedAmount = useMemo(() => {
+    if (!hasShortDelivery) return 0;
+    return shortHistory.reduce((sum, record) => {
+      const statusKey = String(record?.status || "").toLowerCase();
+      if (!["resolved", "resolve"].includes(statusKey)) return sum;
+      const amount = Number(record?.received?.amount ?? 0);
+      return sum + (Number.isFinite(amount) ? amount : 0);
+    }, 0);
+  }, [hasShortDelivery, shortHistory]);
   const shortageResolved = useMemo(() => {
     if (!hasShortDelivery) return false;
     return shortHistory.some((record) => {
@@ -163,7 +172,8 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
     );
   }, [items]);
 
-  const difference = totals.ordered - totals.received;
+  const totalReceivedAmount = totals.received + additionalReceivedAmount;
+  const difference = totals.ordered - totalReceivedAmount;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -519,7 +529,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                         Total Received
                       </span>
                       <div className="text-base font-semibold tabular-nums text-foreground">
-                        {Formatter.amount(totals.received)}
+                        {Formatter.amount(totalReceivedAmount)}
                       </div>
                     </div>
                     <div className="text-right">
