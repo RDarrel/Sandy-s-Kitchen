@@ -6,12 +6,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Formatter, fullName } from "@/services/utilities";
+import { Formatter, fullName, handlePagination } from "@/services/utilities";
 import { capitalize } from "lodash";
 import { ChevronDown, Package, PackageCheck, UserRound } from "lucide-react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import ShortDeliveriesSkeleton from "../skeleton";
+import useHighlightPurchase from "../../use-highlight-purchase";
 
 const getItemsFromPurchase = (purchase) => {
   if (!purchase) return [];
@@ -74,21 +75,14 @@ const RefundedShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(5);
 
-  useEffect(() => {
-    if (!highlightPurchaseId) return;
-    setOpenById((prev) => ({ ...prev, [String(highlightPurchaseId)]: true }));
-
-    const timer = setTimeout(() => {
-      const el = document.getElementById(
-        `short-delivery-${String(highlightPurchaseId)}`,
-      );
-      if (el?.scrollIntoView) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [highlightPurchaseId]);
+  useHighlightPurchase({
+    highlightPurchaseId,
+    rows,
+    page,
+    pageSize: maxPage,
+    setPage,
+    setOpenById,
+  });
 
   if (isLoading) return <ShortDeliveriesSkeleton />;
 
@@ -109,7 +103,7 @@ const RefundedShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
 
   return (
     <div className="space-y-3">
-      {rows.map((purchase) => {
+      {handlePagination(rows, page, maxPage).map((purchase) => {
         const statusKey = String(purchase?.status || "refunded").toLowerCase();
         const meta = statusMeta[statusKey] || statusMeta.refunded;
 
@@ -324,7 +318,7 @@ const RefundedShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
           </div>
         );
       })}
-    
+
       <CustomPagination
         title="Refunded short delivery"
         datas={orders}
@@ -338,5 +332,3 @@ const RefundedShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
 };
 
 export default memo(RefundedShortDeliveriesTab);
-
-

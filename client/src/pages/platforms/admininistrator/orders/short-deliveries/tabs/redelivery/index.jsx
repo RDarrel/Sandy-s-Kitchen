@@ -7,7 +7,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { SetShowOrderDetails } from "@/services/redux/slices/procurement/purchases";
-import { Formatter } from "@/services/utilities";
+import { Formatter, handlePagination } from "@/services/utilities";
 import { capitalize } from "lodash";
 import {
   CalendarRange,
@@ -18,9 +18,10 @@ import {
   Phone,
   Truck,
 } from "lucide-react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import IncomingSkeleton from "./skeleton";
+import useHighlightPurchase from "../../use-highlight-purchase";
 
 const statusMeta = {
   request: {
@@ -55,21 +56,14 @@ const IncomingOrdersTab = ({ highlightPurchaseId = null }) => {
   const [maxPage, setMaxPage] = useState(5);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (!highlightPurchaseId) return;
-    setOpenById((prev) => ({ ...prev, [String(highlightPurchaseId)]: true }));
-
-    const timer = setTimeout(() => {
-      const el = document.getElementById(
-        `short-delivery-${String(highlightPurchaseId)}`,
-      );
-      if (el?.scrollIntoView) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [highlightPurchaseId]);
+  useHighlightPurchase({
+    highlightPurchaseId,
+    rows,
+    page,
+    pageSize: maxPage,
+    setPage,
+    setOpenById,
+  });
 
   if (isLoading) {
     return <IncomingSkeleton />;
@@ -92,7 +86,7 @@ const IncomingOrdersTab = ({ highlightPurchaseId = null }) => {
 
   return (
     <div className="space-y-3">
-      {rows.map((purchase) => {
+      {handlePagination(rows, page, maxPage).map((purchase) => {
         const statusKey = String(purchase?.status || "pending").toLowerCase();
         const meta = statusMeta[statusKey] || statusMeta.pending;
         const StatusIcon = meta.icon || Clock;
@@ -285,8 +279,10 @@ const IncomingOrdersTab = ({ highlightPurchaseId = null }) => {
                           <div className="divide-y divide-border/70">
                             {items.map((item) => {
                               const orderQty =
-                                Number(item?.quantity?.order ?? item?.quantity?.incoming) ||
-                                0;
+                                Number(
+                                  item?.quantity?.order ??
+                                    item?.quantity?.incoming,
+                                ) || 0;
                               const unitCostRaw =
                                 item?.cost ?? item?.inventory?.cost ?? 0;
                               const unitCost = Number(unitCostRaw);
@@ -344,7 +340,7 @@ const IncomingOrdersTab = ({ highlightPurchaseId = null }) => {
         );
       })}
       <CustomPagination
-        title="Incoming order"
+        title="Redelivery order"
         datas={orders}
         page={page}
         maxPage={maxPage}

@@ -4,18 +4,29 @@ import { useSelector } from "react-redux";
 import DeliveredDetailsModal from "./details-modal";
 import DeliveredOrderCard from "./order-card";
 import DeliveredSkeleton from "./skeleton";
+import { handlePagination } from "@/services/utilities";
+import useHighlightPurchase from "../../use-highlight-purchase";
 
-const ReceivedOrdersTab = () => {
-  const { filtered: orders, isLoading } = useSelector(
+const ReceivedOrdersTab = ({ highlightPurchaseId = null }) => {
+  const { filtered: rows, isLoading } = useSelector(
     ({ purchases }) => purchases,
   );
-  const rows = useMemo(() => (Array.isArray(orders) ? orders : []), [orders]);
   const [openById, setOpenById] = useState({});
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState(null);
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(5);
 
+  useHighlightPurchase({
+    highlightPurchaseId,
+    rows,
+    page,
+    pageSize: maxPage,
+    setPage,
+    setOpenById,
+  });
+  console.log("rows length:", rows.length);
+  console.log("isLoading:", isLoading);
   if (isLoading) {
     return <DeliveredSkeleton />;
   }
@@ -37,21 +48,22 @@ const ReceivedOrdersTab = () => {
 
   return (
     <div className="space-y-3">
-      {rows.map((purchase, index) => {
-        const rowId = String(
-          purchase?._id ||
-            purchase?.supplier?.name ||
-            purchase?.supplier?.company ||
-            index,
-        );
+      {handlePagination(rows, page, maxPage).map((purchase, index) => {
+        const purchaseId = String(purchase?._id || index);
 
         return (
           <DeliveredOrderCard
-            key={rowId}
+            key={purchaseId}
             purchase={purchase}
-            isOpen={Boolean(openById[rowId])}
+            wrapperId={`short-delivery-${purchaseId}`}
+            wrapperClassName={
+              highlightPurchaseId && String(highlightPurchaseId) === purchaseId
+                ? "ring-2 ring-primary/40"
+                : ""
+            }
+            isOpen={Boolean(openById[purchaseId])}
             onOpenChange={(nextOpen) =>
-              setOpenById((prev) => ({ ...prev, [rowId]: nextOpen }))
+              setOpenById((prev) => ({ ...prev, [purchaseId]: nextOpen }))
             }
             onViewDetails={() => {
               setSelectedPurchase(purchase);
@@ -63,7 +75,7 @@ const ReceivedOrdersTab = () => {
 
       <CustomPagination
         title="Received order"
-        datas={orders}
+        datas={rows}
         page={page}
         maxPage={maxPage}
         setPage={setPage}
@@ -83,4 +95,3 @@ const ReceivedOrdersTab = () => {
 };
 
 export default memo(ReceivedOrdersTab);
-

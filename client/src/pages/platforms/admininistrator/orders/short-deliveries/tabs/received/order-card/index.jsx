@@ -24,6 +24,8 @@ const DeliveredOrderCard = ({
   isOpen,
   onOpenChange,
   onViewDetails,
+  wrapperId = undefined,
+  wrapperClassName = "",
 }) => {
   const items = useMemo(() => getItemsFromPurchase(purchase), [purchase]);
   const itemsCount = Number(purchase?.itemsCount) || items.length;
@@ -48,7 +50,10 @@ const DeliveredOrderCard = ({
   if (!itemsCount && !hasShortDelivery) return null;
 
   return (
-    <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm">
+    <div
+      id={wrapperId}
+      className={`rounded-xl border border-border bg-card/60 p-4 shadow-sm ${wrapperClassName}`}
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">

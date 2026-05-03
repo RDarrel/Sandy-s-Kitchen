@@ -32,6 +32,7 @@ const statusByTab = {
 
 const tabByStatusParam = {
   review: "pending",
+  resolve: "received",
   resolved: "received",
   received: "received",
   redelivery: "redelivery",
