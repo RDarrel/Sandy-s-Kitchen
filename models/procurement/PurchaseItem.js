@@ -50,14 +50,6 @@ const modelSchema = new mongoose.Schema(
         type: Number,
       },
     },
-    originalPurchase: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Purchase",
-    },
-    parentPurchase: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Purchase",
-    },
 
     deletedAt: {
       type: Date,
@@ -67,7 +59,9 @@ const modelSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
-
+modelSchema.index({ purchase: 1 });
+modelSchema.index({ supplier: 1 });
+modelSchema.index({ inventory: 1 });
 const Entity = mongoose.model("PurchaseItem", modelSchema);
 
 module.exports = Entity;

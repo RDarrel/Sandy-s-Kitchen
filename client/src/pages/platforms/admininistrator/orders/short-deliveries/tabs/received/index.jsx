@@ -8,7 +8,7 @@ import {
 import { Formatter, fullName } from "@/services/utilities";
 import { capitalize } from "lodash";
 import { ChevronDown, Package, PackageCheck, UserRound } from "lucide-react";
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import ShortDeliveriesSkeleton from "../skeleton";
 
@@ -68,12 +68,28 @@ const statusMeta = {
   },
 };
 
-const ReceivedShortDeliveriesTab = () => {
+const ReceivedShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
   const { filtered: orders, isLoading } = useSelector(
     ({ purchases }) => purchases,
   );
   const rows = useMemo(() => (Array.isArray(orders) ? orders : []), [orders]);
   const [openById, setOpenById] = useState({});
+
+  useEffect(() => {
+    if (!highlightPurchaseId) return;
+    setOpenById((prev) => ({ ...prev, [String(highlightPurchaseId)]: true }));
+
+    const timer = setTimeout(() => {
+      const el = document.getElementById(
+        `short-delivery-${String(highlightPurchaseId)}`,
+      );
+      if (el?.scrollIntoView) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [highlightPurchaseId]);
 
   if (isLoading) return <ShortDeliveriesSkeleton />;
 
@@ -115,7 +131,8 @@ const ReceivedShortDeliveriesTab = () => {
         return (
           <div
             key={purchase?._id || supplierName}
-            className="rounded-xl border border-border bg-card/60 p-4 shadow-sm"
+            id={`short-delivery-${purchaseId}`}
+            className={`rounded-xl border border-border bg-card/60 p-4 shadow-sm ${highlightPurchaseId && String(highlightPurchaseId) === purchaseId ? "ring-2 ring-primary/40" : ""}`}
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
               <div className="min-w-0 space-y-1">

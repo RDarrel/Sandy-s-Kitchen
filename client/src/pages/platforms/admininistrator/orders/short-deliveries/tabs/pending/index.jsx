@@ -17,7 +17,7 @@ import {
   Truck,
   UserRound,
 } from "lucide-react";
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ShortDeliveriesSkeleton from "../skeleton";
 
@@ -77,7 +77,7 @@ const statusMeta = {
   },
 };
 
-const PendingShortDeliveriesTab = () => {
+const PendingShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
   const dispatch = useDispatch();
   const { token } = useSelector(({ auth }) => auth);
   const {
@@ -89,6 +89,22 @@ const PendingShortDeliveriesTab = () => {
   const [openById, setOpenById] = useState({});
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(5);
+
+  useEffect(() => {
+    if (!highlightPurchaseId) return;
+    setOpenById((prev) => ({ ...prev, [String(highlightPurchaseId)]: true }));
+
+    const timer = setTimeout(() => {
+      const el = document.getElementById(
+        `short-delivery-${String(highlightPurchaseId)}`,
+      );
+      if (el?.scrollIntoView) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [highlightPurchaseId]);
 
   const handleShortAction = ({ purchase, type }) => {
     if (!purchase?._id) return;
@@ -135,7 +151,8 @@ const PendingShortDeliveriesTab = () => {
         return (
           <div
             key={purchase?._id || supplierName}
-            className="rounded-xl border border-border bg-card/60 p-4 shadow-sm"
+            id={`short-delivery-${purchaseId}`}
+            className={`rounded-xl border border-border bg-card/60 p-4 shadow-sm ${highlightPurchaseId && String(highlightPurchaseId) === purchaseId ? "ring-2 ring-primary/40" : ""}`}
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
               <div className="min-w-0 space-y-1">

@@ -19,6 +19,7 @@ import PendingShortDeliveriesTab from "./tabs/pending";
 import ReceivedShortDeliveriesTab from "./tabs/received";
 import RefundedShortDeliveriesTab from "./tabs/refunded";
 import ShortDeliveryActionModal from "./tabs/pending/modal";
+import { useSearchParams } from "react-router-dom";
 
 const statusByTab = {
   pending: "review",
@@ -26,12 +27,37 @@ const statusByTab = {
   refunded: "refunded",
 };
 
+const tabByStatusParam = {
+  review: "pending",
+  redelivery: "pending",
+  resolved: "received",
+  received: "received",
+  refunded: "refunded",
+};
+
 const ShortDeliveries = () => {
   const { token } = useSelector(({ auth }) => auth);
-  const { message } = useSelector(({ purchases }) => purchases);
   const dispatch = useDispatch();
   const [tab, setTab] = useState("pending");
   const [query, setQuery] = useState("");
+  const [highlightPurchaseId, setHighlightPurchaseId] = useState(null);
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const statusParam = String(searchParams.get("status") || "").toLowerCase();
+    const purchaseParam = searchParams.get("purchase");
+
+    const nextTab = tabByStatusParam[statusParam] || null;
+    const nextHighlight =
+      purchaseParam !== undefined && purchaseParam !== null && purchaseParam !== ""
+        ? String(purchaseParam)
+        : null;
+
+    if (nextTab && ["pending", "received", "refunded"].includes(nextTab)) {
+      setTab(nextTab);
+    }
+    setHighlightPurchaseId(nextHighlight);
+  }, [searchParams]);
 
   useEffect(() => {
     dispatch(
@@ -100,13 +126,13 @@ const ShortDeliveries = () => {
 
             <CardContent className="px-5 pb-5 sm:px-6">
               <TabsContent value="pending" className="mt-0">
-                <PendingShortDeliveriesTab />
+                <PendingShortDeliveriesTab highlightPurchaseId={highlightPurchaseId} />
               </TabsContent>
               <TabsContent value="received" className="mt-0">
-                <ReceivedShortDeliveriesTab />
+                <ReceivedShortDeliveriesTab highlightPurchaseId={highlightPurchaseId} />
               </TabsContent>
               <TabsContent value="refunded" className="mt-0">
-                <RefundedShortDeliveriesTab />
+                <RefundedShortDeliveriesTab highlightPurchaseId={highlightPurchaseId} />
               </TabsContent>
             </CardContent>
           </Card>

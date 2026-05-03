@@ -9,6 +9,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -20,7 +25,8 @@ import {
 } from "@/components/ui/table";
 import { Formatter, fullName } from "@/services/utilities";
 import { capitalize } from "lodash";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   formatQty,
   getItemsFromPurchase,
@@ -65,8 +71,44 @@ const formatReceivedBy = (receivedBy) => {
   );
 };
 
+const shortStatusMeta = {
+  review: {
+    label: "For decision",
+    className: "border-accent/40 bg-accent/20 text-accent-foreground",
+  },
+  redelivery: {
+    label: "For redelivery",
+    className: "border-accent/40 bg-accent/20 text-accent-foreground",
+  },
+  resolve: {
+    label: "Received",
+    className: "border-secondary/40 bg-secondary/40 text-secondary-foreground",
+  },
+  resolved: {
+    label: "Received",
+    className: "border-secondary/40 bg-secondary/40 text-secondary-foreground",
+  },
+  refunded: {
+    label: "Refunded",
+    className: "border-accent/40 bg-accent/20 text-accent-foreground",
+  },
+};
+
 const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
+  const navigate = useNavigate();
   const items = useMemo(() => getItemsFromPurchase(purchase), [purchase]);
+  const shortHistory = useMemo(() => {
+    const raw = Array.isArray(purchase?.shortDeliveryHistory)
+      ? purchase.shortDeliveryHistory
+      : [];
+    return [...raw].sort((a, b) => {
+      const ad = new Date(a?.updatedAt || a?.createdAt || 0).getTime();
+      const bd = new Date(b?.updatedAt || b?.createdAt || 0).getTime();
+      return ad - bd;
+    });
+  }, [purchase]);
+  const hasShortDelivery = Boolean(purchase?.hasShortDelivery);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const supplierName =
     purchase?.supplier?.name ||
@@ -143,6 +185,116 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
               </p>
             </div>
           </div>
+
+          {hasShortDelivery && shortHistory.length ? (
+            <Collapsible
+              open={historyOpen}
+              onOpenChange={setHistoryOpen}
+              className="mt-3"
+            >
+              <div className="flex items-center justify-between rounded-xl border border-border bg-muted/10 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium tracking-wide text-muted-foreground">
+                    Short delivery history
+                  </p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {shortHistory.length} record(s)
+                  </p>
+                </div>
+                <CollapsibleTrigger asChild>
+                  <Button type="button" variant="outline" size="sm" className="h-8">
+                    {historyOpen ? "Hide history" : "View history"}
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+
+              <CollapsibleContent className="mt-2">
+                <div className="overflow-hidden rounded-xl border border-border bg-card/60">
+                  <div className="grid grid-cols-[minmax(140px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)_minmax(170px,1fr)] gap-3 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                    <span>Record</span>
+                    <span>Status</span>
+                    <span className="text-right">Items with Shortage</span>
+                    <span className="text-right">Shortage value</span>
+                    <span className="text-right">Action</span>
+                  </div>
+                  <div className="divide-y divide-border/70">
+                    {shortHistory.map((record, index) => {
+                      const id = String(record?._id || index);
+                      const statusKey = String(record?.status || "review").toLowerCase();
+                      const meta = shortStatusMeta[statusKey] || shortStatusMeta.review;
+                      const shortItemsQty = Number(
+                        record?.shortItemQty ??
+                          record?.itemsCount ??
+                          (Array.isArray(record?.orders) ? record.orders.length : 0) ??
+                          0,
+                      );
+                      const amount = Number(record?.totalAmount ?? 0);
+
+                      return (
+                        <div
+                          key={id}
+                          className="grid grid-cols-[minmax(140px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)_minmax(170px,1fr)] items-center gap-3 px-3 py-2 text-sm"
+                        >
+                          <div className="min-w-0">
+                            <p className="font-semibold text-foreground">
+                              Delivery-{index + 1}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {formatDateTime(record?.updatedAt || record?.createdAt)}
+                            </p>
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className={`rounded-full text-[11px] ${meta.className}`}
+                              >
+                                {meta.label}
+                              </Badge>
+                              <span className="truncate text-xs text-muted-foreground">
+                                ID:{" "}
+                                <span className="font-medium text-foreground/80">
+                                  {id.slice(-8)}
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right font-semibold tabular-nums text-foreground">
+                            {Number.isFinite(shortItemsQty) ? shortItemsQty : 0}{" "}
+                            <span className="text-xs font-medium text-muted-foreground">
+                              item(s)
+                            </span>
+                          </div>
+
+                          <div className="text-right font-semibold tabular-nums text-foreground">
+                            {Formatter.amount(Number.isFinite(amount) ? amount : 0)}
+                          </div>
+
+                          <div className="flex justify-end">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8"
+                              onClick={() =>
+                                navigate(
+                                  `/platforms/orders/Short-Deliveries?status=${encodeURIComponent(statusKey)}&purchase=${encodeURIComponent(id)}`,
+                                )
+                              }
+                            >
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          ) : null}
         </DialogHeader>
 
         <div className="min-h-0 flex-1 overflow-auto">
