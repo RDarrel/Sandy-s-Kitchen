@@ -28,16 +28,24 @@ const DeliveredOrderCard = ({
 }) => {
   const items = useMemo(() => getItemsFromPurchase(purchase), [purchase]);
   const itemsCount = Number(purchase?.itemsCount) || items.length;
-  const { meta, supplierName } = useMemo(() => getPurchaseMeta(purchase), [purchase]);
+  const { meta, supplierName } = useMemo(
+    () => getPurchaseMeta(purchase),
+    [purchase],
+  );
   const totals = useMemo(() => getTotals(items), [items]);
   const hasShortDelivery = Boolean(purchase?.hasShortDelivery);
   const additionalReceived = useMemo(
-    () => (hasShortDelivery ? getAdditionalReceivedFromResolvedHistory(purchase) : 0),
+    () =>
+      hasShortDelivery ? getAdditionalReceivedFromResolvedHistory(purchase) : 0,
     [hasShortDelivery, purchase],
   );
 
   const totalReceived = totals.received + additionalReceived;
   const difference = totals.ordered - totalReceived;
+  const mainStatusLabel =
+    hasShortDelivery && meta?.label === "Received"
+      ? "Received with Shortage"
+      : meta?.label || "";
 
   if (!itemsCount && !hasShortDelivery) return null;
 
@@ -49,9 +57,12 @@ const DeliveredOrderCard = ({
             <p className="truncate text-base font-semibold text-foreground">
               {supplierName}
             </p>
-            <Badge variant="outline" className={`rounded-full ${meta.className}`}>
+            <Badge
+              variant="outline"
+              className={`rounded-full ${meta.className}`}
+            >
               <PackageCheck className="h-3 w-3" />
-              {meta.label}
+              {mainStatusLabel}
             </Badge>
           </div>
           <p className="truncate text-xs text-muted-foreground">

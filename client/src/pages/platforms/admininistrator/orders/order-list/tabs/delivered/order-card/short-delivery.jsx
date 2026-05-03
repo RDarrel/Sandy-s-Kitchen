@@ -40,15 +40,6 @@ const statusMeta = {
   },
 };
 
-const getLatestShortDelivery = (purchase) => {
-  const history = Array.isArray(purchase?.shortDeliveryHistory)
-    ? purchase.shortDeliveryHistory
-    : [];
-  if (purchase?.shortDelivery && purchase.shortDelivery?._id)
-    return purchase.shortDelivery;
-  return history.length ? history[0] : null;
-};
-
 const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
   const navigate = useNavigate();
   const history = useMemo(() => {
@@ -61,10 +52,12 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
       return ad - bd;
     });
   }, [purchase]);
-  const latest = useMemo(() => getLatestShortDelivery(purchase), [purchase]);
-
-  const latestStatusKey = String(latest?.status || "review").toLowerCase();
-  const latestMeta = statusMeta[latestStatusKey] || statusMeta.review;
+  const isResolved = useMemo(() => {
+    return history.some((record) => {
+      const statusKey = String(record?.status || "").toLowerCase();
+      return ["refunded", "resolved", "resolve"].includes(statusKey);
+    });
+  }, [history]);
 
   return (
     <Collapsible open={isOpen} onOpenChange={onOpenChange}>
@@ -112,11 +105,9 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-muted-foreground" />
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">
-                Short Delivery Status
-              </p>
+              <p className="text-xs text-muted-foreground">Shortage Status</p>
               <p className="truncate font-semibold text-foreground">
-                {latestMeta.label}
+                {isResolved ? "Resolved" : "Not Resolved"}
               </p>
             </div>
           </div>
