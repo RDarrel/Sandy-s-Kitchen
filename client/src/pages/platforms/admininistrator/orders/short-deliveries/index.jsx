@@ -21,6 +21,7 @@ import RefundedShortDeliveriesTab from "./tabs/refunded";
 import ShortDeliveryActionModal from "./tabs/pending/modal";
 import { useSearchParams } from "react-router-dom";
 import Incoming from "./tabs/redelivery";
+import RedeliveryOrderModal from "./tabs/redelivery/modal";
 
 const statusByTab = {
   pending: "review",
@@ -31,7 +32,6 @@ const statusByTab = {
 
 const tabByStatusParam = {
   review: "pending",
-  redelivery: "pending",
   resolved: "received",
   received: "received",
   redelivery: "redelivery",
@@ -161,6 +161,7 @@ const ShortDeliveries = () => {
           </Card>
         </Tabs>
         <ShortDeliveryActionModal />
+        <RedeliveryOrderModal />
       </div>
     </div>
   );

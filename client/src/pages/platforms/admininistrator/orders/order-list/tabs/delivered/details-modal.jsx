@@ -112,7 +112,8 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
     if (!hasShortDelivery) return false;
     return shortHistory.some((record) => {
       const statusKey = String(record?.status || "").toLowerCase();
-      return ["refunded", "resolved", "resolve"].includes(statusKey);
+      if (statusKey === "refunded") return true;
+      if (statusKey === "resolve" && !record?.hasShortDelivery) return true;
     });
   }, [hasShortDelivery, shortHistory]);
   const [historyOpen, setHistoryOpen] = useState(false);

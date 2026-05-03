@@ -55,7 +55,8 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
   const isResolved = useMemo(() => {
     return history.some((record) => {
       const statusKey = String(record?.status || "").toLowerCase();
-      return ["refunded", "resolved", "resolve"].includes(statusKey);
+      if (statusKey === "refunded") return true;
+      if (statusKey === "resolve" && !record?.hasShortDelivery) return true;
     });
   }, [history]);
 
