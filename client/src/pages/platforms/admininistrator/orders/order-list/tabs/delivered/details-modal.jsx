@@ -26,6 +26,7 @@ import {
 import { Formatter, fullName } from "@/services/utilities";
 import { capitalize } from "lodash";
 import { memo, useMemo, useState } from "react";
+import { ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   formatQty,
@@ -73,11 +74,11 @@ const formatReceivedBy = (receivedBy) => {
 
 const shortStatusMeta = {
   review: {
-    label: "For decision",
+    label: "For Decision",
     className: "border-accent/40 bg-accent/20 text-accent-foreground",
   },
   redelivery: {
-    label: "For redelivery",
+    label: "Waiting for Redelivery",
     className: "border-accent/40 bg-accent/20 text-accent-foreground",
   },
   resolve: {
@@ -90,8 +91,18 @@ const shortStatusMeta = {
   },
   refunded: {
     label: "Refunded",
-    className: "border-accent/40 bg-accent/20 text-accent-foreground",
+    className: "border-destructive/40 bg-destructive/10 text-destructive",
   },
+};
+
+const getRecordLabel = (index) => {
+  if (index === 0) return "Initial Delivery";
+  return `Redelivery-${index}`;
+};
+
+const getRecordDescription = (index) => {
+  if (index === 0) return "Initial shortage from first receive";
+  return "Redelivery for previous shortage";
 };
 
 const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
@@ -113,7 +124,12 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
     return shortHistory.some((record) => {
       const statusKey = String(record?.status || "").toLowerCase();
       if (statusKey === "refunded") return true;
-      if (statusKey === "resolve" && !record?.hasShortDelivery) return true;
+      if (
+        (statusKey === "resolve" || statusKey === "resolved") &&
+        !record?.hasShortDelivery
+      )
+        return true;
+      return false;
     });
   }, [hasShortDelivery, shortHistory]);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -271,7 +287,10 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                         >
                           <div className="min-w-0">
                             <p className="font-semibold text-foreground">
-                              Delivery-{index + 1}
+                              {getRecordLabel(index)}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {getRecordDescription(index)}
                             </p>
                             <p className="truncate text-xs text-muted-foreground">
                               {formatDateTime(
@@ -309,7 +328,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="h-8"
+                              className="h-8 gap-2"
                               onClick={() =>
                                 navigate(
                                   `/platforms/orders/Short-Deliveries?status=${encodeURIComponent(statusKey)}&purchase=${encodeURIComponent(id)}`,
@@ -317,6 +336,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                               }
                             >
                               View
+                              <ExternalLink className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </div>

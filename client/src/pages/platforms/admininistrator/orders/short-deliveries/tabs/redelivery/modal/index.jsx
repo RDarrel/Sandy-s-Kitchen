@@ -115,6 +115,7 @@ const RedeliveryOrderModal = () => {
       ...item,
       quantity: {
         ...(item?.quantity || {}),
+        incoming: toNumber(item?.quantity?.order),
         received: toNumber(item?.quantity?.received),
       },
       inventory: item?.inventory?._id,

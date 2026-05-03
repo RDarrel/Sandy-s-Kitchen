@@ -19,11 +19,11 @@ import { formatDateTime, formatReceivedBy } from "../utils";
 
 const statusMeta = {
   review: {
-    label: "For decision",
+    label: "For Decision",
     className: "border-accent/40 bg-accent/20 text-accent-foreground",
   },
   redelivery: {
-    label: "For redelivery",
+    label: "Waiting for Redelivery",
     className: "border-accent/40 bg-accent/20 text-accent-foreground",
   },
   resolve: {
@@ -36,27 +36,42 @@ const statusMeta = {
   },
   refunded: {
     label: "Refunded",
-    className: "border-accent/40 bg-accent/20 text-accent-foreground",
+    className: "border-destructive/40 bg-destructive/10 text-destructive",
   },
+};
+
+const getRecordLabel = (index) => {
+  if (index === 0) return "Initial Delivery";
+  return `Redelivery-${index}`;
+};
+
+const getRecordDescription = (index) => {
+  if (index === 0) return "Initial shortage from first receive";
+  return "Redelivery for previous shortage";
 };
 
 const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
   const navigate = useNavigate();
-  const history = useMemo(() => {
-    const raw = Array.isArray(purchase?.shortDeliveryHistory)
-      ? purchase.shortDeliveryHistory
-      : [];
-    return [...raw].sort((a, b) => {
-      const ad = new Date(a?.updatedAt || a?.createdAt || 0).getTime();
-      const bd = new Date(b?.updatedAt || b?.createdAt || 0).getTime();
-      return ad - bd;
-    });
-  }, [purchase]);
+
+  const { shortDeliveryHistory: history = [] } = useMemo(
+    () => purchase || {},
+    [purchase],
+  );
+
   const isResolved = useMemo(() => {
     return history.some((record) => {
       const statusKey = String(record?.status || "").toLowerCase();
+
       if (statusKey === "refunded") return true;
-      if (statusKey === "resolve" && !record?.hasShortDelivery) return true;
+
+      if (
+        (statusKey === "resolve" || statusKey === "resolved") &&
+        !record?.hasShortDelivery
+      ) {
+        return true;
+      }
+
+      return false;
     });
   }, [history]);
 
@@ -66,8 +81,9 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="flex items-center gap-2">
             <UserRound className="h-4 w-4 text-muted-foreground" />
+
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground">Received by</p>
+              <p className="text-xs text-muted-foreground">Received By</p>
               <p className="truncate font-semibold text-foreground">
                 {formatReceivedBy(purchase?.received?.by)}
               </p>
@@ -76,6 +92,7 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
 
           <div className="flex items-center gap-2">
             <History className="h-4 w-4 text-muted-foreground" />
+
             <div className="min-w-0 flex-1">
               <CollapsibleTrigger asChild>
                 <Button
@@ -85,16 +102,20 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
                 >
                   <span className="min-w-0">
                     <span className="block text-xs text-muted-foreground">
-                      Short delivery history
+                      Shortage History
                     </span>
+
                     <span className="flex min-w-0 items-center gap-1 font-semibold leading-none tabular-nums text-foreground">
                       <span className="truncate leading-none">
                         {history.length
                           ? `${history.length} record(s)`
                           : "No history"}
                       </span>
+
                       <ChevronDown
-                        className={`mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        className={`mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
+                          isOpen ? "rotate-180" : ""
+                        }`}
                       />
                     </span>
                   </span>
@@ -105,6 +126,7 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
 
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-muted-foreground" />
+
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Shortage Status</p>
               <p className="truncate font-semibold text-foreground">
@@ -118,20 +140,23 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
       <CollapsibleContent className="mt-2">
         {history.length ? (
           <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-            <div className="grid grid-cols-[minmax(140px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)_minmax(170px,1fr)] gap-3 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+            <div className="grid grid-cols-[minmax(170px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)_minmax(120px,1fr)] gap-3 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
               <span>Record</span>
               <span>Status</span>
-              <span className="text-right">Items with Shortage </span>
-              <span className="text-right">Shortage value</span>
+              <span className="text-right">Items with Shortage</span>
+              <span className="text-right">Shortage Value</span>
               <span className="text-right">Action</span>
             </div>
+
             <div className="divide-y divide-border/70">
               {history.map((record, idx) => {
                 const id = String(record?._id || idx);
                 const statusKey = String(
                   record?.status || "review",
                 ).toLowerCase();
+
                 const meta = statusMeta[statusKey] || statusMeta.review;
+
                 const shortItemsQty = Number(
                   record?.shortItemQty ??
                     record?.itemsCount ??
@@ -140,18 +165,26 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
                       : 0) ??
                     0,
                 );
+
                 const amount = Number(record?.totalAmount ?? 0);
                 const when = record?.updatedAt || record?.createdAt;
+
+                const hasShortDelivery = Boolean(record?.hasShortDelivery);
 
                 return (
                   <div
                     key={id}
-                    className="grid grid-cols-[minmax(140px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)_minmax(170px,1fr)] items-center gap-3 px-3 py-2 text-sm"
+                    className="grid grid-cols-[minmax(170px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)_minmax(120px,1fr)] items-center gap-3 px-3 py-2 text-sm"
                   >
                     <div className="min-w-0">
                       <p className="font-semibold text-foreground">
-                        Delivery-{idx + 1}
+                        {getRecordLabel(idx)}
                       </p>
+
+                      <p className="truncate text-xs text-muted-foreground">
+                        {getRecordDescription(idx)}
+                      </p>
+
                       <p className="truncate text-xs text-muted-foreground">
                         {formatDateTime(when)}
                       </p>
@@ -163,6 +196,10 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
                         className={`rounded-full text-[11px] ${meta.className}`}
                       >
                         {meta.label}
+                        {hasShortDelivery &&
+                          (statusKey === "resolve" ||
+                            statusKey === "resolved") &&
+                          " (with shortage)"}
                       </Badge>
                     </div>
 
@@ -185,7 +222,9 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
                         className="h-8 gap-2"
                         onClick={() =>
                           navigate(
-                            `/platforms/orders/Short-Deliveries?status=${encodeURIComponent(statusKey)}&purchase=${encodeURIComponent(id)}`,
+                            `/platforms/orders/Short-Deliveries?status=${encodeURIComponent(
+                              statusKey,
+                            )}&purchase=${encodeURIComponent(id)}`,
                           )
                         }
                       >
@@ -200,7 +239,7 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-border bg-muted/10 p-4 text-xs text-muted-foreground">
-            No short delivery history found for this order.
+            No shortage history found for this order.
           </div>
         )}
       </CollapsibleContent>
