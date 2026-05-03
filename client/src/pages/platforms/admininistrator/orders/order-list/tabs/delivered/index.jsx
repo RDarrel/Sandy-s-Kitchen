@@ -7,11 +7,18 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Formatter, fullName } from "@/services/utilities";
-import { ChevronDown, Package, PackageCheck, UserRound } from "lucide-react";
+import {
+  ChevronDown,
+  Eye,
+  Package,
+  PackageCheck,
+  UserRound,
+} from "lucide-react";
 import { memo, useMemo, useState } from "react";
 import DeliveredSkeleton from "./skeleton";
 import { useSelector } from "react-redux";
 import { capitalize } from "lodash";
+import DeliveredDetailsModal from "./details-modal";
 
 const getItemsFromPurchase = (purchase) => {
   if (!purchase) return [];
@@ -85,6 +92,8 @@ const ReceivedOrdersTab = () => {
   );
   const rows = useMemo(() => (Array.isArray(orders) ? orders : []), [orders]);
   const [openById, setOpenById] = useState({});
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedPurchase, setSelectedPurchase] = useState(null);
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(5);
   if (isLoading) {
@@ -182,29 +191,48 @@ const ReceivedOrdersTab = () => {
                 </p>
               </div>
 
-              <div className="grid w-full gap-3 sm:ml-auto sm:w-auto sm:grid-cols-3 sm:items-end sm:text-right">
-                <div className="flex flex-col items-start gap-1 sm:items-end">
-                  <p className="text-xs text-muted-foreground">Total ordered</p>
-                  <p className="text-base font-semibold tabular-nums text-foreground">
-                    {Formatter.amount(totals.ordered)}
-                  </p>
+              <div className="flex w-full flex-col gap-3 sm:ml-auto sm:w-auto sm:flex-row sm:items-end sm:justify-end">
+                <div className="grid gap-3 sm:flex sm:items-end sm:justify-end sm:divide-x sm:divide-border/70 sm:text-right">
+                  <div className="flex flex-col items-start gap-1 sm:items-end sm:px-4 sm:pl-0">
+                    <p className="text-xs text-muted-foreground">
+                      Total ordered
+                    </p>
+                    <p className="text-base font-semibold tabular-nums text-foreground">
+                      {Formatter.amount(totals.ordered)}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-start gap-1 sm:items-end sm:px-4">
+                    <p className="text-xs text-muted-foreground">
+                      Total received
+                    </p>
+                    <p className="text-base font-semibold tabular-nums text-foreground">
+                      {Formatter.amount(totals.received)}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-start gap-1 sm:items-end sm:px-4 sm:pr-0">
+                    <p className="text-xs text-muted-foreground">Difference</p>
+                    <p
+                      className={`text-base font-semibold tabular-nums ${difference === 0 ? "text-muted-foreground" : "text-destructive"}`}
+                    >
+                      {Formatter.amount(difference)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex flex-col items-start gap-1 sm:items-end">
-                  <p className="text-xs text-muted-foreground">
-                    Total received
-                  </p>
-                  <p className="text-base font-semibold tabular-nums text-foreground">
-                    {Formatter.amount(totals.received)}
-                  </p>
-                </div>
-                <div className="flex flex-col items-start gap-1 sm:items-end">
-                  <p className="text-xs text-muted-foreground">Difference</p>
-                  <p
-                    className={`text-base font-semibold tabular-nums ${difference === 0 ? "text-muted-foreground" : "text-destructive"}`}
-                  >
-                    {Formatter.amount(difference)}
-                  </p>
-                </div>
+
+                <div className="hidden h-10 w-px self-center bg-border/70 sm:block" />
+
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-9 gap-2 bg-primary px-3 text-primary-foreground hover:bg-primary/90 sm:ml-2"
+                  onClick={() => {
+                    setSelectedPurchase(purchase);
+                    setDetailsOpen(true);
+                  }}
+                >
+                  <Eye className="h-4 w-4" />
+                  View Details
+                </Button>
               </div>
             </div>
 
@@ -362,6 +390,14 @@ const ReceivedOrdersTab = () => {
         maxPage={maxPage}
         setPage={setPage}
         setMaxPage={setMaxPage}
+      />
+      <DeliveredDetailsModal
+        open={detailsOpen}
+        onOpenChange={(nextOpen) => {
+          setDetailsOpen(nextOpen);
+          if (!nextOpen) setSelectedPurchase(null);
+        }}
+        purchase={selectedPurchase}
       />
     </div>
   );
