@@ -25,8 +25,7 @@ const ReceivedOrdersTab = ({ highlightPurchaseId = null }) => {
     setPage,
     setOpenById,
   });
-  console.log("rows length:", rows.length);
-  console.log("isLoading:", isLoading);
+
   if (isLoading) {
     return <DeliveredSkeleton />;
   }
