@@ -102,7 +102,9 @@ const ReceivedItemsSection = ({ purchase, isOpen, onOpenChange }) => {
 
                   return (
                     <div
-                      key={String(item?._id || item?.inventory?._id || item?.name)}
+                      key={String(
+                        item?._id || item?.inventory?._id || item?.name,
+                      )}
                       className="grid grid-cols-[1fr_150px_150px_170px] items-center gap-2 px-3 py-2 text-sm"
                     >
                       <span className="truncate font-medium text-foreground">
@@ -143,4 +145,3 @@ const ReceivedItemsSection = ({ purchase, isOpen, onOpenChange }) => {
 };
 
 export default memo(ReceivedItemsSection);
-
