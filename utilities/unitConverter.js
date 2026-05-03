@@ -12,15 +12,18 @@ const unitConversion = {
     l: 1000,
     ml: 1,
   },
-  count: {
+  pieces: {
     pcs: 1,
   },
 };
 
 const normalizeUnit = (unit) => {
-  return String(unit || "")
+  const normalized = String(unit || "")
     .trim()
     .toLowerCase();
+
+  if (["pc", "piece", "pieces"].includes(normalized)) return "pcs";
+  return normalized;
 };
 
 const normalizeMeasurement = (measurement) => {
@@ -34,11 +37,35 @@ const toNumber = (value) => {
   return Number.isFinite(number) ? number : 0;
 };
 
+const inferMeasurementFromUnit = (unit) => {
+  const normalizedUnit = normalizeUnit(unit);
+
+  if (
+    Object.prototype.hasOwnProperty.call(unitConversion.weight, normalizedUnit)
+  )
+    return "weight";
+  if (
+    Object.prototype.hasOwnProperty.call(unitConversion.volume, normalizedUnit)
+  )
+    return "volume";
+  if (
+    Object.prototype.hasOwnProperty.call(unitConversion.count, normalizedUnit)
+  )
+    return "count";
+
+  return null;
+};
+
 const convertToBaseUnit = ({ measurement, qty, unit }) => {
   const normalizedMeasurement = normalizeMeasurement(measurement);
   const normalizedUnit = normalizeUnit(unit);
 
-  const multiplier = unitConversion[normalizedMeasurement]?.[normalizedUnit];
+  const measurementKey =
+    unitConversion[normalizedMeasurement] !== undefined
+      ? normalizedMeasurement
+      : inferMeasurementFromUnit(normalizedUnit);
+
+  const multiplier = unitConversion[measurementKey]?.[normalizedUnit];
 
   if (!multiplier) {
     throw new Error(`Invalid unit: ${unit}`);
@@ -51,7 +78,12 @@ const convertFromBaseUnit = ({ measurement, qty, unit }) => {
   const normalizedMeasurement = normalizeMeasurement(measurement);
   const normalizedUnit = normalizeUnit(unit);
 
-  const multiplier = unitConversion[normalizedMeasurement]?.[normalizedUnit];
+  const measurementKey =
+    unitConversion[normalizedMeasurement] !== undefined
+      ? normalizedMeasurement
+      : inferMeasurementFromUnit(normalizedUnit);
+
+  const multiplier = unitConversion[measurementKey]?.[normalizedUnit];
 
   if (!multiplier) {
     throw new Error(`Invalid unit: ${unit}`);

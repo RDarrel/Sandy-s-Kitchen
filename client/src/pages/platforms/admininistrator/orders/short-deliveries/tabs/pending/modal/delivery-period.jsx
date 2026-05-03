@@ -22,7 +22,7 @@ const DeliveryPeriodPicker = ({ deliveryWindow, setDeliveryWindow }) => {
   return (
     <div className="flex w-full items-center gap-3 sm:w-auto">
       <Label className="whitespace-nowrap text-xs text-muted-foreground">
-        Delivery period
+        Delivery Window
       </Label>
 
       <Popover>
@@ -80,4 +80,3 @@ const DeliveryPeriodPicker = ({ deliveryWindow, setDeliveryWindow }) => {
 };
 
 export default DeliveryPeriodPicker;
-

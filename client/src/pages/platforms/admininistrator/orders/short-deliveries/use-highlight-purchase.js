@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const getTargetPageForPurchase = ({ rows, purchaseId, pageSize }) => {
   if (!purchaseId || !Array.isArray(rows) || !rows.length) return null;
@@ -16,6 +16,7 @@ const scrollToPurchaseElement = ({
   behavior = "smooth",
   maxAttempts = 20,
   attemptIntervalMs = 80,
+  onFound = () => {},
 }) => {
   if (!purchaseId) return () => {};
   const key = String(purchaseId);
@@ -31,6 +32,7 @@ const scrollToPurchaseElement = ({
 
     if (el?.scrollIntoView) {
       el.scrollIntoView({ behavior, block });
+      onFound();
       return;
     }
 
@@ -58,8 +60,23 @@ const useHighlightPurchase = ({
   setPageDelayMs = 60,
   scrollBlock = "center",
 } = {}) => {
+  const handledRef = useRef({ id: null, done: false });
+
+  useEffect(() => {
+    const nextId = highlightPurchaseId ? String(highlightPurchaseId) : null;
+    if (!nextId) {
+      handledRef.current = { id: null, done: false };
+      return;
+    }
+
+    if (handledRef.current.id !== nextId) {
+      handledRef.current = { id: nextId, done: false };
+    }
+  }, [highlightPurchaseId]);
+
   useEffect(() => {
     if (!highlightPurchaseId) return;
+    if (handledRef.current.done) return;
 
     const targetPage = getTargetPageForPurchase({
       rows,
@@ -75,6 +92,15 @@ const useHighlightPurchase = ({
 
   useEffect(() => {
     if (!highlightPurchaseId) return;
+    if (handledRef.current.done) return;
+
+    const targetPage = getTargetPageForPurchase({
+      rows,
+      purchaseId: highlightPurchaseId,
+      pageSize,
+    });
+
+    if (!targetPage || targetPage !== page) return;
 
     const key = String(highlightPurchaseId);
     setOpenById((prev) => ({ ...prev, [key]: true }));
@@ -82,8 +108,11 @@ const useHighlightPurchase = ({
     return scrollToPurchaseElement({
       purchaseId: key,
       block: scrollBlock,
+      onFound: () => {
+        handledRef.current = { id: key, done: true };
+      },
     });
-  }, [highlightPurchaseId, page, scrollBlock, setOpenById]);
+  }, [highlightPurchaseId, page, pageSize, rows, scrollBlock, setOpenById]);
 };
 
 export default useHighlightPurchase;
