@@ -35,7 +35,7 @@ import {
   getUnitCost,
   round2,
   toNumber,
-} from "../../modal/utils";
+} from "./utils";
 
 const formatDateTime = (value) => {
   if (!value) return "—";

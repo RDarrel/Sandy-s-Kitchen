@@ -204,7 +204,7 @@ const RedeliveryOrderModal = () => {
               </div>
               <div className="space-y-1">
                 <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
-                  Delivery Period
+                  Delivery Window
                 </p>
                 <p className="truncate text-sm font-semibold text-foreground">
                   {purchase?.deliveryWindow?.from &&
