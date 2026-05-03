@@ -78,8 +78,9 @@ const ReceivedItemsSection = ({ purchase, isOpen, onOpenChange }) => {
       <CollapsibleContent className="mt-2">
         {items.length ? (
           <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-            <div className="grid grid-cols-[1fr_150px_150px_170px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+            <div className="grid grid-cols-[1fr_150px_150px_150px_170px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
               <span>Item</span>
+              <span>Ordered Qty</span>
               <span>Received Qty</span>
               <span>Short Qty</span>
               <span>Expiration Date</span>
@@ -87,26 +88,27 @@ const ReceivedItemsSection = ({ purchase, isOpen, onOpenChange }) => {
             <div className="max-h-56 overflow-y-auto">
               <div className="divide-y divide-border/70">
                 {items.map((item) => {
+                  const orderedQty = Number(item?.quantity?.incoming ?? 0);
                   const receivedQty = Number(item?.quantity?.received ?? 0);
-                  const incomingQty = Number(
-                    item?.quantity?.incoming ??
-                      item?.quantity?.order ??
-                      item?.quantity?.request ??
-                      0,
-                  );
                   const shortQty = Math.max(
                     0,
-                    (Number.isFinite(incomingQty) ? incomingQty : 0) -
+                    (Number.isFinite(orderedQty) ? orderedQty : 0) -
                       (Number.isFinite(receivedQty) ? receivedQty : 0),
                   );
 
                   return (
                     <div
                       key={String(item?._id || item?.inventory?._id || item?.name)}
-                      className="grid grid-cols-[1fr_150px_150px_170px] items-center gap-2 px-3 py-2 text-sm"
+                      className="grid grid-cols-[1fr_150px_150px_150px_170px] items-center gap-2 px-3 py-2 text-sm"
                     >
                       <span className="truncate font-medium text-foreground">
                         {item?.inventory?.name || item?.name || "Item"}
+                      </span>
+                      <span className="font-semibold tabular-nums text-foreground">
+                        {Number.isFinite(orderedQty) ? orderedQty : 0}{" "}
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {capitalize(item?.unit) || ""}
+                        </span>
                       </span>
                       <span className="font-semibold tabular-nums text-foreground">
                         {Number.isFinite(receivedQty) ? receivedQty : 0}{" "}
@@ -143,4 +145,3 @@ const ReceivedItemsSection = ({ purchase, isOpen, onOpenChange }) => {
 };
 
 export default memo(ReceivedItemsSection);
-
