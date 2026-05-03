@@ -3,9 +3,49 @@ import { useEffect } from "react";
 const getTargetPageForPurchase = ({ rows, purchaseId, pageSize }) => {
   if (!purchaseId || !Array.isArray(rows) || !rows.length) return null;
   const key = String(purchaseId);
-  const index = rows.findIndex((purchase) => String(purchase?._id || "") === key);
+  const index = rows.findIndex(
+    (purchase) => String(purchase?._id || "") === key,
+  );
   if (index < 0) return null;
   return Math.floor(index / pageSize) + 1;
+};
+
+const scrollToPurchaseElement = ({
+  purchaseId,
+  block = "center",
+  behavior = "smooth",
+  maxAttempts = 20,
+  attemptIntervalMs = 80,
+}) => {
+  if (!purchaseId) return () => {};
+  const key = String(purchaseId);
+  const elementId = `short-delivery-${key}`;
+
+  let cancelled = false;
+  let attempts = 0;
+  let timeoutId = null;
+
+  const tryScroll = () => {
+    if (cancelled) return;
+    const el = document.getElementById(elementId);
+
+    if (el?.scrollIntoView) {
+      el.scrollIntoView({ behavior, block });
+      return;
+    }
+
+    attempts += 1;
+    if (attempts >= maxAttempts) return;
+    timeoutId = setTimeout(tryScroll, attemptIntervalMs);
+  };
+
+  // Kick off immediately; if DOM isn't ready yet, retry a few times.
+  tryScroll();
+
+  return () => {
+    cancelled = true;
+    if (timeoutId) clearTimeout(timeoutId);
+  };
 };
 
 const useHighlightPurchase = ({
@@ -16,7 +56,6 @@ const useHighlightPurchase = ({
   setPage = () => {},
   setOpenById = () => {},
   setPageDelayMs = 60,
-  scrollDelayMs = 250,
   scrollBlock = "center",
 } = {}) => {
   useEffect(() => {
@@ -40,15 +79,11 @@ const useHighlightPurchase = ({
     const key = String(highlightPurchaseId);
     setOpenById((prev) => ({ ...prev, [key]: true }));
 
-    const timer = setTimeout(() => {
-      const el = document.getElementById(`short-delivery-${key}`);
-      if (!el?.scrollIntoView) return;
-      el.scrollIntoView({ behavior: "smooth", block: scrollBlock });
-    }, scrollDelayMs);
-
-    return () => clearTimeout(timer);
-  }, [highlightPurchaseId, page, scrollBlock, scrollDelayMs, setOpenById]);
+    return scrollToPurchaseElement({
+      purchaseId: key,
+      block: scrollBlock,
+    });
+  }, [highlightPurchaseId, page, scrollBlock, setOpenById]);
 };
 
 export default useHighlightPurchase;
-
