@@ -107,7 +107,7 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Shortage Status</p>
               <p className="truncate font-semibold text-foreground">
-                {isResolved ? "Resolved" : "Not Resolved"}
+                {isResolved ? "Resolved" : "Unresolved"}
               </p>
             </div>
           </div>

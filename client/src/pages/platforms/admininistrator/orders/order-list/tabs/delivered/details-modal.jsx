@@ -108,6 +108,13 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
     });
   }, [purchase]);
   const hasShortDelivery = Boolean(purchase?.hasShortDelivery);
+  const shortageResolved = useMemo(() => {
+    if (!hasShortDelivery) return false;
+    return shortHistory.some((record) => {
+      const statusKey = String(record?.status || "").toLowerCase();
+      return ["refunded", "resolved", "resolve"].includes(statusKey);
+    });
+  }, [hasShortDelivery, shortHistory]);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const supplierName =
@@ -148,10 +155,11 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <DialogTitle className="text-lg">Order details</DialogTitle>
-                <Badge variant="secondary" className="rounded-full">
-                  {items.length} item(s)
-                </Badge>
+                <DialogTitle className="text-lg">
+                  {hasShortDelivery
+                    ? "Order details — Received with shortage"
+                    : "Order details"}
+                </DialogTitle>
               </div>
               <DialogDescription className="text-sm leading-snug">
                 View-only details for the delivered order.
@@ -159,7 +167,9 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-3">
+          <div
+            className={`mt-4 grid gap-3 rounded-xl border border-border bg-muted/20 p-4 ${hasShortDelivery ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}
+          >
             <div className="space-y-1">
               <p className="text-[11px] font-medium tracking-wide text-muted-foreground">
                 Supplier
@@ -184,6 +194,18 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                 {formatDateTime(receivedAt)}
               </p>
             </div>
+            {hasShortDelivery ? (
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium tracking-wide text-muted-foreground">
+                  Shortage status
+                </p>
+                <p
+                  className={`text-sm font-semibold ${shortageResolved ? "text-secondary-foreground" : "text-accent-foreground"}`}
+                >
+                  {shortageResolved ? "Resolved" : "Unresolved"}
+                </p>
+              </div>
+            ) : null}
           </div>
 
           {hasShortDelivery && shortHistory.length ? (
@@ -201,8 +223,14 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                     {shortHistory.length} record(s)
                   </p>
                 </div>
+
                 <CollapsibleTrigger asChild>
-                  <Button type="button" variant="outline" size="sm" className="h-8">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                  >
                     {historyOpen ? "Hide history" : "View history"}
                   </Button>
                 </CollapsibleTrigger>
@@ -220,12 +248,17 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                   <div className="divide-y divide-border/70">
                     {shortHistory.map((record, index) => {
                       const id = String(record?._id || index);
-                      const statusKey = String(record?.status || "review").toLowerCase();
-                      const meta = shortStatusMeta[statusKey] || shortStatusMeta.review;
+                      const statusKey = String(
+                        record?.status || "review",
+                      ).toLowerCase();
+                      const meta =
+                        shortStatusMeta[statusKey] || shortStatusMeta.review;
                       const shortItemsQty = Number(
                         record?.shortItemQty ??
                           record?.itemsCount ??
-                          (Array.isArray(record?.orders) ? record.orders.length : 0) ??
+                          (Array.isArray(record?.orders)
+                            ? record.orders.length
+                            : 0) ??
                           0,
                       );
                       const amount = Number(record?.totalAmount ?? 0);
@@ -240,7 +273,9 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                               Delivery-{index + 1}
                             </p>
                             <p className="truncate text-xs text-muted-foreground">
-                              {formatDateTime(record?.updatedAt || record?.createdAt)}
+                              {formatDateTime(
+                                record?.updatedAt || record?.createdAt,
+                              )}
                             </p>
                           </div>
 
@@ -252,12 +287,6 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                               >
                                 {meta.label}
                               </Badge>
-                              <span className="truncate text-xs text-muted-foreground">
-                                ID:{" "}
-                                <span className="font-medium text-foreground/80">
-                                  {id.slice(-8)}
-                                </span>
-                              </span>
                             </div>
                           </div>
 
@@ -269,7 +298,9 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                           </div>
 
                           <div className="text-right font-semibold tabular-nums text-foreground">
-                            {Formatter.amount(Number.isFinite(amount) ? amount : 0)}
+                            {Formatter.amount(
+                              Number.isFinite(amount) ? amount : 0,
+                            )}
                           </div>
 
                           <div className="flex justify-end">
