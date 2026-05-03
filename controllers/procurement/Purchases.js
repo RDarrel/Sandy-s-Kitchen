@@ -32,10 +32,9 @@ exports.save = async (req, res) => {
 
 exports.browse = async (req, res) => {
   try {
-    const { status, isShort = false } = req.query;
+    const { status } = req.query;
     const purchases = await Purchase.find({
       status,
-      ...(isShort && { isShort: true }),
     })
       .sort({ createdAt: -1 })
       .populate("supplier")
@@ -49,7 +48,32 @@ exports.browse = async (req, res) => {
         })
           .populate("inventory")
           .lean();
-        return { ...purchase, orders: items };
+        if (
+          ["received", "resolved"].includes(purchase.status) &&
+          purchase.hasShortDelivery
+        ) {
+          let = shortDelivery = {};
+          const shortDeliveryHistory = await Purchase.find({
+            originalPurchase: purchase._id,
+          }).lean();
+
+          if (purchase?.status === "resolved") {
+            shortDelivery = await Purchase.findOne({
+              parentPurchase: purchase._id,
+            }).lean();
+          }
+          return {
+            ...purchase,
+            shortDeliveryHistory,
+            shortDelivery,
+            orders: items,
+          };
+        }
+
+        return {
+          ...purchase,
+          orders: items,
+        };
       }),
     );
 
@@ -91,7 +115,8 @@ const handleShortOrder = async (purchase, orders, session) => {
       {
         ...purchase,
         _id: undefined,
-        isShort: true,
+        hasShortDelivery: true,
+        shortItemQty: formattedShortOrders.length,
         totalAmount: purchase?.shortDeliveryAmount || 0,
         originalPurchase: purchase?.originalPurchase || purchase._id,
         parentPurchase: purchase._id,
@@ -211,7 +236,11 @@ exports.receive_delivery = async (req, res) => {
         { session },
       );
 
-      await Purchase.findByIdAndUpdate(purchase._id, purchase, { session });
+      await Purchase.findByIdAndUpdate(
+        purchase._id,
+        { ...purchase, hasShortDelivery: purchase?.isShortDelivery },
+        { session },
+      );
 
       await handleInsertStock(purchase, orders, session);
     });

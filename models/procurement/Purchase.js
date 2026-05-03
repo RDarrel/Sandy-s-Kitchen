@@ -30,20 +30,33 @@ const modelSchema = new mongoose.Schema(
           "request",
           "incoming",
           "received",
+          "cancelled",
+
           //For short shipments
           "review",
           "redelivery",
           "refunded",
           "resolved",
-          "cancelled",
         ],
         message: "{VALUE} is not supported",
       },
       default: "pending",
     },
-    isShort: {
+    hasShortDelivery: {
       type: Boolean,
       default: false,
+    },
+    shortItemQty: {
+      type: Number,
+      default: 0,
+    },
+    originalPurchase: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Purchase",
+    },
+    parentPurchase: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Purchase",
     },
     request: {
       by: {
