@@ -69,11 +69,6 @@ const InventoryBody = ({
                 <TableBody>
                   {filtered.length ? (
                     handlePagination(filtered, page, maxPage).map((item) => {
-                      const status = Stock.getStatus(
-                        item.currentStock,
-                        item.measurement,
-                      );
-
                       return (
                         <TableRow key={item._id} className="">
                           <TableCell className="whitespace-normal">
@@ -105,8 +100,8 @@ const InventoryBody = ({
                             )}
                           </TableCell>
                           <TableCell className="font-medium text-foreground">
-                            {Stock.convertToBaseUnit(
-                              item?.currentStock || 0,
+                            {Stock.display(
+                              item?.stockDisplay?.current,
                               item.measurement,
                             )}
                           </TableCell>
@@ -114,9 +109,9 @@ const InventoryBody = ({
                           <TableCell>
                             <Badge
                               variant="outline"
-                              className={`rounded-full ${statusClasses[status]}`}
+                              className={`rounded-full ${statusClasses[item?.stockStatus]}`}
                             >
-                              {capitalize(status)}
+                              {capitalize(item?.stockStatus)}
                             </Badge>
                           </TableCell>
                           <TableCell>

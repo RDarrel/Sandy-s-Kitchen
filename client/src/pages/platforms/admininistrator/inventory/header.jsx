@@ -120,7 +120,7 @@ const InventoryHeader = () => {
     };
 
     (collections || []).forEach((item) => {
-      const status = Stock.getStatus(item?.currentStock, item?.measurement);
+      const status = item?.stockStatus;
       if (status === "Out of Stock") summary.outOfStock += 1;
       else if (status === "Low Stock") summary.lowStock += 1;
       else summary.inStock += 1;
@@ -137,7 +137,7 @@ const InventoryHeader = () => {
     };
 
     (cluster || []).forEach((item) => {
-      const status = Stock.getStatus(item?.currentStock, item?.measurement);
+      const status = item?.stockStatus;
       counts[status] = (counts[status] || 0) + 1;
     });
 

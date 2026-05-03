@@ -55,6 +55,7 @@ const getPurchaseParam = (purchaseParam) => {
 
 const ShortDeliveries = () => {
   const { token } = useSelector(({ auth }) => auth);
+  const { isLoading } = useSelector(({ purchases }) => purchases);
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
 
@@ -132,6 +133,7 @@ const ShortDeliveries = () => {
 
               <TabsList className="h-10 w-fit rounded-full border border-border bg-muted/30 p-1">
                 <TabsTrigger
+                  disabled={isLoading}
                   value="pending"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
@@ -139,6 +141,7 @@ const ShortDeliveries = () => {
                 </TabsTrigger>
 
                 <TabsTrigger
+                  disabled={isLoading}
                   value="redelivery"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
@@ -146,6 +149,7 @@ const ShortDeliveries = () => {
                 </TabsTrigger>
 
                 <TabsTrigger
+                  disabled={isLoading}
                   value="received"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
@@ -153,6 +157,7 @@ const ShortDeliveries = () => {
                 </TabsTrigger>
 
                 <TabsTrigger
+                  disabled={isLoading}
                   value="refunded"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >

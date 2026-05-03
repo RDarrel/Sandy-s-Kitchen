@@ -36,7 +36,10 @@ exports.browse = async (req, res) => {
     const purchases = await Purchase.find({
       status,
     })
-      .sort({ createdAt: -1 })
+      .sort({
+        [["incoming", "review"].includes(status) ? "createdAt" : "updatedAt"]:
+          -1,
+      })
       .populate("supplier")
       .populate("received.by", "fullName")
       .lean();

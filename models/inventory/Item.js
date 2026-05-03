@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { convertFromBaseUnit } = require("../../utilities/unitConverter");
 
 // 🔥 central mapping (single source of truth)
 const baseUnitMap = {
@@ -114,6 +115,33 @@ modelSchema.virtual("cost").get(function () {
   const primary = this.suppliers?.find((item) => item.isPrimary);
   return primary?.cost || 0;
 });
+
+modelSchema.virtual("stockDisplay").get(function () {
+  const unitMap = {
+    g: "kg",
+    ml: "l",
+    pcs: "pcs",
+  };
+  return {
+    current: convertFromBaseUnit({
+      measurement: this.measurement,
+      qty: this.stock?.current,
+      unit: unitMap[this.baseUnit],
+    }),
+    used: convertFromBaseUnit({
+      measurement: this.measurement,
+      qty: this.stock?.used,
+      unit: unitMap[this.baseUnit],
+    }),
+  };
+});
+
+modelSchema.virtual("stockStatus").get(function () {
+  if (this.stockDisplay.current === 0) return "Out of Stock";
+  if (this.stockDisplay.current < this.stock.min) return "Low Stock";
+  return "In Stock";
+});
+
 // 🔥 CREATE / SAVE middleware
 modelSchema.pre("save", function (next) {
   this.baseUnit = baseUnitMap[this.measurement];
@@ -134,27 +162,3 @@ modelSchema.pre("findOneAndUpdate", function (next) {
 const Entity = mongoose.model("Item", modelSchema);
 
 module.exports = Entity;
-
-// const unitConversion = {
-//   weight: {
-//     kg: 1000,
-//     g: 1,
-//   },
-//   volume: {
-//     L: 1000,
-//     ml: 1,
-//   },
-//   count: {
-//     pcs: 1,
-//   },
-// };
-
-// const convertToBaseUnit = ({ measurement, qty, unit }) => {
-//   const multiplier = unitConversion[measurement]?.[unit];
-
-//   if (!multiplier) {
-//     throw new Error("Invalid unit");
-//   }
-
-//   return qty * multiplier;
-// };

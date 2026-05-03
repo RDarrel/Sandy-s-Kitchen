@@ -1,9 +1,15 @@
+import { capitalize } from "lodash";
+
 const unitMap = {
   weight: "Kg",
   volume: "L",
   pieces: "Pcs",
 };
 const Stock = {
+  display: (stock, measurement) => {
+    const formatted = Number(stock.toFixed(2)); // removes trailing zeros
+    return `${formatted} ${capitalize(unitMap[measurement])}`;
+  },
   convertToBaseUnit: (value, type, useNumber = false) => {
     const baseUnit = unitMap[type];
     let unit = 0;

@@ -20,7 +20,7 @@ import {
 } from "@/services/redux/slices/procurement/purchases";
 
 const OrderList = () => {
-  const { message } = useSelector(({ purchases }) => purchases);
+  const { message, isLoading } = useSelector(({ purchases }) => purchases);
   const { token } = useSelector(({ auth }) => auth);
   const [tab, setTab] = useState("incoming");
   const [query, setQuery] = useState("");
@@ -76,11 +76,13 @@ const OrderList = () => {
               <TabsList className="h-10 w-fit rounded-full border border-border bg-muted/30 p-1">
                 <TabsTrigger
                   value="incoming"
+                  disabled={isLoading}
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
                   Incoming
                 </TabsTrigger>
                 <TabsTrigger
+                  disabled={isLoading}
                   value="received"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >

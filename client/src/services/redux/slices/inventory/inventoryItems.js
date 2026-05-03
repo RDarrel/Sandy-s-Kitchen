@@ -85,9 +85,7 @@ export const reduxSlice = createSlice({
           ([key, value]) =>
             !value ||
             value === "all" ||
-            (key === "status"
-              ? Stock.getStatus(item[key], item.measurement)
-              : item[key]) === value,
+            (key === "status" ? item?.stockStatus : item[key]) === value,
         ),
       );
       state.cluster = results;
