@@ -5,7 +5,6 @@ import { memo, useMemo } from "react";
 import { PackageCheck } from "lucide-react";
 import { getItemsFromPurchase, getPurchaseMeta, getTotals } from "../utils";
 import ReceivedItemsSection from "./received-items";
-import ShortDeliverySection from "./short-delivery";
 
 const getAdditionalReceivedFromResolvedHistory = (purchase) => {
   const history = Array.isArray(purchase?.shortDeliveryHistory)
@@ -42,10 +41,9 @@ const DeliveredOrderCard = ({
 
   const totalReceived = totals.received + additionalReceived;
   const difference = totals.ordered - totalReceived;
-  const mainStatusLabel =
-    hasShortDelivery && meta?.label === "Received"
-      ? "Received with Shortage"
-      : meta?.label || "";
+  const mainStatusLabel = purchase?.hasShortDelivery
+    ? "Received with Shortage"
+    : meta?.label || "";
 
   if (!itemsCount && !hasShortDelivery) return null;
 
@@ -110,19 +108,11 @@ const DeliveredOrderCard = ({
         </div>
       </div>
 
-      {hasShortDelivery ? (
-        <ShortDeliverySection
-          purchase={purchase}
-          isOpen={isOpen}
-          onOpenChange={onOpenChange}
-        />
-      ) : (
-        <ReceivedItemsSection
-          purchase={purchase}
-          isOpen={isOpen}
-          onOpenChange={onOpenChange}
-        />
-      )}
+      <ReceivedItemsSection
+        purchase={purchase}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+      />
     </div>
   );
 };
