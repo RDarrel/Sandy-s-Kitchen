@@ -293,8 +293,8 @@ const PendingShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
                         <span className="text-right">Cost / Unit</span>
                         <span className="text-right">Ordered Qty</span>
                         <span className="text-right">Received Qty</span>
-                        <span className="text-right">Short Qty</span>
-                        <span className="text-right">Short amount</span>
+                        <span className="text-right">Shortage Qty</span>
+                        <span className="text-right">Shortage Amount</span>
                       </div>
                       <div className="max-h-56 overflow-y-auto">
                         <div className="divide-y divide-border/70">

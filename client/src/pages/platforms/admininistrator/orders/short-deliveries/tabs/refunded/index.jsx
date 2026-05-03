@@ -229,7 +229,7 @@ const RefundedShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
                         <span className="text-right">Cost / Unit</span>
                         <span className="text-right">Ordered Qty</span>
                         <span className="text-right">Received Qty</span>
-                        <span className="text-right">Short Qty</span>
+                        <span className="text-right">Shortage Qty</span>
                         <span className="text-right">Total amount</span>
                       </div>
                       <div className="max-h-56 overflow-y-auto">

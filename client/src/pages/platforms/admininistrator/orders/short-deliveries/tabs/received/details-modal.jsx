@@ -193,7 +193,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                       </TableHead>
 
                       <TableHead className="px-5 text-center text-[11px] font-semibold tracking-wide text-muted-foreground/90">
-                        Short Qty
+                        Shortage Qty
                       </TableHead>
                       <TableHead className="px-5 text-center text-[11px] font-semibold tracking-wide text-muted-foreground/90">
                         Expiration Date
@@ -249,7 +249,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                             </div>
                           </TableCell>
 
-                          <TableCell className="px-5 py-2.5 align-top text-right font-semibold tabular-nums text-foreground">
+                          <TableCell className="px-5 py-2.5  text-right font-semibold tabular-nums text-foreground">
                             {formatQty(ordered)}{" "}
                             <span className="text-xs font-medium text-muted-foreground">
                               {unit}

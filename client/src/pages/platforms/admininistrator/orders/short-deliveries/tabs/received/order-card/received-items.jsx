@@ -82,7 +82,7 @@ const ReceivedItemsSection = ({ purchase, isOpen, onOpenChange }) => {
               <span>Item</span>
               <span>Ordered Qty</span>
               <span>Received Qty</span>
-              <span>Short Qty</span>
+              <span>Shortage Qty</span>
               <span>Expiration Date</span>
             </div>
             <div className="max-h-56 overflow-y-auto">

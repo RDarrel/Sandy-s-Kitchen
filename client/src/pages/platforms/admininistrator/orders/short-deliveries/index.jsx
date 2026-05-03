@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, TriangleAlert } from "lucide-react";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   BROWSE,
@@ -39,42 +39,59 @@ const tabByStatusParam = {
   refunded: "refunded",
 };
 
+const validTabs = ["pending", "redelivery", "received", "refunded"];
+
+const getTabFromStatusParam = (statusParam) => {
+  const status = String(statusParam || "").toLowerCase();
+  const tab = tabByStatusParam[status];
+
+  return validTabs.includes(tab) ? tab : "pending";
+};
+
+const getPurchaseParam = (purchaseParam) => {
+  if (!purchaseParam) return null;
+  return String(purchaseParam);
+};
+
 const ShortDeliveries = () => {
   const { token } = useSelector(({ auth }) => auth);
   const dispatch = useDispatch();
-  const [tab, setTab] = useState("pending");
-  const [query, setQuery] = useState("");
-  const [highlightPurchaseId, setHighlightPurchaseId] = useState(null);
   const [searchParams] = useSearchParams();
 
+  const initialTab = useMemo(() => {
+    return getTabFromStatusParam(searchParams.get("status"));
+  }, []);
+
+  const initialHighlight = useMemo(() => {
+    return getPurchaseParam(searchParams.get("purchase"));
+  }, []);
+
+  const [tab, setTab] = useState(initialTab);
+  const [query, setQuery] = useState("");
+  const [highlightPurchaseId, setHighlightPurchaseId] =
+    useState(initialHighlight);
+
   useEffect(() => {
-    const statusParam = String(searchParams.get("status") || "").toLowerCase();
-    const purchaseParam = searchParams.get("purchase");
+    const nextTab = getTabFromStatusParam(searchParams.get("status"));
+    const nextHighlight = getPurchaseParam(searchParams.get("purchase"));
 
-    const nextTab = tabByStatusParam[statusParam] || null;
-    const nextHighlight =
-      purchaseParam !== undefined &&
-      purchaseParam !== null &&
-      purchaseParam !== ""
-        ? String(purchaseParam)
-        : null;
-
-    if (
-      nextTab &&
-      ["pending", "redelivery", "received", "refunded"].includes(nextTab)
-    ) {
-      setTab(nextTab);
-    }
+    setTab(nextTab);
     setHighlightPurchaseId(nextHighlight);
   }, [searchParams]);
 
   useEffect(() => {
+    if (!token) return;
+
     dispatch(
       BROWSE({
         token,
-        params: { status: statusByTab[tab] || "review", isShort: true },
+        params: {
+          status: statusByTab[tab] || "review",
+          isShort: true,
+        },
       }),
     );
+
     return () => dispatch(RESET());
   }, [dispatch, tab, token]);
 
@@ -92,10 +109,12 @@ const ShortDeliveries = () => {
                 <div className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-background/70 shadow-sm">
                   <TriangleAlert className="h-4 w-4 text-foreground" />
                 </div>
+
                 <div className="min-w-0">
                   <CardTitle className="text-lg">Short deliveries</CardTitle>
                   <CardDescription className="text-sm">
-                    Track pending reviews, received resolutions, and refunds.
+                    Track pending decisions, redeliveries, received items, and
+                    refunds.
                   </CardDescription>
                 </div>
               </div>
@@ -118,18 +137,21 @@ const ShortDeliveries = () => {
                 >
                   Pending
                 </TabsTrigger>
+
                 <TabsTrigger
                   value="redelivery"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
                   Redelivery
                 </TabsTrigger>
+
                 <TabsTrigger
                   value="received"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
                   Received
                 </TabsTrigger>
+
                 <TabsTrigger
                   value="refunded"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
@@ -145,14 +167,17 @@ const ShortDeliveries = () => {
                   highlightPurchaseId={highlightPurchaseId}
                 />
               </TabsContent>
+
               <TabsContent value="redelivery" className="mt-0">
                 <Incoming highlightPurchaseId={highlightPurchaseId} />
               </TabsContent>
+
               <TabsContent value="received" className="mt-0">
                 <ReceivedShortDeliveriesTab
                   highlightPurchaseId={highlightPurchaseId}
                 />
               </TabsContent>
+
               <TabsContent value="refunded" className="mt-0">
                 <RefundedShortDeliveriesTab
                   highlightPurchaseId={highlightPurchaseId}
@@ -161,6 +186,7 @@ const ShortDeliveries = () => {
             </CardContent>
           </Card>
         </Tabs>
+
         <ShortDeliveryActionModal />
         <RedeliveryOrderModal />
       </div>

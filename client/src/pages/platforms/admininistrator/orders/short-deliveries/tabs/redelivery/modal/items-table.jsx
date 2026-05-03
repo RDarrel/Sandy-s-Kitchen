@@ -48,7 +48,7 @@ const ReceiveOrderItemsTable = ({
             </TableHead>
 
             <TableHead className="w-[220px] px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
-              Short Qty
+              Shortage Qty
             </TableHead>
             <TableHead className="px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
               Expiration Date

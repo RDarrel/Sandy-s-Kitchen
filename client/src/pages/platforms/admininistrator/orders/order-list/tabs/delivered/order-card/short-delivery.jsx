@@ -152,11 +152,7 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
                   record?.status || "review",
                 ).toLowerCase();
 
-                const meta =
-                  record?.status === "resolved" && !record?.hasShortDelivery
-                    ? "Resolved"
-                    : statusMeta[statusKey] || statusMeta.review;
-
+                const meta = statusMeta[statusKey] || statusMeta.review;
                 const shortItemsQty = Number(
                   record?.shortItemQty ??
                     record?.itemsCount ??
@@ -195,7 +191,10 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
                         variant="outline"
                         className={`rounded-full text-[11px] ${meta.className}`}
                       >
-                        {meta.label}
+                        {record?.status === "resolved" &&
+                        !record?.hasShortDelivery
+                          ? "Resolved"
+                          : meta.label}
                         {hasShortDelivery &&
                           statusKey === "resolved" &&
                           " (with shortage)"}
