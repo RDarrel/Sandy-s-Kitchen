@@ -46,11 +46,12 @@ const ReceiveOrderItemsTable = ({
             <TableHead className="w-[280px] px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
               Received Qty
             </TableHead>
-            <TableHead className="px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
-              Expiration Date
-            </TableHead>
+
             <TableHead className="w-[220px] px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
               Short Qty
+            </TableHead>
+            <TableHead className="px-5 text-center text-[11px] font-semibold  tracking-wide text-muted-foreground/90">
+              Expiration Date
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -92,16 +93,13 @@ const ReceiveOrderItemsTable = ({
                 <TableCell className="whitespace-normal px-5 py-2.5">
                   <p className="truncate font-medium text-foreground">{name}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground/80">
-                      {unit || "-"}
-                    </span>
                     {unitCost === null ? (
                       <span>Unit cost: -</span>
                     ) : (
                       <span>
                         Unit cost:{" "}
                         <span className="font-medium text-foreground/80">
-                          {Formatter.amount(unitCost)}
+                          {Formatter.amount(unitCost)} / {unit || "-"}
                         </span>
                       </span>
                     )}
@@ -240,6 +238,32 @@ const ReceiveOrderItemsTable = ({
                   </div>
                 </TableCell>
 
+                <TableCell className="w-[220px] px-5 py-2.5">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="relative w-[140px]">
+                      <Input
+                        type="text"
+                        value={formatQty(shortQty)}
+                        disabled
+                        className={`h-8 w-full border-dashed bg-muted/20 pr-12 text-right font-semibold tabular-nums disabled:cursor-not-allowed disabled:opacity-100 ${shortQty > 0 ? "border-destructive/40 text-destructive" : "border-border/70 text-muted-foreground"}`}
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                        {unit || "-"}
+                      </span>
+                    </div>
+                    <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
+                      <span className="font-medium">Subtotal</span>
+                      <span
+                        className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
+                      >
+                        {shortAmount === null
+                          ? "-"
+                          : Formatter.amount(shortAmount)}
+                      </span>
+                    </div>
+                  </div>
+                </TableCell>
+
                 <TableCell className="px-5 py-2.5">
                   <div className="mx-auto w-[150px]">
                     <Label className="sr-only" htmlFor={`expiry-${key}`}>
@@ -268,32 +292,6 @@ const ReceiveOrderItemsTable = ({
                       }}
                       className="h-8 w-full bg-background text-sm disabled:cursor-not-allowed disabled:bg-muted/30"
                     />
-                  </div>
-                </TableCell>
-
-                <TableCell className="w-[220px] px-5 py-2.5">
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="relative w-[140px]">
-                      <Input
-                        type="text"
-                        value={formatQty(shortQty)}
-                        disabled
-                        className={`h-8 w-full border-dashed bg-muted/20 pr-12 text-right font-semibold tabular-nums disabled:cursor-not-allowed disabled:opacity-100 ${shortQty > 0 ? "border-destructive/40 text-destructive" : "border-border/70 text-muted-foreground"}`}
-                      />
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
-                        {unit || "-"}
-                      </span>
-                    </div>
-                    <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                      <span className="font-medium">Subtotal</span>
-                      <span
-                        className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
-                      >
-                        {shortAmount === null
-                          ? "-"
-                          : Formatter.amount(shortAmount)}
-                      </span>
-                    </div>
                   </div>
                 </TableCell>
               </TableRow>

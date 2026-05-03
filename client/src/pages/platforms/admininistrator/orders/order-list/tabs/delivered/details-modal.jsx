@@ -166,11 +166,12 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                       <TableHead className="px-5 text-center text-[11px] font-semibold tracking-wide text-muted-foreground/90">
                         Received Qty
                       </TableHead>
-                      <TableHead className="px-5 text-center text-[11px] font-semibold tracking-wide text-muted-foreground/90">
-                        Expiration Date
-                      </TableHead>
+
                       <TableHead className="px-5 text-center text-[11px] font-semibold tracking-wide text-muted-foreground/90">
                         Short Qty
+                      </TableHead>
+                      <TableHead className="px-5 text-center text-[11px] font-semibold tracking-wide text-muted-foreground/90">
+                        Expiration Date
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -207,7 +208,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                           )}
                           className="hover:bg-muted/5"
                         >
-                          <TableCell className="whitespace-normal px-5 py-3 align-top">
+                          <TableCell className="whitespace-normal px-5 py-2.5 align-top">
                             <p className="truncate font-medium text-foreground">
                               {name}
                             </p>
@@ -217,33 +218,33 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                                 <span className="font-medium text-foreground/80">
                                   {unitCost === null
                                     ? "-"
-                                    : `${Formatter.amount(unitCost)}${unitLabel ? ` / ${unitLabel}` : ""}`}
+                                    : `${Formatter.amount(unitCost)}${unitLabel ? ` / ${capitalize(unitLabel)}` : ""}`}
                                 </span>
                               </span>
                             </div>
                           </TableCell>
 
-                          <TableCell className="px-5 py-3 align-top text-right font-semibold tabular-nums text-foreground">
+                          <TableCell className="px-5 py-2.5 align-top text-right font-semibold tabular-nums text-foreground">
                             {formatQty(ordered)}{" "}
                             <span className="text-xs font-medium text-muted-foreground">
                               {unit}
                             </span>
                           </TableCell>
 
-                          <TableCell className="px-5 py-3 align-top">
-                            <div className="flex flex-col items-center gap-0.5">
-                              <div className="relative w-[170px]">
+                          <TableCell className="px-5 py-2.5 align-top">
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="relative w-[140px]">
                                 <Input
                                   type="text"
                                   value={formatQty(received)}
                                   disabled
-                                  className="h-9 w-full bg-background pr-14 text-right text-sm font-semibold tabular-nums disabled:cursor-default disabled:opacity-100"
+                                  className="h-8 w-full bg-background pr-12 text-right font-semibold tabular-nums disabled:cursor-default disabled:opacity-100"
                                 />
                                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                                   {unit}
                                 </span>
                               </div>
-                              <div className="flex w-[170px] items-center justify-between text-[10px] text-muted-foreground">
+                              <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
                                 <span className="font-medium">Subtotal</span>
                                 <span className="font-semibold tabular-nums text-foreground">
                                   {receivedAmount === null
@@ -253,37 +254,20 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                               </div>
                             </div>
                           </TableCell>
-
-                          <TableCell className="px-5 py-3 align-top">
-                            <div className="mx-auto w-[170px]">
-                              <Input
-                                type="text"
-                                value={
-                                  item?.expirationDate
-                                    ? Formatter.date(item.expirationDate)
-                                    : ""
-                                }
-                                placeholder="mm/dd/yyyy"
-                                disabled
-                                className="h-9 w-full bg-background text-center text-sm font-medium disabled:cursor-default disabled:opacity-100"
-                              />
-                            </div>
-                          </TableCell>
-
-                          <TableCell className="px-5 py-3 align-top">
-                            <div className="flex flex-col items-center gap-0.5">
-                              <div className="relative w-[170px]">
+                          <TableCell className="px-5 py-2.5 align-top">
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="relative w-[140px]">
                                 <Input
                                   type="text"
                                   value={formatQty(shortQty)}
                                   disabled
-                                  className={`h-9 w-full border-dashed bg-muted/10 pr-14 text-right text-sm font-semibold tabular-nums disabled:cursor-default disabled:opacity-100 ${shortQty > 0 ? "border-destructive/40 text-destructive" : "border-border/70 text-muted-foreground"}`}
+                                  className={`h-8 w-full border-dashed bg-muted/10 pr-12 text-right font-semibold tabular-nums disabled:cursor-default disabled:opacity-100 ${shortQty > 0 ? "border-destructive/40 text-destructive" : "border-border/70 text-muted-foreground"}`}
                                 />
                                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                                   {unit}
                                 </span>
                               </div>
-                              <div className="flex w-[170px] items-center justify-between text-[10px] text-muted-foreground">
+                              <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
                                 <span className="font-medium">Subtotal</span>
                                 <span
                                   className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
@@ -293,6 +277,21 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                                     : Formatter.amount(shortAmount)}
                                 </span>
                               </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-5 py-2.5 align-top">
+                            <div className="mx-auto w-[150px]">
+                              <Input
+                                type="text"
+                                value={
+                                  item?.expirationDate
+                                    ? Formatter.date(item.expirationDate)
+                                    : ""
+                                }
+                                placeholder="mm/dd/yyyy"
+                                disabled
+                                className="h-8 w-full bg-background text-center text-sm font-medium disabled:cursor-default disabled:opacity-100"
+                              />
                             </div>
                           </TableCell>
                         </TableRow>
