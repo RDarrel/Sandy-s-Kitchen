@@ -86,12 +86,7 @@ export const getTotals = (items) => {
   return items.reduce(
     (acc, item) => {
       const unitCost = Number(item?.cost ?? item?.inventory?.cost ?? 0);
-      const orderedQty = Number(
-        item?.quantity?.incoming ??
-          item?.quantity?.order ??
-          item?.quantity?.request ??
-          0,
-      );
+      const orderedQty = Number(item?.quantity?.order ?? 0);
       const receivedQty = Number(item?.quantity?.received ?? 0);
 
       const orderedAmount =
@@ -115,6 +110,9 @@ export const getItemKey = (item) =>
   String(item?._id || item?.inventory?._id || item?.inventory || item?.name);
 
 export const getOrderedQty = (item) => {
+  const ordered = item?.quantity?.order;
+  if (ordered !== undefined && ordered !== null) return Number(ordered) || 0;
+
   const requested = item?.quantity?.request;
   if (requested !== undefined && requested !== null)
     return Number(requested) || 0;

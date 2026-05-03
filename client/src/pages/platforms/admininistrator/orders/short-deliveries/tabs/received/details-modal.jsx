@@ -141,7 +141,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
           </div>
 
           <div
-            className={`mt-4 grid gap-3 rounded-xl border border-border bg-muted/20 p-4 ${hasShortDelivery ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}
+            className={`mt-4 grid gap-3 rounded-xl border border-border bg-muted/20 p-4 ${hasShortDelivery ? "sm:grid-cols-3" : "sm:grid-cols-3"}`}
           >
             <div className="space-y-1">
               <p className="text-[11px] font-medium tracking-wide text-muted-foreground">

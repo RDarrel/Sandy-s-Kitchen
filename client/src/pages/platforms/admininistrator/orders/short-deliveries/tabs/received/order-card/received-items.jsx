@@ -78,7 +78,7 @@ const ReceivedItemsSection = ({ purchase, isOpen, onOpenChange }) => {
       <CollapsibleContent className="mt-2">
         {items.length ? (
           <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-            <div className="grid grid-cols-[1fr_150px_150px_150px_170px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+            <div className="grid grid-cols-[1fr_150px_150px_150px_170px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium  tracking-wide text-muted-foreground/80">
               <span>Item</span>
               <span>Ordered Qty</span>
               <span>Received Qty</span>
