@@ -206,7 +206,7 @@ const InventoryModal = () => {
   };
   return (
     <Dialog open={showModal} onOpenChange={toggle}>
-      <DialogContent className="border-border bg-card sm:max-w-3xl">
+      <DialogContent className="border-border bg-card sm:max-w-4xl">
         <DialogHeader className="gap-2">
           <DialogTitle className="text-2xl text-foreground">
             {willCreate ? "Create" : "Update"} Inventory Item
