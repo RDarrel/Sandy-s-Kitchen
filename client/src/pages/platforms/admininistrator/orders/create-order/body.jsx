@@ -101,8 +101,8 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
                           </div>
                         </TableCell>
                         <TableCell className="font-medium text-foreground">
-                          {Stock.convertToBaseUnit(
-                            item?.currentStock || 0,
+                          {Stock.display(
+                            item?.stockDisplay.current,
                             item?.measurement,
                           )}
                         </TableCell>
