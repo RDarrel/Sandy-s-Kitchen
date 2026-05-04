@@ -16,7 +16,7 @@ import { statusClasses } from "./config";
 import { useDispatch, useSelector } from "react-redux";
 import CustomPagination from "@/components/shared/pagination";
 import { Formatter, handlePagination, Stock } from "@/services/utilities";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Set_SELECTED } from "@/services/redux/slices/inventory/inventoryItems";
 import TableLoading from "@/components/shared/loading/table";
 
@@ -47,13 +47,38 @@ const InventoryBody = ({
   const { filtered, formSubmitted, isLoading } = useSelector(
       ({ inventoryItems }) => inventoryItems,
     ),
-    [page, setPage] = useState(1),
-    [maxPage, setMaxPage] = useState(5),
-    dispatch = useDispatch();
-  return (
-    <>
-      <CardContent className="space-y-4">
-        {!isLoading ? (
+	    [page, setPage] = useState(1),
+	    [maxPage, setMaxPage] = useState(5),
+	    dispatch = useDispatch();
+
+	  const sortedFiltered = useMemo(() => {
+	    const rank = {
+	      "out of stock": 0,
+	      "low stock": 1,
+	      "in stock": 2,
+	    };
+
+	    return (filtered || [])
+	      .map((item, index) => ({ item, index }))
+	      .sort((a, b) => {
+	        const aKey = String(a?.item?.stockStatus || "")
+	          .trim()
+	          .toLowerCase();
+	        const bKey = String(b?.item?.stockStatus || "")
+	          .trim()
+	          .toLowerCase();
+	        const aRank = rank[aKey] ?? 99;
+	        const bRank = rank[bKey] ?? 99;
+
+	        if (aRank !== bRank) return aRank - bRank;
+	        return a.index - b.index;
+	      })
+	      .map(({ item }) => item);
+	  }, [filtered]);
+	  return (
+	    <>
+	      <CardContent className="space-y-4">
+	        {!isLoading ? (
           <>
             <div className="overflow-hidden rounded-[7px] border border-border bg-card">
               <Table>
@@ -65,14 +90,14 @@ const InventoryBody = ({
                     <TableHead>Status</TableHead>
                     <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.length ? (
-                    handlePagination(filtered, page, maxPage).map((item) => {
-                      return (
-                        <TableRow key={item._id} className="">
-                          <TableCell className="whitespace-normal">
-                            <div className="space-y-1">
+	                </TableHeader>
+	                <TableBody>
+	                  {sortedFiltered.length ? (
+	                    handlePagination(sortedFiltered, page, maxPage).map((item) => {
+	                      return (
+	                        <TableRow key={item._id} className="">
+	                          <TableCell className="whitespace-normal">
+	                            <div className="space-y-1">
                               <p className="font-semibold text-foreground">
                                 {capitalize(item.name)}
                               </p>
@@ -150,19 +175,19 @@ const InventoryBody = ({
                 </TableBody>
               </Table>
             </div>
-            <CustomPagination
-              title="Inventory Item"
-              titleExtension="s"
-              page={page}
-              setPage={setPage}
-              maxPage={maxPage}
-              setMaxPage={setMaxPage}
-              datas={filtered}
-            />
-          </>
-        ) : (
-          <TableLoading numberOfColumns={7} />
-        )}
+	            <CustomPagination
+	              title="Inventory Item"
+	              titleExtension="s"
+	              page={page}
+	              setPage={setPage}
+	              maxPage={maxPage}
+	              setMaxPage={setMaxPage}
+	              datas={sortedFiltered}
+	            />
+	          </>
+	        ) : (
+	          <TableLoading numberOfColumns={7} />
+	        )}
       </CardContent>
 
       <CustomAlert
