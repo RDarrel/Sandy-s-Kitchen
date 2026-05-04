@@ -83,13 +83,8 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
             {inventory?.name || "Item"}
           </p>
           <p className="mt-1 text-xs leading-4 text-muted-foreground">
-            <span>Stock:</span>{" "}
-            <span className="font-medium tabular-nums text-foreground/80">
-              {currentStockLabel}
-            </span>
             {stockStatusLabel ? (
               <>
-                <span className="mx-1.5 text-muted-foreground/70">•</span>
                 <span className={`font-medium ${stockStatusTone}`}>
                   {stockStatusLabel}
                 </span>
@@ -109,45 +104,58 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
         </Button>
       </div>
 
-      <div className="grid gap-2 mt-1">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Label className="text-[11px] font-semibold tracking-wide text-foreground sm:whitespace-nowrap">
-            REQUEST QTY{" "}
-            <span className="font-medium text-muted-foreground">
-              ({unitLabel})
-            </span>
-          </Label>
-
-          <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/40 px-3 py-1.5 sm:max-w-[280px]">
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7 rounded-lg"
-              onClick={handleDecrease}
-              title="Decrease quantity"
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-
+      <div className="mt-3 border-t border-border/60 pt-1">
+        <div className="grid gap-3 sm:grid-cols-[110px_1fr] sm:items-end">
+          <div className="space-y-1">
+            <Label className="text-[11px] font-semibold tracking-wide text-foreground">
+              Available Stock
+            </Label>
             <Input
-              value={quantity ?? 1}
-              onChange={handleQuantityChange}
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="h-7 w-full max-w-[140px] rounded-lg bg-background text-center text-sm tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              disabled
+              value={currentStockLabel}
+              className="h-9 w-full bg-muted/20 font-normal tabular-nums text-foreground/80 disabled:opacity-80"
             />
+          </div>
 
-            <Button
-              type="button"
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7 rounded-lg"
-              onClick={handleIncrease}
-              title="Increase quantity"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+          <div className="space-y-1">
+            <Label className="text-[11px] font-semibold tracking-wide text-foreground">
+              Request{" "}
+              <span className="font-medium text-muted-foreground">
+                ({unitLabel})
+              </span>
+            </Label>
+
+            <div className="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-border bg-background/40 px-1.5">
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 rounded-lg"
+                onClick={handleDecrease}
+                title="Decrease quantity"
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+
+              <Input
+                value={quantity ?? 1}
+                onChange={handleQuantityChange}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="h-7 w-full max-w-[120px] rounded-lg bg-background text-center text-sm tabular-nums  [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 rounded-lg"
+                onClick={handleIncrease}
+                title="Increase quantity"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
