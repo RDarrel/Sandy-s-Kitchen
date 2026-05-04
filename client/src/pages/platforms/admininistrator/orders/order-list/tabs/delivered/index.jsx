@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import DeliveredDetailsModal from "./details-modal";
 import DeliveredOrderCard from "./order-card";
 import DeliveredSkeleton from "./skeleton";
+import { handlePagination } from "@/services/utilities";
 
 const ReceivedOrdersTab = () => {
   const { filtered: orders, isLoading } = useSelector(
@@ -37,7 +38,7 @@ const ReceivedOrdersTab = () => {
 
   return (
     <div className="space-y-3">
-      {rows.map((purchase, index) => {
+      {handlePagination(rows, page, maxPage).map((purchase, index) => {
         const rowId = String(
           purchase?._id ||
             purchase?.supplier?.name ||
@@ -83,4 +84,3 @@ const ReceivedOrdersTab = () => {
 };
 
 export default memo(ReceivedOrdersTab);
-

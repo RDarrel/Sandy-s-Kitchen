@@ -58,7 +58,7 @@ const OrderList = () => {
                 <Input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search supplier, status, amount..."
+                  placeholder="Search supplier..."
                   className="h-10 bg-background/60 pl-9"
                   type="search"
                 />
