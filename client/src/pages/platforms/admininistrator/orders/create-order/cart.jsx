@@ -170,7 +170,7 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
           <div className="space-y-1 text-center">
             <Label className="text-xs text-muted-foreground">{unitLabel}</Label>
 
-            <div className="flex   items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
+            <div className="flex   items-center gap-1.5 rounded-md border border-border bg-background/40 px-1.5 py-1">
               <Button
                 type="button"
                 size="icon"

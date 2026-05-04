@@ -67,29 +67,7 @@ const ReviewStockRequestModal = () => {
 
   const totals = useMemo(() => {
     const safeCart = Array.isArray(cart) ? cart : [];
-
-    const outOfStock = safeCart.reduce((sum, row) => {
-      const status = String(row?.inventory?.stockStatus || "")
-        .trim()
-        .toLowerCase();
-      return sum + Number(status === "out of stock");
-    }, 0);
-
-    const lowStock = safeCart.reduce((sum, row) => {
-      const status = String(row?.inventory?.stockStatus || "")
-        .trim()
-        .toLowerCase();
-      return sum + Number(status === "low stock");
-    }, 0);
-
-    const inStock = safeCart.reduce((sum, row) => {
-      const status = String(row?.inventory?.stockStatus || "")
-        .trim()
-        .toLowerCase();
-      return sum + Number(status === "in stock");
-    }, 0);
-
-    return { totalItems: safeCart.length, outOfStock, lowStock, inStock };
+    return { totalItems: safeCart.length };
   }, [cart]);
 
   const close = (nextOpen) => dispatch(SetReviewOpen(Boolean(nextOpen)));
@@ -254,7 +232,12 @@ const ReviewStockRequestModal = () => {
 
           <div className="mt-4 rounded-b-xl border-t border-border bg-card/70 px-5 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <StatusCounts totals={totals} variant="text" />
+              <div className="text-sm font-medium text-muted-foreground">
+                Total items:{" "}
+                <span className="font-semibold text-foreground">
+                  {totals.totalItems ?? 0}
+                </span>
+              </div>
 
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button
@@ -277,53 +260,3 @@ const ReviewStockRequestModal = () => {
 };
 
 export default ReviewStockRequestModal;
-
-const StatusCounts = ({ totals, variant = "pill" }) => {
-  const items = [
-    totals?.outOfStock
-      ? {
-          label: "Out of stock",
-          count: totals.outOfStock,
-          tone: "text-destructive",
-        }
-      : null,
-    totals?.lowStock
-      ? {
-          label: "Low stock",
-          count: totals.lowStock,
-          tone: "text-amber-800",
-        }
-      : null,
-    totals?.inStock
-      ? {
-          label: "In stock",
-          count: totals.inStock,
-          tone: "text-emerald-800",
-        }
-      : null,
-  ].filter(Boolean);
-
-  const sizeClass =
-    variant === "text"
-      ? "h-8 px-3 text-sm leading-8"
-      : "h-6 px-3 text-xs leading-6";
-
-  return (
-    <Badge
-      variant="secondary"
-      className={`rounded-full border border-border/50 bg-background/70 font-medium text-muted-foreground ${sizeClass}`}
-    >
-      <span className="text-muted-foreground">Items:</span>{" "}
-      <span className="font-semibold text-foreground">
-        {totals?.totalItems ?? 0}
-      </span>
-      {items.map((item) => (
-        <span key={item.label}>
-          <span className="mx-2 text-muted-foreground/60">•</span>
-          <span className="text-muted-foreground">{item.label}:</span>{" "}
-          <span className={`font-semibold ${item.tone}`}>{item.count}</span>
-        </span>
-      ))}
-    </Badge>
-  );
-};
