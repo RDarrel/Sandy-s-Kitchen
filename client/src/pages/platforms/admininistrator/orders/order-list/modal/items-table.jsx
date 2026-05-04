@@ -16,7 +16,6 @@ import {
   getItemKey,
   getOrderedQty,
   getUnitCost,
-  normalizeQtyInput,
   round2,
   toNumber,
 } from "./utils";
@@ -29,6 +28,21 @@ const ReceiveOrderItemsTable = ({
   grandSubtotal,
   grandVariance,
 }) => {
+  const updateReceived = (key, value) => {
+    setItems((prev) =>
+      prev.map((entry) =>
+        getItemKey(entry) === key
+          ? {
+              ...entry,
+              quantity: {
+                ...(entry?.quantity || {}),
+                received: value,
+              },
+            }
+          : entry,
+      ),
+    );
+  };
   return (
     <div className="rounded-xl border border-border bg-card/60 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/50">
       <Table className="min-w-[980px]">
@@ -78,6 +92,8 @@ const ReceiveOrderItemsTable = ({
               item?.trackExpiration ??
               false,
             );
+            const isPieces =
+              String(item?.inventory?.measurement || "") === "pieces";
 
             const inputHighlightClass = hasMismatch
               ? isOver
@@ -124,100 +140,29 @@ const ReceiveOrderItemsTable = ({
                         type="number"
                         min={0}
                         max={expected}
-                        step="0.01"
-                        inputMode="decimal"
+                        step={isPieces ? 1 : 0.01}
+                        inputMode={isPieces ? "numeric" : "decimal"}
                         value={item?.quantity?.received ?? ""}
-                        onKeyDown={(event) => {
-                          if (
-                            event.key === "e" ||
-                            event.key === "E" ||
-                            event.key === "+" ||
-                            event.key === "-"
-                          ) {
-                            event.preventDefault();
-                          }
+                        onKeyDown={(e) => {
+                          if (["e", "E", "+", "-"].includes(e.key))
+                            e.preventDefault();
                         }}
-                        onChange={(event) => {
-                          const raw = event.target.value;
-                          if (raw === "") {
-                            setItems((prev) =>
-                              prev.map((entry) =>
-                                getItemKey(entry) === key
-                                  ? {
-                                      ...entry,
-                                      quantity: {
-                                        ...(entry?.quantity || {}),
-                                        received: "",
-                                      },
-                                    }
-                                  : entry,
-                              ),
-                            );
-                            return;
-                          }
+                        onChange={(e) => {
+                          const raw = e.target.value;
 
-                          const nextNumber = Number(raw);
-                          const clampedNumber = Math.min(
-                            expected,
-                            Math.max(
-                              0,
-                              Number.isFinite(nextNumber) ? nextNumber : 0,
-                            ),
-                          );
-                          setItems((prev) =>
-                            prev.map((entry) =>
-                              getItemKey(entry) === key
-                                ? {
-                                    ...entry,
-                                    quantity: {
-                                      ...(entry?.quantity || {}),
-                                      received: clampedNumber,
-                                    },
-                                  }
-                                : entry,
-                            ),
-                          );
-                        }}
-                        onBlur={(event) => {
-                          const raw = event.target.value;
-                          if (raw === "") {
-                            setItems((prev) =>
-                              prev.map((entry) =>
-                                getItemKey(entry) === key
-                                  ? {
-                                      ...entry,
-                                      quantity: {
-                                        ...(entry?.quantity || {}),
-                                        received: "",
-                                      },
-                                    }
-                                  : entry,
-                              ),
-                            );
-                            return;
-                          }
+                          if (raw === "") return updateReceived(key, "");
+                          const cleaned = isPieces
+                            ? raw.replace(/[^\d]/g, "") // bawal decimal
+                            : raw.replace(/[^\d.]/g, "");
 
-                          const normalized = Number(normalizeQtyInput(raw));
-                          const clampedNumber = Math.min(
+                          const num = Number(cleaned);
+
+                          const clamped = Math.min(
                             expected,
-                            Math.max(
-                              0,
-                              Number.isFinite(normalized) ? normalized : 0,
-                            ),
+                            Math.max(0, num || 0),
                           );
-                          setItems((prev) =>
-                            prev.map((entry) =>
-                              getItemKey(entry) === key
-                                ? {
-                                    ...entry,
-                                    quantity: {
-                                      ...(entry?.quantity || {}),
-                                      received: clampedNumber,
-                                    },
-                                  }
-                                : entry,
-                            ),
-                          );
+
+                          updateReceived(key, clamped, item);
                         }}
                         placeholder="0"
                         className={`h-8 w-full bg-background pr-12 text-right tabular-nums ${inputHighlightClass}`}

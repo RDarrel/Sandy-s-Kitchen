@@ -17,7 +17,6 @@ const Inventory = {
   sanitizeQtyInp: (_measurement, _value) => {
     let value = _value;
     const measurement = String(_measurement || "").toLowerCase();
-    console.log("measurement", _measurement, value);
     if (measurement === "pieces") {
       // numbers only (no decimal)
       value = value.replace(/[^\d]/g, "");

@@ -227,9 +227,8 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(SAVE.fulfilled, (state, action) => {
-        const { success, payload } = action.payload;
+        const { success } = action.payload;
         state.message = success;
-        if (state.collections) state.collections.unshift(payload);
         state.isSuccess = true;
         state.formSubmitted = false;
       })
