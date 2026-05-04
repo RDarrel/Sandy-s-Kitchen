@@ -182,7 +182,7 @@ const Dashboard = () => {
                     Overview
                   </h1>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    At-a-glance inventory status, deliveries, and expiry.
+                    Track inventory status, deliveries, and expiration.
                   </p>
                 </div>
               </div>
