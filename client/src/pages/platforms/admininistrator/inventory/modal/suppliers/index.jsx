@@ -282,25 +282,24 @@ const Suppliers = ({ form, setForm = () => {} }) => {
                 })}
               </TableBody>
             </Table>
-          ) : (
-            <div className="p-4">
-              <Empty className="bg-transparent">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <Truck className="size-5" />
-                  </EmptyMedia>
+	          ) : (
+	            <div className="p-2">
+	              <Empty className="min-h-[96px] gap-3 bg-transparent p-3 md:p-4">
+	                <EmptyHeader>
+	                  <EmptyMedia variant="icon">
+	                    <Truck className="size-5" />
+	                  </EmptyMedia>
 
-                  <EmptyTitle>No suppliers added</EmptyTitle>
+	                  <EmptyTitle className="text-base">No suppliers added</EmptyTitle>
 
-                  <EmptyDescription>
-                    Select a supplier, enter the unit cost, then click Tag. At
-                    least one supplier is needed for this item.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            </div>
-          )}
-        </div>
+	                  <EmptyDescription className="text-xs whitespace-nowrap overflow-hidden text-ellipsis">
+	                    Select a supplier, enter unit cost, then click Tag.
+	                  </EmptyDescription>
+	                </EmptyHeader>
+	              </Empty>
+	            </div>
+	          )}
+	        </div>
       </div>
     </div>
   );
