@@ -27,12 +27,12 @@ const RequestStockBody = ({
   );
   const { cart } = useSelector(({ stockRequests }) => stockRequests);
 
-	  const filtered = useMemo(() => {
-	    const safeCollections = Array.isArray(collections) ? collections : [];
-	    const byType =
-	      type && type !== "all"
-	        ? safeCollections.filter((item) => String(item?.type || "") === type)
-	        : safeCollections;
+  const filtered = useMemo(() => {
+    const safeCollections = Array.isArray(collections) ? collections : [];
+    const byType =
+      type && type !== "all"
+        ? safeCollections.filter((item) => String(item?.type || "") === type)
+        : safeCollections;
 
     const byCategory =
       category && category !== "all"
@@ -42,40 +42,42 @@ const RequestStockBody = ({
     const byStockLevel =
       stockLevel && stockLevel !== "all"
         ? byCategory.filter((item) => {
-            const status = String(item?.stockStatus || "").trim().toLowerCase();
+            const status = String(item?.stockStatus || "")
+              .trim()
+              .toLowerCase();
             return status === String(stockLevel).trim().toLowerCase();
           })
         : byCategory;
 
     const keyword = String(search || "").trim();
-	    if (!keyword) return byStockLevel;
-	    return globalSearch(byStockLevel, keyword.toUpperCase());
-	  }, [collections, search, type, category, stockLevel]);
+    if (!keyword) return byStockLevel;
+    return globalSearch(byStockLevel, keyword.toUpperCase());
+  }, [collections, search, type, category, stockLevel]);
 
-	  const sortedFiltered = useMemo(() => {
-	    const rank = {
-	      "out of stock": 0,
-	      "low stock": 1,
-	      "in stock": 2,
-	    };
+  const sortedFiltered = useMemo(() => {
+    const rank = {
+      "out of stock": 0,
+      "low stock": 1,
+      "in stock": 2,
+    };
 
-	    return (filtered || [])
-	      .map((item, index) => ({ item, index }))
-	      .sort((a, b) => {
-	        const aKey = String(a?.item?.stockStatus || "")
-	          .trim()
-	          .toLowerCase();
-	        const bKey = String(b?.item?.stockStatus || "")
-	          .trim()
-	          .toLowerCase();
-	        const aRank = rank[aKey] ?? 99;
-	        const bRank = rank[bKey] ?? 99;
+    return (filtered || [])
+      .map((item, index) => ({ item, index }))
+      .sort((a, b) => {
+        const aKey = String(a?.item?.stockStatus || "")
+          .trim()
+          .toLowerCase();
+        const bKey = String(b?.item?.stockStatus || "")
+          .trim()
+          .toLowerCase();
+        const aRank = rank[aKey] ?? 99;
+        const bRank = rank[bKey] ?? 99;
 
-	        if (aRank !== bRank) return aRank - bRank;
-	        return a.index - b.index;
-	      })
-	      .map(({ item }) => item);
-	  }, [filtered]);
+        if (aRank !== bRank) return aRank - bRank;
+        return a.index - b.index;
+      })
+      .map(({ item }) => item);
+  }, [filtered]);
 
   const addToCart = (inventory) => {
     dispatch(CartAdd(inventory));
@@ -90,16 +92,16 @@ const RequestStockBody = ({
               <TableHeader className="bg-muted/70">
                 <TableRow>
                   <TableHead>Item</TableHead>
-                  <TableHead>Current stock</TableHead>
+                  <TableHead>Available Stock</TableHead>
                 </TableRow>
-	              </TableHeader>
-	              <TableBody>
-	                {!isEmpty(sortedFiltered) ? (
-	                  sortedFiltered.map((item) => {
-	                    const id = String(item?._id || "");
-	                    const inCart = cart.some(
-	                      ({ inventory }) => String(inventory?._id) === id,
-	                    );
+              </TableHeader>
+              <TableBody>
+                {!isEmpty(sortedFiltered) ? (
+                  sortedFiltered.map((item) => {
+                    const id = String(item?._id || "");
+                    const inCart = cart.some(
+                      ({ inventory }) => String(inventory?._id) === id,
+                    );
 
                     return (
                       <TableRow
@@ -150,17 +152,17 @@ const RequestStockBody = ({
                 ) : (
                   <TableRow>
                     <TableCell colSpan={2} className="py-14 text-center">
-	                      <div className="space-y-2">
-	                        <p className="text-base font-semibold text-foreground">
-	                          No inventory items found
-	                        </p>
-	                        <p className="text-sm text-muted-foreground">
-	                          Try a different keyword or filter.
-	                        </p>
-	                      </div>
-	                    </TableCell>
-	                  </TableRow>
-	                )}
+                      <div className="space-y-2">
+                        <p className="text-base font-semibold text-foreground">
+                          No inventory items found
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Try a different keyword or filter.
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
