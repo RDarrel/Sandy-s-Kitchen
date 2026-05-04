@@ -11,79 +11,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   CartClear,
   CartRemove,
   CartUpdate,
   SetReviewOpen,
-} from "@/services/redux/slices/procurement/purchases";
-import { Formatter, Inventory } from "@/services/utilities";
+} from "@/services/redux/slices/procurement/stock-requests";
+import { Inventory, Stock } from "@/services/utilities";
 import { ClipboardList, Minus, Plus, Search, Trash2 } from "lucide-react";
-
-const measurementLabels = (measurement = "") => {
-  const normalized = String(measurement || "").toLowerCase();
-
-  if (normalized === "volume") {
-    return { unitCost: "Unit cost per Liter", qty: "Liters" };
-  }
-
-  if (normalized === "weight") {
-    return { unitCost: "Unit cost per Kg", qty: "Kg" };
-  }
-
-  return { unitCost: "Unit cost per Piece", qty: "Pieces" };
-};
+import { capitalize } from "lodash";
 
 const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
-  const { inventory, quantity, supplier, cost: unitCost } = item || {};
+  const { inventory, quantity } = item || {};
   const inventoryId = String(inventory?._id || "");
+  const stockStatus = String(inventory?.stockStatus || "").trim();
+  const stockStatusLabel = stockStatus ? capitalize(stockStatus) : "";
+  const currentStockLabel = Stock.display(
+    inventory?.stockDisplay?.current,
+    inventory?.measurement,
+  );
 
-  const unitCostLabel = useMemo(() => {
-    return measurementLabels(inventory?.measurement).unitCost;
-  }, [inventory?.measurement]);
+  const stockStatusTone = useMemo(() => {
+    const normalized = stockStatus.toLowerCase();
+    if (normalized === "out of stock") return "text-destructive/90";
+    if (normalized === "low stock") return "text-amber-700/90";
+    return "text-muted-foreground";
+  }, [stockStatus]);
 
   const unitLabel = useMemo(() => {
-    return Inventory.getUnitByMeasurement(inventory?.measurement, false);
+    return Inventory.getUnitByMeasurement(inventory?.measurement);
   }, [inventory?.measurement]);
-
-  const supplierOptions = useMemo(() => {
-    const options = (
-      Array.isArray(inventory?.suppliers) ? inventory.suppliers : []
-    )
-      .map((row) => ({
-        id: String(row?.supplier?._id || ""),
-        label: String(row?.supplier?.name || ""),
-        cost: row?.cost,
-        isPrimary: Boolean(row?.isPrimary),
-      }))
-      .filter((option) => option.id);
-
-    return options.sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
-  }, [inventory?.suppliers]);
-
-  const subtotal = useMemo(() => {
-    return Formatter.amount((Number(quantity) || 0) * (Number(unitCost) || 0));
-  }, [quantity, unitCost]);
 
   const handleRemove = useCallback(() => {
     onRemove(inventoryId);
   }, [onRemove, inventoryId]);
-
-  const handleCostChange = useCallback(
-    (event) => {
-      onUpdate({
-        inventory,
-        cost: Number(event.target.value || 0),
-      });
-    },
-    [onUpdate, inventory],
-  );
 
   const handleQuantityChange = useCallback(
     (event) => {
@@ -115,27 +75,26 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
     });
   }, [onUpdate, inventory, quantity]);
 
-  const handleSupplierChange = useCallback(
-    (value) => {
-      const selectedSupplier = supplierOptions.find(
-        (option) => option.id === value,
-      );
-
-      onUpdate({
-        inventory,
-        cost: selectedSupplier?.cost ?? unitCost,
-        supplier: value || "all",
-      });
-    },
-    [onUpdate, inventory, supplierOptions, unitCost],
-  );
-
   return (
     <div className="rounded-xl border border-border bg-card/60 p-2.5 shadow-xs">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-foreground">
             {inventory?.name || "Item"}
+          </p>
+          <p className="mt-1 text-xs leading-4 text-muted-foreground">
+            <span>Stock:</span>{" "}
+            <span className="font-medium tabular-nums text-foreground/80">
+              {currentStockLabel}
+            </span>
+            {stockStatusLabel ? (
+              <>
+                <span className="mx-1.5 text-muted-foreground/70">•</span>
+                <span className={`font-medium ${stockStatusTone}`}>
+                  {stockStatusLabel}
+                </span>
+              </>
+            ) : null}
           </p>
         </div>
 
@@ -150,122 +109,65 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
         </Button>
       </div>
 
-      <div className="grid gap-2">
-        <div className="grid grid-cols-[120px_1fr] items-end gap-2">
-          <div className="space-y-1 ">
-            <Label className="text-xs text-muted-foreground">
-              {unitCostLabel}
-            </Label>
+      <div className="grid gap-2 mt-1">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Label className="text-[11px] font-semibold tracking-wide text-foreground sm:whitespace-nowrap">
+            REQUEST QTY{" "}
+            <span className="font-medium text-muted-foreground">
+              ({unitLabel})
+            </span>
+          </Label>
+
+          <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/40 px-3 py-1.5 sm:max-w-[280px]">
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 rounded-lg"
+              onClick={handleDecrease}
+              title="Decrease quantity"
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
 
             <Input
-              type="number"
-              inputMode="decimal"
-              min={1}
-              step="0.01"
-              value={unitCost ?? ""}
-              onChange={handleCostChange}
+              value={quantity ?? 1}
+              onChange={handleQuantityChange}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              className="h-7 w-full max-w-[140px] rounded-lg bg-background text-center text-sm tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
+
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7 rounded-lg"
+              onClick={handleIncrease}
+              title="Increase quantity"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
           </div>
-
-          <div className="space-y-1 text-center">
-            <Label className="text-xs text-muted-foreground">{unitLabel}</Label>
-
-            <div className="flex   items-center gap-1.5 rounded-xl border border-border bg-background/40 px-1.5 py-1">
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 rounded-lg"
-                onClick={handleDecrease}
-                title="Decrease quantity"
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-
-              <Input
-                value={quantity ?? 1}
-                onChange={handleQuantityChange}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                className="h-7 w-20 rounded-lg bg-background text-center text-sm tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 rounded-lg"
-                onClick={handleIncrease}
-                title="Increase quantity"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <div className="flex items-end justify-between gap-3">
-            <Label className="text-xs text-muted-foreground">Supplier</Label>
-
-            <p className="text-xs text-muted-foreground tabular-nums">
-              Subtotal{" "}
-              <span className="font-semibold text-foreground">{subtotal}</span>
-            </p>
-          </div>
-
-          <Select
-            value={supplier || "all"}
-            onValueChange={handleSupplierChange}
-          >
-            <SelectTrigger className="h-9 w-full" data-supplier-trigger>
-              <SelectValue placeholder="Select supplier" />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="all" disabled>
-                Select supplier
-              </SelectItem>
-
-              {supplierOptions.map((option) => (
-                <SelectItem key={option.id} value={option.id}>
-                  <span
-                    className={
-                      option.isPrimary
-                        ? "font-semibold text-primary"
-                        : "text-foreground"
-                    }
-                  >
-                    {option.label || "Supplier"}
-                  </span>
-
-                  <span className="text-muted-foreground">
-                    {" "}
-                    ({Formatter.amount(option.cost)})
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </div>
     </div>
   );
 });
 
-const CreateOrderCart = () => {
+const RequestStockCart = () => {
   const dispatch = useDispatch();
-  const { cart = [] } = useSelector(({ purchases }) => purchases);
+  const { cart = [] } = useSelector(({ stockRequests }) => stockRequests);
   const [search, setSearch] = useState("");
 
   const totals = useMemo(() => {
-    const totalAmount = cart.reduce((sum, { quantity = 0, cost = 0 }) => {
-      return sum + Number(quantity || 0) * Number(cost || 0);
+    const totalQty = cart.reduce((sum, { quantity = 0 }) => {
+      return sum + (Number(quantity) || 0);
     }, 0);
 
     return {
       totalItems: cart.length,
-      totalAmount,
+      totalQty,
     };
   }, [cart]);
 
@@ -314,9 +216,9 @@ const CreateOrderCart = () => {
     <>
       <CardHeader className="w-full space-y-1">
         <div className="min-w-0">
-          <CardTitle className="text-lg">Order Details</CardTitle>
+          <CardTitle className="text-lg">Stock Request</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Review each item, then set the supplier, unit cost, and quantity.
+            Review selected items and enter the quantities to request.
           </p>
         </div>
 
@@ -387,7 +289,7 @@ const CreateOrderCart = () => {
                       No selected items yet
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Click any row in the list to select items for ordering.
+                      Click any item from the list to add it to your request.
                     </p>
                   </>
                 )}
@@ -408,9 +310,9 @@ const CreateOrderCart = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Est. total</span>
+              <span className="text-muted-foreground">Total qty</span>
               <span className="font-semibold text-foreground">
-                {Formatter.amount(totals.totalAmount)}
+                {totals.totalQty}
               </span>
             </div>
           </div>
@@ -422,7 +324,7 @@ const CreateOrderCart = () => {
             onClick={handleReview}
           >
             <ClipboardList className="h-4 w-4" />
-            Review Order
+            Review Request
           </Button>
         </div>
       </CardContent>
@@ -430,4 +332,4 @@ const CreateOrderCart = () => {
   );
 };
 
-export default CreateOrderCart;
+export default RequestStockCart;

@@ -13,6 +13,12 @@ import {
 } from "@/pages/platforms/admininistrator/inventory/config";
 import { Search } from "lucide-react";
 
+const stockLevelOptions = [
+  { value: "out of stock", label: "Out of stock" },
+  { value: "low stock", label: "Low stock" },
+  { value: "in stock", label: "In stock" },
+];
+
 const FilterSelect = ({
   value,
   onValueChange,
@@ -36,28 +42,32 @@ const FilterSelect = ({
   </Select>
 );
 
-const CreateOrderHeader = ({
+const RequestStockHeader = ({
   search = "",
   setSearch,
   type = "all",
   setType,
   category = "all",
   setCategory,
+  stockLevel = "all",
+  setStockLevel,
 }) => {
   const categoryList = type !== "all" ? categoryOptions[type] || [] : [];
   const categoryDisabled = type === "all";
 
   return (
     <CardHeader className="space-y-4">
-      <div>
-        <CardTitle className="text-2xl text-foreground">Create Order</CardTitle>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+        <CardTitle className="text-2xl text-foreground">
+          Request Items
+        </CardTitle>
         <CardDescription>
-          Select items to add to your order cart.
+          Select items and enter the quantities to request.
         </CardDescription>
-      </div>
+        </div>
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.6fr_repeat(2,minmax(0,1fr))]">
-        <div className="relative">
+        <div className="relative w-full sm:max-w-[320px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
@@ -67,7 +77,9 @@ const CreateOrderHeader = ({
             type="search"
           />
         </div>
+      </div>
 
+      <div className="grid gap-3 md:grid-cols-3">
         <FilterSelect
           value={type}
           onValueChange={(value) => {
@@ -87,9 +99,17 @@ const CreateOrderHeader = ({
           allLabel="All categories"
           disabled={categoryDisabled}
         />
+
+        <FilterSelect
+          value={stockLevel}
+          onValueChange={setStockLevel}
+          placeholder="Stock level"
+          options={stockLevelOptions}
+          allLabel="All stock levels"
+        />
       </div>
     </CardHeader>
   );
 };
 
-export default CreateOrderHeader;
+export default RequestStockHeader;

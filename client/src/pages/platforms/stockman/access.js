@@ -10,7 +10,7 @@ const access = [
     component: Dashboard,
   },
   {
-    name: "Request Stock",
+    name: "Stock Requests",
     path: "/request-fuel",
     icon: ClipboardList,
     component: RequestStock,

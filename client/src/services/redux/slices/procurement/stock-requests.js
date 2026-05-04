@@ -1,7 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axioKit } from "../../../utilities";
 
-const url = "procurement/purchases";
+const sliceName = "procurement/stock-requests";
+// Reuse purchases endpoints until a dedicated stock-requests API exists.
+const apiUrl = "procurement/purchases";
 
 const initialState = {
   collections: [],
@@ -21,10 +23,10 @@ const initialState = {
 };
 
 export const BROWSE = createAsyncThunk(
-  `${url}`,
+  `${sliceName}`,
   ({ token, params }, thunkAPI) => {
     try {
-      return axioKit.universal(`${url}/browse`, token, params);
+      return axioKit.universal(`${apiUrl}/browse`, token, params);
     } catch (error) {
       const message =
         (error.response &&
@@ -38,9 +40,9 @@ export const BROWSE = createAsyncThunk(
   },
 );
 
-export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
+export const SAVE = createAsyncThunk(`${sliceName}/save`, (form, thunkAPI) => {
   try {
-    return axioKit.save(url, form.data, form.token);
+    return axioKit.save(apiUrl, form.data, form.token);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -51,9 +53,9 @@ export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
   }
 });
 
-export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
+export const UPDATE = createAsyncThunk(`${sliceName}/update`, (form, thunkAPI) => {
   try {
-    return axioKit.update(url, form.data, form.token);
+    return axioKit.update(apiUrl, form.data, form.token);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -65,10 +67,10 @@ export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
 });
 
 export const RECEIVE_DELIVERY = createAsyncThunk(
-  `${url}/receive-delivery`,
+  `${sliceName}/receive-delivery`,
   (form, thunkAPI) => {
     try {
-      return axioKit.update(url, form.data, form.token, "receive-delivery");
+      return axioKit.update(apiUrl, form.data, form.token, "receive-delivery");
     } catch (error) {
       const message =
         (error.response &&
@@ -82,9 +84,9 @@ export const RECEIVE_DELIVERY = createAsyncThunk(
   },
 );
 
-export const DESTROY = createAsyncThunk(`${url}/destroy`, (form, thunkAPI) => {
+export const DESTROY = createAsyncThunk(`${sliceName}/destroy`, (form, thunkAPI) => {
   try {
-    return axioKit.destroy(url, form.data, form.token);
+    return axioKit.destroy(apiUrl, form.data, form.token);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -96,13 +98,13 @@ export const DESTROY = createAsyncThunk(`${url}/destroy`, (form, thunkAPI) => {
 });
 
 export const reduxSlice = createSlice({
-  name: url,
+  name: sliceName,
   initialState,
   reducers: {
     SetCartOpen: (state, { payload }) => {
       state.cartOpen = Boolean(payload);
     },
-    SetReviewOpen: (state, _) => {
+    SetReviewOpen: (state) => {
       state.reviewOpen = !state.reviewOpen;
     },
     ReviewSetSameSupplierId: (state, { payload }) => {
@@ -113,19 +115,41 @@ export const reduxSlice = createSlice({
       state.cart = [];
     },
     CartAdd: (state, { payload }) => {
-      const inventory = String(payload?.inventory);
-      if (!inventory) return;
+      const inventoryId = String(
+        payload?._id || payload?.inventory?._id || payload?.inventory || "",
+      );
+      if (!inventoryId) return;
+
+      const inventoryObj =
+        payload?.inventory && typeof payload.inventory === "object"
+          ? payload.inventory
+          : payload;
+
+      const suppliers = Array.isArray(inventoryObj?.suppliers)
+        ? inventoryObj.suppliers
+        : [];
+      const primarySupplierRow =
+        suppliers
+          .slice()
+          .sort((a, b) => Number(Boolean(b?.isPrimary)) - Number(Boolean(a?.isPrimary)))[0] ||
+        null;
+      const supplierId = String(
+        primarySupplierRow?.supplier?._id || inventoryObj?.supplier?._id || "",
+      );
+      const unitCost =
+        primarySupplierRow?.cost ?? inventoryObj?.cost ?? payload?.cost ?? 0;
+
       const isExistIdx = state.cart?.findIndex(
-        ({ inventory }) => inventory?._id === payload?._id,
+        ({ inventory }) => String(inventory?._id || "") === inventoryId,
       );
       const _cart = [...state.cart];
       if (isExistIdx > -1) {
         _cart.splice(isExistIdx, 1);
       } else {
         _cart.unshift({
-          inventory: payload,
-          cost: payload?.cost,
-          supplier: payload?.supplier?._id,
+          inventory: inventoryObj,
+          cost: unitCost,
+          supplier: supplierId,
           quantity: 1,
         });
       }
@@ -159,7 +183,7 @@ export const reduxSlice = createSlice({
       state.selected = payload;
     },
 
-    ToggleShowOrderDetails: (state, _) => {
+    ToggleShowOrderDetails: (state) => {
       state.showOrderDetails = !state.showOrderDetails;
     },
 
@@ -169,7 +193,7 @@ export const reduxSlice = createSlice({
       state.shortDeliveryActionType = payload?.type ?? null;
     },
 
-    ToggleShortDeliveryActionModal: (state, _) => {
+    ToggleShortDeliveryActionModal: (state) => {
       state.shortDeliveryActionOpen = !state.shortDeliveryActionOpen;
       if (!state.shortDeliveryActionOpen) {
         state.shortDeliveryActionSelected = null;
@@ -198,7 +222,7 @@ export const reduxSlice = createSlice({
     SETROUTE: (state, data) => {
       state.route = data.payload;
     },
-    RESET: (state, data) => {
+    RESET: (state) => {
       state.isSuccess = false;
       state.message = "";
     },

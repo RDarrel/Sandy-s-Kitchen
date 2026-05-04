@@ -9,18 +9,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CartAdd } from "@/services/redux/slices/procurement/purchases";
+import { CartAdd } from "@/services/redux/slices/procurement/stock-requests";
 import { Stock, globalSearch } from "@/services/utilities";
 import { capitalize, isEmpty } from "lodash";
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
+const RequestStockBody = ({
+  search = "",
+  type = "all",
+  category = "all",
+  stockLevel = "all",
+}) => {
   const dispatch = useDispatch();
   const { collections = [], isLoading } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
-  const { cart } = useSelector(({ purchases }) => purchases);
+  const { cart } = useSelector(({ stockRequests }) => stockRequests);
 
 	  const filtered = useMemo(() => {
 	    const safeCollections = Array.isArray(collections) ? collections : [];
@@ -34,10 +39,18 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
         ? byType.filter((item) => String(item?.category || "") === category)
         : byType;
 
+    const byStockLevel =
+      stockLevel && stockLevel !== "all"
+        ? byCategory.filter((item) => {
+            const status = String(item?.stockStatus || "").trim().toLowerCase();
+            return status === String(stockLevel).trim().toLowerCase();
+          })
+        : byCategory;
+
     const keyword = String(search || "").trim();
-	    if (!keyword) return byCategory;
-	    return globalSearch(byCategory, keyword.toUpperCase());
-	  }, [collections, search, type, category]);
+	    if (!keyword) return byStockLevel;
+	    return globalSearch(byStockLevel, keyword.toUpperCase());
+	  }, [collections, search, type, category, stockLevel]);
 
 	  const sortedFiltered = useMemo(() => {
 	    const rank = {
@@ -77,7 +90,7 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
               <TableHeader className="bg-muted/70">
                 <TableRow>
                   <TableHead>Item</TableHead>
-                  <TableHead>Stock</TableHead>
+                  <TableHead>Current stock</TableHead>
                 </TableRow>
 	              </TableHeader>
 	              <TableBody>
@@ -137,17 +150,17 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={2} className="py-14 text-center">
-                      <div className="space-y-2">
-                        <p className="text-base font-semibold text-foreground">
-                          No inventory items found
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Try a different search term.
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
+	                      <div className="space-y-2">
+	                        <p className="text-base font-semibold text-foreground">
+	                          No inventory items found
+	                        </p>
+	                        <p className="text-sm text-muted-foreground">
+	                          Try a different keyword or filter.
+	                        </p>
+	                      </div>
+	                    </TableCell>
+	                  </TableRow>
+	                )}
               </TableBody>
             </Table>
           </div>
@@ -159,4 +172,4 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
   );
 };
 
-export default CreateOrderBody;
+export default RequestStockBody;
