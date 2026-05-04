@@ -223,9 +223,9 @@ const Dashboard = () => {
 
           <div className="grid gap-2 bg-muted/5 px-4 py-4 sm:px-6 lg:grid-cols-12">
             <div className="grid gap-2 lg:col-span-12 lg:grid-cols-12">
-              <Card className="relative overflow-hidden lg:col-span-4">
+              <Card className="relative overflow-hidden lg:col-span-4 gap-4 py-4">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(20rem_12rem_at_0%_-20%,rgba(239,68,68,0.10),transparent_55%)]" />
-                <CardHeader className="space-y-1 pb-2">
+                <CardHeader className="space-y-1 px-4 pt-0 pb-2">
                   <CardTitle className="flex items-center gap-2 text-sm">
                     <TriangleAlert className="h-4 w-4 text-destructive" />
                     Out of stock
@@ -234,7 +234,7 @@ const Dashboard = () => {
                     Immediate reorder required
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex items-end justify-between gap-3 pt-0">
+                <CardContent className="flex items-end justify-between gap-3 px-4 pt-0 pb-0">
                   <div>
                     <p className="text-2xl font-semibold text-foreground">
                       {inventorySummary.outCount}
@@ -256,9 +256,9 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="relative overflow-hidden lg:col-span-4">
+              <Card className="relative overflow-hidden lg:col-span-4 gap-4 py-4">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(20rem_12rem_at_0%_-20%,rgba(245,158,11,0.12),transparent_55%)]" />
-                <CardHeader className="space-y-1 pb-2">
+                <CardHeader className="space-y-1 px-4 pt-0 pb-2">
                   <CardTitle className="flex items-center gap-2 text-sm">
                     <Package className="h-4 w-4 text-amber-600 dark:text-amber-300" />
                     Low stock
@@ -267,7 +267,7 @@ const Dashboard = () => {
                     Below reorder level
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex items-end justify-between gap-3 pt-0">
+                <CardContent className="flex items-end justify-between gap-3 px-4 pt-0 pb-0">
                   <div>
                     <p className="text-2xl font-semibold text-foreground">
                       {inventorySummary.lowCount}
@@ -287,9 +287,9 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="relative overflow-hidden lg:col-span-4">
+              <Card className="relative overflow-hidden lg:col-span-4 gap-4 py-4">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(20rem_12rem_at_0%_-20%,rgba(16,185,129,0.10),transparent_55%)]" />
-                <CardHeader className="space-y-1 pb-2">
+                <CardHeader className="space-y-1 px-4 pt-0 pb-2">
                   <CardTitle className="flex items-center gap-2 text-sm">
                     <PackageCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
                     In stock
@@ -298,7 +298,7 @@ const Dashboard = () => {
                     Healthy items
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex items-end justify-between gap-3 pt-0">
+                <CardContent className="flex items-end justify-between gap-3 px-4 pt-0 pb-0">
                   <div>
                     <p className="text-2xl font-semibold text-foreground">
                       {inventorySummary.inCount}
@@ -314,10 +314,10 @@ const Dashboard = () => {
               </Card>
             </div>
 
-            <Card className="lg:col-span-4">
-              <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
+            <Card className="lg:col-span-4 gap-4 py-4">
+              <CardHeader className="flex flex-row items-start justify-between gap-4 px-4 pt-0 pb-2">
                 <div>
-                  <CardTitle className="text-base">
+                  <CardTitle className="text-sm">
                     Replenishment queue
                   </CardTitle>
                   <CardDescription className="text-xs">
@@ -328,7 +328,7 @@ const Dashboard = () => {
                   {inventorySummary.outCount + inventorySummary.lowCount} alerts
                 </Badge>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 pb-3 pt-0">
                 {inventorySummary.needsReorder.length ? (
                   <div className="max-h-64 overflow-x-hidden overflow-y-auto rounded-lg border border-border bg-background/40">
                     <Table className="w-full table-fixed">
@@ -380,10 +380,10 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="lg:col-span-4">
-              <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
+            <Card className="lg:col-span-4 gap-4 py-4">
+              <CardHeader className="flex flex-row items-start justify-between gap-4 px-4 pt-0 pb-2">
                 <div>
-                  <CardTitle className="text-base">Expiring soon</CardTitle>
+                  <CardTitle className="text-sm">Expiring soon</CardTitle>
                   <CardDescription>
                     Items expiring within {EXPIRING_SOON_DAYS} days.
                   </CardDescription>
@@ -403,7 +403,7 @@ const Dashboard = () => {
                       : "OK"}
                 </Badge>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 px-4 pb-3 pt-0">
                 {expiringSoon.rows.length ? (
                   <div className="max-h-64 overflow-x-hidden overflow-y-auto rounded-lg border border-border bg-background/40">
                     <Table className="w-full table-fixed">
@@ -444,10 +444,10 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="lg:col-span-4">
-              <CardHeader className="flex flex-row items-start justify-between gap-4 pb-3">
+            <Card className="lg:col-span-4 gap-4 py-4">
+              <CardHeader className="flex flex-row items-start justify-between gap-4 px-4 pt-0 pb-2">
                 <div>
-                  <CardTitle className="text-base">
+                  <CardTitle className="text-sm">
                     Incoming deliveries
                   </CardTitle>
                   <CardDescription>
@@ -462,7 +462,7 @@ const Dashboard = () => {
                       : "0"}
                 </Badge>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 px-4 pb-3 pt-0">
                 {incomingSummary.recent.length ? (
                   <div className="max-h-64 overflow-x-hidden overflow-y-auto rounded-lg border border-border bg-background/40">
                     <Table className="w-full table-fixed">
