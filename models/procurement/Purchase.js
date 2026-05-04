@@ -27,7 +27,6 @@ const modelSchema = new mongoose.Schema(
       enum: {
         values: [
           //For incoming deliveries
-          "request",
           "incoming",
           "received",
           "cancelled",
