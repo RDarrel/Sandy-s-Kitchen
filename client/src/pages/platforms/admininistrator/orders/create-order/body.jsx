@@ -22,12 +22,12 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
   );
   const { cart } = useSelector(({ purchases }) => purchases);
 
-  const filtered = useMemo(() => {
-    const safeCollections = Array.isArray(collections) ? collections : [];
-    const byType =
-      type && type !== "all"
-        ? safeCollections.filter((item) => String(item?.type || "") === type)
-        : safeCollections;
+	  const filtered = useMemo(() => {
+	    const safeCollections = Array.isArray(collections) ? collections : [];
+	    const byType =
+	      type && type !== "all"
+	        ? safeCollections.filter((item) => String(item?.type || "") === type)
+	        : safeCollections;
 
     const byCategory =
       category && category !== "all"
@@ -35,9 +35,34 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
         : byType;
 
     const keyword = String(search || "").trim();
-    if (!keyword) return byCategory;
-    return globalSearch(byCategory, keyword.toUpperCase());
-  }, [collections, search, type, category]);
+	    if (!keyword) return byCategory;
+	    return globalSearch(byCategory, keyword.toUpperCase());
+	  }, [collections, search, type, category]);
+
+	  const sortedFiltered = useMemo(() => {
+	    const rank = {
+	      "out of stock": 0,
+	      "low stock": 1,
+	      "in stock": 2,
+	    };
+
+	    return (filtered || [])
+	      .map((item, index) => ({ item, index }))
+	      .sort((a, b) => {
+	        const aKey = String(a?.item?.stockStatus || "")
+	          .trim()
+	          .toLowerCase();
+	        const bKey = String(b?.item?.stockStatus || "")
+	          .trim()
+	          .toLowerCase();
+	        const aRank = rank[aKey] ?? 99;
+	        const bRank = rank[bKey] ?? 99;
+
+	        if (aRank !== bRank) return aRank - bRank;
+	        return a.index - b.index;
+	      })
+	      .map(({ item }) => item);
+	  }, [filtered]);
 
   const addToCart = (inventory) => {
     dispatch(CartAdd(inventory));
@@ -54,14 +79,14 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
                   <TableHead>Item</TableHead>
                   <TableHead>Stock</TableHead>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {!isEmpty(filtered) ? (
-                  filtered.map((item) => {
-                    const id = String(item?._id || "");
-                    const inCart = cart.some(
-                      ({ inventory }) => String(inventory?._id) === id,
-                    );
+	              </TableHeader>
+	              <TableBody>
+	                {!isEmpty(sortedFiltered) ? (
+	                  sortedFiltered.map((item) => {
+	                    const id = String(item?._id || "");
+	                    const inCart = cart.some(
+	                      ({ inventory }) => String(inventory?._id) === id,
+	                    );
 
                     return (
                       <TableRow
