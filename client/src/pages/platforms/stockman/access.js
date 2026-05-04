@@ -1,8 +1,5 @@
 import { ClipboardList, Gauge, GitPullRequestArrow } from "lucide-react";
 import Dashboard from "./dashboard";
-import RequestFuel from "./requestFuel";
-import { OrderProcessing } from "./manageOrders/orderProcessing";
-import { ShortDeliveries } from "./manageOrders/shortDeliveries";
 
 const access = [
   {
@@ -15,22 +12,19 @@ const access = [
     name: "Request Fuel",
     path: "/request-fuel",
     icon: ClipboardList,
-    component: RequestFuel,
   },
   {
-    name: "Manage Fuel Orders",
+    name: "Orders",
     path: "/Manage-Orders",
     icon: GitPullRequestArrow,
     children: [
       {
         name: "Order Processing",
         path: "/Order-Processing",
-        component: OrderProcessing,
       },
       {
         name: "Short Deliveries",
         path: "/Short-Deliveries",
-        component: ShortDeliveries,
       },
     ],
   },
