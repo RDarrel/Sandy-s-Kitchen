@@ -11,7 +11,7 @@ import dashboard from "./slices/dashboard";
 import { addOns, menus, menuCategories } from "./slices/menu";
 import { inventoryItems } from "./slices/inventory";
 import { cashier } from "./slices/stations";
-import { suppliers, purchases } from "./slices/procurement";
+import { suppliers, purchases, stockRequests } from "./slices/procurement";
 const store = configureStore({
   reducer: {
     cashier,
@@ -23,6 +23,7 @@ const store = configureStore({
     staffs,
     suppliers,
     fuels,
+    stockRequests,
     purchases,
     stocks,
     pos,
