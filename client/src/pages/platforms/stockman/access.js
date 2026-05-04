@@ -12,6 +12,7 @@ const access = [
     name: "Request Fuel",
     path: "/request-fuel",
     icon: ClipboardList,
+    component: Dashboard,
   },
   {
     name: "Orders",
@@ -21,10 +22,12 @@ const access = [
       {
         name: "Order Processing",
         path: "/Order-Processing",
+        component: Dashboard,
       },
       {
         name: "Short Deliveries",
         path: "/Short-Deliveries",
+        component: Dashboard,
       },
     ],
   },

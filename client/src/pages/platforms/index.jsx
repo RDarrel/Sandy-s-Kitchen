@@ -15,7 +15,6 @@ import {
 import { capitalize } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation } from "react-router-dom";
-import FuelWarning from "./fuelWarning";
 import { useEffect } from "react";
 import { FUEL_CHECKER } from "@/services/redux/slices/assets/stocks";
 import { Role } from "@/services/fakeDB";
@@ -57,7 +56,6 @@ export default function Platforms() {
           <Outlet />
         </div>
       </SidebarInset>
-      <FuelWarning />
     </SidebarProvider>
   );
 }
