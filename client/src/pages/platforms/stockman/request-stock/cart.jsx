@@ -107,7 +107,7 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
       <div className="mt-3 border-t border-border/60 pt-1">
         <div className="grid gap-3 sm:grid-cols-[110px_1fr] sm:items-end">
           <div className="space-y-1">
-            <Label className="text-[11px] font-semibold tracking-wide text-foreground">
+            <Label className="text-xs text-muted-foreground">
               Available Stock
             </Label>
             <Input
@@ -118,7 +118,7 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
           </div>
 
           <div className="space-y-1">
-            <Label className="text-[11px] font-semibold tracking-wide text-foreground">
+            <Label className="text-xs text-muted-foreground">
               Request{" "}
               <span className="font-medium text-muted-foreground">
                 ({unitLabel})
@@ -311,16 +311,12 @@ const RequestStockCart = () => {
 
           <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-3 py-2 text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Items</span>
-              <span className="font-semibold text-foreground">
-                {totals.totalItems}
-              </span>
+              <span className="text-muted-foreground">Total Items:</span>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Total qty</span>
               <span className="font-semibold text-foreground">
-                {totals.totalQty}
+                {totals.totalItems}
               </span>
             </div>
           </div>
