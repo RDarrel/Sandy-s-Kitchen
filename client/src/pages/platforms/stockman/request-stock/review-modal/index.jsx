@@ -74,26 +74,27 @@ const ReviewStockRequestModal = () => {
 
   const submitRequest = (event) => {
     event.preventDefault();
+    console.log("submitted");
     if (!cart.length) return;
-
-    const items = cart.map(
-      ({ _id, measurement, quantity, stock, stockDisplay, ...rest }) => ({
-        ...rest,
-        unit: Inventory.getUnitByMeasurement(measurement)?.toLowerCase(),
-        inventory: _id,
-        quantity: {
-          request: quantity,
-          approved: quantity,
-        },
-        snapshot: {
-          currentStock: stockDisplay?.current,
-          reorderLevel: stock.min,
-        },
-      }),
-    );
+    console.log("cart", cart);
+    const items = cart.map(({ quantity, inventory, ...rest }) => ({
+      ...rest,
+      unit: Inventory.getUnitByMeasurement(
+        inventory?.measurement,
+      )?.toLowerCase(),
+      inventory: inventory?._id,
+      quantity: {
+        request: quantity,
+        approved: quantity,
+      },
+      snapshot: {
+        currentStock: inventory?.stockDisplay?.current,
+        reorderLevel: inventory?.stock.min,
+      },
+    }));
 
     const request = {
-      requestBy: auth?._id,
+      requestedBy: auth?._id,
       items,
     };
 

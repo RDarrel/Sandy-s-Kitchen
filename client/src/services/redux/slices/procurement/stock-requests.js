@@ -1,9 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axioKit } from "../../../utilities";
 
-const sliceName = "procurement/stock-requests";
-// Reuse purchases endpoints until a dedicated stock-requests API exists.
-const apiUrl = "procurement/purchases";
+const sliceName = "procurement/stockRequests";
+const apiUrl = "procurement/stockRequests";
 
 const initialState = {
   collections: [],
@@ -53,18 +52,23 @@ export const SAVE = createAsyncThunk(`${sliceName}/save`, (form, thunkAPI) => {
   }
 });
 
-export const UPDATE = createAsyncThunk(`${sliceName}/update`, (form, thunkAPI) => {
-  try {
-    return axioKit.update(apiUrl, form.data, form.token);
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
+export const UPDATE = createAsyncThunk(
+  `${sliceName}/update`,
+  (form, thunkAPI) => {
+    try {
+      return axioKit.update(apiUrl, form.data, form.token);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
 
-    return thunkAPI.rejectWithValue(message);
-  }
-});
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
 export const RECEIVE_DELIVERY = createAsyncThunk(
   `${sliceName}/receive-delivery`,
@@ -84,18 +88,23 @@ export const RECEIVE_DELIVERY = createAsyncThunk(
   },
 );
 
-export const DESTROY = createAsyncThunk(`${sliceName}/destroy`, (form, thunkAPI) => {
-  try {
-    return axioKit.destroy(apiUrl, form.data, form.token);
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
+export const DESTROY = createAsyncThunk(
+  `${sliceName}/destroy`,
+  (form, thunkAPI) => {
+    try {
+      return axioKit.destroy(apiUrl, form.data, form.token);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
 
-    return thunkAPI.rejectWithValue(message);
-  }
-});
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
 export const reduxSlice = createSlice({
   name: sliceName,
@@ -131,8 +140,10 @@ export const reduxSlice = createSlice({
       const primarySupplierRow =
         suppliers
           .slice()
-          .sort((a, b) => Number(Boolean(b?.isPrimary)) - Number(Boolean(a?.isPrimary)))[0] ||
-        null;
+          .sort(
+            (a, b) =>
+              Number(Boolean(b?.isPrimary)) - Number(Boolean(a?.isPrimary)),
+          )[0] || null;
       const supplierId = String(
         primarySupplierRow?.supplier?._id || inventoryObj?.supplier?._id || "",
       );
