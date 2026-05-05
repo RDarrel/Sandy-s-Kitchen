@@ -24,6 +24,7 @@ import AddOns from "./menu/addOns";
 import CreateOrder from "./orders/create-order";
 import OrderList from "./orders/order-list";
 import ShortDeliveries from "./orders/short-deliveries";
+import StockRequests from "./orders/stock-requests";
 
 const access = [
   {
@@ -83,7 +84,7 @@ const access = [
       {
         name: "Stock Requests",
         path: "/stock-requests",
-        component: CreateOrder,
+        component: StockRequests,
       },
       {
         name: "Create Order",

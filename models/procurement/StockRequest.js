@@ -4,7 +4,7 @@ const itemSchema = new mongoose.Schema(
   {
     inventory: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Inventory",
+      ref: "Item",
       required: true,
     },
 
@@ -46,7 +46,7 @@ const modelSchema = new mongoose.Schema(
   {
     requestedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Users",
       required: true,
     },
 

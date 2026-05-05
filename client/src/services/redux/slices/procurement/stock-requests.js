@@ -212,8 +212,31 @@ export const reduxSlice = createSlice({
       }
     },
     SEARCH: (state, { payload }) => {
-      state.filtered = state.collections.filter(({ supplier }) => {
-        return supplier?.name.toLowerCase().includes(payload.toLowerCase());
+      const query = String(payload || "")
+        .trim()
+        .toLowerCase();
+
+      const rows = Array.isArray(state.collections) ? state.collections : [];
+
+      if (!query) {
+        state.filtered = rows;
+        return;
+      }
+
+      state.filtered = rows.filter((row) => {
+        const supplierName = String(row?.supplier?.name || "");
+        const requestedBy = String(row?.requestedBy?._id || row?.requestedBy || "");
+        const status = String(row?.status || "");
+        const adminNote = String(row?.admin?.note || "");
+        const id = String(row?._id || "");
+
+        return (
+          supplierName.toLowerCase().includes(query) ||
+          requestedBy.toLowerCase().includes(query) ||
+          status.toLowerCase().includes(query) ||
+          adminNote.toLowerCase().includes(query) ||
+          id.toLowerCase().includes(query)
+        );
       });
     },
     PROGRESS: (state, data) => {

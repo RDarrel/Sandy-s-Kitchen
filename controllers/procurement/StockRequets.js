@@ -13,10 +13,17 @@ exports.save = async (req, res) => {
 exports.browse = async (req, res) => {
   try {
     const stockRequests = await StockRequest.find({
+      status: req.query.status,
       deletedAt: { $exists: false },
     })
-      .sort({ createdAt: -1 })
-      .lean();
+      .populate("requestedBy", "fullName")
+      .populate({
+        path: "items.inventory",
+        populate: {
+          path: "suppliers.supplier", // depende sa schema mo
+        },
+      })
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: "Stock Requests Fetched Successfully",
