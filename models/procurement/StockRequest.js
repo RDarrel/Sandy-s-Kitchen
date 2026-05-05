@@ -9,9 +9,15 @@ const itemSchema = new mongoose.Schema(
     },
 
     quantity: {
-      type: Number,
-      required: true,
-      min: 0,
+      request: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+      approved: {
+        type: Number,
+        default: 0,
+      },
     },
 
     unit: {
@@ -27,6 +33,10 @@ const itemSchema = new mongoose.Schema(
     snapshot: {
       currentStock: { type: Number, default: 0 },
       reorderLevel: { type: Number, default: 0 },
+    },
+    purchase: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Purchase",
     },
   },
   { _id: true },

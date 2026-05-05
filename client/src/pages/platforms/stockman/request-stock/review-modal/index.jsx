@@ -25,7 +25,7 @@ import Spinner from "@/components/shared/spinner";
 
 const ReviewStockRequestModal = () => {
   const dispatch = useDispatch();
-  const { token } = useSelector(({ auth }) => auth);
+  const { token, auth } = useSelector(({ auth }) => auth);
   const {
     cart = [],
     formSubmitted,
@@ -72,65 +72,32 @@ const ReviewStockRequestModal = () => {
 
   const close = (nextOpen) => dispatch(SetReviewOpen(Boolean(nextOpen)));
 
-  const formatDate = (date) => {
-    if (!date) return null;
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    return new Intl.DateTimeFormat("en-CA", {
-      timeZone: timezone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-      .format(new Date(date))
-      .replace(/\//g, "-");
-  };
-
-  const getDefaultDeliveryWindow = () => {
-    const now = new Date();
-    const from = new Date(now);
-    from.setDate(from.getDate() + 1);
-    const to = new Date(now);
-    to.setDate(to.getDate() + 3);
-    return { from: formatDate(from), to: formatDate(to) };
-  };
-
   const submitRequest = (event) => {
     event.preventDefault();
     if (!cart.length) return;
 
-    const mappedCart = (Array.isArray(cart) ? cart : []).map((row) => {
-      const id = String(row?.inventory?._id || "");
-      const qty = Number(draftQtyById?.[id] ?? row?.quantity) || 0;
-      const remarks = String(
-        draftRemarksById?.[id] ?? row?.remarks ?? "",
-      ).trim();
-      return {
-        ...row,
-        inventory: row?.inventory?._id,
-        unit: Inventory.getUnitByMeasurement(
-          row?.inventory?.measurement,
-        )?.toLowerCase(),
-        quantity: { incoming: qty },
-        remarks,
-      };
-    });
+    const items = cart.map(
+      ({ _id, measurement, quantity, stock, stockDisplay, ...rest }) => ({
+        ...rest,
+        unit: Inventory.getUnitByMeasurement(measurement)?.toLowerCase(),
+        inventory: _id,
+        quantity: {
+          request: quantity,
+          approved: quantity,
+        },
+        snapshot: {
+          currentStock: stockDisplay?.current,
+          reorderLevel: stock.min,
+        },
+      }),
+    );
 
-    const groups = new Map();
-    const defaultWindow = getDefaultDeliveryWindow();
-    for (const row of Array.isArray(cart) ? cart : []) {
-      const supplier = String(row?.supplier || "all") || "all";
-      if (!groups.has(supplier)) {
-        groups.set(supplier, {
-          supplier,
-          deliveryWindow: defaultWindow,
-          status: "incoming",
-        });
-      }
-    }
+    const request = {
+      requestBy: auth?._id,
+      items,
+    };
 
-    const purchases = Array.from(groups.values());
-
-    dispatch(SAVE({ data: { cart: mappedCart, purchases }, token }))
+    dispatch(SAVE({ data: request, token }))
       .unwrap()
       .then(() => {
         setDraftQtyById({});
