@@ -38,6 +38,9 @@ const itemSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Purchase",
     },
+    deletedAt: {
+      type: Date,
+    },
   },
   { _id: true },
 );

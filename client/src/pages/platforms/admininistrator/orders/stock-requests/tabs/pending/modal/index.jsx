@@ -113,15 +113,16 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
 
     const suppliersCount = groups.length;
     const totalAmount = groups.reduce((sum, group) => {
-      const groupAmount = (Array.isArray(group?.items) ? group.items : []).reduce(
-        (sub, item) => {
-          const inventoryId = String(item?.__inventoryId || "");
-          const approvedQty = Number(draftApprovedByInvId[inventoryId] ?? 0) || 0;
-          const unitCost = Number(draftUnitCostByInvId[inventoryId] ?? item?.__unitCost ?? 0) || 0;
-          return sub + approvedQty * unitCost;
-        },
-        0,
-      );
+      const groupAmount = (
+        Array.isArray(group?.items) ? group.items : []
+      ).reduce((sub, item) => {
+        const inventoryId = String(item?.__inventoryId || "");
+        const approvedQty = Number(draftApprovedByInvId[inventoryId] ?? 0) || 0;
+        const unitCost =
+          Number(draftUnitCostByInvId[inventoryId] ?? item?.__unitCost ?? 0) ||
+          0;
+        return sub + approvedQty * unitCost;
+      }, 0);
 
       return sum + groupAmount;
     }, 0);
@@ -132,7 +133,9 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
   const handleDateChange = (newDate, supplierId) => {
     setFormattedGroups((prev) => {
       const next = Array.isArray(prev) ? [...prev] : [];
-      const idx = next.findIndex((g) => String(g?.supplier || "") === supplierId);
+      const idx = next.findIndex(
+        (g) => String(g?.supplier || "") === supplierId,
+      );
       if (idx < 0) return prev;
       next[idx] = { ...next[idx], deliveryWindow: newDate };
       return next;
@@ -142,9 +145,11 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
   const removeItem = (supplierId, inventoryId) => {
     setFormattedGroups((prev) => {
       const next = (Array.isArray(prev) ? prev : []).map((group) => {
-        if (String(group?.supplier || "") !== String(supplierId || "")) return group;
+        if (String(group?.supplier || "") !== String(supplierId || ""))
+          return group;
         const items = (Array.isArray(group?.items) ? group.items : []).filter(
-          (item) => String(item?.__inventoryId || "") !== String(inventoryId || ""),
+          (item) =>
+            String(item?.__inventoryId || "") !== String(inventoryId || ""),
         );
         return { ...group, items };
       });
@@ -208,9 +213,15 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
       ? Number(supplierRow?.cost ?? 0) || 0
       : Number(draftUnitCostByInvId?.[invId] ?? 0) || 0;
 
-    setDraftSupplierByInvId((prev) => ({ ...(prev || {}), [invId]: supplierId }));
+    setDraftSupplierByInvId((prev) => ({
+      ...(prev || {}),
+      [invId]: supplierId,
+    }));
     if (supplierRow) {
-      setDraftUnitCostByInvId((prev) => ({ ...(prev || {}), [invId]: nextUnitCost }));
+      setDraftUnitCostByInvId((prev) => ({
+        ...(prev || {}),
+        [invId]: nextUnitCost,
+      }));
     }
 
     setFormattedGroups((prev) => {
@@ -230,7 +241,8 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
 
       if (!movingItem) return groups;
 
-      const inventoryForItem = inventoryById.get(invId) || movingItem?.inventory;
+      const inventoryForItem =
+        inventoryById.get(invId) || movingItem?.inventory;
       const nextSupplierLabel =
         supplierLabelById.get(supplierId) ||
         supplierRow?.supplier?.name ||
@@ -252,7 +264,9 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
         next[targetIdx] = {
           ...next[targetIdx],
           items: [
-            ...(Array.isArray(next[targetIdx].items) ? next[targetIdx].items : []),
+            ...(Array.isArray(next[targetIdx].items)
+              ? next[targetIdx].items
+              : []),
             updatedItem,
           ],
         };
@@ -283,10 +297,12 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
 
     const cart = [];
     const purchases = [];
+    const includedInventoryIds = new Set();
 
     for (const group of groups) {
       const supplierId = String(group?.supplier || "");
-      const deliveryWindow = group?.deliveryWindow || getDefaultDeliveryWindow();
+      const deliveryWindow =
+        group?.deliveryWindow || getDefaultDeliveryWindow();
 
       let groupAmount = 0;
       const groupItems = Array.isArray(group?.items) ? group.items : [];
@@ -294,10 +310,12 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
       for (const item of groupItems) {
         const inventoryId = String(item?.__inventoryId || "");
         if (!inventoryId) continue;
+        includedInventoryIds.add(inventoryId);
 
         const inventory = inventoryById.get(inventoryId) || item?.inventory;
         const unitCost =
-          Number(draftUnitCostByInvId[inventoryId] ?? item?.__unitCost ?? 0) || 0;
+          Number(draftUnitCostByInvId[inventoryId] ?? item?.__unitCost ?? 0) ||
+          0;
         const approvedQty = Number(draftApprovedByInvId[inventoryId] ?? 0) || 0;
 
         groupAmount += approvedQty * unitCost;
@@ -306,7 +324,9 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
           supplier: supplierId,
           cost: unitCost,
           inventory: inventoryId,
-          unit: Inventory.getUnitByMeasurement(inventory?.measurement)?.toLowerCase(),
+          unit: Inventory.getUnitByMeasurement(
+            inventory?.measurement,
+          )?.toLowerCase(),
           quantity: { incoming: approvedQty },
         });
       }
@@ -319,34 +339,63 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
       });
     }
 
-    dispatch(SAVE_PURCHASES({ data: { cart, purchases }, token }))
-      .unwrap()
-      .then(() => {
-        return dispatch(
-          UPDATE_STOCK_REQUEST({
-            data: {
-              _id: requestId,
-              status: "approved",
-              admin: {
-                reviewedBy: auth?._id,
-                reviewedAt: new Date(),
-              },
-              conversion: {
-                isConvertedToOrder: true,
-                convertedBy: auth?._id,
-                convertedAt: new Date(),
-              },
-              updatingRequest: true,
-            },
-            token,
-          }),
-        ).unwrap();
-      })
-      .then(() => {
-        toast.success("Order placed successfully.");
-        close(false);
-      })
-      .catch(() => toast.error("Failed to place order. Please try again."));
+    const updatedItems = (
+      Array.isArray(request?.items) ? request.items : []
+    ).map((item) => {
+      const inventoryId = String(item?.inventory?._id || item?.inventory || "");
+      const isDeleted = inventoryId && !includedInventoryIds.has(inventoryId);
+
+      const approvedQty = inventoryId
+        ? Number(draftApprovedByInvId[inventoryId] ?? 0) || 0
+        : 0;
+
+      return {
+        _id: item?._id,
+        inventory: inventoryId || item?.inventory,
+        unit: item?.unit,
+        remarks: item?.remarks,
+        snapshot: item?.snapshot,
+        purchase: item?.purchase,
+        deletedAt: isDeleted ? new Date() : item?.deletedAt,
+        quantity: {
+          request: Number(item?.quantity?.request ?? 0) || 0,
+          approved: isDeleted
+            ? Number(item?.quantity?.approved ?? 0) || 0
+            : approvedQty,
+        },
+      };
+    });
+    console.log("updatedItems", updatedItems);
+    console.log("cart", cart);
+    // dispatch(SAVE_PURCHASES({ data: { cart, purchases }, token }))
+    //   .unwrap()
+    //   .then(() => {
+    //     return dispatch(
+    //       UPDATE_STOCK_REQUEST({
+    //         data: {
+    //           _id: requestId,
+    //           status: "approved",
+    //           items: updatedItems,
+    //           admin: {
+    //             reviewedBy: auth?._id,
+    //             reviewedAt: new Date(),
+    //           },
+    //           conversion: {
+    //             isConvertedToOrder: true,
+    //             convertedBy: auth?._id,
+    //             convertedAt: new Date(),
+    //           },
+    //           updatingRequest: true,
+    //         },
+    //         token,
+    //       }),
+    //     ).unwrap();
+    //   })
+    //   .then(() => {
+    //     toast.success("Order placed successfully.");
+    //     close(false);
+    //   })
+    //   .catch(() => toast.error("Failed to place order. Please try again."));
   };
 
   return (
@@ -422,7 +471,10 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
                   <Label className="text-xs text-muted-foreground">
                     Supplier
                   </Label>
-                  <Select value={supplierFilter} onValueChange={setSupplierFilter}>
+                  <Select
+                    value={supplierFilter}
+                    onValueChange={setSupplierFilter}
+                  >
                     <SelectTrigger className="mt-1 h-10 w-full bg-background/60">
                       <SelectValue placeholder="All suppliers" />
                     </SelectTrigger>
@@ -485,10 +537,17 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
               </div>
 
               <DialogFooter className="gap-2 sm:gap-0">
-                <Button type="button" variant="outline" onClick={() => close(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => close(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={formSubmitted || !formattedGroups.length}>
+                <Button
+                  type="submit"
+                  disabled={formSubmitted || !formattedGroups.length}
+                >
                   Place order <Spinner formSubmitted={formSubmitted} />
                 </Button>
               </DialogFooter>
@@ -501,4 +560,3 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
 };
 
 export default memo(ConvertToOrderModal);
-
