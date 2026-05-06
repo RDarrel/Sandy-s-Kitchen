@@ -33,11 +33,28 @@ const ConvertToOrderItemsList = ({
   draftUnitCostByInvId,
   setDraftUnitCostByInvId,
   draftSupplierByInvId,
-  setDraftSupplierByInvId,
   onChangeSupplier,
   onRemoveItem,
 }) => {
   const safeRows = Array.isArray(rows) ? rows : [];
+  const rowsWithDrafts = useMemo(() => {
+    return safeRows.map((item) => {
+      const inventory = item?.inventory;
+      const inventoryId = String(item?.__inventoryId || inventory?._id || "");
+
+      return {
+        item,
+        inventoryId,
+        approvedValue: draftApprovedByInvId?.[inventoryId] ?? 0,
+        unitCost:
+          Number(draftUnitCostByInvId?.[inventoryId] ?? item?.__unitCost ?? 0) || 0,
+        supplierValue:
+          String(
+            draftSupplierByInvId?.[inventoryId] ?? item?.__supplierId ?? "",
+          ) || String(supplierId || ""),
+      };
+    });
+  }, [safeRows, draftApprovedByInvId, draftUnitCostByInvId, draftSupplierByInvId, supplierId]);
 
   return (
     <div className="space-y-2">
@@ -53,17 +70,17 @@ const ConvertToOrderItemsList = ({
         </div>
       ) : null}
 
-      {safeRows.map((item, idx) => (
+      {rowsWithDrafts.map(({ item, inventoryId, approvedValue, unitCost, supplierValue }, idx) => (
         <ItemRow
-          key={item?.__inventoryId || item?._id || idx}
+          key={item?.__inventoryId || item?._id || inventoryId || idx}
           supplierId={supplierId}
           item={item}
-          draftApprovedByInvId={draftApprovedByInvId}
+          inventoryId={inventoryId}
+          approvedValue={approvedValue}
           setDraftApprovedByInvId={setDraftApprovedByInvId}
-          draftUnitCostByInvId={draftUnitCostByInvId}
+          unitCost={unitCost}
           setDraftUnitCostByInvId={setDraftUnitCostByInvId}
-          draftSupplierByInvId={draftSupplierByInvId}
-          setDraftSupplierByInvId={setDraftSupplierByInvId}
+          supplierValue={supplierValue}
           onChangeSupplier={onChangeSupplier}
           onRemoveItem={onRemoveItem}
         />
@@ -78,19 +95,16 @@ const ItemRow = memo(
   ({
     supplierId,
     item,
-    draftApprovedByInvId,
+    inventoryId,
+    approvedValue,
     setDraftApprovedByInvId,
-    draftUnitCostByInvId,
+    unitCost,
     setDraftUnitCostByInvId,
-    draftSupplierByInvId,
-    setDraftSupplierByInvId,
+    supplierValue,
     onChangeSupplier,
     onRemoveItem,
   }) => {
     const inventory = item?.inventory;
-    const inventoryId = String(item?.__inventoryId || inventory?._id || "");
-    const unitCost =
-      Number(draftUnitCostByInvId?.[inventoryId] ?? item?.__unitCost ?? 0) || 0;
     const availableStock = Number(item?.snapshot?.currentStock ?? 0) || 0;
     const requestQty = Number(item?.quantity?.request ?? 0) || 0;
 
@@ -99,8 +113,6 @@ const ItemRow = memo(
       const unitCostLabel = measurementLabels(inventory?.measurement).unitCost;
       return { unitCostLabel, unitLabel };
     }, [inventory?.measurement]);
-
-    const approvedValue = draftApprovedByInvId?.[inventoryId] ?? 0;
 
     const subtotal = useMemo(() => {
       const qty = Number(approvedValue) || 0;
@@ -120,17 +132,12 @@ const ItemRow = memo(
       return options.sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
     }, [inventory?.suppliers]);
 
-    const supplierValue =
-      String(draftSupplierByInvId?.[inventoryId] ?? item?.__supplierId ?? "") ||
-      String(supplierId || "");
-
     const selectedSupplier = useMemo(() => {
       return supplierOptions.find((option) => option.id === supplierValue) || null;
     }, [supplierOptions, supplierValue]);
 
     const handleSupplierChange = (value) => {
       const nextId = String(value || "");
-      setDraftSupplierByInvId?.((prev) => ({ ...(prev || {}), [inventoryId]: nextId }));
       onChangeSupplier?.(inventoryId, nextId);
     };
 

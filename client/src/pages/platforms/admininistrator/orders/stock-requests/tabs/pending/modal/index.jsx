@@ -21,7 +21,7 @@ import Spinner from "@/components/shared/spinner";
 import { SAVE as SAVE_PURCHASES } from "@/services/redux/slices/procurement/purchases";
 import { UPDATE as UPDATE_STOCK_REQUEST } from "@/services/redux/slices/procurement/stock-requests";
 import { Formatter, fullName, Inventory } from "@/services/utilities";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import SupplierGroupCard from "./supplier-group-card";
 import { buildGroupsFromRequest, getDefaultDeliveryWindow } from "./utils";
@@ -35,9 +35,9 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
   const { collections: inventories } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
-  const { formSubmitted } = useSelector(({ stockRequests }) => stockRequests);
 
   const [formattedGroups, setFormattedGroups] = useState([]);
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const [supplierFilter, setSupplierFilter] = useState("all");
   const [itemSearch, setItemSearch] = useState("");
   const [draftApprovedByInvId, setDraftApprovedByInvId] = useState({});
@@ -91,6 +91,7 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
     setDraftApprovedByInvId(initialDraft);
     setDraftUnitCostByInvId(initialUnitCostDraft);
     setDraftSupplierByInvId(initialSupplierDraft);
+    setFormSubmitted(false);
     setSupplierFilter("all");
     setItemSearch("");
   }, [open, request, inventoryById]);
@@ -130,7 +131,7 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
     return { suppliersCount, totalAmount };
   }, [formattedGroups, draftApprovedByInvId, draftUnitCostByInvId]);
 
-  const handleDateChange = (newDate, supplierId) => {
+  const handleDateChange = useCallback((newDate, supplierId) => {
     setFormattedGroups((prev) => {
       const next = Array.isArray(prev) ? [...prev] : [];
       const idx = next.findIndex(
@@ -140,29 +141,48 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
       next[idx] = { ...next[idx], deliveryWindow: newDate };
       return next;
     });
-  };
+  }, []);
 
-  const removeItem = (supplierId, inventoryId) => {
+  const removeItem = useCallback((supplierId, inventoryId) => {
+    const invId = String(inventoryId || "");
+    const supId = String(supplierId || "");
+    if (!invId || !supId) return;
+
     setFormattedGroups((prev) => {
-      const next = (Array.isArray(prev) ? prev : []).map((group) => {
-        if (String(group?.supplier || "") !== String(supplierId || ""))
-          return group;
-        const items = (Array.isArray(group?.items) ? group.items : []).filter(
-          (item) =>
-            String(item?.__inventoryId || "") !== String(inventoryId || ""),
-        );
-        return { ...group, items };
-      });
+      const groups = Array.isArray(prev) ? prev : [];
+      const sourceGroupIdx = groups.findIndex(
+        (group) => String(group?.supplier || "") === supId,
+      );
+      if (sourceGroupIdx < 0) return prev;
 
-      return next.filter((group) => (group?.items || []).length);
+      const sourceGroup = groups[sourceGroupIdx];
+      const sourceItems = Array.isArray(sourceGroup?.items)
+        ? sourceGroup.items
+        : [];
+      const sourceItemIdx = sourceItems.findIndex(
+        (item) => String(item?.__inventoryId || "") === invId,
+      );
+      if (sourceItemIdx < 0) return prev;
+
+      const nextGroups = [...groups];
+      const nextSourceItems = [...sourceItems];
+      nextSourceItems.splice(sourceItemIdx, 1);
+
+      if (!nextSourceItems.length) {
+        nextGroups.splice(sourceGroupIdx, 1);
+        return nextGroups;
+      }
+
+      nextGroups[sourceGroupIdx] = { ...sourceGroup, items: nextSourceItems };
+      return nextGroups;
     });
 
     setDraftApprovedByInvId((prev) => {
       const next = { ...(prev || {}) };
-      delete next[String(inventoryId || "")];
+      delete next[invId];
       return next;
     });
-  };
+  }, []);
 
   const visibleGroups = useMemo(() => {
     const query = String(itemSearch || "")
@@ -194,106 +214,137 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
       .filter((group) => (group?.items || []).length);
   }, [formattedGroups, itemSearch, supplierFilter]);
 
-  const close = (nextOpen) => onOpenChange?.(Boolean(nextOpen));
+  const close = (nextOpen) => {
+    const shouldOpen = Boolean(nextOpen);
+    if (!shouldOpen) setFormSubmitted(false);
+    onOpenChange?.(shouldOpen);
+  };
 
-  const moveItemToSupplier = (inventoryId, nextSupplierId) => {
-    const invId = String(inventoryId || "");
-    const supplierId = String(nextSupplierId || "");
-    if (!invId || !supplierId) return;
+  const moveItemToSupplier = useCallback(
+    (inventoryId, nextSupplierId) => {
+      const invId = String(inventoryId || "");
+      const supplierId = String(nextSupplierId || "");
+      if (!invId || !supplierId) return;
 
-    const inventory = inventoryById.get(invId);
-    const supplierRow =
-      inventory && supplierId
-        ? (Array.isArray(inventory?.suppliers) ? inventory.suppliers : []).find(
-            (row) => String(row?.supplier?._id || "") === supplierId,
-          )
+      const inventory = inventoryById.get(invId);
+      const supplierRow =
+        inventory && supplierId
+          ? (Array.isArray(inventory?.suppliers)
+              ? inventory.suppliers
+              : []
+            ).find((row) => String(row?.supplier?._id || "") === supplierId)
+          : null;
+
+      const nextUnitCost = supplierRow
+        ? Number(supplierRow?.cost ?? 0) || 0
         : null;
 
-    const nextUnitCost = supplierRow
-      ? Number(supplierRow?.cost ?? 0) || 0
-      : Number(draftUnitCostByInvId?.[invId] ?? 0) || 0;
-
-    setDraftSupplierByInvId((prev) => ({
-      ...(prev || {}),
-      [invId]: supplierId,
-    }));
-    if (supplierRow) {
-      setDraftUnitCostByInvId((prev) => ({
+      setDraftSupplierByInvId((prev) => ({
         ...(prev || {}),
-        [invId]: nextUnitCost,
+        [invId]: supplierId,
       }));
-    }
+      setDraftUnitCostByInvId((prev) => {
+        if (!supplierRow) return prev;
+        return { ...(prev || {}), [invId]: nextUnitCost };
+      });
 
-    setFormattedGroups((prev) => {
-      const groups = Array.isArray(prev) ? prev : [];
-      let movingItem = null;
-      const remaining = groups
-        .map((group) => {
+      setFormattedGroups((prev) => {
+        const groups = Array.isArray(prev) ? prev : [];
+
+        let sourceGroupIdx = -1;
+        let sourceItemIdx = -1;
+        for (let idx = 0; idx < groups.length; idx += 1) {
+          const group = groups[idx];
           const items = Array.isArray(group?.items) ? group.items : [];
-          const filtered = items.filter((item) => {
-            const isMatch = String(item?.__inventoryId || "") === invId;
-            if (isMatch) movingItem = item;
-            return !isMatch;
-          });
-          return { ...group, items: filtered };
-        })
-        .filter((group) => (group?.items || []).length);
+          const itemIdx = items.findIndex(
+            (item) => String(item?.__inventoryId || "") === invId,
+          );
+          if (itemIdx > -1) {
+            sourceGroupIdx = idx;
+            sourceItemIdx = itemIdx;
+            break;
+          }
+        }
 
-      if (!movingItem) return groups;
+        if (sourceGroupIdx < 0 || sourceItemIdx < 0) return prev;
 
-      const inventoryForItem =
-        inventoryById.get(invId) || movingItem?.inventory;
-      const nextSupplierLabel =
-        supplierLabelById.get(supplierId) ||
-        supplierRow?.supplier?.name ||
-        String(movingItem?.__supplierLabel || "Supplier");
+        const nextGroups = [...groups];
+        const sourceGroup = nextGroups[sourceGroupIdx];
+        const sourceItems = Array.isArray(sourceGroup?.items)
+          ? sourceGroup.items
+          : [];
+        const nextSourceItems = [...sourceItems];
+        const [movingItem] = nextSourceItems.splice(sourceItemIdx, 1);
 
-      const updatedItem = {
-        ...movingItem,
-        inventory: inventoryForItem,
-        __supplierId: supplierId,
-        __supplierLabel: nextSupplierLabel,
-        __unitCost: nextUnitCost,
-      };
+        if (!movingItem) return prev;
 
-      const targetIdx = remaining.findIndex(
-        (group) => String(group?.supplier || "") === supplierId,
-      );
-      if (targetIdx > -1) {
-        const next = [...remaining];
-        next[targetIdx] = {
-          ...next[targetIdx],
-          items: [
-            ...(Array.isArray(next[targetIdx].items)
-              ? next[targetIdx].items
-              : []),
-            updatedItem,
-          ],
+        if (!nextSourceItems.length) {
+          nextGroups.splice(sourceGroupIdx, 1);
+        } else {
+          nextGroups[sourceGroupIdx] = {
+            ...sourceGroup,
+            items: nextSourceItems,
+          };
+        }
+
+        const inventoryForItem =
+          inventoryById.get(invId) || movingItem?.inventory;
+        const nextSupplierLabel =
+          supplierLabelById.get(supplierId) ||
+          supplierRow?.supplier?.name ||
+          String(movingItem?.__supplierLabel || "Supplier");
+        const resolvedUnitCost =
+          supplierRow && nextUnitCost != null
+            ? nextUnitCost
+            : Number(movingItem?.__unitCost ?? 0) || 0;
+
+        const updatedItem = {
+          ...movingItem,
+          inventory: inventoryForItem,
+          __supplierId: supplierId,
+          __supplierLabel: nextSupplierLabel,
+          __unitCost: resolvedUnitCost,
         };
-        return next;
-      }
 
-      const defaultWindow = getDefaultDeliveryWindow();
-      return [
-        ...remaining,
-        {
+        const targetIdx = nextGroups.findIndex(
+          (group) => String(group?.supplier || "") === supplierId,
+        );
+        if (targetIdx > -1) {
+          const targetGroup = nextGroups[targetIdx];
+          const targetItems = Array.isArray(targetGroup?.items)
+            ? targetGroup.items
+            : [];
+          nextGroups[targetIdx] = {
+            ...targetGroup,
+            items: [...targetItems, updatedItem],
+          };
+          return nextGroups;
+        }
+
+        const defaultWindow = getDefaultDeliveryWindow();
+        nextGroups.push({
           supplier: supplierId,
           supplierLabel: nextSupplierLabel,
           items: [updatedItem],
           deliveryWindow: { from: defaultWindow.from, to: defaultWindow.to },
           totalAmount: 0,
-        },
-      ];
-    });
-  };
+        });
+        return nextGroups;
+      });
+    },
+    [inventoryById, supplierLabelById],
+  );
 
   const placeOrder = (event) => {
     event.preventDefault();
+    if (formSubmitted) return;
     const requestId = String(request?._id || "");
     if (!requestId) return;
 
     const groups = Array.isArray(formattedGroups) ? formattedGroups : [];
     if (!groups.length) return;
+
+    setFormSubmitted(true);
 
     const cart = [];
     const purchases = [];
@@ -365,37 +416,36 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
         },
       };
     });
-    console.log("updatedItems", updatedItems);
-    console.log("cart", cart);
-    // dispatch(SAVE_PURCHASES({ data: { cart, purchases }, token }))
-    //   .unwrap()
-    //   .then(() => {
-    //     return dispatch(
-    //       UPDATE_STOCK_REQUEST({
-    //         data: {
-    //           _id: requestId,
-    //           status: "approved",
-    //           items: updatedItems,
-    //           admin: {
-    //             reviewedBy: auth?._id,
-    //             reviewedAt: new Date(),
-    //           },
-    //           conversion: {
-    //             isConvertedToOrder: true,
-    //             convertedBy: auth?._id,
-    //             convertedAt: new Date(),
-    //           },
-    //           updatingRequest: true,
-    //         },
-    //         token,
-    //       }),
-    //     ).unwrap();
-    //   })
-    //   .then(() => {
-    //     toast.success("Order placed successfully.");
-    //     close(false);
-    //   })
-    //   .catch(() => toast.error("Failed to place order. Please try again."));
+    dispatch(SAVE_PURCHASES({ data: { cart, purchases }, token }))
+      .unwrap()
+      .then(() => {
+        return dispatch(
+          UPDATE_STOCK_REQUEST({
+            data: {
+              _id: requestId,
+              status: "approved",
+              items: updatedItems,
+              admin: {
+                reviewedBy: auth?._id,
+                reviewedAt: new Date(),
+              },
+              conversion: {
+                isConvertedToOrder: true,
+                convertedBy: auth?._id,
+                convertedAt: new Date(),
+              },
+              updatingRequest: true,
+            },
+            token,
+          }),
+        ).unwrap();
+      })
+      .then(() => {
+        toast.success("Order placed successfully.");
+        close(false);
+      })
+      .catch(() => toast.error("Failed to place order. Please try again."))
+      .finally(() => setFormSubmitted(false));
   };
 
   return (
@@ -502,7 +552,6 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
                     draftUnitCostByInvId={draftUnitCostByInvId}
                     setDraftUnitCostByInvId={setDraftUnitCostByInvId}
                     draftSupplierByInvId={draftSupplierByInvId}
-                    setDraftSupplierByInvId={setDraftSupplierByInvId}
                     onChangeSupplier={moveItemToSupplier}
                     onRemoveItem={removeItem}
                   />

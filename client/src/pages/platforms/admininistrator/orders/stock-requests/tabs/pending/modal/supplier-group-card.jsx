@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+﻿import { memo, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -21,7 +21,6 @@ const SupplierGroupCard = memo(
     draftUnitCostByInvId,
     setDraftUnitCostByInvId,
     draftSupplierByInvId,
-    setDraftSupplierByInvId,
     onChangeSupplier,
     onRemoveItem,
   }) => {
@@ -136,7 +135,6 @@ const SupplierGroupCard = memo(
           draftUnitCostByInvId={draftUnitCostByInvId}
           setDraftUnitCostByInvId={setDraftUnitCostByInvId}
           draftSupplierByInvId={draftSupplierByInvId}
-          setDraftSupplierByInvId={setDraftSupplierByInvId}
           onChangeSupplier={onChangeSupplier}
           onRemoveItem={onRemoveItem}
         />
