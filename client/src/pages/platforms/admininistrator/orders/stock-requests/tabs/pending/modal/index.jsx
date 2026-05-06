@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -18,109 +17,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
 import Spinner from "@/components/shared/spinner";
 import { SAVE as SAVE_PURCHASES } from "@/services/redux/slices/procurement/purchases";
 import { UPDATE as UPDATE_STOCK_REQUEST } from "@/services/redux/slices/procurement/stock-requests";
 import { Formatter, fullName, Inventory } from "@/services/utilities";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import ConvertToOrderItemsList from "./items-list";
-import { CalendarIcon, Search, ShoppingBag } from "lucide-react";
+import SupplierGroupCard from "./supplier-group-card";
+import { buildGroupsFromRequest, getDefaultDeliveryWindow } from "./utils";
+import { Search, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-
-const toDate = (value) => {
-  if (!value) return undefined;
-  if (value instanceof Date) return value;
-  const maybeDate = new Date(value);
-  return Number.isNaN(maybeDate.getTime()) ? undefined : maybeDate;
-};
-
-const formatDate = (date) => {
-  if (!date) return null;
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-    .format(new Date(date))
-    .replace(/\//g, "-");
-};
-
-const getDefaultDeliveryWindow = () => {
-  const now = new Date();
-
-  const from = new Date(now);
-  from.setDate(from.getDate() + 1);
-
-  const to = new Date(now);
-  to.setDate(to.getDate() + 3);
-
-  return {
-    from: formatDate(from),
-    to: formatDate(to),
-  };
-};
-
-const getPrimarySupplierRow = (inventory) => {
-  const suppliers = Array.isArray(inventory?.suppliers) ? inventory.suppliers : [];
-  return (
-    suppliers
-      .slice()
-      .sort(
-        (a, b) => Number(Boolean(b?.isPrimary)) - Number(Boolean(a?.isPrimary)),
-      )[0] || null
-  );
-};
-
-const buildGroupsFromRequest = (request, inventoryById) => {
-  const items = Array.isArray(request?.items) ? request.items : [];
-  const groupsMap = new Map();
-  const defaultWindow = getDefaultDeliveryWindow();
-
-  for (const item of items) {
-    const inventoryId = String(item?.inventory?._id || item?.inventory || "");
-    const inventory = inventoryId ? inventoryById.get(inventoryId) : null;
-
-    const supplierRow = inventory ? getPrimarySupplierRow(inventory) : null;
-    const supplierId = String(supplierRow?.supplier?._id || "unknown");
-    const supplierLabel = String(supplierRow?.supplier?.name || "Supplier");
-    const unitCost = Number(supplierRow?.cost ?? inventory?.cost ?? 0) || 0;
-
-    if (!groupsMap.has(supplierId)) {
-      groupsMap.set(supplierId, {
-        supplier: supplierId,
-        supplierLabel,
-        items: [],
-        deliveryWindow: {
-          from: defaultWindow.from,
-          to: defaultWindow.to,
-        },
-        totalAmount: 0,
-      });
-    }
-
-    const group = groupsMap.get(supplierId);
-    group.items.push({
-      ...item,
-      inventory: inventory || item?.inventory,
-      __inventoryId: inventoryId,
-      __unitCost: unitCost,
-      __supplierId: supplierId,
-      __supplierLabel: supplierLabel,
-    });
-  }
-
-  return Array.from(groupsMap.values());
-};
 
 const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
   const dispatch = useDispatch();
@@ -424,12 +330,12 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
                   </div>
                 </div>
 
-                <div className="w-full">
+                <div className="w-full sm:justify-self-stretch">
                   <Label className="text-xs text-muted-foreground">
                     Supplier
                   </Label>
                   <Select value={supplierFilter} onValueChange={setSupplierFilter}>
-                    <SelectTrigger className="mt-1 h-10 bg-background/60">
+                    <SelectTrigger className="mt-1 h-10 w-full bg-background/60">
                       <SelectValue placeholder="All suppliers" />
                     </SelectTrigger>
                     <SelectContent>
@@ -505,130 +411,3 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
 
 export default memo(ConvertToOrderModal);
 
-const SupplierGroupCard = memo(
-  ({
-    group,
-    supplierLabelById,
-    handleDateChange,
-    draftApprovedByInvId,
-    setDraftApprovedByInvId,
-    draftUnitCostByInvId,
-    setDraftUnitCostByInvId,
-    onRemoveItem,
-  }) => {
-    const items = Array.isArray(group?.items) ? group.items : [];
-    const itemsCount = items.length;
-    const deliveryWindow = group?.deliveryWindow || {};
-
-    const safeDeliveryWindow = {
-      from: toDate(deliveryWindow?.from),
-      to: toDate(deliveryWindow?.to),
-    };
-
-    const groupTotal = useMemo(() => {
-      return items.reduce((sum, item) => {
-        const inventoryId = String(item?.__inventoryId || "");
-        const approvedQty = Number(draftApprovedByInvId[inventoryId] ?? 0) || 0;
-        const unitCost =
-          Number(draftUnitCostByInvId[inventoryId] ?? item?.__unitCost ?? 0) || 0;
-        return sum + approvedQty * unitCost;
-      }, 0);
-    }, [items, draftApprovedByInvId, draftUnitCostByInvId]);
-
-    return (
-      <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-base font-semibold text-foreground">
-                {supplierLabelById.get(group.supplier) ||
-                  group?.supplierLabel ||
-                  "Supplier"}
-              </p>
-              <Badge variant="secondary" className="rounded-full">
-                {itemsCount} item(s)
-              </Badge>
-            </div>
-            <p className="text-sm font-semibold tabular-nums text-foreground">
-              {Formatter.amount(groupTotal)}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Set expected delivery range for this supplier.
-            </p>
-          </div>
-
-          <div className="w-full space-y-1 sm:w-80">
-            <Label className="text-xs text-muted-foreground">
-              Expected delivery range
-            </Label>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="date"
-                  variant="outline"
-                  className={cn(
-                    "h-10 w-full justify-start gap-2 text-left font-normal sm:w-[300px]",
-                  )}
-                >
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                  {deliveryWindow?.from ? (
-                    deliveryWindow?.to ? (
-                      <>
-                        {Formatter.date(deliveryWindow.from)} –{" "}
-                        {Formatter.date(deliveryWindow.to)}
-                      </>
-                    ) : (
-                      <>{Formatter.date(deliveryWindow.from)}</>
-                    )
-                  ) : (
-                    <span className="text-muted-foreground">
-                      Pick a date range
-                    </span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={safeDeliveryWindow?.from}
-                  selected={safeDeliveryWindow}
-                  onSelect={(range) => {
-                    if (!range) return;
-
-                    if (range.from && !range.to) {
-                      handleDateChange(
-                        { from: range.from, to: range.from },
-                        group.supplier,
-                      );
-                    } else {
-                      handleDateChange(range, group.supplier);
-                    }
-                  }}
-                  numberOfMonths={2}
-                  disabled={(day) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    return day < today;
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-
-        <Separator className="my-4" />
-        <ConvertToOrderItemsList
-          supplierId={group.supplier}
-          rows={items}
-          draftApprovedByInvId={draftApprovedByInvId}
-          setDraftApprovedByInvId={setDraftApprovedByInvId}
-          draftUnitCostByInvId={draftUnitCostByInvId}
-          setDraftUnitCostByInvId={setDraftUnitCostByInvId}
-          onRemoveItem={onRemoveItem}
-        />
-      </div>
-    );
-  },
-);
