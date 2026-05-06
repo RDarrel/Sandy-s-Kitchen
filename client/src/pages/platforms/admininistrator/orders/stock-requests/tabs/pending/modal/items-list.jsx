@@ -175,10 +175,18 @@ const ItemRow = memo(
               </SelectTrigger>
               <SelectContent>
                 {supplierOptions.map((option) => (
-                  <SelectItem key={option.id} value={option.id}>
-                    {option.label || option.id}{" "}
-                    <span className="text-muted-foreground">
-                      — {Formatter.amount(option.cost)}
+                  <SelectItem
+                    key={option.id}
+                    value={option.id}
+                    className={option.isPrimary ? "font-semibold" : undefined}
+                  >
+                    <span className="flex w-full items-center justify-between gap-2">
+                      <span className="min-w-0 truncate">
+                        {option.label || option.id}
+                      </span>
+                      <span className="shrink-0 tabular-nums text-muted-foreground">
+                        {Formatter.amount(option.cost)}
+                      </span>
                     </span>
                   </SelectItem>
                 ))}
