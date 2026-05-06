@@ -20,6 +20,9 @@ const SupplierGroupCard = memo(
     setDraftApprovedByInvId,
     draftUnitCostByInvId,
     setDraftUnitCostByInvId,
+    draftSupplierByInvId,
+    setDraftSupplierByInvId,
+    onChangeSupplier,
     onRemoveItem,
   }) => {
     const items = Array.isArray(group?.items) ? group.items : [];
@@ -132,6 +135,9 @@ const SupplierGroupCard = memo(
           setDraftApprovedByInvId={setDraftApprovedByInvId}
           draftUnitCostByInvId={draftUnitCostByInvId}
           setDraftUnitCostByInvId={setDraftUnitCostByInvId}
+          draftSupplierByInvId={draftSupplierByInvId}
+          setDraftSupplierByInvId={setDraftSupplierByInvId}
+          onChangeSupplier={onChangeSupplier}
           onRemoveItem={onRemoveItem}
         />
       </div>

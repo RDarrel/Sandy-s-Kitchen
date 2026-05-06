@@ -42,6 +42,7 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
   const [itemSearch, setItemSearch] = useState("");
   const [draftApprovedByInvId, setDraftApprovedByInvId] = useState({});
   const [draftUnitCostByInvId, setDraftUnitCostByInvId] = useState({});
+  const [draftSupplierByInvId, setDraftSupplierByInvId] = useState({});
 
   const supplierLabelById = useMemo(() => {
     const map = new Map();
@@ -75,16 +76,21 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
 
     const initialDraft = {};
     const initialUnitCostDraft = {};
+    const initialSupplierDraft = {};
     for (const group of groups) {
       for (const item of Array.isArray(group?.items) ? group.items : []) {
         const inventoryId = String(item?.__inventoryId || "");
         if (!inventoryId) continue;
         initialDraft[inventoryId] = Number(item?.quantity?.approved ?? 0) || 0;
         initialUnitCostDraft[inventoryId] = Number(item?.__unitCost ?? 0) || 0;
+        initialSupplierDraft[inventoryId] = String(
+          item?.__supplierId || group?.supplier || "",
+        );
       }
     }
     setDraftApprovedByInvId(initialDraft);
     setDraftUnitCostByInvId(initialUnitCostDraft);
+    setDraftSupplierByInvId(initialSupplierDraft);
     setSupplierFilter("all");
     setItemSearch("");
   }, [open, request, inventoryById]);
@@ -184,6 +190,88 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
   }, [formattedGroups, itemSearch, supplierFilter]);
 
   const close = (nextOpen) => onOpenChange?.(Boolean(nextOpen));
+
+  const moveItemToSupplier = (inventoryId, nextSupplierId) => {
+    const invId = String(inventoryId || "");
+    const supplierId = String(nextSupplierId || "");
+    if (!invId || !supplierId) return;
+
+    const inventory = inventoryById.get(invId);
+    const supplierRow =
+      inventory && supplierId
+        ? (Array.isArray(inventory?.suppliers) ? inventory.suppliers : []).find(
+            (row) => String(row?.supplier?._id || "") === supplierId,
+          )
+        : null;
+
+    const nextUnitCost = supplierRow
+      ? Number(supplierRow?.cost ?? 0) || 0
+      : Number(draftUnitCostByInvId?.[invId] ?? 0) || 0;
+
+    setDraftSupplierByInvId((prev) => ({ ...(prev || {}), [invId]: supplierId }));
+    if (supplierRow) {
+      setDraftUnitCostByInvId((prev) => ({ ...(prev || {}), [invId]: nextUnitCost }));
+    }
+
+    setFormattedGroups((prev) => {
+      const groups = Array.isArray(prev) ? prev : [];
+      let movingItem = null;
+      const remaining = groups
+        .map((group) => {
+          const items = Array.isArray(group?.items) ? group.items : [];
+          const filtered = items.filter((item) => {
+            const isMatch = String(item?.__inventoryId || "") === invId;
+            if (isMatch) movingItem = item;
+            return !isMatch;
+          });
+          return { ...group, items: filtered };
+        })
+        .filter((group) => (group?.items || []).length);
+
+      if (!movingItem) return groups;
+
+      const inventoryForItem = inventoryById.get(invId) || movingItem?.inventory;
+      const nextSupplierLabel =
+        supplierLabelById.get(supplierId) ||
+        supplierRow?.supplier?.name ||
+        String(movingItem?.__supplierLabel || "Supplier");
+
+      const updatedItem = {
+        ...movingItem,
+        inventory: inventoryForItem,
+        __supplierId: supplierId,
+        __supplierLabel: nextSupplierLabel,
+        __unitCost: nextUnitCost,
+      };
+
+      const targetIdx = remaining.findIndex(
+        (group) => String(group?.supplier || "") === supplierId,
+      );
+      if (targetIdx > -1) {
+        const next = [...remaining];
+        next[targetIdx] = {
+          ...next[targetIdx],
+          items: [
+            ...(Array.isArray(next[targetIdx].items) ? next[targetIdx].items : []),
+            updatedItem,
+          ],
+        };
+        return next;
+      }
+
+      const defaultWindow = getDefaultDeliveryWindow();
+      return [
+        ...remaining,
+        {
+          supplier: supplierId,
+          supplierLabel: nextSupplierLabel,
+          items: [updatedItem],
+          deliveryWindow: { from: defaultWindow.from, to: defaultWindow.to },
+          totalAmount: 0,
+        },
+      ];
+    });
+  };
 
   const placeOrder = (event) => {
     event.preventDefault();
@@ -361,6 +449,9 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
                     setDraftApprovedByInvId={setDraftApprovedByInvId}
                     draftUnitCostByInvId={draftUnitCostByInvId}
                     setDraftUnitCostByInvId={setDraftUnitCostByInvId}
+                    draftSupplierByInvId={draftSupplierByInvId}
+                    setDraftSupplierByInvId={setDraftSupplierByInvId}
+                    onChangeSupplier={moveItemToSupplier}
                     onRemoveItem={removeItem}
                   />
                 ))

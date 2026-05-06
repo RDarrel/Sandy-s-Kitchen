@@ -1,5 +1,12 @@
 ﻿import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Formatter, Inventory } from "@/services/utilities";
 import { Trash2 } from "lucide-react";
 import { memo, useMemo } from "react";
@@ -25,6 +32,9 @@ const ConvertToOrderItemsList = ({
   setDraftApprovedByInvId,
   draftUnitCostByInvId,
   setDraftUnitCostByInvId,
+  draftSupplierByInvId,
+  setDraftSupplierByInvId,
+  onChangeSupplier,
   onRemoveItem,
 }) => {
   const safeRows = Array.isArray(rows) ? rows : [];
@@ -52,6 +62,9 @@ const ConvertToOrderItemsList = ({
           setDraftApprovedByInvId={setDraftApprovedByInvId}
           draftUnitCostByInvId={draftUnitCostByInvId}
           setDraftUnitCostByInvId={setDraftUnitCostByInvId}
+          draftSupplierByInvId={draftSupplierByInvId}
+          setDraftSupplierByInvId={setDraftSupplierByInvId}
+          onChangeSupplier={onChangeSupplier}
           onRemoveItem={onRemoveItem}
         />
       ))}
@@ -69,11 +82,15 @@ const ItemRow = memo(
     setDraftApprovedByInvId,
     draftUnitCostByInvId,
     setDraftUnitCostByInvId,
+    draftSupplierByInvId,
+    setDraftSupplierByInvId,
+    onChangeSupplier,
     onRemoveItem,
   }) => {
     const inventory = item?.inventory;
     const inventoryId = String(item?.__inventoryId || inventory?._id || "");
-    const unitCost = Number(draftUnitCostByInvId?.[inventoryId] ?? item?.__unitCost ?? 0) || 0;
+    const unitCost =
+      Number(draftUnitCostByInvId?.[inventoryId] ?? item?.__unitCost ?? 0) || 0;
     const availableStock = Number(item?.snapshot?.currentStock ?? 0) || 0;
     const requestQty = Number(item?.quantity?.request ?? 0) || 0;
 
@@ -89,6 +106,33 @@ const ItemRow = memo(
       const qty = Number(approvedValue) || 0;
       return (Number(unitCost) || 0) * qty;
     }, [approvedValue, unitCost]);
+
+    const supplierOptions = useMemo(() => {
+      const options = (Array.isArray(inventory?.suppliers) ? inventory.suppliers : [])
+        .map((row) => ({
+          id: String(row?.supplier?._id || ""),
+          label: String(row?.supplier?.name || ""),
+          cost: Number(row?.cost ?? 0) || 0,
+          isPrimary: Boolean(row?.isPrimary),
+        }))
+        .filter((option) => option.id);
+
+      return options.sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
+    }, [inventory?.suppliers]);
+
+    const supplierValue =
+      String(draftSupplierByInvId?.[inventoryId] ?? item?.__supplierId ?? "") ||
+      String(supplierId || "");
+
+    const selectedSupplier = useMemo(() => {
+      return supplierOptions.find((option) => option.id === supplierValue) || null;
+    }, [supplierOptions, supplierValue]);
+
+    const handleSupplierChange = (value) => {
+      const nextId = String(value || "");
+      setDraftSupplierByInvId?.((prev) => ({ ...(prev || {}), [inventoryId]: nextId }));
+      onChangeSupplier?.(inventoryId, nextId);
+    };
 
     const handleUnitCostChange = (event) => {
       const raw = String(event.target.value || 0);
@@ -109,11 +153,38 @@ const ItemRow = memo(
     const handleRemove = () => onRemoveItem?.(supplierId, inventoryId);
 
     return (
-      <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/30 px-3 py-3 text-sm shadow-sm transition-colors hover:bg-background/40 sm:grid-cols-[1fr_150px_120px_170px_150px_120px_56px] sm:items-center sm:gap-3">
+      <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/30 px-3 py-3 text-sm shadow-sm transition-colors hover:bg-background/40 sm:grid-cols-[1fr_150px_120px_170px_150px_120px_56px] sm:items-start sm:gap-3">
         <div className="min-w-0">
           <p className="truncate font-semibold text-foreground">
             {inventory?.name || "Item"}
           </p>
+          <div className="mt-2 grid gap-1">
+            <span className="text-xs text-muted-foreground">Supplier</span>
+            <Select value={supplierValue} onValueChange={handleSupplierChange}>
+              <SelectTrigger className="h-8 w-full bg-background/60 text-xs sm:w-64">
+                <span className="flex w-full min-w-0 items-center justify-between gap-2">
+                  <span className="min-w-0 truncate text-left">
+                    {selectedSupplier?.label || "Select supplier"}
+                  </span>
+                  {selectedSupplier ? (
+                    <span className="shrink-0 tabular-nums text-muted-foreground">
+                      {Formatter.amount(selectedSupplier.cost)} / {unitLabel || "unit"}
+                    </span>
+                  ) : null}
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                {supplierOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.label || option.id}{" "}
+                    <span className="text-muted-foreground">
+                      — {Formatter.amount(option.cost)}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="flex items-baseline justify-between gap-2 sm:block">
@@ -139,9 +210,7 @@ const ItemRow = memo(
         </div>
 
         <div className="flex items-center justify-between gap-2 sm:block">
-          <span className="text-xs text-muted-foreground sm:hidden">
-            {unitCostLabel}
-          </span>
+          <span className="text-xs text-muted-foreground sm:hidden">{unitCostLabel}</span>
           <div className="flex w-full items-center justify-between gap-2 sm:justify-start">
             <Input
               value={unitCost}
@@ -157,9 +226,7 @@ const ItemRow = memo(
         </div>
 
         <div className="flex items-center justify-between gap-2 sm:justify-start sm:pl-2">
-          <span className="text-xs text-muted-foreground sm:hidden">
-            Approved qty
-          </span>
+          <span className="text-xs text-muted-foreground sm:hidden">Approved qty</span>
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <Input
               value={approvedValue}
