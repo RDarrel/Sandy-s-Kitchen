@@ -77,9 +77,9 @@ const StockRequestCard = ({
           </div>
 
           <p className="truncate text-xs text-muted-foreground">
-            Request ID:{" "}
+            Email:{" "}
             <span className="font-medium text-foreground/90">
-              {requestId || "-"}
+              {request?.requestedBy?.email || "-"}
             </span>
           </p>
         </div>
@@ -139,7 +139,7 @@ const StockRequestCard = ({
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg bg-background/40 p-3 text-sm">
+      <div className="mt-2 rounded-lg bg-background/40 p-3 text-sm">
         <Collapsible open={isOpen} onOpenChange={onOpenChange}>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="flex items-center gap-2">

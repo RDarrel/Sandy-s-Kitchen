@@ -16,7 +16,7 @@ exports.browse = async (req, res) => {
       status: req.query.status,
       deletedAt: { $exists: false },
     })
-      .populate("requestedBy", "fullName")
+      .populate("requestedBy", "fullName email")
       .populate({
         path: "items.inventory",
         populate: {

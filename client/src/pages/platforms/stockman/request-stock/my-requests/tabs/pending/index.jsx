@@ -106,7 +106,7 @@ const PendingRequestsTab = () => {
           <TableHeader className="bg-muted/40">
             <TableRow>
               <TableHead>#</TableHead>
-              <TableHead>Date requested</TableHead>
+              <TableHead>Date Requested</TableHead>
               <TableHead>Items Requested</TableHead>
               <TableHead className="w-[160px] text-center">Action</TableHead>
             </TableRow>
@@ -203,7 +203,7 @@ const PendingRequestsTab = () => {
         capture={() => confirmCancel()}
         showCancelButton
         className="w-[22rem]"
-        buttonTitle="Yes, remove it"
+        buttonTitle="Yes, cancel it"
         buttonClassName="bg-destructive  hover:bg-destructive/90"
         index={0}
         message={
