@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Package2, Boxes } from "lucide-react";
 import { capitalize } from "lodash";
 import { statusClasses } from "./config";
 import { useDispatch, useSelector } from "react-redux";
@@ -47,38 +47,38 @@ const InventoryBody = ({
   const { filtered, formSubmitted, isLoading } = useSelector(
       ({ inventoryItems }) => inventoryItems,
     ),
-	    [page, setPage] = useState(1),
-	    [maxPage, setMaxPage] = useState(5),
-	    dispatch = useDispatch();
+    [page, setPage] = useState(1),
+    [maxPage, setMaxPage] = useState(5),
+    dispatch = useDispatch();
 
-	  const sortedFiltered = useMemo(() => {
-	    const rank = {
-	      "out of stock": 0,
-	      "low stock": 1,
-	      "in stock": 2,
-	    };
+  const sortedFiltered = useMemo(() => {
+    const rank = {
+      "out of stock": 0,
+      "low stock": 1,
+      "in stock": 2,
+    };
 
-	    return (filtered || [])
-	      .map((item, index) => ({ item, index }))
-	      .sort((a, b) => {
-	        const aKey = String(a?.item?.stockStatus || "")
-	          .trim()
-	          .toLowerCase();
-	        const bKey = String(b?.item?.stockStatus || "")
-	          .trim()
-	          .toLowerCase();
-	        const aRank = rank[aKey] ?? 99;
-	        const bRank = rank[bKey] ?? 99;
+    return (filtered || [])
+      .map((item, index) => ({ item, index }))
+      .sort((a, b) => {
+        const aKey = String(a?.item?.stockStatus || "")
+          .trim()
+          .toLowerCase();
+        const bKey = String(b?.item?.stockStatus || "")
+          .trim()
+          .toLowerCase();
+        const aRank = rank[aKey] ?? 99;
+        const bRank = rank[bKey] ?? 99;
 
-	        if (aRank !== bRank) return aRank - bRank;
-	        return a.index - b.index;
-	      })
-	      .map(({ item }) => item);
-	  }, [filtered]);
-	  return (
-	    <>
-	      <CardContent className="space-y-4">
-	        {!isLoading ? (
+        if (aRank !== bRank) return aRank - bRank;
+        return a.index - b.index;
+      })
+      .map(({ item }) => item);
+  }, [filtered]);
+  return (
+    <>
+      <CardContent className="space-y-4">
+        {!isLoading ? (
           <>
             <div className="overflow-hidden rounded-[7px] border border-border bg-card">
               <Table>
@@ -86,77 +86,97 @@ const InventoryBody = ({
                   <TableRow>
                     <TableHead>Item</TableHead>
                     <TableHead>Cost</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Available Stock</TableHead>
+                    <TableHead>Expiring Soon</TableHead>
+                    <TableHead>Expired</TableHead>
                     <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
-	                </TableHeader>
-	                <TableBody>
-	                  {sortedFiltered.length ? (
-	                    handlePagination(sortedFiltered, page, maxPage).map((item) => {
-	                      return (
-	                        <TableRow key={item._id} className="">
-	                          <TableCell className="whitespace-normal">
-	                            <div className="space-y-1">
-                              <p className="font-semibold text-foreground">
-                                {capitalize(item.name)}
-                              </p>
-                              <p className="max-w-xs text-xs leading-5 text-muted-foreground">
-                                {item.description || "No description provided."}
-                              </p>
-                            </div>
-                          </TableCell>
+                </TableHeader>
+                <TableBody>
+                  {sortedFiltered.length ? (
+                    handlePagination(sortedFiltered, page, maxPage).map(
+                      (item) => {
+                        return (
+                          <TableRow key={item._id} className="">
+                            <TableCell className="whitespace-normal">
+                              <div className="space-y-1">
+                                <p className="font-semibold text-foreground">
+                                  {capitalize(item.name)}
+                                </p>
+                                <p className="max-w-xs text-xs leading-5 text-muted-foreground">
+                                  {item.description ||
+                                    "No description provided."}
+                                </p>
+                              </div>
+                            </TableCell>
 
-                          <TableCell>
-                            <p className="font-medium text-foreground">{`${Formatter.amount(item.cost)} / ${Stock.getUnit(item.measurement)}`}</p>
-                            {item?.supplier ? (
-                              <p className="text-xs text-muted-foreground">
-                                From {item.supplier.name}
-                                {item?.suppliers?.length > 1 && (
-                                  <span className="ml-1">
-                                    (+{item.suppliers.length - 1} more)
-                                  </span>
+                            <TableCell>
+                              <p className="font-medium text-foreground">{`${Formatter.amount(item.cost)} / ${Stock.getUnit(item.measurement)}`}</p>
+                              {item?.supplier ? (
+                                <p className="text-xs text-muted-foreground">
+                                  From {item.supplier.name}
+                                  {item?.suppliers?.length > 1 && (
+                                    <span className="ml-1">
+                                      (+{item.suppliers.length - 1} more)
+                                    </span>
+                                  )}
+                                </p>
+                              ) : (
+                                <p className="text-xs text-muted-foreground">
+                                  No supplier
+                                </p>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <p className="font-medium text-foreground">
+                                {Stock.display(
+                                  item?.stockDisplay?.current,
+                                  item.measurement,
                                 )}
                               </p>
-                            ) : (
                               <p className="text-xs text-muted-foreground">
-                                No supplier
+                                {capitalize(item?.stockStatus)}
                               </p>
-                            )}
-                          </TableCell>
-                          <TableCell className="font-medium text-foreground">
-                            {Stock.display(
-                              item?.stockDisplay?.current,
-                              item.measurement,
-                            )}
-                          </TableCell>
+                            </TableCell>
+                            <TableCell className="font-medium text-foreground">
+                              {Stock.display(
+                                item?.stockDisplay?.current,
+                                item.measurement,
+                              )}
+                            </TableCell>
+                            <TableCell className="font-medium text-foreground">
+                              {Stock.display(
+                                item?.stockDisplay?.current,
+                                item.measurement,
+                              )}
+                            </TableCell>
 
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={`rounded-full ${statusClasses[item?.stockStatus]}`}
-                            >
-                              {capitalize(item?.stockStatus)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex justify-end gap-2">
-                              <ActionButton
-                                title="Edit"
-                                icon={Pencil}
-                                onClick={() => dispatch(Set_SELECTED(item))}
-                              />
-                              <ActionButton
-                                title="Delete"
-                                icon={Trash2}
-                                destructive
-                                onClick={() => onRequestDelete(item)}
-                              />
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
+                            <TableCell>
+                              <div className="flex justify-end gap-2">
+                                <ActionButton
+                                  title="View Batches"
+                                  icon={Boxes}
+                                  destructive
+                                  onClick={() => console.log(item)}
+                                />
+                                <ActionButton
+                                  title="Edit"
+                                  icon={Pencil}
+                                  onClick={() => dispatch(Set_SELECTED(item))}
+                                />
+
+                                <ActionButton
+                                  title="Delete"
+                                  icon={Trash2}
+                                  destructive
+                                  onClick={() => onRequestDelete(item)}
+                                />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      },
+                    )
                   ) : (
                     <TableRow>
                       <TableCell colSpan={7} className="py-14 text-center">
@@ -175,19 +195,19 @@ const InventoryBody = ({
                 </TableBody>
               </Table>
             </div>
-	            <CustomPagination
-	              title="Inventory Item"
-	              titleExtension="s"
-	              page={page}
-	              setPage={setPage}
-	              maxPage={maxPage}
-	              setMaxPage={setMaxPage}
-	              datas={sortedFiltered}
-	            />
-	          </>
-	        ) : (
-	          <TableLoading numberOfColumns={7} />
-	        )}
+            <CustomPagination
+              title="Inventory Item"
+              titleExtension="s"
+              page={page}
+              setPage={setPage}
+              maxPage={maxPage}
+              setMaxPage={setMaxPage}
+              datas={sortedFiltered}
+            />
+          </>
+        ) : (
+          <TableLoading numberOfColumns={7} />
+        )}
       </CardContent>
 
       <CustomAlert
