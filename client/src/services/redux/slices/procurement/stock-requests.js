@@ -224,17 +224,24 @@ export const reduxSlice = createSlice({
       }
 
       state.filtered = rows.filter((row) => {
-        const supplierName = String(row?.supplier?.name || "");
-        const requestedBy = String(row?.requestedBy?._id || row?.requestedBy || "");
+        const requestedByName = String(row?.requestedBy?.fullName || "");
+        const requestedById = String(row?.requestedBy?._id || row?.requestedBy || "");
         const status = String(row?.status || "");
         const adminNote = String(row?.admin?.note || "");
         const id = String(row?._id || "");
 
+        const items = Array.isArray(row?.items) ? row.items : [];
+        const itemNames = items
+          .map((item) => String(item?.inventory?.name || ""))
+          .filter(Boolean)
+          .join(" ");
+
         return (
-          supplierName.toLowerCase().includes(query) ||
-          requestedBy.toLowerCase().includes(query) ||
+          requestedByName.toLowerCase().includes(query) ||
+          requestedById.toLowerCase().includes(query) ||
           status.toLowerCase().includes(query) ||
           adminNote.toLowerCase().includes(query) ||
+          itemNames.toLowerCase().includes(query) ||
           id.toLowerCase().includes(query)
         );
       });
