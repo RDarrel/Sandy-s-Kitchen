@@ -65,7 +65,7 @@ const StockRequests = () => {
                 <Input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search request..."
+                  placeholder="Search stockman..."
                   className="h-10 bg-background/60 pl-9"
                   type="search"
                 />

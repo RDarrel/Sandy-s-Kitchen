@@ -224,7 +224,9 @@ export const reduxSlice = createSlice({
       }
 
       state.filtered = rows.filter((row) => {
-        const requestedByName = String(row?.requestedBy?.fullName || "");
+        const requestedByName = Object.values(
+          row?.requestedBy?.fullName || {},
+        ).join(" ");
         const requestedById = String(
           row?.requestedBy?._id || row?.requestedBy || "",
         );
@@ -239,7 +241,7 @@ export const reduxSlice = createSlice({
           .join(" ");
 
         return (
-          requestedByName.toLowerCase().includes(query) ||
+          requestedByName.toLowerCase().includes(query.toLowerCase()) ||
           requestedById.toLowerCase().includes(query) ||
           status.toLowerCase().includes(query) ||
           adminNote.toLowerCase().includes(query) ||
