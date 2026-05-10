@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Clock,
   FileX2,
+  Eye,
   Package,
   ShoppingCart,
 } from "lucide-react";
@@ -26,6 +27,8 @@ const StockRequestCard = ({
   actionsDisabled,
   onDecline,
   onConvertToOrder,
+  showViewDetails,
+  onViewDetails,
 }) => {
   const meta = useMemo(() => {
     const statusKey = String(request?.status || "pending").toLowerCase();
@@ -117,23 +120,42 @@ const StockRequestCard = ({
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <Badge
-                variant="secondary"
-                className="rounded-full tabular-nums"
-                title="Total requested items"
-              >
-                <ClipboardList className="h-3.5 w-3.5" />
-                {itemsCount} item(s)
-              </Badge>
-              <Badge
-                variant="secondary"
-                className="rounded-full tabular-nums"
-                title="Total requested quantity"
-              >
-                <Package className="h-3.5 w-3.5" />
-                {totalQtyLabel}
-              </Badge>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+              {showViewDetails ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-9 gap-2"
+                  disabled={!requestId}
+                  onClick={() => {
+                    if (!requestId) return;
+                    onViewDetails?.(request);
+                  }}
+                >
+                  <Eye className="h-4 w-4" />
+                  View details
+                </Button>
+              ) : null}
+
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="secondary"
+                  className="rounded-full tabular-nums"
+                  title="Total requested items"
+                >
+                  <ClipboardList className="h-3.5 w-3.5" />
+                  {itemsCount} item(s)
+                </Badge>
+                <Badge
+                  variant="secondary"
+                  className="rounded-full tabular-nums"
+                  title="Total requested quantity"
+                >
+                  <Package className="h-3.5 w-3.5" />
+                  {totalQtyLabel}
+                </Badge>
+              </div>
             </div>
           )}
         </div>

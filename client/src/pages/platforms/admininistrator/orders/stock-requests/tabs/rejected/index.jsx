@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { handlePagination } from "@/services/utilities";
 import StockRequestCard from "../request-card";
 import StockRequestsSkeleton from "../skeleton";
+import RejectedRequestDetailsModal from "./details-modal";
 
 const RejectedStockRequestsTab = () => {
   const { filtered: requests, isLoading } = useSelector(
@@ -18,6 +19,8 @@ const RejectedStockRequestsTab = () => {
   const [openById, setOpenById] = useState({});
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(5);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   if (isLoading) {
     return <StockRequestsSkeleton />;
@@ -50,6 +53,11 @@ const RejectedStockRequestsTab = () => {
             onOpenChange={(nextOpen) =>
               setOpenById((prev) => ({ ...prev, [rowId]: nextOpen }))
             }
+            showViewDetails
+            onViewDetails={(row) => {
+              setSelectedRequest(row);
+              setDetailsOpen(true);
+            }}
           />
         );
       })}
@@ -62,9 +70,17 @@ const RejectedStockRequestsTab = () => {
         setPage={setPage}
         setMaxPage={setMaxPage}
       />
+
+      <RejectedRequestDetailsModal
+        open={detailsOpen}
+        onOpenChange={(nextOpen) => {
+          setDetailsOpen(Boolean(nextOpen));
+          if (!nextOpen) setSelectedRequest(null);
+        }}
+        request={selectedRequest}
+      />
     </div>
   );
 };
 
 export default memo(RejectedStockRequestsTab);
-
