@@ -40,7 +40,7 @@ const statusMeta = {
   },
 };
 
-const StockRequestDetailsModal = ({ open, onOpenChange, request }) => {
+const ApprovedModal = ({ open, onOpenChange, request }) => {
   const statusKey = String(request?.status || "pending").toLowerCase();
   const meta = statusMeta[statusKey] || statusMeta.pending;
   const StatusIcon = meta.icon || Clock;
@@ -104,17 +104,15 @@ const StockRequestDetailsModal = ({ open, onOpenChange, request }) => {
                       </span>
                     </div>
 
-                    {reviewedLabel ? (
-                      <div className="inline-flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          Date reviewed:
-                        </span>
-                        <span className="font-semibold text-foreground">
-                          {reviewedLabel}
-                        </span>
-                      </div>
-                    ) : null}
+                    <div className="inline-flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">
+                        Date approved:
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        {reviewedLabel}
+                      </span>
+                    </div>
                   </div>
 
                   {adminNote ? (
@@ -237,4 +235,4 @@ const StockRequestDetailsModal = ({ open, onOpenChange, request }) => {
   );
 };
 
-export default memo(StockRequestDetailsModal);
+export default memo(ApprovedModal);

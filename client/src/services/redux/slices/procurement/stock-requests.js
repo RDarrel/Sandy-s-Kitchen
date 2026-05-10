@@ -225,7 +225,9 @@ export const reduxSlice = createSlice({
 
       state.filtered = rows.filter((row) => {
         const requestedByName = String(row?.requestedBy?.fullName || "");
-        const requestedById = String(row?.requestedBy?._id || row?.requestedBy || "");
+        const requestedById = String(
+          row?.requestedBy?._id || row?.requestedBy || "",
+        );
         const status = String(row?.status || "");
         const adminNote = String(row?.admin?.note || "");
         const id = String(row?._id || "");

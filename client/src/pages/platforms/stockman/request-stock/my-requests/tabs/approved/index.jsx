@@ -12,7 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import StockRequestDetailsModal from "../../details-modal";
+import ApprovedModal from "./approved-modal";
+import { Eye } from "lucide-react";
 
 const ApprovedRequestsTab = () => {
   const { filtered: requests, isLoading } = useSelector(
@@ -30,7 +31,7 @@ const ApprovedRequestsTab = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
 
   if (isLoading) {
-    return <TableLoading numberOfColumns={3} />;
+    return <TableLoading numberOfColumns={5} />;
   }
 
   if (!rows.length) {
@@ -40,6 +41,7 @@ const ApprovedRequestsTab = () => {
           <p className="text-sm font-semibold text-foreground">
             No approved requests
           </p>
+
           <p className="text-xs text-muted-foreground">
             Approved stock requests will show up here.
           </p>
@@ -55,41 +57,77 @@ const ApprovedRequestsTab = () => {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-hidden rounded-xl border border-border bg-card/60 shadow-sm">
-        <Table>
+      <div className="overflow-hidden rounded-md border border-border bg-card/60">
+        <Table className="border-collapse">
           <TableHeader className="bg-muted/40">
             <TableRow>
-              <TableHead>Date requested</TableHead>
-              <TableHead className="w-[140px]">Items</TableHead>
-              <TableHead className="w-[160px] text-right">Action</TableHead>
+              <TableHead className="w-[70px] border-r text-center">#</TableHead>
+
+              <TableHead className="border-r text-center">
+                Date Requested
+              </TableHead>
+
+              <TableHead className="border-r text-center">
+                Date Approved
+              </TableHead>
+              <TableHead className="border-r text-center">
+                Requested Items
+              </TableHead>
+              <TableHead className="border-r text-center">
+                Approved Items
+              </TableHead>
+
+              <TableHead className="text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
-            {handlePagination(rows, page, maxPage).map((request) => {
+            {handlePagination(rows, page, maxPage).map((request, idx) => {
               const requestId = String(request?._id || "");
+
               const createdAt = request?.createdAt || null;
+
+              const approvedAt = request?.admin?.reviewedAt || null;
+
               const createdLabel = createdAt ? Formatter.date(createdAt) : "-";
+
+              const approvedLabel = approvedAt
+                ? Formatter.date(approvedAt)
+                : "-";
+
               const itemsCount = Array.isArray(request?.items)
                 ? request.items.length
                 : 0;
 
               return (
                 <TableRow key={requestId || createdLabel}>
-                  <TableCell className="font-semibold text-foreground">
+                  <TableCell className="border-r text-center font-semibold">
+                    {idx + 1}
+                  </TableCell>
+
+                  <TableCell className="border-r text-center font-medium">
                     {createdLabel}
                   </TableCell>
-                  <TableCell className="font-medium text-foreground tabular-nums">
+
+                  <TableCell className="border-r text-center font-medium">
+                    {approvedLabel}
+                  </TableCell>
+                  <TableCell className="border-r text-center font-medium">
                     {itemsCount} item{itemsCount === 1 ? "" : "s"}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="border-r text-center font-medium">
+                    {itemsCount} item{itemsCount === 1 ? "" : "s"}
+                  </TableCell>
+
+                  <TableCell className="text-center w-[120px]">
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
+                      size="icon"
                       className="rounded-full"
                       onClick={() => openDetails(request)}
                     >
-                      View items
+                      <Eye className=" w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -108,11 +146,14 @@ const ApprovedRequestsTab = () => {
         setMaxPage={setMaxPage}
       />
 
-      <StockRequestDetailsModal
+      <ApprovedModal
         open={detailsOpen}
         onOpenChange={(nextOpen) => {
           setDetailsOpen(Boolean(nextOpen));
-          if (!nextOpen) setSelectedRequest(null);
+
+          if (!nextOpen) {
+            setSelectedRequest(null);
+          }
         }}
         request={selectedRequest}
       />

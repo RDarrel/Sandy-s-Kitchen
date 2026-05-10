@@ -43,7 +43,6 @@ exports.update = async (req, res) => {
 
     const existing = await StockRequest.findOne({
       _id: req.body._id,
-      deletedAt: { $exists: false },
     });
 
     if (!existing) {
@@ -62,7 +61,9 @@ exports.update = async (req, res) => {
 
     if (req.body?.admin && typeof req.body.admin === "object") {
       existing.admin = {
-        ...(existing.admin?.toObject ? existing.admin.toObject() : existing.admin),
+        ...(existing.admin?.toObject
+          ? existing.admin.toObject()
+          : existing.admin),
         ...req.body.admin,
       };
     }
@@ -81,6 +82,23 @@ exports.update = async (req, res) => {
     res.status(200).json({
       success: "Stock Request Updated Successfully",
       payload: updated,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.destroy = async (req, res) => {
+  try {
+    const deleted = await StockRequest.findByIdAndUpdate(
+      req.body?._id,
+      { deletedAt: new Date() },
+      { new: true },
+    );
+
+    res.status(200).json({
+      success: "Stock Request Deleted Successfully",
+      payload: deleted?._id,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });

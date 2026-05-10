@@ -5,6 +5,11 @@ import { memo, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import TableLoading from "@/components/shared/loading/table";
 import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+  ButtonGroupText,
+} from "@/components/ui/button-group";
+import {
   Table,
   TableBody,
   TableCell,
@@ -17,7 +22,7 @@ import { useDispatch } from "react-redux";
 import { DESTROY } from "@/services/redux/slices/procurement/stock-requests";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/shared/alert";
-import { Eye, Pencil, X } from "lucide-react";
+import { Ban, CircleX, Eye, Pencil, Trash, X } from "lucide-react";
 import PendingUpdateModal from "./pending-update-modal";
 
 const PendingRequestsTab = () => {
@@ -100,17 +105,18 @@ const PendingRequestsTab = () => {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-hidden rounded-xl border border-border bg-card/60 shadow-sm">
+      <div className="overflow-hidden rounded-md border border-border bg-card/60">
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow>
+              <TableHead>#</TableHead>
               <TableHead>Date requested</TableHead>
-              <TableHead className="w-[140px]">Items Requested</TableHead>
-              <TableHead className="w-[160px] text-right">Action</TableHead>
+              <TableHead>Items Requested</TableHead>
+              <TableHead className="w-[160px] text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {handlePagination(rows, page, maxPage).map((request) => {
+            {handlePagination(rows, page, maxPage).map((request, idx) => {
               const requestId = String(request?._id || "");
               const createdAt = request?.createdAt || null;
               const createdLabel = createdAt ? Formatter.date(createdAt) : "-";
@@ -121,18 +127,20 @@ const PendingRequestsTab = () => {
               return (
                 <TableRow key={requestId || createdLabel}>
                   <TableCell className="font-semibold text-foreground">
+                    {idx + 1}
+                  </TableCell>
+                  <TableCell className="font-semibold text-foreground">
                     {createdLabel}
                   </TableCell>
                   <TableCell className="font-medium text-foreground tabular-nums">
                     {itemsCount} item{itemsCount === 1 ? "" : "s"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-1.5">
+                    <ButtonGroup>
                       <Button
                         type="button"
                         variant="outline"
-                        size="icon"
-                        className="h-9 w-9 rounded-full"
+                        className="rounded-full w-12"
                         onClick={() => openDetails(request)}
                         title="View items"
                       >
@@ -141,8 +149,7 @@ const PendingRequestsTab = () => {
                       <Button
                         type="button"
                         variant="outline"
-                        size="icon"
-                        className="h-9 w-9 rounded-full"
+                        className="rounded-full w-12"
                         onClick={() => openUpdate(request)}
                         title="Update request"
                       >
@@ -151,15 +158,14 @@ const PendingRequestsTab = () => {
                       <Button
                         type="button"
                         variant="destructive"
-                        size="icon"
-                        className="h-9 w-9 rounded-full"
+                        className="rounded-full w-12"
                         onClick={() => openCancel(request)}
                         disabled={!requestId}
                         title="Cancel request"
                       >
-                        <X className="h-4 w-4" />
+                        <CircleX className="h-4 w-4" />
                       </Button>
-                    </div>
+                    </ButtonGroup>
                   </TableCell>
                 </TableRow>
               );
