@@ -65,7 +65,7 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
 
   return (
     <Dialog open={Boolean(open)} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-1">
+      <DialogContent className="max-w-5xl p-1">
         <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr_auto]">
           <div className="rounded-t-xl border-b border-border bg-card/70 px-5 py-4 pr-16">
             <DialogHeader className="space-y-2 text-left">
@@ -146,8 +146,8 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
                   <Table>
                     <TableHeader className="bg-muted/40">
                       <TableRow>
-                        <TableHead>Item</TableHead>
-                        <TableHead className="w-[140px]">Status</TableHead>
+                        <TableHead className="w-[250px]">Item</TableHead>
+                        <TableHead className="w-[120px]">Status</TableHead>
                         <TableHead className="w-[160px]">Requested</TableHead>
                         <TableHead className="w-[160px]">Approved</TableHead>
                         <TableHead className="w-[220px]">Remarks</TableHead>
@@ -171,7 +171,7 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
                           currentStock === undefined &&
                           reorderLevel === undefined
                             ? null
-                            : `Stock: ${currentStock ?? 0} | Reorder: ${reorderLevel ?? 0}`;
+                            : `Available Stock: ${currentStock ?? 0} | Reorder Level: ${reorderLevel ?? 0}`;
 
                         return (
                           <TableRow

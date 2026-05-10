@@ -17,9 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Formatter } from "@/services/utilities";
 import { capitalize } from "lodash";
-import { CalendarRange, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { memo, useMemo } from "react";
 
 const statusMeta = {
@@ -45,12 +44,6 @@ const ViewModal = ({ open, onOpenChange, request }) => {
   const meta = statusMeta[statusKey] || statusMeta.pending;
   const StatusIcon = meta.icon || Clock;
 
-  const createdAt = request?.createdAt || null;
-  const createdLabel = createdAt ? Formatter.date(createdAt) : "-";
-
-  const reviewedAt = request?.admin?.reviewedAt || null;
-  const reviewedLabel = reviewedAt ? Formatter.date(reviewedAt) : null;
-
   const adminNote = String(request?.admin?.note || "").trim();
 
   const items = useMemo(() => {
@@ -65,8 +58,8 @@ const ViewModal = ({ open, onOpenChange, request }) => {
     <Dialog open={Boolean(open)} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl p-1">
         <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr_auto]">
-          <div className="rounded-t-xl border-b border-border bg-card/70 px-5 py-4 pr-16">
-            <DialogHeader className="space-y-2 text-left">
+          <div className="rounded-t-xl border-b border-border bg-card/70 px-5 py-3 pr-16">
+            <DialogHeader className="space-y-1.5 text-left">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -84,41 +77,9 @@ const ViewModal = ({ open, onOpenChange, request }) => {
                   <DialogDescription className="text-sm leading-snug">
                     Review your requested items and status updates.
                   </DialogDescription>
-                </div>
-              </div>
-            </DialogHeader>
-          </div>
-
-          <div className="min-h-0 overflow-auto px-5 mt-4">
-            <div className="space-y-4">
-              <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm">
-                <div className="flex flex-col gap-2 text-sm">
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                    <div className="inline-flex items-center gap-2">
-                      <CalendarRange className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">
-                        Date requested:
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        {createdLabel}
-                      </span>
-                    </div>
-
-                    {reviewedLabel ? (
-                      <div className="inline-flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          Date reviewed:
-                        </span>
-                        <span className="font-semibold text-foreground">
-                          {reviewedLabel}
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
 
                   {adminNote ? (
-                    <div className="text-xs text-muted-foreground">
+                    <div className="mt-1 text-xs text-muted-foreground">
                       Admin note:{" "}
                       <span className="font-medium text-foreground/90">
                         {adminNote}
@@ -127,7 +88,11 @@ const ViewModal = ({ open, onOpenChange, request }) => {
                   ) : null}
                 </div>
               </div>
+            </DialogHeader>
+          </div>
 
+          <div className="min-h-0 overflow-auto px-5 mt-4">
+            <div className="space-y-4">
               {items.length ? (
                 <div className="overflow-hidden rounded-xl border border-border bg-card/60 shadow-sm">
                   <Table>
@@ -135,7 +100,6 @@ const ViewModal = ({ open, onOpenChange, request }) => {
                       <TableRow>
                         <TableHead>Item</TableHead>
                         <TableHead className="w-[160px]">Requested</TableHead>
-                        <TableHead className="w-[160px]">Approved</TableHead>
                         <TableHead className="w-[220px]">Remarks</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -146,8 +110,7 @@ const ViewModal = ({ open, onOpenChange, request }) => {
                         const unit = capitalize(item?.unit || "");
                         const requestedQty =
                           Number(item?.quantity?.request) || 0;
-                        const approvedQty =
-                          Number(item?.quantity?.approved) || 0;
+
                         const remarks = String(item?.remarks || "").trim();
 
                         const currentStock = item?.snapshot?.currentStock;
@@ -156,7 +119,7 @@ const ViewModal = ({ open, onOpenChange, request }) => {
                           currentStock === undefined &&
                           reorderLevel === undefined
                             ? null
-                            : `Stock: ${currentStock ?? 0} | Reorder: ${reorderLevel ?? 0}`;
+                            : `Available Stock: ${currentStock ?? 0} | Reorder Level: ${reorderLevel ?? 0}`;
 
                         return (
                           <TableRow
@@ -180,12 +143,7 @@ const ViewModal = ({ open, onOpenChange, request }) => {
                                 {unit}
                               </span>
                             </TableCell>
-                            <TableCell className="font-semibold tabular-nums text-foreground">
-                              {approvedQty}{" "}
-                              <span className="text-xs font-medium text-muted-foreground">
-                                {unit}
-                              </span>
-                            </TableCell>
+
                             <TableCell className="text-sm text-muted-foreground">
                               {remarks || "-"}
                             </TableCell>
