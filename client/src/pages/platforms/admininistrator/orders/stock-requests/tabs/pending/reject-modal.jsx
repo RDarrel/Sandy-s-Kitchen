@@ -77,7 +77,7 @@ const RejectReasonModal = ({
 
           <div className="min-h-0 space-y-4 overflow-auto px-5 pt-4">
             <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex justify-between">
                 <div className="min-w-0 space-y-1">
                   <div className="flex items-center gap-2">
                     <div className="grid h-8 w-8 place-items-center rounded-lg border border-border bg-background/70 shadow-sm">
@@ -94,25 +94,23 @@ const RejectReasonModal = ({
                   </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2 sm:gap-x-6 ">
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Date requested
-                    </p>
-                    <p className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-                      <CalendarRange className="h-4 w-4 text-muted-foreground" />
-                      {createdLabel}
-                    </p>
-                  </div>
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Items requested
-                    </p>
-                    <p className="inline-flex items-center gap-2 text-sm font-semibold tabular-nums text-foreground sm:justify-end">
-                      <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                      {itemsCount} item{itemsCount === 1 ? "" : "s"}
-                    </p>
-                  </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Date requested
+                  </p>
+                  <p className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+                    <CalendarRange className="h-4 w-4 text-muted-foreground" />
+                    {createdLabel}
+                  </p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Items requested
+                  </p>
+                  <p className="inline-flex items-center gap-2 text-sm font-semibold tabular-nums text-foreground sm:justify-end">
+                    <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                    {itemsCount} item{itemsCount === 1 ? "" : "s"}
+                  </p>
                 </div>
               </div>
             </div>
