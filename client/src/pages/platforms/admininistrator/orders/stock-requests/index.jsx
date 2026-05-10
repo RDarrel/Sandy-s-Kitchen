@@ -21,9 +21,7 @@ import { BROWSE as BROWSE_INVENTORY_ITEMS } from "@/services/redux/slices/invent
 import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/procurement/suppliers";
 
 const StockRequests = () => {
-  const { message, isLoading } = useSelector(
-    ({ stockRequests }) => stockRequests,
-  );
+  const { isLoading } = useSelector(({ stockRequests }) => stockRequests);
   const { token } = useSelector(({ auth }) => auth);
   const [tab, setTab] = useState("pending");
   const [query, setQuery] = useState("");
@@ -72,15 +70,6 @@ const StockRequests = () => {
                   type="search"
                 />
               </div>
-
-              {message ? (
-                <div className="rounded-xl border border-border bg-destructive/10 px-4 py-3 text-sm text-foreground">
-                  <span className="font-medium">
-                    Couldn&apos;t load requests.
-                  </span>{" "}
-                  <span className="text-muted-foreground">{message}</span>
-                </div>
-              ) : null}
 
               <TabsList className="h-10 w-fit rounded-full border border-border bg-muted/30 p-1">
                 <TabsTrigger

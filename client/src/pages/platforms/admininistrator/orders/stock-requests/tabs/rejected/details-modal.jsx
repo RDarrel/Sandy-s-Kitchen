@@ -77,12 +77,20 @@ const RejectedRequestDetailsModal = ({ open, onOpenChange, request }) => {
                       {createdLabel}
                     </p>
                   </div>
-                  <div className="space-y-0.5 sm:text-right">
+                  <div className="space-y-0.5 ">
                     <p className="text-xs font-medium text-muted-foreground">
                       Date rejected
                     </p>
                     <p className="text-sm font-semibold text-foreground">
                       {rejectedLabel}
+                    </p>
+                  </div>
+                  <div className="space-y-0.5 ">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Rejected Items
+                    </p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {items.length} Items
                     </p>
                   </div>
                 </div>
@@ -103,7 +111,12 @@ const RejectedRequestDetailsModal = ({ open, onOpenChange, request }) => {
                     <TableHeader className="bg-muted/40">
                       <TableRow>
                         <TableHead>Item</TableHead>
-                        <TableHead className="w-[200px]">Requested</TableHead>
+                        <TableHead className="w-[200px]">
+                          Available Stock
+                        </TableHead>
+                        <TableHead className="w-[200px]">
+                          Requested Qty
+                        </TableHead>
                         <TableHead className="w-[260px]">Remarks</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -123,6 +136,12 @@ const RejectedRequestDetailsModal = ({ open, onOpenChange, request }) => {
                               <p className="font-semibold text-foreground">
                                 {name}
                               </p>
+                            </TableCell>
+                            <TableCell className="font-semibold tabular-nums text-foreground">
+                              {item?.snapshot?.currentStock ?? 0}{" "}
+                              <span className="text-xs font-medium text-muted-foreground">
+                                {unit}
+                              </span>
                             </TableCell>
                             <TableCell className="font-semibold tabular-nums text-foreground">
                               {qty}{" "}
