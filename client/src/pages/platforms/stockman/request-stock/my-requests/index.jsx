@@ -1,4 +1,3 @@
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -12,18 +11,16 @@ import { useDispatch, useSelector } from "react-redux";
 import PendingRequestsTab from "./tabs/pending";
 import ApprovedRequestsTab from "./tabs/approved";
 import RejectedRequestsTab from "./tabs/rejected";
-import { ClipboardList, Search } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import {
   BROWSE,
   RESET,
-  SEARCH as SEARCH_FILTER,
 } from "@/services/redux/slices/procurement/stock-requests";
 
 const MyRequests = () => {
   const { isLoading } = useSelector(({ stockRequests }) => stockRequests);
   const { token } = useSelector(({ auth }) => auth);
   const [tab, setTab] = useState("pending");
-  const [query, setQuery] = useState("");
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -32,40 +29,27 @@ const MyRequests = () => {
     return () => dispatch(RESET());
   }, [dispatch, token, tab]);
 
-  useEffect(() => {
-    dispatch(SEARCH_FILTER(query));
-  }, [query, dispatch]);
-
   return (
     <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto w-full max-w-7xl">
         <Tabs value={tab} onValueChange={setTab} className="w-full gap-0">
           <Card className="bg-card/60 gap-4 py-0 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/50">
-            <CardHeader className="relative gap-3 border-b border-border/70 px-5 pb-4 pt-4 sm:px-6 sm:pr-[26rem]">
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-background/70 shadow-sm">
+            <CardHeader className="relative gap-2 border-b border-border/70 px-5 pb-3 pt-3 sm:px-6 sm:pr-72">
+              <div className="flex items-center gap-2.5">
+                <div className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-background/70 shadow-sm">
                   <ClipboardList className="h-4 w-4 text-foreground" />
                 </div>
                 <div className="min-w-0">
-                  <CardTitle className="text-lg">My stock requests</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">
+                    My stock requests
+                  </CardTitle>
                   <CardDescription className="text-sm">
                     Track your submitted requests by status.
                   </CardDescription>
                 </div>
               </div>
 
-              <div className="relative w-full sm:absolute sm:right-6 sm:top-1/2 sm:w-96 sm:-translate-y-1/2">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search request id, item, note..."
-                  className="h-10 bg-background/60 pl-9"
-                  type="search"
-                />
-              </div>
-
-              <TabsList className="h-10 w-fit rounded-full border border-border bg-muted/30 p-1">
+              <TabsList className="h-10 w-fit rounded-full border border-border bg-muted/30 p-1 sm:absolute sm:right-6 sm:top-1/2 sm:-translate-y-1/2">
                 <TabsTrigger
                   value="pending"
                   disabled={isLoading}

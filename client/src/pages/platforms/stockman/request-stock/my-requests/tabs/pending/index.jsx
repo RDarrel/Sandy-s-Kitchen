@@ -4,11 +4,7 @@ import { Formatter, handlePagination } from "@/services/utilities";
 import { memo, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import TableLoading from "@/components/shared/loading/table";
-import {
-  ButtonGroup,
-  ButtonGroupSeparator,
-  ButtonGroupText,
-} from "@/components/ui/button-group";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Table,
   TableBody,
@@ -17,12 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import StockRequestDetailsModal from "../../details-modal";
+import ViewModal from "./view-modal";
 import { useDispatch } from "react-redux";
 import { DESTROY } from "@/services/redux/slices/procurement/stock-requests";
 import { toast } from "sonner";
 import { CustomAlert } from "@/components/shared/alert";
-import { Ban, CircleX, Eye, Pencil, Trash, X } from "lucide-react";
+import { CircleX, Eye, Pencil } from "lucide-react";
 import PendingUpdateModal from "./pending-update-modal";
 
 const PendingRequestsTab = () => {
@@ -183,7 +179,7 @@ const PendingRequestsTab = () => {
         setMaxPage={setMaxPage}
       />
 
-      <StockRequestDetailsModal
+      <ViewModal
         open={detailsOpen}
         onOpenChange={(nextOpen) => {
           setDetailsOpen(Boolean(nextOpen));
