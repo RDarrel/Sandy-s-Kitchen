@@ -12,7 +12,7 @@ const access = [
   },
   {
     name: "Stock Requests",
-    path: "/request-fuel",
+    path: "/stock-requests",
     icon: ClipboardList,
     children: [
       {
