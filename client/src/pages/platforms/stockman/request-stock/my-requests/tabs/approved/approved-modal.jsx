@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Formatter } from "@/services/utilities";
 import { capitalize } from "lodash";
-import { CalendarRange, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { memo, useMemo } from "react";
 
 const statusMeta = {
@@ -58,7 +58,9 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
   }, [request?.items]);
 
   const totals = useMemo(() => {
-    return { totalItems: items.length };
+    const requested = items.length;
+    const approved = items.filter((item) => !item?.deletedAt).length;
+    return { requested, approved };
   }, [items]);
 
   return (
@@ -92,27 +94,40 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
           <div className="min-h-0 overflow-auto px-5 mt-4">
             <div className="space-y-4">
               <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm">
-                <div className="flex flex-col gap-2 text-sm">
-                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                    <div className="inline-flex items-center gap-2">
-                      <CalendarRange className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">
-                        Date requested:
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        {createdLabel}
-                      </span>
-                    </div>
+                <div className="flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Date requested
+                    </p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {createdLabel}
+                    </p>
+                  </div>
 
-                    <div className="inline-flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">
-                        Date approved:
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        {reviewedLabel}
-                      </span>
-                    </div>
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Date approved
+                    </p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {reviewedLabel}
+                    </p>
+                  </div>
+
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Items requested
+                    </p>
+                    <p className="text-sm font-semibold text-foreground tabular-nums">
+                      {totals.requested ?? 0} items
+                    </p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Items approved
+                    </p>
+                    <p className="text-sm font-semibold text-foreground tabular-nums">
+                      {totals.approved ?? 0} items
+                    </p>
                   </div>
 
                   {adminNote ? (
@@ -132,6 +147,7 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
                     <TableHeader className="bg-muted/40">
                       <TableRow>
                         <TableHead>Item</TableHead>
+                        <TableHead className="w-[140px]">Status</TableHead>
                         <TableHead className="w-[160px]">Requested</TableHead>
                         <TableHead className="w-[160px]">Approved</TableHead>
                         <TableHead className="w-[220px]">Remarks</TableHead>
@@ -147,6 +163,7 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
                         const approvedQty =
                           Number(item?.quantity?.approved) || 0;
                         const remarks = String(item?.remarks || "").trim();
+                        const notApproved = Boolean(item?.deletedAt);
 
                         const currentStock = item?.snapshot?.currentStock;
                         const reorderLevel = item?.snapshot?.reorderLevel;
@@ -159,10 +176,13 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
                         return (
                           <TableRow
                             key={itemId || item?.inventory?._id || invName}
+                            className={notApproved ? "opacity-70" : ""}
                           >
                             <TableCell className="whitespace-normal">
                               <div className="space-y-0.5">
-                                <p className="font-semibold text-foreground">
+                                <p
+                                  className={`font-semibold text-foreground ${notApproved ? "line-through" : ""}`}
+                                >
                                   {invName}
                                 </p>
                                 {snapshotLabel ? (
@@ -172,6 +192,23 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
                                 ) : null}
                               </div>
                             </TableCell>
+                            <TableCell>
+                              {notApproved ? (
+                                <Badge
+                                  variant="secondary"
+                                  className="h-6 w-fit rounded-full border border-border bg-muted/30 px-2 text-[11px] font-semibold leading-6 text-muted-foreground"
+                                >
+                                  Not approved
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="secondary"
+                                  className="h-6 w-fit rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 text-[11px] font-semibold leading-6 text-foreground"
+                                >
+                                  Approved
+                                </Badge>
+                              )}
+                            </TableCell>
                             <TableCell className="font-semibold tabular-nums text-foreground">
                               {requestedQty}{" "}
                               <span className="text-xs font-medium text-muted-foreground">
@@ -179,10 +216,16 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
                               </span>
                             </TableCell>
                             <TableCell className="font-semibold tabular-nums text-foreground">
-                              {approvedQty}{" "}
-                              <span className="text-xs font-medium text-muted-foreground">
-                                {unit}
-                              </span>
+                              {notApproved ? (
+                                <span className="text-muted-foreground">—</span>
+                              ) : (
+                                <>
+                                  {approvedQty}{" "}
+                                  <span className="text-xs font-medium text-muted-foreground">
+                                    {unit}
+                                  </span>
+                                </>
+                              )}
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
                               {remarks || "-"}
@@ -211,9 +254,13 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
           <div className="mt-4 rounded-b-xl border-t border-border bg-card/70 px-5 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-sm font-medium text-muted-foreground">
-                Total items:{" "}
+                Items requested:{" "}
                 <span className="font-semibold text-foreground">
-                  {totals.totalItems ?? 0}
+                  {totals.requested ?? 0}
+                </span>{" "}
+                • Items approved:{" "}
+                <span className="font-semibold text-foreground">
+                  {totals.approved ?? 0}
                 </span>
               </div>
 
