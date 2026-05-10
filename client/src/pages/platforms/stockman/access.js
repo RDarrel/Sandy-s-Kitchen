@@ -29,11 +29,11 @@ const access = [
   },
   {
     name: "Orders",
-    path: "/Manage-Orders",
+    path: "/Orders",
     icon: GitPullRequestArrow,
     children: [
       {
-        name: "Order Processing",
+        name: "Order-List",
         path: "/Order-Processing",
         component: Dashboard,
       },

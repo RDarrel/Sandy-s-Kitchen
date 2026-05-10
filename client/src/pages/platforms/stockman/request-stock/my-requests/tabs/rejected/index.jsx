@@ -78,7 +78,7 @@ const RejectedRequestsTab = () => {
               return (
                 <TableRow key={requestId || createdLabel}>
                   <TableCell className="text-foreground">{idx + 1}</TableCell>
-                  <TableCell className="font-semibold text-foreground">
+                  <TableCell className=" text-foreground">
                     {createdLabel}
                   </TableCell>
                   <TableCell className=" text-foreground">

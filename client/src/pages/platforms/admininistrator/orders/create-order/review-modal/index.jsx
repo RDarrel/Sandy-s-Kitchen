@@ -276,18 +276,6 @@ const ReviewOrderModal = () => {
                     </div>
                   </div>
                 </div>
-
-                <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
-                  <Badge variant="secondary" className="rounded-full">
-                    Final review
-                  </Badge>
-                  <div className="rounded-full border border-border bg-background/70 px-3 py-1 text-xs text-muted-foreground">
-                    Total:{" "}
-                    <span className="font-semibold text-foreground">
-                      {Formatter.amount(totalAmount)}
-                    </span>
-                  </div>
-                </div>
               </div>
             </DialogHeader>
           </div>
@@ -384,7 +372,9 @@ const ReviewOrderModal = () => {
                 </div>
                 <span className="h-4 w-px bg-border/70" aria-hidden="true" />
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-xs text-muted-foreground">Total</span>
+                  <span className="text-xs text-muted-foreground">
+                    Total Amount
+                  </span>
                   <span className="text-base font-semibold leading-none tabular-nums text-foreground">
                     {Formatter.amount(totalAmount)}
                   </span>

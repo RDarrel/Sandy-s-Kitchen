@@ -113,6 +113,10 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
     const groups = Array.isArray(formattedGroups) ? formattedGroups : [];
 
     const suppliersCount = groups.length;
+    const itemsCount = groups.reduce((sum, group) => {
+      return sum + (Array.isArray(group?.items) ? group.items : []).length;
+    }, 0);
+
     const totalAmount = groups.reduce((sum, group) => {
       const groupAmount = (
         Array.isArray(group?.items) ? group.items : []
@@ -128,7 +132,7 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
       return sum + groupAmount;
     }, 0);
 
-    return { suppliersCount, totalAmount };
+    return { suppliersCount, totalAmount, itemsCount };
   }, [formattedGroups, draftApprovedByInvId, draftUnitCostByInvId]);
 
   const handleDateChange = useCallback((newDate, supplierId) => {
@@ -484,15 +488,40 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
                 </div>
 
                 <div className="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
-                  <Badge variant="secondary" className="rounded-full">
-                    {totals.suppliersCount} supplier(s)
-                  </Badge>
-                  <Badge variant="secondary" className="rounded-full">
-                    Total{" "}
-                    <span className="ml-1 font-semibold tabular-nums text-foreground">
-                      {Formatter.amount(totals.totalAmount)}
-                    </span>
-                  </Badge>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xs text-muted-foreground">
+                        Items
+                      </span>
+                      <span className="text-sm font-semibold tabular-nums text-foreground">
+                        {totals.itemsCount}
+                      </span>
+                    </div>
+                    <span
+                      className="h-4 w-px bg-border/70"
+                      aria-hidden="true"
+                    />
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xs text-muted-foreground">
+                        Suppliers
+                      </span>
+                      <span className="text-sm font-semibold tabular-nums text-foreground">
+                        {formattedGroups.length}
+                      </span>
+                    </div>
+                    <span
+                      className="h-4 w-px bg-border/70"
+                      aria-hidden="true"
+                    />
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xs text-muted-foreground">
+                        Total Amount
+                      </span>
+                      <span className="text-base font-semibold leading-none tabular-nums text-foreground">
+                        {Formatter.amount(120)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </DialogHeader>
@@ -573,16 +602,31 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
 
           <div className="rounded-b-xl border-t border-border bg-card/70 px-5 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm font-medium text-muted-foreground">
-                Suppliers:{" "}
-                <span className="font-semibold text-foreground">
-                  {totals.suppliersCount}
-                </span>
-                <span className="mx-2 text-muted-foreground/60">•</span>
-                Total:{" "}
-                <span className="font-semibold text-foreground">
-                  {Formatter.amount(totals.totalAmount)}
-                </span>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xs text-muted-foreground">Items</span>
+                  <span className="text-sm font-semibold tabular-nums text-foreground">
+                    {totals.itemsCount}
+                  </span>
+                </div>
+                <span className="h-4 w-px bg-border/70" aria-hidden="true" />
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xs text-muted-foreground">
+                    Suppliers
+                  </span>
+                  <span className="text-sm font-semibold tabular-nums text-foreground">
+                    {formattedGroups.length}
+                  </span>
+                </div>
+                <span className="h-4 w-px bg-border/70" aria-hidden="true" />
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xs text-muted-foreground">
+                    Total Amount
+                  </span>
+                  <span className="text-base font-semibold leading-none tabular-nums text-foreground">
+                    {Formatter.amount(120)}
+                  </span>
+                </div>
               </div>
 
               <DialogFooter className="gap-2 sm:gap-0">
