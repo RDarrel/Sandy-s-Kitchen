@@ -29,7 +29,9 @@ const RejectedRequestDetailsModal = ({ open, onOpenChange, request }) => {
     return String(requestedBy || "Unknown");
   }, [request]);
 
-  const createdLabel = request?.createdAt ? Formatter.date(request.createdAt) : "-";
+  const createdLabel = request?.createdAt
+    ? Formatter.date(request.createdAt)
+    : "-";
   const rejectedLabel = request?.admin?.reviewedAt
     ? Formatter.date(request.admin.reviewedAt)
     : "-";
@@ -58,7 +60,7 @@ const RejectedRequestDetailsModal = ({ open, onOpenChange, request }) => {
           <div className="min-h-0 overflow-auto px-5 mt-4">
             <div className="space-y-4">
               <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm">
-                <div className="grid gap-3 sm:grid-cols-3 sm:items-start">
+                <div className="flex justify-between">
                   <div className="space-y-0.5">
                     <p className="text-xs font-medium text-muted-foreground">
                       Requested by
@@ -107,7 +109,9 @@ const RejectedRequestDetailsModal = ({ open, onOpenChange, request }) => {
                     </TableHeader>
                     <TableBody>
                       {items.map((item, index) => {
-                        const key = String(item?._id || item?.inventory?._id || index);
+                        const key = String(
+                          item?._id || item?.inventory?._id || index,
+                        );
                         const name = item?.inventory?.name || "Item";
                         const qty = Number(item?.quantity?.request) || 0;
                         const unit = capitalize(item?.unit || "");
@@ -171,4 +175,3 @@ const RejectedRequestDetailsModal = ({ open, onOpenChange, request }) => {
 };
 
 export default memo(RejectedRequestDetailsModal);
-
