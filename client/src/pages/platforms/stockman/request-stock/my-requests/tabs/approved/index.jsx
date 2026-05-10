@@ -120,11 +120,11 @@ const ApprovedRequestsTab = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon"
+                      size="sm"
                       className="rounded-full"
                       onClick={() => openDetails(request)}
                     >
-                      <Eye className=" w-4" />
+                      View Details
                     </Button>
                   </TableCell>
                 </TableRow>

@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import StockRequestDetailsModal from "../../details-modal";
+import DetailsModal from "./details-modal";
 
 const RejectedRequestsTab = () => {
   const { filtered: requests, isLoading } = useSelector(
@@ -63,7 +63,7 @@ const RejectedRequestsTab = () => {
               <TableHead>Date requested</TableHead>
               <TableHead>Date rejected</TableHead>
               <TableHead className="w-[140px]">Rejected items</TableHead>
-              <TableHead className="w-[160px] text-right">Action</TableHead>
+              <TableHead className="w-[120px] text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,7 +97,7 @@ const RejectedRequestsTab = () => {
                       className="rounded-full"
                       onClick={() => openDetails(request)}
                     >
-                      View items
+                      View Details
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -116,7 +116,7 @@ const RejectedRequestsTab = () => {
         setMaxPage={setMaxPage}
       />
 
-      <StockRequestDetailsModal
+      <DetailsModal
         open={detailsOpen}
         onOpenChange={(nextOpen) => {
           setDetailsOpen(Boolean(nextOpen));
