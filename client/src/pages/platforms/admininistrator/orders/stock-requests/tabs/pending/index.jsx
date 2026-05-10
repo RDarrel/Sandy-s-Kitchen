@@ -7,6 +7,7 @@ import StockRequestsSkeleton from "../skeleton";
 import ConvertToOrderModal from "./modal";
 import { UPDATE } from "@/services/redux/slices/procurement/stock-requests";
 import { toast } from "sonner";
+import RejectReasonModal from "./reject-modal";
 
 const PendingStockRequestsTab = () => {
   const { filtered: requests, isLoading } = useSelector(
@@ -25,11 +26,19 @@ const PendingStockRequestsTab = () => {
   const [maxPage, setMaxPage] = useState(5);
   const [convertOpen, setConvertOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectTarget, setRejectTarget] = useState(null);
   const dispatch = useDispatch();
 
-  const declineRequest = (request) => {
-    const requestId = String(request?._id || "");
-    if (!requestId) return;
+  const openReject = (request) => {
+    setRejectTarget(request || null);
+    setRejectOpen(true);
+  };
+
+  const rejectRequest = (reason) => {
+    const requestId = String(rejectTarget?._id || "");
+    const note = String(reason || "").trim();
+    if (!requestId || !note) return;
 
     dispatch(
       UPDATE({
@@ -39,6 +48,7 @@ const PendingStockRequestsTab = () => {
           admin: {
             reviewedBy: auth?._id,
             reviewedAt: new Date(),
+            note,
           },
           updatingRequest: true,
         },
@@ -46,8 +56,12 @@ const PendingStockRequestsTab = () => {
       }),
     )
       .unwrap()
-      .then(() => toast.success("Request declined."))
-      .catch(() => toast.error("Failed to decline request. Please try again."));
+      .then(() => {
+        toast.success("Request rejected.");
+        setRejectOpen(false);
+        setRejectTarget(null);
+      })
+      .catch(() => toast.error("Failed to reject request. Please try again."));
   };
 
   if (isLoading) {
@@ -83,7 +97,7 @@ const PendingStockRequestsTab = () => {
             }
             showActions
             actionsDisabled={formSubmitted}
-            onDecline={declineRequest}
+            onDecline={openReject}
             onConvertToOrder={(row) => {
               setSelectedRequest(row);
               setConvertOpen(true);
@@ -108,6 +122,17 @@ const PendingStockRequestsTab = () => {
           if (!nextOpen) setSelectedRequest(null);
         }}
         request={selectedRequest}
+      />
+
+      <RejectReasonModal
+        open={rejectOpen}
+        onOpenChange={(nextOpen) => {
+          setRejectOpen(nextOpen);
+          if (!nextOpen) setRejectTarget(null);
+        }}
+        onConfirm={rejectRequest}
+        formSubmitted={formSubmitted}
+        request={rejectTarget}
       />
     </div>
   );
