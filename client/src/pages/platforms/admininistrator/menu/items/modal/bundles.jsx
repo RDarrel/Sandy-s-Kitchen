@@ -13,7 +13,6 @@ import {
 import { Category } from "@/services/fakeDB";
 import { Formatter } from "@/services/utilities";
 import Cloudinary from "@/services/utilities/cloudinary";
-import { ca } from "date-fns/locale";
 import { ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
@@ -21,7 +20,7 @@ import { useSelector } from "react-redux";
 const getBundleItemId = (item) => item?._id || item?.id;
 const INVALID_NUMBER_KEYS = ["e", "E", "+", "-", "."];
 
-const Bundles = ({ form, setForm = () => {} }) => {
+const Bundles = ({ form, setForm = () => {}, isFullEdit = false }) => {
   const { collections } = useSelector(({ menus }) => menus);
   const { collections: categories } = useSelector(
     ({ menuCategories }) => menuCategories,
@@ -90,6 +89,56 @@ const Bundles = ({ form, setForm = () => {} }) => {
     });
   };
 
+  if (isFullEdit && !form?.setupBundle) {
+    return (
+      <section className="rounded-[15px] border border-border bg-white shadow-sm">
+        <div className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-foreground">
+              Bundle Composition
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Choose the menu items included in this bundle.
+            </p>
+          </div>
+
+          <div className="inline-flex rounded-xl border border-border bg-background p-1">
+            <button
+              type="button"
+              onClick={() =>
+                setForm((current) => ({ ...current, setupBundle: true }))
+              }
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                form?.setupBundle
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up now
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setForm((current) => ({
+                  ...current,
+                  setupBundle: false,
+                  bundleItems: [],
+                }))
+              }
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                !form?.setupBundle
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up later
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-[15px] border border-border bg-white shadow-sm">
       <div className="flex flex-col gap-3 border-b border-border px-5 py-4 md:flex-row md:items-center md:justify-between">
@@ -101,6 +150,41 @@ const Bundles = ({ form, setForm = () => {} }) => {
             Add items on the left and review quantities on the right.
           </p>
         </div>
+
+        {isFullEdit ? (
+          <div className="inline-flex rounded-xl border border-border bg-background p-1">
+            <button
+              type="button"
+              onClick={() =>
+                setForm((current) => ({ ...current, setupBundle: true }))
+              }
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                form?.setupBundle
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up now
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setForm((current) => ({
+                  ...current,
+                  setupBundle: false,
+                  bundleItems: [],
+                }))
+              }
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                !form?.setupBundle
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up later
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <div className="grid gap-4 p-4 xl:grid-cols-[1fr_24px_1fr] xl:items-stretch">

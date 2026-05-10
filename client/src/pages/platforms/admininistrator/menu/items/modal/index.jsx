@@ -517,7 +517,7 @@ const Modal = () => {
               : form.type === "bundle" || form.type === "prepared"
                 ? "max-w-5xl"
                 : form.type === "resell"
-                  ? "max-w-xl"
+                  ? "max-w-3xl"
                   : "max-w-2xl"
         }`}
       >
@@ -578,7 +578,9 @@ const Modal = () => {
                         <SelectLabel>Type</SelectLabel>
                         {Type.collections.map((type) => (
                           <SelectItem key={type} value={type}>
-                            {capitalize(type)}
+                            {capitalize(
+                              type === "prepared" ? "Recipe-Based" : type,
+                            )}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -589,15 +591,15 @@ const Modal = () => {
             )}
 
             {!isAddOnsOnly && form.type === "bundle" && (
-              <Bundles form={form} setForm={setForm} />
+              <Bundles form={form} setForm={setForm} isFullEdit={isFullEdit} />
             )}
 
             {!isAddOnsOnly && form.type === "prepared" && (
-              <Recipe form={form} setForm={setForm} />
+              <Recipe form={form} setForm={setForm} isFullEdit={isFullEdit} />
             )}
 
             {!isAddOnsOnly && form.type === "resell" && (
-              <Resell form={form} setForm={setForm} />
+              <Resell form={form} setForm={setForm} isFullEdit={isFullEdit} />
             )}
 
             {isAddOnsOnly ? (

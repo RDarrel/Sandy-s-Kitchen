@@ -14,7 +14,7 @@ import {
 import { Formatter } from "@/services/utilities";
 import { INVENTORY_CATEGORY_OPTIONS, getUnitOptions } from "../../addOns/modal/utils";
 
-const Resell = ({ form, setForm = () => {} }) => {
+const Resell = ({ form, setForm = () => {}, isFullEdit = false }) => {
   const { collections: inventoryItems = [] } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
@@ -73,6 +73,55 @@ const Resell = ({ form, setForm = () => {} }) => {
     }));
   };
 
+  if (isFullEdit && !form?.setupResellLink) {
+    return (
+      <section className="rounded-[15px] border border-border bg-white shadow-sm">
+        <div className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-foreground">Resell Link</p>
+            <p className="text-xs text-muted-foreground">
+              Choose one resell inventory item that should deduct stock for this
+              menu item.
+            </p>
+          </div>
+
+          <div className="inline-flex rounded-xl border border-border bg-background p-1">
+            <button
+              type="button"
+              onClick={() =>
+                setForm((current) => ({ ...current, setupResellLink: true }))
+              }
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                form?.setupResellLink
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up now
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setForm((current) => ({
+                  ...current,
+                  setupResellLink: false,
+                  ingredients: [],
+                }))
+              }
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                !form?.setupResellLink
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up later
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-[15px] border border-border bg-white shadow-sm">
       <div className="flex flex-col gap-3 border-b border-border px-5 py-4 md:flex-row md:items-center md:justify-between">
@@ -83,6 +132,41 @@ const Resell = ({ form, setForm = () => {} }) => {
             menu item.
           </p>
         </div>
+
+        {isFullEdit ? (
+          <div className="inline-flex rounded-xl border border-border bg-background p-1">
+            <button
+              type="button"
+              onClick={() =>
+                setForm((current) => ({ ...current, setupResellLink: true }))
+              }
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                form?.setupResellLink
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up now
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setForm((current) => ({
+                  ...current,
+                  setupResellLink: false,
+                  ingredients: [],
+                }))
+              }
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                !form?.setupResellLink
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              Set up later
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <div
