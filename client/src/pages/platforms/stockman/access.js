@@ -1,6 +1,7 @@
 import { ClipboardList, Gauge, GitPullRequestArrow } from "lucide-react";
 import Dashboard from "./dashboard";
-import RequestStock from "./request-stock";
+import RequestStock from "./request-stock/create-request";
+import MyRequests from "./request-stock/my-requests";
 
 const access = [
   {
@@ -13,7 +14,18 @@ const access = [
     name: "Stock Requests",
     path: "/request-fuel",
     icon: ClipboardList,
-    component: RequestStock,
+    children: [
+      {
+        name: "Create Request",
+        path: "/Create-Request",
+        component: RequestStock,
+      },
+      {
+        name: "My Requests",
+        path: "/My-Requests",
+        component: MyRequests,
+      },
+    ],
   },
   {
     name: "Orders",
