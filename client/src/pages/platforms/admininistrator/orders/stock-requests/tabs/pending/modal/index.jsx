@@ -434,7 +434,7 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
                 convertedBy: auth?._id,
                 convertedAt: new Date(),
               },
-              updatingRequest: true,
+              isAdmin: true,
             },
             token,
           }),

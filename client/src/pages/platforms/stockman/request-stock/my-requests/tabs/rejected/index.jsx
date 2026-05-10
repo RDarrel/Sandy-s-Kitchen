@@ -77,16 +77,14 @@ const RejectedRequestsTab = () => {
 
               return (
                 <TableRow key={requestId || createdLabel}>
-                  <TableCell className="font-semibold text-foreground">
-                    {idx + 1}
-                  </TableCell>
+                  <TableCell className="text-foreground">{idx + 1}</TableCell>
                   <TableCell className="font-semibold text-foreground">
                     {createdLabel}
                   </TableCell>
-                  <TableCell className="font-semibold text-foreground">
+                  <TableCell className=" text-foreground">
                     {createdLabel}
                   </TableCell>
-                  <TableCell className="font-medium text-foreground tabular-nums">
+                  <TableCell className=" text-foreground tabular-nums">
                     {itemsCount} item{itemsCount === 1 ? "" : "s"}
                   </TableCell>
                   <TableCell className="text-right">

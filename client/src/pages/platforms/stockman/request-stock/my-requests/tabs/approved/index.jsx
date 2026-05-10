@@ -97,21 +97,19 @@ const ApprovedRequestsTab = () => {
 
               return (
                 <TableRow key={requestId || createdLabel}>
-                  <TableCell className=" text-center font-semibold">
-                    {idx + 1}
-                  </TableCell>
+                  <TableCell className=" text-center ">{idx + 1}</TableCell>
 
-                  <TableCell className=" text-center font-medium">
+                  <TableCell className=" text-center ">
                     {createdLabel}
                   </TableCell>
 
-                  <TableCell className=" text-center font-medium">
+                  <TableCell className=" text-center">
                     {approvedLabel}
                   </TableCell>
-                  <TableCell className=" text-center font-medium">
+                  <TableCell className=" text-center ">
                     {itemsCount} item{itemsCount === 1 ? "" : "s"}
                   </TableCell>
-                  <TableCell className=" text-center font-medium">
+                  <TableCell className=" text-center ">
                     {approvedItemsCount} item
                     {approvedItemsCount === 1 ? "" : "s"}
                   </TableCell>

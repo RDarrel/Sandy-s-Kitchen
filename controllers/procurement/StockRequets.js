@@ -78,10 +78,13 @@ exports.update = async (req, res) => {
     }
 
     const updated = await existing.save();
-
+    const populated = await updated.populate({
+      path: "items.inventory",
+    });
     res.status(200).json({
       success: "Stock Request Updated Successfully",
-      payload: updated,
+      payload: populated,
+      isAdmin: req.body?.isAdmin,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });

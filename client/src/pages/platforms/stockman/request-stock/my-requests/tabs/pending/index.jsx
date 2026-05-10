@@ -22,9 +22,11 @@ import { CircleX, Eye, Pencil } from "lucide-react";
 import PendingUpdateModal from "./pending-update-modal";
 
 const PendingRequestsTab = () => {
-  const { filtered: requests, isLoading } = useSelector(
-    ({ stockRequests }) => stockRequests,
-  );
+  const {
+    filtered: requests,
+    isLoading,
+    formSubmitted,
+  } = useSelector(({ stockRequests }) => stockRequests);
   const { token } = useSelector(({ auth }) => auth);
   const dispatch = useDispatch();
 
@@ -122,13 +124,11 @@ const PendingRequestsTab = () => {
 
               return (
                 <TableRow key={requestId || createdLabel}>
-                  <TableCell className="font-semibold text-foreground">
-                    {idx + 1}
-                  </TableCell>
-                  <TableCell className="font-semibold text-foreground">
+                  <TableCell className=" text-foreground">{idx + 1}</TableCell>
+                  <TableCell className=" text-foreground">
                     {createdLabel}
                   </TableCell>
-                  <TableCell className="font-medium text-foreground tabular-nums">
+                  <TableCell className="text-foreground tabular-nums">
                     {itemsCount} item{itemsCount === 1 ? "" : "s"}
                   </TableCell>
                   <TableCell className="text-right">
@@ -201,6 +201,7 @@ const PendingRequestsTab = () => {
         isOpen={cancelOpen}
         setIsOpen={setCancelDialogOpen}
         capture={() => confirmCancel()}
+        formSubmitted={formSubmitted}
         showCancelButton
         className="w-[22rem]"
         buttonTitle="Yes, cancel it"

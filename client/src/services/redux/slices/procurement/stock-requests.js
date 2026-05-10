@@ -336,15 +336,14 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(UPDATE.fulfilled, (state, action) => {
-        const { success, payload } = action.payload;
-        const { purchase, updatingRequest = false } = payload;
+        const { success, payload, isAdmin = false } = action.payload;
         const updateCollections = (collections) => {
           const index = collections.findIndex(
-            ({ _id: id }) => id === purchase?._id,
+            ({ _id: id }) => id === payload?._id,
           );
           if (index < 0) return;
-          if (updatingRequest) {
-            collections[index] = purchase;
+          if (!isAdmin) {
+            collections[index] = payload;
           } else {
             collections.splice(index, 1);
           }
@@ -369,8 +368,13 @@ export const reduxSlice = createSlice({
       })
       .addCase(DESTROY.fulfilled, (state, action) => {
         const { success, payload } = action.payload;
-        const index = state.collections.findIndex(({ _id }) => _id === payload);
-        state.collections.splice(index, 1);
+        const updateCollections = (collections) => {
+          const index = collections.findIndex(({ _id }) => _id === payload);
+          if (index < 0) return;
+          collections.splice(index, 1);
+        };
+        updateCollections(state.collections);
+        updateCollections(state.filtered);
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;

@@ -11,6 +11,6 @@ router
   .post("/save", validate, save)
   .get("/browse", validate, browse)
   .put("/update", validate, update)
-  .put("/destroy", validate, destroy);
+  .delete("/destroy", validate, destroy);
 
 module.exports = router;
