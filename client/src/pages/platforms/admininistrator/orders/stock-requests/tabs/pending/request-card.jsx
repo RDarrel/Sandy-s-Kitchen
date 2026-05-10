@@ -40,7 +40,9 @@ const PendingStockRequestCard = ({
     return String(requestedBy || "Unknown");
   }, [request]);
 
-  const createdAt = request?.createdAt ? Formatter.date(request.createdAt) : "-";
+  const createdAt = request?.createdAt
+    ? Formatter.date(request.createdAt)
+    : "-";
 
   const items = useMemo(() => {
     return Array.isArray(request?.items) ? request.items : [];
@@ -69,7 +71,10 @@ const PendingStockRequestCard = ({
             <p className="truncate text-base font-semibold text-foreground">
               {requestedByName}
             </p>
-            <Badge variant="outline" className={`rounded-full ${meta.className}`}>
+            <Badge
+              variant="outline"
+              className={`rounded-full ${meta.className}`}
+            >
               <StatusIcon className="h-3 w-3" />
               {meta.label}
             </Badge>
@@ -123,8 +128,10 @@ const PendingStockRequestCard = ({
             <div className="flex items-center gap-2">
               <CalendarRange className="h-4 w-4 text-muted-foreground" />
               <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">Requested on</p>
-                <p className="truncate font-semibold text-foreground">{createdAt}</p>
+                <p className="text-xs text-muted-foreground">Date requested</p>
+                <p className="truncate font-semibold text-foreground">
+                  {createdAt}
+                </p>
               </div>
             </div>
 
@@ -140,7 +147,7 @@ const PendingStockRequestCard = ({
                     >
                       <span className="min-w-0">
                         <span className="block text-xs text-muted-foreground">
-                          Items requested
+                          Requested items
                         </span>
                         <span className="flex min-w-0 items-center gap-1 font-semibold leading-none tabular-nums text-foreground">
                           <span className="truncate leading-none">
@@ -155,7 +162,9 @@ const PendingStockRequestCard = ({
                   </CollapsibleTrigger>
                 ) : (
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Items requested</p>
+                    <p className="text-xs text-muted-foreground">
+                      Items requested
+                    </p>
                     <p className="truncate font-semibold tabular-nums text-foreground">
                       0 item(s)
                     </p>
@@ -188,7 +197,9 @@ const PendingStockRequestCard = ({
                       const inventoryId = String(
                         item?.inventory?._id || item?.inventory || "",
                       );
-                      const inventoryName = String(item?.inventory?.name || "").trim();
+                      const inventoryName = String(
+                        item?.inventory?.name || "",
+                      ).trim();
                       const requestedQty = Number(item?.quantity?.request ?? 0);
                       const unit = String(item?.unit || "").toLowerCase();
 
@@ -204,7 +215,9 @@ const PendingStockRequestCard = ({
                           key={rowKey}
                           className="grid grid-cols-[1fr_180px] items-center gap-2 px-3 py-2 text-sm"
                         >
-                          <span className="truncate font-medium text-foreground">{label}</span>
+                          <span className="truncate font-medium text-foreground">
+                            {label}
+                          </span>
                           <span className="text-right font-semibold tabular-nums text-foreground">
                             {Number.isFinite(requestedQty) ? requestedQty : 0}{" "}
                             {unit ? (
@@ -228,4 +241,3 @@ const PendingStockRequestCard = ({
 };
 
 export default memo(PendingStockRequestCard);
-

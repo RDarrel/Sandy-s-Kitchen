@@ -115,7 +115,7 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
 
                   <div className="space-y-0.5">
                     <p className="text-xs font-medium text-muted-foreground">
-                      Items requested
+                      Requested items
                     </p>
                     <p className="text-sm font-semibold text-foreground tabular-nums">
                       {totals.requested ?? 0} items
@@ -123,7 +123,7 @@ const ApprovedModal = ({ open, onOpenChange, request }) => {
                   </div>
                   <div className="space-y-0.5">
                     <p className="text-xs font-medium text-muted-foreground">
-                      Items approved
+                      Approved items
                     </p>
                     <p className="text-sm font-semibold text-foreground tabular-nums">
                       {totals.approved ?? 0} items

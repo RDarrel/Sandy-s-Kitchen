@@ -61,21 +61,13 @@ const ApprovedRequestsTab = () => {
         <Table className="border-collapse">
           <TableHeader className="bg-muted/40">
             <TableRow>
-              <TableHead className="w-[70px] border-r text-center">#</TableHead>
+              <TableHead className="w-[70px]  text-center">#</TableHead>
 
-              <TableHead className="border-r text-center">
-                Date Requested
-              </TableHead>
+              <TableHead className=" text-center">Date Requested</TableHead>
 
-              <TableHead className="border-r text-center">
-                Date Approved
-              </TableHead>
-              <TableHead className="border-r text-center">
-                Requested Items
-              </TableHead>
-              <TableHead className="border-r text-center">
-                Approved Items
-              </TableHead>
+              <TableHead className=" text-center">Date Approved</TableHead>
+              <TableHead className=" text-center">Requested Items</TableHead>
+              <TableHead className=" text-center">Approved Items</TableHead>
 
               <TableHead className="text-center">Action</TableHead>
             </TableRow>
@@ -99,24 +91,29 @@ const ApprovedRequestsTab = () => {
                 ? request.items.length
                 : 0;
 
+              const approvedItemsCount = Array.isArray(request?.items)
+                ? request.items.filter((item) => !item?.deletedAt).length
+                : 0;
+
               return (
                 <TableRow key={requestId || createdLabel}>
-                  <TableCell className="border-r text-center font-semibold">
+                  <TableCell className=" text-center font-semibold">
                     {idx + 1}
                   </TableCell>
 
-                  <TableCell className="border-r text-center font-medium">
+                  <TableCell className=" text-center font-medium">
                     {createdLabel}
                   </TableCell>
 
-                  <TableCell className="border-r text-center font-medium">
+                  <TableCell className=" text-center font-medium">
                     {approvedLabel}
                   </TableCell>
-                  <TableCell className="border-r text-center font-medium">
+                  <TableCell className=" text-center font-medium">
                     {itemsCount} item{itemsCount === 1 ? "" : "s"}
                   </TableCell>
-                  <TableCell className="border-r text-center font-medium">
-                    {itemsCount} item{itemsCount === 1 ? "" : "s"}
+                  <TableCell className=" text-center font-medium">
+                    {approvedItemsCount} item
+                    {approvedItemsCount === 1 ? "" : "s"}
                   </TableCell>
 
                   <TableCell className="text-center w-[120px]">

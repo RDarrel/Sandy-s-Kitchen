@@ -55,17 +55,19 @@ const RejectedRequestsTab = () => {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-hidden rounded-xl border border-border bg-card/60 shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-border bg-card/60 ">
         <Table>
           <TableHeader className="bg-muted/40">
             <TableRow>
+              <TableHead>#</TableHead>
               <TableHead>Date requested</TableHead>
-              <TableHead className="w-[140px]">Items</TableHead>
+              <TableHead>Date rejected</TableHead>
+              <TableHead className="w-[140px]">Rejected items</TableHead>
               <TableHead className="w-[160px] text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {handlePagination(rows, page, maxPage).map((request) => {
+            {handlePagination(rows, page, maxPage).map((request, idx) => {
               const requestId = String(request?._id || "");
               const createdAt = request?.createdAt || null;
               const createdLabel = createdAt ? Formatter.date(createdAt) : "-";
@@ -75,6 +77,12 @@ const RejectedRequestsTab = () => {
 
               return (
                 <TableRow key={requestId || createdLabel}>
+                  <TableCell className="font-semibold text-foreground">
+                    {idx + 1}
+                  </TableCell>
+                  <TableCell className="font-semibold text-foreground">
+                    {createdLabel}
+                  </TableCell>
                   <TableCell className="font-semibold text-foreground">
                     {createdLabel}
                   </TableCell>

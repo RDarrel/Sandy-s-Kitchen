@@ -37,7 +37,9 @@ const RejectedStockRequestCard = ({
     return String(requestedBy || "Unknown");
   }, [request]);
 
-  const createdAt = request?.createdAt ? Formatter.date(request.createdAt) : "-";
+  const createdAt = request?.createdAt
+    ? Formatter.date(request.createdAt)
+    : "-";
   const rejectedAt = request?.admin?.reviewedAt
     ? Formatter.date(request.admin.reviewedAt)
     : "-";
@@ -57,7 +59,10 @@ const RejectedStockRequestCard = ({
             <p className="truncate text-base font-semibold text-foreground">
               {requestedByName}
             </p>
-            <Badge variant="outline" className={`rounded-full ${meta.className}`}>
+            <Badge
+              variant="outline"
+              className={`rounded-full ${meta.className}`}
+            >
               <StatusIcon className="h-3 w-3" />
               {meta.label}
             </Badge>
@@ -97,16 +102,20 @@ const RejectedStockRequestCard = ({
             <div className="flex items-center gap-2">
               <CalendarRange className="h-4 w-4 text-muted-foreground" />
               <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">Requested on</p>
-                <p className="truncate font-semibold text-foreground">{createdAt}</p>
+                <p className="text-xs text-muted-foreground">Date requested</p>
+                <p className="truncate font-semibold text-foreground">
+                  {createdAt}
+                </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">Rejected on</p>
-                <p className="truncate font-semibold text-foreground">{rejectedAt}</p>
+                <p className="text-xs text-muted-foreground">Date rejected</p>
+                <p className="truncate font-semibold text-foreground">
+                  {rejectedAt}
+                </p>
               </div>
             </div>
 
@@ -122,7 +131,7 @@ const RejectedStockRequestCard = ({
                     >
                       <span className="min-w-0">
                         <span className="block text-xs text-muted-foreground">
-                          Items rejected
+                          Rejected items
                         </span>
                         <span className="flex min-w-0 items-center gap-1 font-semibold leading-none tabular-nums text-foreground">
                           <span className="truncate leading-none">
@@ -137,7 +146,9 @@ const RejectedStockRequestCard = ({
                   </CollapsibleTrigger>
                 ) : (
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Items rejected</p>
+                    <p className="text-xs text-muted-foreground">
+                      Items rejected
+                    </p>
                     <p className="truncate font-semibold tabular-nums text-foreground">
                       0 item(s)
                     </p>
@@ -160,7 +171,9 @@ const RejectedStockRequestCard = ({
                       const inventoryId = String(
                         item?.inventory?._id || item?.inventory || "",
                       );
-                      const inventoryName = String(item?.inventory?.name || "").trim();
+                      const inventoryName = String(
+                        item?.inventory?.name || "",
+                      ).trim();
                       const requestedQty = Number(item?.quantity?.request ?? 0);
                       const unit = String(item?.unit || "").toLowerCase();
 
@@ -176,7 +189,9 @@ const RejectedStockRequestCard = ({
                           key={rowKey}
                           className="grid grid-cols-[1fr_180px] items-center gap-2 px-3 py-2 text-sm"
                         >
-                          <span className="truncate font-medium text-foreground">{label}</span>
+                          <span className="truncate font-medium text-foreground">
+                            {label}
+                          </span>
                           <span className="text-right font-semibold tabular-nums text-foreground">
                             {Number.isFinite(requestedQty) ? requestedQty : 0}{" "}
                             {unit ? (
@@ -200,4 +215,3 @@ const RejectedStockRequestCard = ({
 };
 
 export default memo(RejectedStockRequestCard);
-
