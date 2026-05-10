@@ -13,22 +13,18 @@ import {
   ClipboardList,
   Clock,
   FileX2,
-  Eye,
   Package,
   ShoppingCart,
 } from "lucide-react";
-import { getStockRequestStatusMeta } from "../utils";
+import { getStockRequestStatusMeta } from "../../utils";
 
-const StockRequestCard = ({
+const PendingStockRequestCard = ({
   request,
   isOpen,
   onOpenChange,
-  showActions,
   actionsDisabled,
-  onDecline,
+  onReject,
   onConvertToOrder,
-  showViewDetails,
-  onViewDetails,
 }) => {
   const meta = useMemo(() => {
     const statusKey = String(request?.status || "pending").toLowerCase();
@@ -43,11 +39,14 @@ const StockRequestCard = ({
     }
     return String(requestedBy || "Unknown");
   }, [request]);
-  const createdAt = request?.createdAt
-    ? Formatter.date(request.createdAt)
-    : "-";
-  const items = Array.isArray(request?.items) ? request.items : [];
+
+  const createdAt = request?.createdAt ? Formatter.date(request.createdAt) : "-";
+
+  const items = useMemo(() => {
+    return Array.isArray(request?.items) ? request.items : [];
+  }, [request?.items]);
   const itemsCount = items.length;
+
   const totalRequestedQty = useMemo(() => {
     return items.reduce((sum, row) => {
       const next = Number(row?.quantity?.request ?? 0);
@@ -70,10 +69,7 @@ const StockRequestCard = ({
             <p className="truncate text-base font-semibold text-foreground">
               {requestedByName}
             </p>
-            <Badge
-              variant="outline"
-              className={`rounded-full ${meta.className}`}
-            >
+            <Badge variant="outline" className={`rounded-full ${meta.className}`}>
               <StatusIcon className="h-3 w-3" />
               {meta.label}
             </Badge>
@@ -88,76 +84,36 @@ const StockRequestCard = ({
         </div>
 
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
-          {showActions ? (
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-9 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                disabled={actionsDisabled || !requestId}
-                onClick={() => {
-                  if (!requestId) return;
-                  onDecline?.(request);
-                }}
-              >
-                <FileX2 className="h-4 w-4" />
-                Reject
-              </Button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-9 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              disabled={actionsDisabled || !requestId}
+              onClick={() => {
+                if (!requestId) return;
+                onReject?.(request);
+              }}
+            >
+              <FileX2 className="h-4 w-4" />
+              Reject
+            </Button>
 
-              <Button
-                type="button"
-                size="sm"
-                className="h-9 gap-2 bg-primary px-3 text-primary-foreground hover:bg-primary/90"
-                disabled={actionsDisabled || !requestId}
-                onClick={() => {
-                  if (!requestId) return;
-                  onConvertToOrder?.(request);
-                }}
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Convert to Order
-              </Button>
-            </div>
-          ) : (
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
-              {showViewDetails ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="h-9 gap-2"
-                  disabled={!requestId}
-                  onClick={() => {
-                    if (!requestId) return;
-                    onViewDetails?.(request);
-                  }}
-                >
-                  <Eye className="h-4 w-4" />
-                  View details
-                </Button>
-              ) : null}
-
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant="secondary"
-                  className="rounded-full tabular-nums"
-                  title="Total requested items"
-                >
-                  <ClipboardList className="h-3.5 w-3.5" />
-                  {itemsCount} item(s)
-                </Badge>
-                <Badge
-                  variant="secondary"
-                  className="rounded-full tabular-nums"
-                  title="Total requested quantity"
-                >
-                  <Package className="h-3.5 w-3.5" />
-                  {totalQtyLabel}
-                </Badge>
-              </div>
-            </div>
-          )}
+            <Button
+              type="button"
+              size="sm"
+              className="h-9 gap-2 bg-primary px-3 text-primary-foreground hover:bg-primary/90"
+              disabled={actionsDisabled || !requestId}
+              onClick={() => {
+                if (!requestId) return;
+                onConvertToOrder?.(request);
+              }}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Convert to Order
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -168,9 +124,7 @@ const StockRequestCard = ({
               <CalendarRange className="h-4 w-4 text-muted-foreground" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Requested on</p>
-                <p className="truncate font-semibold text-foreground">
-                  {createdAt}
-                </p>
+                <p className="truncate font-semibold text-foreground">{createdAt}</p>
               </div>
             </div>
 
@@ -201,9 +155,7 @@ const StockRequestCard = ({
                   </CollapsibleTrigger>
                 ) : (
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">
-                      Items requested
-                    </p>
+                    <p className="text-xs text-muted-foreground">Items requested</p>
                     <p className="truncate font-semibold tabular-nums text-foreground">
                       0 item(s)
                     </p>
@@ -236,9 +188,7 @@ const StockRequestCard = ({
                       const inventoryId = String(
                         item?.inventory?._id || item?.inventory || "",
                       );
-                      const inventoryName = String(
-                        item?.inventory?.name || "",
-                      ).trim();
+                      const inventoryName = String(item?.inventory?.name || "").trim();
                       const requestedQty = Number(item?.quantity?.request ?? 0);
                       const unit = String(item?.unit || "").toLowerCase();
 
@@ -254,9 +204,7 @@ const StockRequestCard = ({
                           key={rowKey}
                           className="grid grid-cols-[1fr_180px] items-center gap-2 px-3 py-2 text-sm"
                         >
-                          <span className="truncate font-medium text-foreground">
-                            {label}
-                          </span>
+                          <span className="truncate font-medium text-foreground">{label}</span>
                           <span className="text-right font-semibold tabular-nums text-foreground">
                             {Number.isFinite(requestedQty) ? requestedQty : 0}{" "}
                             {unit ? (
@@ -279,4 +227,5 @@ const StockRequestCard = ({
   );
 };
 
-export default memo(StockRequestCard);
+export default memo(PendingStockRequestCard);
+

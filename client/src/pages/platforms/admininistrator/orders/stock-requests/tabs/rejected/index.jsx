@@ -2,9 +2,9 @@ import CustomPagination from "@/components/shared/pagination";
 import { memo, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { handlePagination } from "@/services/utilities";
-import StockRequestCard from "../request-card";
 import StockRequestsSkeleton from "../skeleton";
 import RejectedRequestDetailsModal from "./details-modal";
+import RejectedStockRequestCard from "./request-card";
 
 const RejectedStockRequestsTab = () => {
   const { filtered: requests, isLoading } = useSelector(
@@ -46,14 +46,13 @@ const RejectedStockRequestsTab = () => {
       {handlePagination(rows, page, maxPage).map((request, index) => {
         const rowId = String(request?._id || index);
         return (
-          <StockRequestCard
+          <RejectedStockRequestCard
             key={rowId}
             request={request}
             isOpen={Boolean(openById[rowId])}
             onOpenChange={(nextOpen) =>
               setOpenById((prev) => ({ ...prev, [rowId]: nextOpen }))
             }
-            showViewDetails
             onViewDetails={(row) => {
               setSelectedRequest(row);
               setDetailsOpen(true);

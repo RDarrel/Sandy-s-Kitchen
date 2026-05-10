@@ -2,12 +2,12 @@ import CustomPagination from "@/components/shared/pagination";
 import { memo, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { handlePagination } from "@/services/utilities";
-import StockRequestCard from "../request-card";
 import StockRequestsSkeleton from "../skeleton";
 import ConvertToOrderModal from "./modal";
 import { UPDATE } from "@/services/redux/slices/procurement/stock-requests";
 import { toast } from "sonner";
 import RejectReasonModal from "./reject-modal";
+import PendingStockRequestCard from "./request-card";
 
 const PendingStockRequestsTab = () => {
   const { filtered: requests, isLoading } = useSelector(
@@ -88,16 +88,15 @@ const PendingStockRequestsTab = () => {
       {handlePagination(rows, page, maxPage).map((request, index) => {
         const rowId = String(request?._id || index);
         return (
-          <StockRequestCard
+          <PendingStockRequestCard
             key={rowId}
             request={request}
             isOpen={Boolean(openById[rowId])}
             onOpenChange={(nextOpen) =>
               setOpenById((prev) => ({ ...prev, [rowId]: nextOpen }))
             }
-            showActions
             actionsDisabled={formSubmitted}
-            onDecline={openReject}
+            onReject={openReject}
             onConvertToOrder={(row) => {
               setSelectedRequest(row);
               setConvertOpen(true);
