@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CustomAlert } from "@/components/shared/alert";
 import { CardContent } from "@/components/ui/card";
@@ -10,9 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, Package2, Boxes } from "lucide-react";
+import { Pencil, Trash2, Boxes } from "lucide-react";
 import { capitalize } from "lodash";
-import { statusClasses } from "./config";
 import { useDispatch, useSelector } from "react-redux";
 import CustomPagination from "@/components/shared/pagination";
 import { Formatter, handlePagination, Stock } from "@/services/utilities";
