@@ -19,7 +19,7 @@ const access = [
     children: [
       {
         name: "Create Request",
-        path: "/Create-Request",
+        path: "/create-request",
         component: RequestStock,
       },
       {
@@ -31,17 +31,17 @@ const access = [
   },
   {
     name: "Orders",
-    path: "/Orders",
+    path: "/orders",
     icon: GitPullRequestArrow,
     children: [
       {
         name: "Order-List",
-        path: "/Order-Processing",
+        path: "/order-list",
         component: orderList,
       },
       {
         name: "Short Deliveries",
-        path: "/Short-Deliveries",
+        path: "/short-deliveries",
         component: shortDeliveries,
       },
     ],

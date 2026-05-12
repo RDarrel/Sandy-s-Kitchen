@@ -48,7 +48,7 @@ const OrderList = () => {
                 <div className="min-w-0">
                   <CardTitle className="text-lg">Supplier orders</CardTitle>
                   <CardDescription className="text-sm">
-                    Track purchase orders from request to receiving.
+                    Track incoming and received supplier deliveries.
                   </CardDescription>
                 </div>
               </div>

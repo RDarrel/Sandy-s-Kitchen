@@ -1,5 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { PackageSearch, AlertTriangle, ClipboardList, ShoppingCart } from "lucide-react";
+import {
+  PackageSearch,
+  AlertTriangle,
+  ClipboardList,
+  PackagePlus,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Header = () => {
@@ -26,14 +31,14 @@ const Header = () => {
             size="sm"
             className="gap-2 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
           >
-            <Link to="/platforms/Manage-Orders/Order-Processing">
-              <ShoppingCart className="h-4 w-4" />
-              Request stock
+            <Link to="/platforms/stock-requests/create-request">
+              <PackagePlus className="h-4 w-4" />
+              Create Stock Request
             </Link>
           </Button>
 
           <Button asChild size="sm" variant="outline" className="gap-2">
-            <Link to="/platforms/Manage-Orders/Order-Processing">
+            <Link to="/platforms/orders/order-list">
               <ClipboardList className="h-4 w-4" />
               Orders
             </Link>
@@ -45,7 +50,7 @@ const Header = () => {
             variant="outline"
             className="gap-2 border-destructive/30 bg-destructive/5 text-destructive hover:bg-destructive/10 hover:text-destructive"
           >
-            <Link to="/platforms/Manage-Orders/Short-Deliveries">
+            <Link to="/platforms/orders/short-deliveries">
               <AlertTriangle className="h-4 w-4" />
               Short deliveries
             </Link>
