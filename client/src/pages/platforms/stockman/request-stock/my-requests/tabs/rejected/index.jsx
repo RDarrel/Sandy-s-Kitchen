@@ -38,7 +38,7 @@ const RejectedRequestsTab = () => {
       <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 p-7 text-center sm:p-8">
         <div className="space-y-2">
           <p className="text-sm font-semibold text-foreground">
-            No denied requests
+            No rejected requests
           </p>
           <p className="text-xs text-muted-foreground">
             Rejected stock requests will show up here.

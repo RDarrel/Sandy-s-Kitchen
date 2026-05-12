@@ -69,7 +69,7 @@ const MyRequests = () => {
                   value="rejected"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
-                  Denied
+                  Rejected
                 </TabsTrigger>
               </TabsList>
             </CardHeader>
