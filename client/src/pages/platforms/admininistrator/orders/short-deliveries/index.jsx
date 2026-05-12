@@ -114,8 +114,8 @@ const ShortDeliveries = () => {
                 <div className="min-w-0">
                   <CardTitle className="text-lg">Short deliveries</CardTitle>
                   <CardDescription className="text-sm">
-                    Track pending decisions, redeliveries, received items, and
-                    refunds.
+                    Track pending decisions, replacement deliveries, received
+                    items, and refunds.
                   </CardDescription>
                 </div>
               </div>
