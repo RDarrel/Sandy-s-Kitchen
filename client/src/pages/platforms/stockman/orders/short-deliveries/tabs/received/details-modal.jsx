@@ -118,6 +118,17 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
     );
   }, [items]);
 
+  const shortageItemsCount = useMemo(() => {
+    return items.reduce((count, item) => {
+      const expected = round2(getOrderedQty(item));
+      const received = round2(toNumber(item?.quantity?.received));
+
+      const discrepancy = round2(expected - received);
+
+      return discrepancy > 0 ? count + 1 : count;
+    }, 0);
+  }, [items]);
+
   const totalReceivedAmount = totals.received + additionalReceivedAmount;
   const difference = totals.ordered - totalReceivedAmount;
 
@@ -267,19 +278,13 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="px-5 py-2.5 align-top">
+                          <TableCell className="px-5 py-2.5 ">
                             <div className="mx-auto w-[150px]">
-                              <Input
-                                type="text"
-                                value={
-                                  item?.expirationDate
-                                    ? Formatter.date(item.expirationDate)
-                                    : ""
-                                }
-                                placeholder="mm/dd/yyyy"
-                                disabled
-                                className="h-8 w-full bg-background text-center text-sm font-medium disabled:cursor-default disabled:opacity-100"
-                              />
+                              <p className="text-center  font-medium ">
+                                {item?.inventory?.trackExpiration
+                                  ? Formatter.date(item.expirationDate)
+                                  : "--"}
+                              </p>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -292,28 +297,20 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                   <div className="flex items-baseline justify-between gap-6 sm:justify-end">
                     <div className="text-right">
                       <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        Total Ordered
+                        Items Received
                       </span>
                       <div className="text-base font-semibold tabular-nums text-foreground">
-                        {Formatter.amount(totals.ordered)}
+                        {items?.length || 0}
                       </div>
                     </div>
                     <div className="text-right">
                       <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        Total Received
-                      </span>
-                      <div className="text-base font-semibold tabular-nums text-foreground">
-                        {Formatter.amount(totalReceivedAmount)}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        Difference
+                        Items with Shortage
                       </span>
                       <div
                         className={`text-base font-semibold tabular-nums ${difference === 0 ? "text-muted-foreground" : "text-destructive"}`}
                       >
-                        {Formatter.amount(difference)}
+                        {shortageItemsCount}
                       </div>
                     </div>
                   </div>

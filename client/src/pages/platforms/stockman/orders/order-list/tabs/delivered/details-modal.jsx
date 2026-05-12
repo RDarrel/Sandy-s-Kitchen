@@ -430,21 +430,11 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                         item?.inventory?.name || item?.name || "Item";
                       const unitRaw = String(item?.unit || "").trim();
                       const unit = capitalize(unitRaw) || "-";
-                      const unitLabel = unitRaw ? unitRaw.toLowerCase() : "";
-                      const unitCost = getUnitCost(item);
                       const ordered = round2(getOrderedQty(item));
                       const received = round2(
                         toNumber(item?.quantity?.received),
                       );
                       const shortQty = Math.max(0, round2(ordered - received));
-                      const receivedAmount =
-                        unitCost === null
-                          ? null
-                          : Math.max(0, received) * unitCost;
-                      const shortAmount =
-                        unitCost === null
-                          ? null
-                          : Math.max(0, shortQty) * unitCost;
 
                       return (
                         <TableRow
