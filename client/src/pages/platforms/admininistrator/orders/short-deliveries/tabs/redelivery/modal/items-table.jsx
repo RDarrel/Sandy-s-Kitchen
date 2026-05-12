@@ -16,7 +16,6 @@ import {
   getItemKey,
   getOrderedQty,
   getUnitCost,
-  normalizeQtyInput,
   round2,
   toNumber,
 } from "./utils";
