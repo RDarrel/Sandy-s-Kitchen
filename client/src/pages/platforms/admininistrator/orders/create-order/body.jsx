@@ -216,7 +216,7 @@ const CreateOrderBody = ({
                           <p className="font-medium tabular-nums text-foreground">
                             {item?.stockDisplay.current}{" "}
                             <span className="text-xs text-muted-foreground">
-                              / {unitLabel || "—"}
+                              {unitLabel || "—"}
                             </span>
                           </p>
                         </TableCell>

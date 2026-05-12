@@ -72,7 +72,7 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
         </span>
         <p className="font-medium tabular-nums text-foreground">
           {inventory?.stockDisplay?.current}{" "}
-          <span className="text-xs text-muted-foreground">/ {unit || "—"}</span>
+          <span className="text-xs text-muted-foreground">{unit || "—"}</span>
         </p>
       </div>
       <div className="flex items-center justify-between gap-2 sm:justify-start">
