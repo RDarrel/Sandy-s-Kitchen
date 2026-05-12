@@ -168,6 +168,25 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
     );
   }, [items]);
 
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      const aOrdered = round2(getOrderedQty(a));
+      const aReceived = round2(toNumber(a?.quantity?.received));
+      const aShortQty = Math.max(0, round2(aOrdered - aReceived));
+
+      const bOrdered = round2(getOrderedQty(b));
+      const bReceived = round2(toNumber(b?.quantity?.received));
+      const bShortQty = Math.max(0, round2(bOrdered - bReceived));
+
+      // items with shortage first
+      if (aShortQty > 0 && bShortQty === 0) return -1;
+      if (aShortQty === 0 && bShortQty > 0) return 1;
+
+      // optional: higher shortage quantity first
+      return bShortQty - aShortQty;
+    });
+  }, [items]);
+
   const totalReceivedAmount = totals.received + additionalReceivedAmount;
   const difference = totals.ordered - totalReceivedAmount;
 
@@ -332,20 +351,26 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                           </div>
 
                           <div className="flex justify-end">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-8 gap-2"
-                              onClick={() =>
-                                navigate(
-                                  `/platforms/orders/Short-Deliveries?status=${encodeURIComponent(statusKey)}&purchase=${encodeURIComponent(id)}`,
-                                )
-                              }
-                            >
-                              View Details
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </Button>
+                            {["review", "resolved"].includes(statusKey) ? (
+                              <p className="text-xs text-muted-foreground">
+                                Handled by administrator
+                              </p>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="h-8 gap-2"
+                                onClick={() =>
+                                  navigate(
+                                    `/platforms/orders/Short-Deliveries?status=${encodeURIComponent(statusKey)}&purchase=${encodeURIComponent(id)}`,
+                                  )
+                                }
+                              >
+                                View Details
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       );
@@ -389,7 +414,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                   </TableHeader>
 
                   <TableBody>
-                    {items.map((item) => {
+                    {sortedItems.map((item) => {
                       const name =
                         item?.inventory?.name || item?.name || "Item";
                       const unitRaw = String(item?.unit || "").trim();

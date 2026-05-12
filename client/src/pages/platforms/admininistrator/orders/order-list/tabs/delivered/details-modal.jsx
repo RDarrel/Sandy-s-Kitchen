@@ -167,6 +167,24 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
       { ordered: 0, received: 0 },
     );
   }, [items]);
+  const sortedItems = useMemo(() => {
+    return [...items].sort((a, b) => {
+      const aOrdered = round2(getOrderedQty(a));
+      const aReceived = round2(toNumber(a?.quantity?.received));
+      const aShortQty = Math.max(0, round2(aOrdered - aReceived));
+
+      const bOrdered = round2(getOrderedQty(b));
+      const bReceived = round2(toNumber(b?.quantity?.received));
+      const bShortQty = Math.max(0, round2(bOrdered - bReceived));
+
+      // items with shortage first
+      if (aShortQty > 0 && bShortQty === 0) return -1;
+      if (aShortQty === 0 && bShortQty > 0) return 1;
+
+      // optional: higher shortage quantity first
+      return bShortQty - aShortQty;
+    });
+  }, [items]);
 
   const totalReceivedAmount = totals.received + additionalReceivedAmount;
   const difference = totals.ordered - totalReceivedAmount;
@@ -389,7 +407,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                   </TableHeader>
 
                   <TableBody>
-                    {items.map((item) => {
+                    {sortedItems.map((item) => {
                       const name =
                         item?.inventory?.name || item?.name || "Item";
                       const unitRaw = String(item?.unit || "").trim();

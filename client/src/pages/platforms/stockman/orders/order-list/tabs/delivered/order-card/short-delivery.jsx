@@ -208,7 +208,9 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
 
                     <div className="flex justify-end">
                       {["review", "refunded"].includes(statusKey) ? (
-                        "-"
+                        <p className="text-xs text-muted-foreground">
+                          Handled by administrator
+                        </p>
                       ) : (
                         <Button
                           type="button"
