@@ -291,11 +291,10 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
 
               <CollapsibleContent className="mt-2">
                 <div className="overflow-hidden rounded-xl border border-border bg-card/60">
-                  <div className="grid grid-cols-[minmax(140px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)_minmax(170px,1fr)] gap-3 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                  <div className="grid grid-cols-[minmax(250px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)] gap-3 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
                     <span>Record</span>
                     <span>Status</span>
                     <span className="text-right">Items with Shortage</span>
-                    <span className="text-right">Shortage value</span>
                     <span className="text-right">Action</span>
                   </div>
                   <div className="divide-y divide-border/70">
@@ -318,7 +317,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                       return (
                         <div
                           key={id}
-                          className="grid grid-cols-[minmax(140px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)_minmax(170px,1fr)] items-center gap-3 px-3 py-2 text-sm"
+                          className="grid grid-cols-[minmax(140px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)] items-center gap-3 px-3 py-2 text-sm"
                         >
                           <div className="min-w-0">
                             <p className="font-semibold text-foreground">
@@ -353,12 +352,6 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                             <span className="text-xs font-medium text-muted-foreground">
                               item(s)
                             </span>
-                          </div>
-
-                          <div className="text-right font-semibold tabular-nums text-foreground">
-                            {Formatter.amount(
-                              Number.isFinite(amount) ? amount : 0,
-                            )}
                           </div>
 
                           <div className="flex justify-end">
