@@ -199,7 +199,12 @@ const CreateOrderBody = ({
 
                         <TableCell className="font-medium text-foreground">
                           <div className="space-y-0.5">
-                            <p>{`${Formatter.amount(unitCost)} / ${unitLabel || "-"}`}</p>
+                            <p className="font-medium tabular-nums text-foreground">
+                              {Formatter.amount(unitCost)}{" "}
+                              <span className="text-xs text-muted-foreground">
+                                / {unitLabel || "—"}
+                              </span>
+                            </p>
                             {!!unitCostSupplierName && (
                               <p className="text-xs font-normal text-muted-foreground">
                                 From {unitCostSupplierName}
@@ -208,10 +213,12 @@ const CreateOrderBody = ({
                           </div>
                         </TableCell>
                         <TableCell className="font-medium text-right text-foreground">
-                          {Stock.display(
-                            item?.stockDisplay.current,
-                            item?.measurement,
-                          )}
+                          <p className="font-medium tabular-nums text-foreground">
+                            {item?.stockDisplay.current}{" "}
+                            <span className="text-xs text-muted-foreground">
+                              / {unitLabel || "—"}
+                            </span>
+                          </p>
                         </TableCell>
                       </TableRow>
                     );
