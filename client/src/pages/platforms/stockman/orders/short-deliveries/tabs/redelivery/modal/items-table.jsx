@@ -16,7 +16,6 @@ import {
   getItemKey,
   getOrderedQty,
   getUnitCost,
-  normalizeQtyInput,
   round2,
   toNumber,
 } from "./utils";
@@ -28,6 +27,7 @@ const ReceiveOrderItemsTable = ({
   counts,
   grandSubtotal,
   grandVariance,
+  shortageItemsCount,
 }) => {
   const updateReceived = (key, value) => {
     setItems((prev) =>
@@ -109,18 +109,6 @@ const ReceiveOrderItemsTable = ({
               >
                 <TableCell className="whitespace-normal px-5 py-2.5">
                   <p className="truncate font-medium text-foreground">{name}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    {unitCost === null ? (
-                      <span>Unit cost: -</span>
-                    ) : (
-                      <span>
-                        Unit cost:{" "}
-                        <span className="font-medium text-foreground/80">
-                          {Formatter.amount(unitCost)} / {unit || "-"}
-                        </span>
-                      </span>
-                    )}
-                  </div>
                 </TableCell>
 
                 <TableCell className="px-5 py-2.5 text-right font-semibold tabular-nums text-foreground">
@@ -178,15 +166,6 @@ const ReceiveOrderItemsTable = ({
                         {unit || "-"}
                       </span>
                     </div>
-
-                    <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                      <span className="font-medium">Subtotal</span>
-                      <span className="font-semibold tabular-nums text-foreground">
-                        {receivedAmount === null
-                          ? "-"
-                          : Formatter.amount(receivedAmount)}
-                      </span>
-                    </div>
                   </div>
                 </TableCell>
 
@@ -201,16 +180,6 @@ const ReceiveOrderItemsTable = ({
                       />
                       <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                         {unit || "-"}
-                      </span>
-                    </div>
-                    <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                      <span className="font-medium">Subtotal</span>
-                      <span
-                        className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
-                      >
-                        {shortAmount === null
-                          ? "-"
-                          : Formatter.amount(shortAmount)}
                       </span>
                     </div>
                   </div>
@@ -262,20 +231,20 @@ const ReceiveOrderItemsTable = ({
         <div className="flex items-baseline justify-between gap-6 sm:justify-end">
           <div className="text-right">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-              Total Received
+              Items Received
             </span>
             <div className="text-base font-semibold tabular-nums text-foreground">
-              {Formatter.amount(grandSubtotal)}
+              {items?.length}
             </div>
           </div>
           <div className="text-right">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-              Total Difference
+              Items With Shortage
             </span>
             <div
               className={`text-base font-semibold tabular-nums ${grandVariance === 0 ? "text-muted-foreground" : "text-destructive"}`}
             >
-              {Formatter.amount(grandVariance)}
+              {shortageItemsCount}
             </div>
           </div>
         </div>

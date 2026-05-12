@@ -108,6 +108,17 @@ const RedeliveryOrderModal = () => {
     }, 0);
   }, [editableItems]);
 
+  const shortageItemsCount = useMemo(() => {
+    return editableItems.reduce((count, item) => {
+      const expected = round2(getOrderedQty(item));
+      const received = round2(toNumber(item?.quantity?.received));
+
+      const discrepancy = round2(expected - received);
+
+      return discrepancy > 0 ? count + 1 : count;
+    }, 0);
+  }, [editableItems]);
+
   const handleSubmit = (event) => {
     event.preventDefault();
 
@@ -196,10 +207,10 @@ const RedeliveryOrderModal = () => {
               </div>
               <div className="space-y-1">
                 <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
-                  Total Amount
+                  Supplier Contact
                 </p>
                 <p className="truncate text-sm font-semibold tabular-nums text-foreground">
-                  {Formatter.amount(purchase?.totalAmount || 0)}
+                  {Formatter.mobile(purchase?.supplier?.contact?.mobile)}
                 </p>
               </div>
               <div className="space-y-1">
@@ -234,6 +245,7 @@ const RedeliveryOrderModal = () => {
                   counts={counts}
                   grandSubtotal={grandSubtotal}
                   grandVariance={grandVariance}
+                  shortageItemsCount={shortageItemsCount}
                 />
               )}
             </div>
