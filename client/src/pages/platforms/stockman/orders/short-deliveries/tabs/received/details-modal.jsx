@@ -263,27 +263,31 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="px-5 py-2.5 align-top">
-                            <div className="flex flex-col items-center gap-1">
-                              <div className="relative w-[140px]">
-                                <Input
-                                  type="text"
-                                  value={formatQty(shortQty)}
-                                  disabled
-                                  className={`h-8 w-full border-dashed bg-muted/10 pr-12 text-right font-semibold tabular-nums disabled:cursor-default disabled:opacity-100 ${shortQty > 0 ? "border-destructive/40 text-destructive" : "border-border/70 text-muted-foreground"}`}
-                                />
-                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
-                                  {unit}
-                                </span>
+                          <TableCell className="px-5 py-2.5 text-center">
+                            {shortQty > 0 ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <div className="relative w-[140px]">
+                                  <Input
+                                    type="text"
+                                    value={formatQty(shortQty)}
+                                    disabled
+                                    className={`h-8 w-full border-dashed bg-muted/10 pr-12 text-right font-semibold tabular-nums disabled:cursor-default disabled:opacity-100 ${shortQty > 0 ? "border-destructive/40 text-destructive" : "border-border/70 text-muted-foreground"}`}
+                                  />
+                                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                                    {unit}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
+                            ) : (
+                              "—"
+                            )}
                           </TableCell>
                           <TableCell className="px-5 py-2.5 ">
                             <div className="mx-auto w-[150px]">
                               <p className="text-center  font-medium ">
                                 {item?.inventory?.trackExpiration
                                   ? Formatter.date(item.expirationDate)
-                                  : "--"}
+                                  : "—"}
                               </p>
                             </div>
                           </TableCell>
