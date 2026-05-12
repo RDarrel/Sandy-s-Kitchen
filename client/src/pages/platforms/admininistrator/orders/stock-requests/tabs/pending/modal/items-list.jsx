@@ -8,9 +8,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Formatter, Inventory } from "@/services/utilities";
-import { Trash2 } from "lucide-react";
+import { MessageSquareMore, Trash2 } from "lucide-react";
 import { memo, useMemo } from "react";
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 const measurementLabels = (measurement = "") => {
   const normalized = String(measurement || "").toLowerCase();
 
@@ -47,14 +51,22 @@ const ConvertToOrderItemsList = ({
         inventoryId,
         approvedValue: draftApprovedByInvId?.[inventoryId] ?? 0,
         unitCost:
-          Number(draftUnitCostByInvId?.[inventoryId] ?? item?.__unitCost ?? 0) || 0,
+          Number(
+            draftUnitCostByInvId?.[inventoryId] ?? item?.__unitCost ?? 0,
+          ) || 0,
         supplierValue:
           String(
             draftSupplierByInvId?.[inventoryId] ?? item?.__supplierId ?? "",
           ) || String(supplierId || ""),
       };
     });
-  }, [safeRows, draftApprovedByInvId, draftUnitCostByInvId, draftSupplierByInvId, supplierId]);
+  }, [
+    safeRows,
+    draftApprovedByInvId,
+    draftUnitCostByInvId,
+    draftSupplierByInvId,
+    supplierId,
+  ]);
 
   return (
     <div className="space-y-2">
@@ -70,21 +82,26 @@ const ConvertToOrderItemsList = ({
         </div>
       ) : null}
 
-      {rowsWithDrafts.map(({ item, inventoryId, approvedValue, unitCost, supplierValue }, idx) => (
-        <ItemRow
-          key={item?.__inventoryId || item?._id || inventoryId || idx}
-          supplierId={supplierId}
-          item={item}
-          inventoryId={inventoryId}
-          approvedValue={approvedValue}
-          setDraftApprovedByInvId={setDraftApprovedByInvId}
-          unitCost={unitCost}
-          setDraftUnitCostByInvId={setDraftUnitCostByInvId}
-          supplierValue={supplierValue}
-          onChangeSupplier={onChangeSupplier}
-          onRemoveItem={onRemoveItem}
-        />
-      ))}
+      {rowsWithDrafts.map(
+        (
+          { item, inventoryId, approvedValue, unitCost, supplierValue },
+          idx,
+        ) => (
+          <ItemRow
+            key={item?.__inventoryId || item?._id || inventoryId || idx}
+            supplierId={supplierId}
+            item={item}
+            inventoryId={inventoryId}
+            approvedValue={approvedValue}
+            setDraftApprovedByInvId={setDraftApprovedByInvId}
+            unitCost={unitCost}
+            setDraftUnitCostByInvId={setDraftUnitCostByInvId}
+            supplierValue={supplierValue}
+            onChangeSupplier={onChangeSupplier}
+            onRemoveItem={onRemoveItem}
+          />
+        ),
+      )}
     </div>
   );
 };
@@ -109,7 +126,8 @@ const ItemRow = memo(
     const requestQty = Number(item?.quantity?.request ?? 0) || 0;
 
     const { unitLabel, unitCostLabel } = useMemo(() => {
-      const unitLabel = Inventory.getUnitByMeasurement(inventory?.measurement) || "";
+      const unitLabel =
+        Inventory.getUnitByMeasurement(inventory?.measurement) || "";
       const unitCostLabel = measurementLabels(inventory?.measurement).unitCost;
       return { unitCostLabel, unitLabel };
     }, [inventory?.measurement]);
@@ -120,7 +138,9 @@ const ItemRow = memo(
     }, [approvedValue, unitCost]);
 
     const supplierOptions = useMemo(() => {
-      const options = (Array.isArray(inventory?.suppliers) ? inventory.suppliers : [])
+      const options = (
+        Array.isArray(inventory?.suppliers) ? inventory.suppliers : []
+      )
         .map((row) => ({
           id: String(row?.supplier?._id || ""),
           label: String(row?.supplier?.name || ""),
@@ -133,7 +153,9 @@ const ItemRow = memo(
     }, [inventory?.suppliers]);
 
     const selectedSupplier = useMemo(() => {
-      return supplierOptions.find((option) => option.id === supplierValue) || null;
+      return (
+        supplierOptions.find((option) => option.id === supplierValue) || null
+      );
     }, [supplierOptions, supplierValue]);
 
     const handleSupplierChange = (value) => {
@@ -158,12 +180,26 @@ const ItemRow = memo(
     };
 
     const handleRemove = () => onRemoveItem?.(supplierId, inventoryId);
-
     return (
       <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/30 px-3 py-3 text-sm shadow-sm transition-colors hover:bg-background/40 sm:grid-cols-[1fr_150px_120px_170px_150px_120px_56px] sm:items-start sm:gap-3">
         <div className="min-w-0">
-          <p className="truncate font-semibold text-foreground">
-            {inventory?.name || "Item"}
+          <p className="truncate font-semibold flex gap-1 text-foreground">
+            {item?.remarks ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center gap-1">
+                    <MessageSquareMore className="h-4 w-4" />
+                    {inventory?.name || "Item"}
+                  </span>
+                </TooltipTrigger>
+
+                <TooltipContent>
+                  <p>{item?.remarks}</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              inventory?.name || "Item"
+            )}
           </p>
           <div className="mt-2 grid gap-1">
             <span className="text-xs text-muted-foreground">Supplier</span>
@@ -175,7 +211,8 @@ const ItemRow = memo(
                   </span>
                   {selectedSupplier ? (
                     <span className="shrink-0 tabular-nums text-muted-foreground">
-                      {Formatter.amount(selectedSupplier.cost)} / {unitLabel || "unit"}
+                      {Formatter.amount(selectedSupplier.cost)} /{" "}
+                      {unitLabel || "unit"}
                     </span>
                   ) : null}
                 </span>
@@ -215,7 +252,9 @@ const ItemRow = memo(
         </div>
 
         <div className="flex items-baseline justify-between gap-2 sm:block">
-          <span className="text-xs text-muted-foreground sm:hidden">Request qty</span>
+          <span className="text-xs text-muted-foreground sm:hidden">
+            Request qty
+          </span>
           <p className="font-semibold tabular-nums text-foreground">
             {requestQty}
             <span className="ml-1 text-xs font-medium text-muted-foreground">
@@ -225,7 +264,9 @@ const ItemRow = memo(
         </div>
 
         <div className="flex items-center justify-between gap-2 sm:block">
-          <span className="text-xs text-muted-foreground sm:hidden">{unitCostLabel}</span>
+          <span className="text-xs text-muted-foreground sm:hidden">
+            {unitCostLabel}
+          </span>
           <div className="flex w-full items-center justify-between gap-2 sm:justify-start">
             <Input
               value={unitCost}
@@ -241,7 +282,9 @@ const ItemRow = memo(
         </div>
 
         <div className="flex items-center justify-between gap-2 sm:justify-start sm:pl-2">
-          <span className="text-xs text-muted-foreground sm:hidden">Approved qty</span>
+          <span className="text-xs text-muted-foreground sm:hidden">
+            Approved qty
+          </span>
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <Input
               value={approvedValue}
@@ -256,7 +299,9 @@ const ItemRow = memo(
         </div>
 
         <div className="flex items-center justify-between gap-2 sm:justify-end sm:text-right">
-          <span className="text-xs text-muted-foreground sm:hidden">Subtotal</span>
+          <span className="text-xs text-muted-foreground sm:hidden">
+            Subtotal
+          </span>
           <p className="font-semibold tabular-nums text-foreground">
             {Formatter.amount(subtotal)}
           </p>

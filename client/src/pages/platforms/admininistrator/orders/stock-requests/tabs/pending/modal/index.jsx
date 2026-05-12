@@ -518,7 +518,7 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
                         Total Amount
                       </span>
                       <span className="text-base font-semibold leading-none tabular-nums text-foreground">
-                        {Formatter.amount(120)}
+                        {Formatter.amount(totals.totalAmount)}
                       </span>
                     </div>
                   </div>
@@ -624,7 +624,7 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
                     Total Amount
                   </span>
                   <span className="text-base font-semibold leading-none tabular-nums text-foreground">
-                    {Formatter.amount(120)}
+                    {Formatter.amount(totals.totalAmount)}
                   </span>
                 </div>
               </div>

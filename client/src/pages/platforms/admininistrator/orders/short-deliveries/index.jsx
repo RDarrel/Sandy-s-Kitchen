@@ -145,7 +145,7 @@ const ShortDeliveries = () => {
                   value="redelivery"
                   className="gap-2 rounded-full px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
                 >
-                  Redelivery
+                  Incoming
                 </TabsTrigger>
 
                 <TabsTrigger
