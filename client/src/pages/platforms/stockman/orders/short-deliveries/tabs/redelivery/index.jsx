@@ -21,6 +21,7 @@ import {
 import { memo, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import IncomingSkeleton from "./skeleton";
+import useHighlightPurchase from "../../use-highlight-purchase";
 
 const statusMeta = {
   request: {
@@ -45,7 +46,7 @@ const statusMeta = {
   },
 };
 
-const IncomingOrdersTab = () => {
+const IncomingOrdersTab = ({ highlightPurchaseId = null }) => {
   const { filtered: orders, isLoading } = useSelector(
     ({ purchases }) => purchases,
   );
@@ -54,6 +55,15 @@ const IncomingOrdersTab = () => {
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(5);
   const dispatch = useDispatch();
+
+  useHighlightPurchase({
+    highlightPurchaseId,
+    rows,
+    page,
+    pageSize: maxPage,
+    setPage,
+    setOpenById,
+  });
 
   if (isLoading) {
     return <IncomingSkeleton />;
@@ -111,12 +121,13 @@ const IncomingOrdersTab = () => {
               ? Formatter.date(deliveryFrom)
               : "Not set";
 
-        const canReceive = statusKey === "incoming";
+        const canReceive = statusKey === "redelivery";
 
         return (
           <div
             key={purchaseId || supplierName}
-            className="rounded-xl border border-border bg-card/60 p-4 shadow-sm"
+            id={`short-delivery-${purchaseId}`}
+            className={`rounded-xl border border-border bg-card/60 p-4 shadow-sm ${highlightPurchaseId && String(highlightPurchaseId) === purchaseId ? "ring-2 ring-primary/40" : ""}`}
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-1">
@@ -261,19 +272,22 @@ const IncomingOrdersTab = () => {
                         <div className="grid grid-cols-[1fr_170px_140px_160px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium tracking-wide text-muted-foreground/80">
                           <span>Item</span>
                           <span>Unit cost</span>
-                          <span>Ordered Qty</span>
+                          <span>Order Qty</span>
                           <span>Subtotal</span>
                         </div>
                         <div className="max-h-56 overflow-y-auto">
                           <div className="divide-y divide-border/70">
                             {items.map((item) => {
-                              const incomingQty =
-                                Number(item?.quantity?.incoming) || 0;
+                              const orderQty =
+                                Number(
+                                  item?.quantity?.order ??
+                                    item?.quantity?.incoming,
+                                ) || 0;
                               const unitCostRaw =
                                 item?.cost ?? item?.inventory?.cost ?? 0;
                               const unitCost = Number(unitCostRaw);
                               const totalAmount = Number.isFinite(unitCost)
-                                ? unitCost * Math.max(0, incomingQty)
+                                ? unitCost * Math.max(0, orderQty)
                                 : null;
 
                               return (
@@ -296,7 +310,7 @@ const IncomingOrdersTab = () => {
                                       : "—"}
                                   </span>
                                   <span className="font-semibold tabular-nums text-foreground">
-                                    {incomingQty}{" "}
+                                    {orderQty}{" "}
                                     <span className="text-xs font-medium text-muted-foreground">
                                       {capitalize(item?.unit) || ""}
                                     </span>
@@ -326,7 +340,7 @@ const IncomingOrdersTab = () => {
         );
       })}
       <CustomPagination
-        title="Incoming order"
+        title="Redelivery order"
         datas={orders}
         page={page}
         maxPage={maxPage}

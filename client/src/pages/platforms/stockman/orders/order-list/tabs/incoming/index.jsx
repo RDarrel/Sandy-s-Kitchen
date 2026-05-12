@@ -145,17 +145,6 @@ const IncomingOrdersTab = () => {
 
               <div className="w-full sm:w-auto">
                 <div className="flex items-end justify-start gap-3 sm:justify-end">
-                  <div className="flex flex-col items-start leading-none sm:items-end">
-                    <span className="text-[11px] font-medium text-muted-foreground">
-                      Total amount
-                    </span>
-                    <span className="text-lg font-semibold tabular-nums text-foreground">
-                      {Formatter.amount(purchase?.totalAmount || 0)}
-                    </span>
-                  </div>
-
-                  <div className="h-8 w-px bg-border/70" aria-hidden="true" />
-
                   {canReceive ? (
                     <Button
                       type="button"
@@ -258,23 +247,15 @@ const IncomingOrdersTab = () => {
                   <CollapsibleContent className="mt-3">
                     {items.length ? (
                       <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-                        <div className="grid grid-cols-[1fr_170px_140px_160px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium tracking-wide text-muted-foreground/80">
+                        <div className="grid grid-cols-[1fr_170px] gap-2 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium tracking-wide text-muted-foreground/80">
                           <span>Item</span>
-                          <span>Unit cost</span>
                           <span>Ordered Qty</span>
-                          <span>Subtotal</span>
                         </div>
                         <div className="max-h-56 overflow-y-auto">
                           <div className="divide-y divide-border/70">
                             {items.map((item) => {
                               const incomingQty =
                                 Number(item?.quantity?.incoming) || 0;
-                              const unitCostRaw =
-                                item?.cost ?? item?.inventory?.cost ?? 0;
-                              const unitCost = Number(unitCostRaw);
-                              const totalAmount = Number.isFinite(unitCost)
-                                ? unitCost * Math.max(0, incomingQty)
-                                : null;
 
                               return (
                                 <div
@@ -283,28 +264,19 @@ const IncomingOrdersTab = () => {
                                     item?.inventory?._id ||
                                     item?.name
                                   }
-                                  className="grid grid-cols-[1fr_170px_140px_160px] items-center gap-2 px-3 py-2 text-sm"
+                                  className="grid grid-cols-[1fr_170px] items-center gap-2 px-3 py-2 text-sm"
                                 >
                                   <span className="truncate font-medium text-foreground">
                                     {item?.inventory?.name ||
                                       item?.name ||
                                       "Item"}
                                   </span>
-                                  <span className="font-semibold tabular-nums text-foreground">
-                                    {Number.isFinite(unitCost)
-                                      ? `${Formatter.amount(unitCost)} / ${capitalize(item?.unit) || ""}`
-                                      : "—"}
-                                  </span>
+
                                   <span className="font-semibold tabular-nums text-foreground">
                                     {incomingQty}{" "}
                                     <span className="text-xs font-medium text-muted-foreground">
                                       {capitalize(item?.unit) || ""}
                                     </span>
-                                  </span>
-                                  <span className="font-semibold tabular-nums text-foreground">
-                                    {totalAmount === null
-                                      ? "—"
-                                      : Formatter.amount(totalAmount)}
                                   </span>
                                 </div>
                               );

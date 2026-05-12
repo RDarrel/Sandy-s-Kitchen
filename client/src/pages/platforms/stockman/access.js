@@ -2,6 +2,8 @@ import { ClipboardList, Gauge, GitPullRequestArrow } from "lucide-react";
 import Dashboard from "./dashboard";
 import RequestStock from "./request-stock/create-request";
 import MyRequests from "./request-stock/my-requests";
+import orderList from "./orders/order-list";
+import shortDeliveries from "./orders/short-deliveries";
 
 const access = [
   {
@@ -35,12 +37,12 @@ const access = [
       {
         name: "Order-List",
         path: "/Order-Processing",
-        component: Dashboard,
+        component: orderList,
       },
       {
         name: "Short Deliveries",
         path: "/Short-Deliveries",
-        component: Dashboard,
+        component: shortDeliveries,
       },
     ],
   },
