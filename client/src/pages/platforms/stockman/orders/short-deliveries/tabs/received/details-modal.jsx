@@ -207,21 +207,12 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                         item?.inventory?.name || item?.name || "Item";
                       const unitRaw = String(item?.unit || "").trim();
                       const unit = capitalize(unitRaw) || "-";
-                      const unitLabel = unitRaw ? unitRaw.toLowerCase() : "";
-                      const unitCost = getUnitCost(item);
+
                       const ordered = round2(getOrderedQty(item));
                       const received = round2(
                         toNumber(item?.quantity?.received),
                       );
                       const shortQty = Math.max(0, round2(ordered - received));
-                      const receivedAmount =
-                        unitCost === null
-                          ? null
-                          : Math.max(0, received) * unitCost;
-                      const shortAmount =
-                        unitCost === null
-                          ? null
-                          : Math.max(0, shortQty) * unitCost;
 
                       return (
                         <TableRow
@@ -233,20 +224,10 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                           )}
                           className="hover:bg-muted/5"
                         >
-                          <TableCell className="whitespace-normal px-5 py-2.5 align-top">
+                          <TableCell className="whitespace-normal px-5 py-2.5 ">
                             <p className="truncate font-medium text-foreground">
                               {name}
                             </p>
-                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                              <span>
-                                Unit cost:{" "}
-                                <span className="font-medium text-foreground/80">
-                                  {unitCost === null
-                                    ? "-"
-                                    : `${Formatter.amount(unitCost)}${unitLabel ? ` / ${capitalize(unitLabel)}` : ""}`}
-                                </span>
-                              </span>
-                            </div>
                           </TableCell>
 
                           <TableCell className="px-5 py-2.5  text-right font-semibold tabular-nums text-foreground">
@@ -269,14 +250,6 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                                   {unit}
                                 </span>
                               </div>
-                              <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                                <span className="font-medium">Subtotal</span>
-                                <span className="font-semibold tabular-nums text-foreground">
-                                  {receivedAmount === null
-                                    ? "-"
-                                    : Formatter.amount(receivedAmount)}
-                                </span>
-                              </div>
                             </div>
                           </TableCell>
                           <TableCell className="px-5 py-2.5 align-top">
@@ -290,16 +263,6 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                                 />
                                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                                   {unit}
-                                </span>
-                              </div>
-                              <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                                <span className="font-medium">Subtotal</span>
-                                <span
-                                  className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
-                                >
-                                  {shortAmount === null
-                                    ? "-"
-                                    : Formatter.amount(shortAmount)}
                                 </span>
                               </div>
                             </div>

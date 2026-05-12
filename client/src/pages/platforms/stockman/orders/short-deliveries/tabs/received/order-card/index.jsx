@@ -1,23 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Formatter } from "@/services/utilities";
 import { memo, useMemo } from "react";
 import { PackageCheck } from "lucide-react";
-import { getItemsFromPurchase, getPurchaseMeta, getTotals } from "../utils";
+import { getItemsFromPurchase, getPurchaseMeta } from "../utils";
 import ReceivedItemsSection from "./received-items";
-
-const getAdditionalReceivedFromResolvedHistory = (purchase) => {
-  const history = Array.isArray(purchase?.shortDeliveryHistory)
-    ? purchase.shortDeliveryHistory
-    : [];
-
-  return history.reduce((sum, record) => {
-    const statusKey = String(record?.status || "").toLowerCase();
-    if (!["resolved", "resolve"].includes(statusKey)) return sum;
-    const amount = Number(record?.received?.amount ?? 0);
-    return sum + (Number.isFinite(amount) ? amount : 0);
-  }, 0);
-};
 
 const DeliveredOrderCard = ({
   purchase,
@@ -33,16 +19,22 @@ const DeliveredOrderCard = ({
     () => getPurchaseMeta(purchase),
     [purchase],
   );
-  const totals = useMemo(() => getTotals(items), [items]);
   const hasShortDelivery = Boolean(purchase?.hasShortDelivery);
-  const additionalReceived = useMemo(
-    () =>
-      hasShortDelivery ? getAdditionalReceivedFromResolvedHistory(purchase) : 0,
-    [hasShortDelivery, purchase],
-  );
 
-  const totalReceived = totals.received + additionalReceived;
-  const difference = totals.ordered - totalReceived;
+  const shortageItemsCount = useMemo(() => {
+    return items.reduce((count, item) => {
+      const orderedQty = Number(item?.quantity?.order ?? 0);
+      const receivedQty = Number(item?.quantity?.received ?? 0);
+      const shortQty = Math.max(
+        0,
+        (Number.isFinite(orderedQty) ? orderedQty : 0) -
+          (Number.isFinite(receivedQty) ? receivedQty : 0),
+      );
+
+      return shortQty ? count + 1 : count;
+    }, 0);
+  }, [items]);
+
   const mainStatusLabel = purchase?.hasShortDelivery
     ? "Received with Shortage"
     : meta?.label || "";
@@ -77,30 +69,22 @@ const DeliveredOrderCard = ({
         </div>
 
         <div className="flex w-full flex-col gap-3 sm:ml-auto sm:w-auto sm:flex-row sm:items-end sm:justify-end">
-          <div className="grid gap-3 sm:flex sm:items-end sm:justify-end sm:divide-x sm:divide-border/70 sm:text-right">
-            <div className="flex flex-col items-start gap-1 sm:items-end sm:px-4 sm:pl-0">
-              <p className="text-xs text-muted-foreground">Total ordered</p>
-              <p className="text-base font-semibold tabular-nums text-foreground">
-                {Formatter.amount(totals.ordered)}
-              </p>
-            </div>
-            <div className="flex flex-col items-start gap-1 sm:items-end sm:px-4">
-              <p className="text-xs text-muted-foreground">Total received</p>
-              <p className="text-base font-semibold tabular-nums text-foreground">
-                {Formatter.amount(totalReceived)}
-              </p>
-            </div>
-            <div className="flex flex-col items-start gap-1 sm:items-end sm:px-4 sm:pr-0">
-              <p className="text-xs text-muted-foreground">Difference</p>
-              <p
-                className={`text-base font-semibold tabular-nums ${difference === 0 ? "text-muted-foreground" : "text-destructive"}`}
-              >
-                {Formatter.amount(difference)}
-              </p>
-            </div>
-          </div>
+          {shortageItemsCount > 0 && (
+            <>
+              <div className="grid gap-3 sm:flex sm:items-end sm:justify-end sm:divide-x sm:divide-border/70 sm:text-right">
+                <div className="flex flex-col items-start gap-1 sm:items-end sm:px-4">
+                  <p className="text-xs text-muted-foreground">
+                    Items with Shortage
+                  </p>
+                  <p className="text-base font-semibold tabular-nums text-foreground">
+                    {shortageItemsCount}
+                  </p>
+                </div>
+              </div>
 
-          <div className="hidden h-10 w-px self-center bg-border/70 sm:block" />
+              <div className="hidden h-10 w-px self-center bg-border/70 sm:block" />
+            </>
+          )}
 
           <Button
             type="button"
