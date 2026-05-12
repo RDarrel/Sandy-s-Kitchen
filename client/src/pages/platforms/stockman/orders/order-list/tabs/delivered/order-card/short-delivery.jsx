@@ -83,6 +83,9 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
               <p className="text-xs text-muted-foreground">Received By</p>
               <p className="truncate font-semibold text-foreground">
                 {formatReceivedBy(purchase?.received?.by)}
+                <p className="text-xs text-muted-foreground">
+                  {formatDateTime(purchase?.received?.date)}
+                </p>
               </p>
             </div>
           </div>

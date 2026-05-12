@@ -509,19 +509,13 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="px-5 py-2.5 align-top">
+                          <TableCell className="px-5 py-2.5 ">
                             <div className="mx-auto w-[150px]">
-                              <Input
-                                type="text"
-                                value={
-                                  item?.expirationDate
-                                    ? Formatter.date(item.expirationDate)
-                                    : ""
-                                }
-                                placeholder="mm/dd/yyyy"
-                                disabled
-                                className="h-8 w-full bg-background text-center text-sm font-medium disabled:cursor-default disabled:opacity-100"
-                              />
+                              <p className="text-center  font-medium ">
+                                {item?.inventory?.trackExpiration
+                                  ? Formatter.date(item.expirationDate)
+                                  : "--"}
+                              </p>
                             </div>
                           </TableCell>
                         </TableRow>
