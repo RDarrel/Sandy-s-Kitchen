@@ -137,11 +137,10 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
       <CollapsibleContent className="mt-2">
         {history.length ? (
           <div className="overflow-hidden rounded-xl border border-border bg-card/40">
-            <div className="grid grid-cols-[minmax(170px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)_minmax(120px,1fr)] gap-3 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
+            <div className="grid grid-cols-[minmax(500px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)] gap-3 border-b border-border/70 bg-muted/20 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80">
               <span>Record</span>
               <span>Status</span>
               <span className="text-right">Items with Shortage</span>
-              <span className="text-right">Shortage Value</span>
               <span className="text-right">Action</span>
             </div>
 
@@ -162,7 +161,6 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
                     0,
                 );
 
-                const amount = Number(record?.totalAmount ?? 0);
                 const when = record?.updatedAt || record?.createdAt;
 
                 const hasShortDelivery = Boolean(record?.hasShortDelivery);
@@ -170,7 +168,7 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
                 return (
                   <div
                     key={id}
-                    className="grid grid-cols-[minmax(170px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)_minmax(120px,1fr)] items-center gap-3 px-3 py-2 text-sm"
+                    className="grid grid-cols-[minmax(500px,1fr)_minmax(170px,1fr)_minmax(140px,1fr)_minmax(170px,1fr)] items-center gap-3 px-3 py-2 text-sm"
                   >
                     <div className="min-w-0">
                       <p className="font-semibold text-foreground">
@@ -208,27 +206,27 @@ const ShortDeliverySection = ({ purchase, isOpen, onOpenChange }) => {
                       </span>
                     </div>
 
-                    <div className="text-right font-semibold tabular-nums text-foreground">
-                      {Formatter.amount(amount)}
-                    </div>
-
                     <div className="flex justify-end">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-8 gap-2"
-                        onClick={() =>
-                          navigate(
-                            `/platforms/orders/Short-Deliveries?status=${encodeURIComponent(
-                              statusKey,
-                            )}&purchase=${encodeURIComponent(id)}`,
-                          )
-                        }
-                      >
-                        View Details
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Button>
+                      {["review", "refunded"].includes(statusKey) ? (
+                        "-"
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 gap-2"
+                          onClick={() =>
+                            navigate(
+                              `/platforms/orders/Short-Deliveries?status=${encodeURIComponent(
+                                statusKey,
+                              )}&purchase=${encodeURIComponent(id)}`,
+                            )
+                          }
+                        >
+                          View Details
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );

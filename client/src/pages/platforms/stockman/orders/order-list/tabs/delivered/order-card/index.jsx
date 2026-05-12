@@ -1,24 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Formatter } from "@/services/utilities";
 import { memo, useMemo } from "react";
 import { PackageCheck } from "lucide-react";
-import { getItemsFromPurchase, getPurchaseMeta, getTotals } from "../utils";
+import { getItemsFromPurchase, getPurchaseMeta } from "../utils";
 import ReceivedItemsSection from "./received-items";
 import ShortDeliverySection from "./short-delivery";
-
-const getAdditionalReceivedFromResolvedHistory = (purchase) => {
-  const history = Array.isArray(purchase?.shortDeliveryHistory)
-    ? purchase.shortDeliveryHistory
-    : [];
-
-  return history.reduce((sum, record) => {
-    const statusKey = String(record?.status || "").toLowerCase();
-    if (!["resolved", "resolve"].includes(statusKey)) return sum;
-    const amount = Number(record?.received?.amount ?? 0);
-    return sum + (Number.isFinite(amount) ? amount : 0);
-  }, 0);
-};
 
 const DeliveredOrderCard = ({
   purchase,
@@ -32,13 +18,7 @@ const DeliveredOrderCard = ({
     () => getPurchaseMeta(purchase),
     [purchase],
   );
-  const totals = useMemo(() => getTotals(items), [items]);
   const hasShortDelivery = Boolean(purchase?.hasShortDelivery);
-  const additionalReceived = useMemo(
-    () =>
-      hasShortDelivery ? getAdditionalReceivedFromResolvedHistory(purchase) : 0,
-    [hasShortDelivery, purchase],
-  );
 
   const shortageItemsCount = useMemo(() => {
     return items.reduce((count, item) => {
@@ -49,7 +29,6 @@ const DeliveredOrderCard = ({
     }, 0);
   }, [items]);
 
-  const totalReceived = totals.received + additionalReceived;
   const mainStatusLabel =
     hasShortDelivery && meta?.label === "Received"
       ? "Received with Shortage"
