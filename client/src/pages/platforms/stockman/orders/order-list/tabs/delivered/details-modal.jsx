@@ -187,6 +187,17 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
     });
   }, [items]);
 
+  const shortageItemsCount = useMemo(() => {
+    return items.reduce((count, item) => {
+      const expected = round2(getOrderedQty(item));
+      const received = round2(toNumber(item?.quantity?.received));
+
+      const discrepancy = round2(expected - received);
+
+      return discrepancy > 0 ? count + 1 : count;
+    }, 0);
+  }, [items]);
+
   const totalReceivedAmount = totals.received + additionalReceivedAmount;
   const difference = totals.ordered - totalReceivedAmount;
 
@@ -445,20 +456,10 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                           )}
                           className="hover:bg-muted/5"
                         >
-                          <TableCell className="whitespace-normal px-5 py-2.5 align-top">
+                          <TableCell className="whitespace-normal px-5 py-2.5 ">
                             <p className="truncate font-medium text-foreground">
                               {name}
                             </p>
-                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                              <span>
-                                Unit cost:{" "}
-                                <span className="font-medium text-foreground/80">
-                                  {unitCost === null
-                                    ? "-"
-                                    : `${Formatter.amount(unitCost)}${unitLabel ? ` / ${capitalize(unitLabel)}` : ""}`}
-                                </span>
-                              </span>
-                            </div>
                           </TableCell>
 
                           <TableCell className="px-5 py-2.5  text-right font-semibold tabular-nums text-foreground">
@@ -481,14 +482,6 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                                   {unit}
                                 </span>
                               </div>
-                              <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                                <span className="font-medium">Subtotal</span>
-                                <span className="font-semibold tabular-nums text-foreground">
-                                  {receivedAmount === null
-                                    ? "-"
-                                    : Formatter.amount(receivedAmount)}
-                                </span>
-                              </div>
                             </div>
                           </TableCell>
                           <TableCell className="px-5 py-2.5 align-top">
@@ -504,31 +497,15 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                                   {unit}
                                 </span>
                               </div>
-                              <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                                <span className="font-medium">Subtotal</span>
-                                <span
-                                  className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
-                                >
-                                  {shortAmount === null
-                                    ? "-"
-                                    : Formatter.amount(shortAmount)}
-                                </span>
-                              </div>
                             </div>
                           </TableCell>
-                          <TableCell className="px-5 py-2.5 align-top">
+                          <TableCell className="px-5 py-2.5 ">
                             <div className="mx-auto w-[150px]">
-                              <Input
-                                type="text"
-                                value={
-                                  item?.expirationDate
-                                    ? Formatter.date(item.expirationDate)
-                                    : ""
-                                }
-                                placeholder="mm/dd/yyyy"
-                                disabled
-                                className="h-8 w-full bg-background text-center text-sm font-medium disabled:cursor-default disabled:opacity-100"
-                              />
+                              <p className="text-center  font-medium ">
+                                {item?.inventory?.trackExpiration
+                                  ? Formatter.date(item.expirationDate)
+                                  : "--"}
+                              </p>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -541,28 +518,20 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                   <div className="flex items-baseline justify-between gap-6 sm:justify-end">
                     <div className="text-right">
                       <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        Total Ordered
+                        Items Received
                       </span>
                       <div className="text-base font-semibold tabular-nums text-foreground">
-                        {Formatter.amount(totals.ordered)}
+                        {items?.length}
                       </div>
                     </div>
                     <div className="text-right">
                       <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        Total Received
-                      </span>
-                      <div className="text-base font-semibold tabular-nums text-foreground">
-                        {Formatter.amount(totalReceivedAmount)}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-                        Difference
+                        Items With Shortage
                       </span>
                       <div
                         className={`text-base font-semibold tabular-nums ${difference === 0 ? "text-muted-foreground" : "text-destructive"}`}
                       >
-                        {Formatter.amount(difference)}
+                        {shortageItemsCount}
                       </div>
                     </div>
                   </div>

@@ -104,18 +104,6 @@ const ReceiveOrderItemsTable = ({
               >
                 <TableCell className="whitespace-normal px-5 py-2.5">
                   <p className="truncate font-medium text-foreground">{name}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    {unitCost === null ? (
-                      <span>Unit cost: -</span>
-                    ) : (
-                      <span>
-                        Unit cost:{" "}
-                        <span className="font-medium text-foreground/80">
-                          {Formatter.amount(unitCost)} / {unit || "-"}
-                        </span>
-                      </span>
-                    )}
-                  </div>
                 </TableCell>
 
                 <TableCell className="px-5 py-2.5 text-right font-semibold tabular-nums text-foreground">
@@ -240,7 +228,7 @@ const ReceiveOrderItemsTable = ({
           </div>
           <div className="text-right">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/90">
-              Items Shortage
+              Items with Shortage
             </span>
             <div
               className={`text-base font-semibold tabular-nums ${grandVariance === 0 ? "text-muted-foreground" : "text-destructive"}`}
