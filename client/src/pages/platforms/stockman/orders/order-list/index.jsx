@@ -21,15 +21,23 @@ import {
 
 const OrderList = () => {
   const { message, isLoading } = useSelector(({ purchases }) => purchases);
-  const { token } = useSelector(({ auth }) => auth);
+  const { token, auth } = useSelector(({ auth }) => auth);
   const [tab, setTab] = useState("incoming");
   const [query, setQuery] = useState("");
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(BROWSE({ token, params: { status: tab } }));
+    dispatch(
+      BROWSE({
+        token,
+        params: {
+          status: tab,
+          ...(tab === "received" && { stockman: auth?._id }),
+        },
+      }),
+    );
     return () => dispatch(RESET());
-  }, [dispatch, token, tab]);
+  }, [dispatch, token, tab, auth]);
 
   useEffect(() => {
     dispatch(SEARCH(query));

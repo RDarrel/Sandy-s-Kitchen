@@ -32,9 +32,10 @@ exports.save = async (req, res) => {
 
 exports.browse = async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, stockman = "" } = req.query;
     const purchases = await Purchase.find({
       status,
+      ...(stockman && { "received.by": stockman }),
     })
       .sort({
         [["incoming", "review"].includes(status) ? "createdAt" : "updatedAt"]:
