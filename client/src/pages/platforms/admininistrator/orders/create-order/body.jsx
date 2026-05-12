@@ -15,19 +15,37 @@ import { capitalize, isEmpty } from "lodash";
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
+const CreateOrderBody = ({
+  search = "",
+  supplierId = "all",
+  type = "all",
+  category = "all",
+}) => {
   const dispatch = useDispatch();
   const { collections = [], isLoading } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
   const { cart } = useSelector(({ purchases }) => purchases);
 
-	  const filtered = useMemo(() => {
-	    const safeCollections = Array.isArray(collections) ? collections : [];
-	    const byType =
-	      type && type !== "all"
-	        ? safeCollections.filter((item) => String(item?.type || "") === type)
-	        : safeCollections;
+  const filtered = useMemo(() => {
+    const safeCollections = Array.isArray(collections) ? collections : [];
+    const bySupplier =
+      supplierId && supplierId !== "all"
+        ? safeCollections.filter((item) => {
+            const directSupplierId = String(item?.supplier?._id || "");
+            if (directSupplierId && directSupplierId === supplierId) return true;
+
+            const suppliers = Array.isArray(item?.suppliers) ? item.suppliers : [];
+            return suppliers.some(
+              (row) => String(row?.supplier?._id || "") === supplierId,
+            );
+          })
+        : safeCollections;
+
+    const byType =
+      type && type !== "all"
+        ? bySupplier.filter((item) => String(item?.type || "") === type)
+        : bySupplier;
 
     const byCategory =
       category && category !== "all"
@@ -35,36 +53,40 @@ const CreateOrderBody = ({ search = "", type = "all", category = "all" }) => {
         : byType;
 
     const keyword = String(search || "").trim();
-	    if (!keyword) return byCategory;
-	    return globalSearch(byCategory, keyword.toUpperCase());
-	  }, [collections, search, type, category]);
+    if (!keyword) return byCategory;
+    return globalSearch(byCategory, keyword.toUpperCase());
+  }, [collections, search, supplierId, type, category]);
 
-	  const sortedFiltered = useMemo(() => {
-	    const rank = {
-	      "out of stock": 0,
-	      "low stock": 1,
-	      "in stock": 2,
-	    };
+  const sortedFiltered = useMemo(() => {
+    const rank = {
+      "out of stock": 0,
+      "low stock": 1,
+      "in stock": 2,
+    };
 
-	    return (filtered || [])
-	      .map((item, index) => ({ item, index }))
-	      .sort((a, b) => {
-	        const aKey = String(a?.item?.stockStatus || "")
-	          .trim()
-	          .toLowerCase();
-	        const bKey = String(b?.item?.stockStatus || "")
-	          .trim()
-	          .toLowerCase();
-	        const aRank = rank[aKey] ?? 99;
-	        const bRank = rank[bKey] ?? 99;
+    return (filtered || [])
+      .map((item, index) => ({ item, index }))
+      .sort((a, b) => {
+        const aKey = String(a?.item?.stockStatus || "").trim().toLowerCase();
+        const bKey = String(b?.item?.stockStatus || "").trim().toLowerCase();
+        const aRank = rank[aKey] ?? 99;
+        const bRank = rank[bKey] ?? 99;
 
-	        if (aRank !== bRank) return aRank - bRank;
-	        return a.index - b.index;
-	      })
-	      .map(({ item }) => item);
-	  }, [filtered]);
+        if (aRank !== bRank) return aRank - bRank;
+        return a.index - b.index;
+      })
+      .map(({ item }) => item);
+  }, [filtered]);
 
   const addToCart = (inventory) => {
+    const preferredSupplierId =
+      supplierId && supplierId !== "all" ? supplierId : undefined;
+
+    if (preferredSupplierId) {
+      dispatch(CartAdd({ inventory, supplier: preferredSupplierId }));
+      return;
+    }
+
     dispatch(CartAdd(inventory));
   };
 

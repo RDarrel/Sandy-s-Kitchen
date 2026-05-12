@@ -12,6 +12,7 @@ import {
   typeOptions,
 } from "@/pages/platforms/admininistrator/inventory/config";
 import { Search } from "lucide-react";
+import { useSelector } from "react-redux";
 
 const FilterSelect = ({
   value,
@@ -39,25 +40,30 @@ const FilterSelect = ({
 const CreateOrderHeader = ({
   search = "",
   setSearch,
+  supplierId = "all",
+  setSupplierId,
   type = "all",
   setType,
   category = "all",
   setCategory,
 }) => {
+  const { collections: suppliers } = useSelector(({ suppliers }) => suppliers);
   const categoryList = type !== "all" ? categoryOptions[type] || [] : [];
   const categoryDisabled = type === "all";
 
   return (
     <CardHeader className="space-y-4">
-      <div>
-        <CardTitle className="text-2xl text-foreground">Create Order</CardTitle>
-        <CardDescription>
-          Select items to add to your order cart.
-        </CardDescription>
-      </div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+          <CardTitle className="text-2xl text-foreground">
+            Create Order
+          </CardTitle>
+          <CardDescription>
+            Select items to add to your order cart.
+          </CardDescription>
+        </div>
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.6fr_repeat(2,minmax(0,1fr))]">
-        <div className="relative">
+        <div className="relative w-full md:w-[320px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
@@ -67,6 +73,21 @@ const CreateOrderHeader = ({
             type="search"
           />
         </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.6fr_repeat(2,minmax(0,1fr))]">
+        <FilterSelect
+          value={supplierId}
+          onValueChange={setSupplierId}
+          placeholder="Supplier"
+          options={(Array.isArray(suppliers) ? suppliers : [])
+            .map((supplier) => ({
+              value: String(supplier?._id || ""),
+              label: String(supplier?.name || ""),
+            }))
+            .filter((option) => option.value)}
+          allLabel="All suppliers"
+        />
 
         <FilterSelect
           value={type}

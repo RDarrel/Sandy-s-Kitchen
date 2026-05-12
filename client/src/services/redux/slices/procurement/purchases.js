@@ -102,7 +102,7 @@ export const reduxSlice = createSlice({
     SetCartOpen: (state, { payload }) => {
       state.cartOpen = Boolean(payload);
     },
-    SetReviewOpen: (state, _) => {
+    SetReviewOpen: (state) => {
       state.reviewOpen = !state.reviewOpen;
     },
     ReviewSetSameSupplierId: (state, { payload }) => {
@@ -113,19 +113,58 @@ export const reduxSlice = createSlice({
       state.cart = [];
     },
     CartAdd: (state, { payload }) => {
-      const inventory = String(payload?.inventory);
-      if (!inventory) return;
+      const inventoryId = String(
+        payload?._id || payload?.inventory?._id || payload?.inventory || "",
+      );
+      if (!inventoryId) return;
+
+      const inventoryObj =
+        payload?.inventory && typeof payload.inventory === "object"
+          ? payload.inventory
+          : payload;
+
+      const preferredSupplierId = String(payload?.supplier || "");
+
+      const suppliers = Array.isArray(inventoryObj?.suppliers)
+        ? inventoryObj.suppliers
+        : [];
+      const preferredSupplierRow = preferredSupplierId
+        ? suppliers.find(
+            (row) => String(row?.supplier?._id || "") === preferredSupplierId,
+          )
+        : null;
+      const primarySupplierRow =
+        suppliers
+          .slice()
+          .sort(
+            (a, b) =>
+              Number(Boolean(b?.isPrimary)) - Number(Boolean(a?.isPrimary)),
+          )[0] || null;
+
+      const supplierId = String(
+        preferredSupplierRow?.supplier?._id ||
+          primarySupplierRow?.supplier?._id ||
+          inventoryObj?.supplier?._id ||
+          "",
+      );
+      const unitCost =
+        preferredSupplierRow?.cost ??
+        primarySupplierRow?.cost ??
+        inventoryObj?.cost ??
+        payload?.cost ??
+        0;
+
       const isExistIdx = state.cart?.findIndex(
-        ({ inventory }) => inventory?._id === payload?._id,
+        ({ inventory }) => String(inventory?._id || "") === inventoryId,
       );
       const _cart = [...state.cart];
       if (isExistIdx > -1) {
         _cart.splice(isExistIdx, 1);
       } else {
         _cart.unshift({
-          inventory: payload,
-          cost: payload?.cost,
-          supplier: payload?.supplier?._id,
+          inventory: inventoryObj,
+          cost: unitCost,
+          supplier: supplierId,
           quantity: 1,
         });
       }
@@ -159,7 +198,7 @@ export const reduxSlice = createSlice({
       state.selected = payload;
     },
 
-    ToggleShowOrderDetails: (state, _) => {
+    ToggleShowOrderDetails: (state) => {
       state.showOrderDetails = !state.showOrderDetails;
     },
 
@@ -169,7 +208,7 @@ export const reduxSlice = createSlice({
       state.shortDeliveryActionType = payload?.type ?? null;
     },
 
-    ToggleShortDeliveryActionModal: (state, _) => {
+    ToggleShortDeliveryActionModal: (state) => {
       state.shortDeliveryActionOpen = !state.shortDeliveryActionOpen;
       if (!state.shortDeliveryActionOpen) {
         state.shortDeliveryActionSelected = null;
@@ -198,7 +237,7 @@ export const reduxSlice = createSlice({
     SETROUTE: (state, data) => {
       state.route = data.payload;
     },
-    RESET: (state, data) => {
+    RESET: (state) => {
       state.isSuccess = false;
       state.message = "";
     },

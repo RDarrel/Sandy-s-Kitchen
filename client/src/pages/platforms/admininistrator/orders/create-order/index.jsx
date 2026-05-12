@@ -12,6 +12,7 @@ import ReviewOrderModal from "./review-modal";
 const CreateOrder = () => {
   const { token } = useSelector(({ auth }) => auth),
     [search, setSearch] = useState(""),
+    [supplierId, setSupplierId] = useState("all"),
     [type, setType] = useState("all"),
     [category, setCategory] = useState("all"),
     dispatch = useDispatch();
@@ -32,6 +33,8 @@ const CreateOrder = () => {
               <CreateOrderHeader
                 search={search}
                 setSearch={setSearch}
+                supplierId={supplierId}
+                setSupplierId={setSupplierId}
                 type={type}
                 setType={setType}
                 category={category}
@@ -39,6 +42,7 @@ const CreateOrder = () => {
               />
               <CreateOrderBody
                 search={search}
+                supplierId={supplierId}
                 type={type}
                 category={category}
               />
