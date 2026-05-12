@@ -10,7 +10,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CartAdd } from "@/services/redux/slices/procurement/purchases";
-import { Stock, globalSearch } from "@/services/utilities";
+import {
+  Formatter,
+  Inventory,
+  Stock,
+  globalSearch,
+} from "@/services/utilities";
 import { capitalize, isEmpty } from "lodash";
 import { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -33,9 +38,12 @@ const CreateOrderBody = ({
       supplierId && supplierId !== "all"
         ? safeCollections.filter((item) => {
             const directSupplierId = String(item?.supplier?._id || "");
-            if (directSupplierId && directSupplierId === supplierId) return true;
+            if (directSupplierId && directSupplierId === supplierId)
+              return true;
 
-            const suppliers = Array.isArray(item?.suppliers) ? item.suppliers : [];
+            const suppliers = Array.isArray(item?.suppliers)
+              ? item.suppliers
+              : [];
             return suppliers.some(
               (row) => String(row?.supplier?._id || "") === supplierId,
             );
@@ -67,8 +75,12 @@ const CreateOrderBody = ({
     return (filtered || [])
       .map((item, index) => ({ item, index }))
       .sort((a, b) => {
-        const aKey = String(a?.item?.stockStatus || "").trim().toLowerCase();
-        const bKey = String(b?.item?.stockStatus || "").trim().toLowerCase();
+        const aKey = String(a?.item?.stockStatus || "")
+          .trim()
+          .toLowerCase();
+        const bKey = String(b?.item?.stockStatus || "")
+          .trim()
+          .toLowerCase();
         const aRank = rank[aKey] ?? 99;
         const bRank = rank[bKey] ?? 99;
 
@@ -99,16 +111,53 @@ const CreateOrderBody = ({
               <TableHeader className="bg-muted/70">
                 <TableRow>
                   <TableHead>Item</TableHead>
-                  <TableHead>Stock</TableHead>
+                  <TableHead>Unit Cost</TableHead>
+                  <TableHead className="text-right">Available Stock</TableHead>
                 </TableRow>
-	              </TableHeader>
-	              <TableBody>
-	                {!isEmpty(sortedFiltered) ? (
-	                  sortedFiltered.map((item) => {
-	                    const id = String(item?._id || "");
-	                    const inCart = cart.some(
-	                      ({ inventory }) => String(inventory?._id) === id,
-	                    );
+              </TableHeader>
+              <TableBody>
+                {!isEmpty(sortedFiltered) ? (
+                  sortedFiltered.map((item) => {
+                    const id = String(item?._id || "");
+                    const inCart = cart.some(
+                      ({ inventory }) => String(inventory?._id) === id,
+                    );
+
+                    const supplierRows = Array.isArray(item?.suppliers)
+                      ? item.suppliers
+                      : [];
+                    const supplierRow =
+                      supplierId && supplierId !== "all"
+                        ? supplierRows.find(
+                            (row) =>
+                              String(row?.supplier?._id || "") === supplierId,
+                          ) ||
+                          supplierRows
+                            .slice()
+                            .sort(
+                              (a, b) =>
+                                Number(Boolean(b?.isPrimary)) -
+                                Number(Boolean(a?.isPrimary)),
+                            )[0] ||
+                          null
+                        : supplierRows
+                            .slice()
+                            .sort(
+                              (a, b) =>
+                                Number(Boolean(b?.isPrimary)) -
+                                Number(Boolean(a?.isPrimary)),
+                            )[0] || null;
+
+                    const unitCost =
+                      supplierRow?.cost ?? item?.cost ?? item?.price ?? 0;
+                    const unitCostSupplierName = String(
+                      supplierRow?.supplier?.name || item?.supplier?.name || "",
+                    ).trim();
+                    const unitLabel =
+                      Inventory.getUnitByMeasurement(
+                        String(item?.measurement || "").toLowerCase(),
+                        true,
+                      ) || "";
 
                     return (
                       <TableRow
@@ -147,7 +196,18 @@ const CreateOrderBody = ({
                             </div>
                           </div>
                         </TableCell>
+
                         <TableCell className="font-medium text-foreground">
+                          <div className="space-y-0.5">
+                            <p>{`${Formatter.amount(unitCost)} / ${unitLabel || "-"}`}</p>
+                            {!!unitCostSupplierName && (
+                              <p className="text-xs font-normal text-muted-foreground">
+                                From {unitCostSupplierName}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium text-right text-foreground">
                           {Stock.display(
                             item?.stockDisplay.current,
                             item?.measurement,
@@ -158,7 +218,7 @@ const CreateOrderBody = ({
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={2} className="py-14 text-center">
+                    <TableCell colSpan={3} className="py-14 text-center">
                       <div className="space-y-2">
                         <p className="text-base font-semibold text-foreground">
                           No inventory items found
@@ -175,7 +235,7 @@ const CreateOrderBody = ({
           </div>
         </>
       ) : (
-        <TableLoading numberOfColumns={2} />
+        <TableLoading numberOfColumns={3} />
       )}
     </CardContent>
   );

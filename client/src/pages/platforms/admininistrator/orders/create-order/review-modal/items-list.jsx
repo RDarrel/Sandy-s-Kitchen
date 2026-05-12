@@ -15,10 +15,11 @@ const ReviewOrderItemsList = ({ rows = [], draftQtyById, setDraftQtyById }) => {
   return (
     <div className="space-y-2">
       {safeRows.length ? (
-        <div className="hidden grid-cols-[1fr_110px_130px_120px] gap-2 px-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80 sm:grid">
+        <div className="hidden grid-cols-[1fr_110px_130px_130px_120px] gap-2 px-3 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/80 sm:grid">
           <span>Item</span>
           <span>Unit cost</span>
-          <span className="text-center">Quantity</span>
+          <span>Available stock</span>
+          <span className="text-center">Order Quantity</span>
           <span className="text-right">Subtotal</span>
         </div>
       ) : null}
@@ -48,7 +49,7 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
   }, [inventory, unitCost, qty, draftQtyById]);
   const dispatch = useDispatch();
   return (
-    <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/30 px-3 py-3 text-sm shadow-sm transition-colors hover:bg-background/40 sm:grid-cols-[1fr_110px_130px_120px] sm:items-center">
+    <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/30 px-3 py-3 text-sm shadow-sm transition-colors hover:bg-background/40 sm:grid-cols-[1fr_110px_130px_130px_120px] sm:items-center">
       <div className="min-w-0">
         <p className="truncate font-semibold text-foreground">
           {inventory?.name || "Item"}
@@ -65,6 +66,15 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
         </p>
       </div>
 
+      <div className="flex items-baseline justify-between gap-2 sm:block">
+        <span className="text-xs text-muted-foreground sm:hidden">
+          Unit cost
+        </span>
+        <p className="font-medium tabular-nums text-foreground">
+          {inventory?.stockDisplay?.current}{" "}
+          <span className="text-xs text-muted-foreground">/ {unit || "—"}</span>
+        </p>
+      </div>
       <div className="flex items-center justify-between gap-2 sm:justify-start">
         <span className="text-xs text-muted-foreground sm:hidden">Qty</span>
         <div className="flex w-full items-center gap-2 sm:w-auto">
