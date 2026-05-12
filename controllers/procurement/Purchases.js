@@ -55,15 +55,38 @@ exports.browse = async (req, res) => {
           ["received", "resolved"].includes(purchase.status) &&
           purchase.hasShortDelivery
         ) {
-          let = shortDelivery = {};
-          const shortDeliveryHistory = await Purchase.find({
-            originalPurchase: purchase._id,
-          }).lean();
-
+          let shortDelivery = {};
+          let shortDeliveryHistory = [];
           if (purchase?.status === "resolved") {
             shortDelivery = await Purchase.findOne({
               parentPurchase: purchase._id,
             }).lean();
+          } else {
+            const history = await Purchase.find({
+              originalPurchase: purchase._id,
+            }).lean();
+
+            const historyIds = history.map((item) => item._id);
+
+            const historyItems = await PurchaseItem.find({
+              purchase: { $in: historyIds },
+            }).lean();
+
+            const itemsByPurchase = historyItems.reduce((acc, item) => {
+              const key = String(item.purchase);
+
+              if (!acc[key]) {
+                acc[key] = [];
+              }
+
+              acc[key].push(item);
+              return acc;
+            }, {});
+
+            shortDeliveryHistory = history.map((item) => ({
+              ...item,
+              orders: itemsByPurchase[String(item._id)] || [],
+            }));
           }
           return {
             ...purchase,

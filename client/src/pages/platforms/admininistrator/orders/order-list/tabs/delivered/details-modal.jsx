@@ -23,10 +23,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Formatter, fullName } from "@/services/utilities";
+import { Formatter, fullName, isShortageResolved } from "@/services/utilities";
 import { capitalize } from "lodash";
 import { memo, useMemo, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { CircleAlert, CircleCheck, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   formatQty,
@@ -428,6 +428,14 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                           ? null
                           : Math.max(0, shortQty) * unitCost;
 
+                      const isResolved =
+                        shortQty > 0
+                          ? isShortageResolved(
+                              item,
+                              purchase?.shortDeliveryHistory,
+                            )
+                          : true;
+
                       return (
                         <TableRow
                           key={String(
@@ -475,7 +483,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                                 </span>
                               </div>
                               <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                                <span className="font-medium">Subtotal</span>
+                                <span className="font-medium">Amount</span>
                                 <span className="font-semibold tabular-nums text-foreground">
                                   {receivedAmount === null
                                     ? "-"
@@ -484,37 +492,81 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="px-5 py-2.5 align-top">
-                            <div className="flex flex-col items-center gap-1">
-                              <div className="relative w-[140px]">
-                                <Input
-                                  type="text"
-                                  value={formatQty(shortQty)}
-                                  disabled
-                                  className={`h-8 w-full border-dashed bg-muted/10 pr-12 text-right font-semibold tabular-nums disabled:cursor-default disabled:opacity-100 ${shortQty > 0 ? "border-destructive/40 text-destructive" : "border-border/70 text-muted-foreground"}`}
-                                />
-                                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
-                                  {unit}
-                                </span>
-                              </div>
-                              <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                                <span className="font-medium">Subtotal</span>
-                                <span
-                                  className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
+                          <TableCell className="px-5 py-2.5 text-center">
+                            {shortQty > 0 ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <div
+                                  className="relative w-[140px]"
+                                  title={isResolved ? "Resolved" : "Unresolved"}
                                 >
-                                  {shortAmount === null
-                                    ? "-"
-                                    : Formatter.amount(shortAmount)}
-                                </span>
+                                  <Input
+                                    type="text"
+                                    value=""
+                                    disabled
+                                    className={`h-8 w-full border-dashed bg-muted/10 disabled:cursor-default disabled:opacity-100 ${
+                                      shortQty > 0
+                                        ? "border-destructive/40"
+                                        : "border-border/70"
+                                    }`}
+                                  />
+
+                                  {/* qty + unit */}
+                                  <div className="pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-1">
+                                    <span
+                                      className={`text-sm font-semibold tabular-nums ${
+                                        shortQty > 0
+                                          ? "text-destructive"
+                                          : "text-muted-foreground"
+                                      }`}
+                                    >
+                                      {formatQty(shortQty)}
+                                    </span>
+
+                                    <span className="text-xs font-medium text-muted-foreground">
+                                      {unit}
+                                    </span>
+                                  </div>
+
+                                  {/* status icon */}
+                                  {shortQty > 0 && (
+                                    <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2">
+                                      {isResolved ? (
+                                        <CircleCheck
+                                          className="h-4 w-4 text-green-600"
+                                          title="Resolved"
+                                        />
+                                      ) : (
+                                        <CircleAlert
+                                          className="h-4 w-4 text-destructive"
+                                          title="Unresolved"
+                                        />
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
+                                  <span className="font-medium">Amount</span>
+                                  <span
+                                    className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
+                                  >
+                                    {shortAmount === null
+                                      ? "-"
+                                      : Formatter.amount(shortAmount)}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
+                            ) : (
+                              <p className="font-medium text-muted-foreground ">
+                                —
+                              </p>
+                            )}
                           </TableCell>
                           <TableCell className="px-5 py-2.5 ">
                             <div className="mx-auto w-[150px]">
                               <p className="text-center  font-medium ">
                                 {item?.inventory?.trackExpiration
                                   ? Formatter.date(item.expirationDate)
-                                  : "--"}
+                                  : "—"}
                               </p>
                             </div>
                           </TableCell>

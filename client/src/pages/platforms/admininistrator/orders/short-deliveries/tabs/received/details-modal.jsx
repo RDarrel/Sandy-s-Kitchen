@@ -270,7 +270,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                                 </span>
                               </div>
                               <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                                <span className="font-medium">Subtotal</span>
+                                <span className="font-medium">Amount</span>
                                 <span className="font-semibold tabular-nums text-foreground">
                                   {receivedAmount === null
                                     ? "-"
@@ -293,7 +293,7 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                                 </span>
                               </div>
                               <div className="flex w-[140px] items-center justify-between text-[11px] text-muted-foreground">
-                                <span className="font-medium">Subtotal</span>
+                                <span className="font-medium">Amount</span>
                                 <span
                                   className={`font-semibold tabular-nums ${shortQty > 0 ? "text-destructive" : "text-muted-foreground"}`}
                                 >
