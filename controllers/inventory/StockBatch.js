@@ -12,8 +12,8 @@ exports.browse = async (req, res) => {
         select: "supplier received",
         populate: { path: "supplier", select: "name" },
       })
-      .sort({ createdAt: -1 })
-      .lean();
+      .populate("inventory", "baseUnit measurement")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: "Stock Batches Fetched Successfully",

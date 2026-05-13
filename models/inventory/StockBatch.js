@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { convertFromBaseUnit } = require("../../utilities/unitConverter");
 
 const modelSchema = new mongoose.Schema(
   {
@@ -52,8 +53,35 @@ const modelSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
+
+modelSchema.virtual("remainingQtyDisplay").get(function () {
+  const unitMap = {
+    g: "kg",
+    ml: "l",
+    pcs: "pcs",
+  };
+  return convertFromBaseUnit({
+    measurement: this.inventory?.measurement,
+    qty: this.remainingQuantity,
+    unit: unitMap[this.inventory?.baseUnit],
+  });
+});
+modelSchema.virtual("qtyDisplay").get(function () {
+  const unitMap = {
+    g: "kg",
+    ml: "l",
+    pcs: "pcs",
+  };
+  return convertFromBaseUnit({
+    measurement: this.inventory?.measurement,
+    qty: this.quantity,
+    unit: unitMap[this.inventory?.baseUnit],
+  });
+});
 
 const Entity = mongoose.model("StockBatch", modelSchema);
 

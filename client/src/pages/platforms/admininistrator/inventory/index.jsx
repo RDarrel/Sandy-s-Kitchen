@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import InventoryBody from "./body";
 import InventoryHeader from "./header";
 import InventoryModal from "./modal";
+import InventoryBatchesModal from "./batchesModal";
 import { useDispatch, useSelector } from "react-redux";
 import { DESTROY } from "@/services/redux/slices/inventory/inventoryItems";
 import { toast } from "sonner";
@@ -54,6 +55,7 @@ const Inventory = () => {
       </div>
 
       <InventoryModal />
+      <InventoryBatchesModal />
     </>
   );
 };
