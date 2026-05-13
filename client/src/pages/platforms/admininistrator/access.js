@@ -12,8 +12,6 @@ import Dashboard from "./dashboard";
 import Staffs from "./staffs";
 import Suppliers from "./suppliers";
 
-import Transactions from "./reports/transactions";
-import Sales from "./reports/sales";
 import Audit from "./audit";
 import Items from "./menu/items";
 import Inventory from "./inventory";
