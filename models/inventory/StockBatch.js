@@ -50,6 +50,10 @@ const modelSchema = new mongoose.Schema(
       enum: ["available", "consumed", "expired"],
       default: "available",
     },
+    isExpiredProcessed: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

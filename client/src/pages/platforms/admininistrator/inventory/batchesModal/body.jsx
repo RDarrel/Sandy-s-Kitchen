@@ -72,17 +72,22 @@ const BatchesModalBody = ({
                     {formatQty(batch?.remainingQtyDisplay)}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {batch.receivedDate ? Formatter.date(batch.receivedDate) : "—"}
+                    {batch.receivedDate
+                      ? Formatter.date(batch.receivedDate)
+                      : "—"}
                   </TableCell>
                   <TableCell className="font-semibold text-foreground">
-                    {batch.expirationDate ? Formatter.date(batch.expirationDate) : "—"}
+                    {batch.expirationDate
+                      ? Formatter.date(batch.expirationDate)
+                      : "—"}
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge className={badge.className}>{badge.label}</Badge>
                   </TableCell>
                   {tracksExpiration ? (
                     <TableCell className="text-center">
-                      {batch.isExpired ? (
+                      {/* {batch.isExpired ? ( */}
+                      {true ? (
                         <Button
                           type="button"
                           size="sm"
@@ -115,4 +120,3 @@ const BatchesModalBody = ({
 };
 
 export default BatchesModalBody;
-

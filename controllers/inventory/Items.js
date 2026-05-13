@@ -1,4 +1,6 @@
 const Item = require("../../models/inventory/Item");
+const StockBatch = require("../../models/inventory/StockBatch");
+const { convertToBaseUnit } = require("../../utilities/unitConverter");
 exports.save = async (req, res) => {
   try {
     const inventory = await Item.create(req.body);
@@ -13,21 +15,99 @@ exports.save = async (req, res) => {
 
 exports.browse = async (req, res) => {
   try {
-    const items = await Item.find({
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const next7Days = new Date(today);
+    next7Days.setDate(next7Days.getDate() + 7);
+
+    const rawItems = await Item.find({
       $or: [{ deletedAt: { $exists: false } }, { deletedAt: null }],
     })
       .populate("suppliers.supplier")
       .sort({ createdAt: -1 });
 
+    const expiringSoonStocks = await StockBatch.aggregate([
+      {
+        $match: {
+          remainingQuantity: { $gt: 0 },
+          expirationDate: {
+            $gte: today,
+            $lte: next7Days,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$inventory",
+          total: { $sum: "$remainingQuantity" },
+        },
+      },
+    ]);
+
+    const expiredStocks = await StockBatch.aggregate([
+      {
+        $match: {
+          remainingQuantity: { $gt: 0 },
+          expirationDate: {
+            $lt: today,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$inventory",
+          total: { $sum: "$remainingQuantity" },
+        },
+      },
+    ]);
+
+    const expiringSoonMap = expiringSoonStocks.reduce((acc, item) => {
+      acc[item._id.toString()] = item.total;
+      return acc;
+    }, {});
+
+    const expiredMap = expiredStocks.reduce((acc, item) => {
+      acc[item._id.toString()] = item.total;
+      return acc;
+    }, {});
+
+    const items = rawItems.map((item) => {
+      const itemId = item._id.toString();
+
+      return {
+        ...item.toJSON(),
+        expiringSoon: {
+          display: expiringSoonMap[itemId]
+            ? convertToBaseUnit({
+                measurement: item.measurement,
+                qty: expiringSoonMap[itemId],
+                unit: item.baseUnit,
+              })
+            : 0,
+          value: expiringSoonMap[itemId] || 0,
+        },
+        expired: {
+          display: expiringSoonMap[itemId]
+            ? convertToBaseUnit({
+                measurement: item.measurement,
+                qty: expiredMap[itemId],
+                unit: item.baseUnit,
+              })
+            : 0 || 0,
+          value: expiredMap[itemId] || 0,
+        },
+      };
+    });
+
     res.status(200).json({
-      success: "Inventory items Fetched Successfully",
+      success: "Inventory items fetched successfully",
       payload: items,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
-
 exports.update = async (req, res) => {
   try {
     const { _id } = req.body;

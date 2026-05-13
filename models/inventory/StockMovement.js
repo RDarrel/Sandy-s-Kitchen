@@ -15,7 +15,7 @@ const modelSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["in", "out", "adjustment", "waste"],
+      enum: ["in", "out", "adjustment", "waste", "expired"],
       required: true,
     },
 

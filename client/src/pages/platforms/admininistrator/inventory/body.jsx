@@ -141,13 +141,13 @@ const InventoryBody = ({
                             </TableCell>
                             <TableCell className="font-medium text-foreground">
                               {Stock.display(
-                                item?.stockDisplay?.current,
+                                item?.expiringSoon?.display,
                                 item.measurement,
                               )}
                             </TableCell>
                             <TableCell className="font-medium text-foreground">
                               {Stock.display(
-                                item?.stockDisplay?.current,
+                                item?.expired?.display,
                                 item.measurement,
                               )}
                             </TableCell>
