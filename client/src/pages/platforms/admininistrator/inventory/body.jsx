@@ -15,7 +15,10 @@ import { useDispatch, useSelector } from "react-redux";
 import CustomPagination from "@/components/shared/pagination";
 import { Formatter, handlePagination, Stock } from "@/services/utilities";
 import { useMemo, useState } from "react";
-import { Set_SELECTED } from "@/services/redux/slices/inventory/inventoryItems";
+import {
+  Set_SELECTED,
+  SetVIEW_BATCHES,
+} from "@/services/redux/slices/inventory/inventoryItems";
 import TableLoading from "@/components/shared/loading/table";
 
 const ActionButton = ({ title, icon: Icon, destructive = false, onClick }) => (
@@ -83,7 +86,7 @@ const InventoryBody = ({
                 <TableHeader className="bg-muted/70">
                   <TableRow>
                     <TableHead>Item</TableHead>
-                    <TableHead>Cost</TableHead>
+                    <TableHead>Unit Cost</TableHead>
                     <TableHead>Available Stock</TableHead>
                     <TableHead>Expiring Soon</TableHead>
                     <TableHead>Expired</TableHead>
@@ -155,7 +158,9 @@ const InventoryBody = ({
                                   title="View Batches"
                                   icon={Boxes}
                                   destructive
-                                  onClick={() => console.log(item)}
+                                  onClick={() =>
+                                    dispatch(SetVIEW_BATCHES(item))
+                                  }
                                 />
                                 <ActionButton
                                   title="Edit"

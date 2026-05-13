@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { axioKit, Stock } from "../../../utilities";
+import { axioKit } from "../../../utilities";
 
 const url = "inventory/items";
 
@@ -16,6 +16,7 @@ const initialState = {
   filtered: [],
   selected: {},
   willCreate: false,
+  showBatchesModal: false,
   showModal: false,
   formSubmitted: false,
   isSuccess: false,
@@ -145,8 +146,15 @@ export const reduxSlice = createSlice({
       state.willCreate = true;
       state.showModal = true;
     },
+    SetVIEW_BATCHES: (state, { payload }) => {
+      state.selected = payload;
+      state.showBatchesModal = true;
+    },
     TOGGLE: (state) => {
       state.showModal = !state.showModal;
+    },
+    TOGGLE_BATCHES_MODAL: (state) => {
+      state.showBatchesModal = !state.showBatchesModal;
     },
   },
   extraReducers: (builder) => {
@@ -251,6 +259,8 @@ export const {
   FILTER,
   SetFILTERED,
   SEARCH,
+  TOGGLE_BATCHES_MODAL,
+  SetVIEW_BATCHES,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;
