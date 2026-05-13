@@ -122,39 +122,12 @@ const InventoryBatchesModal = () => {
     });
   }, [batches, search, tracksExpiration]);
 
-  const summary = useMemo(() => {
-    const list = Array.isArray(batches) ? batches : [];
-    const enriched = list.map((batch) => {
-      if (!tracksExpiration) return { ...batch, expiryStatus: "not tracked" };
-      return {
-        ...batch,
-        expiryStatus: getExpiryStatus(batch?.expirationDate),
-      };
-    });
-
-    const totalQty = enriched.reduce(
-      (sum, batch) =>
-        sum + Number(batch?.remainingQuantity ?? batch?.remainingQty ?? 0),
-      0,
-    );
-    const expiringSoon = tracksExpiration
-      ? enriched.filter((batch) => batch.expiryStatus === "expiring soon")
-          .length
-      : 0;
-    const expired = tracksExpiration
-      ? enriched.filter((batch) => batch.expiryStatus === "expired").length
-      : 0;
-
-    return { totalQty, expiringSoon, expired };
-  }, [batches, tracksExpiration]);
-
   return (
     <Dialog open={showBatchesModal} onOpenChange={toggle}>
       <DialogContent className="border-border bg-card p-5 sm:max-w-5xl">
         <BatchesModalHeader
           selected={selected}
           tracksExpiration={tracksExpiration}
-          summary={summary}
           rowsCount={rows.length}
           search={search}
           setSearch={setSearch}

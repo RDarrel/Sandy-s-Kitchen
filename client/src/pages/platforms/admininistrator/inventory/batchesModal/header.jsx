@@ -4,7 +4,13 @@ import { Stock } from "@/services/utilities";
 import { Boxes, Search } from "lucide-react";
 import { capitalize } from "lodash";
 
-const SummaryCard = ({ title, count = 0, description, icon, tone = "neutral" }) => {
+const SummaryCard = ({
+  title,
+  count = 0,
+  description,
+  icon,
+  tone = "neutral",
+}) => {
   const IconComponent = icon;
   const toneClass =
     tone === "success"
@@ -35,7 +41,7 @@ const SummaryCard = ({ title, count = 0, description, icon, tone = "neutral" }) 
               {title}
             </p>
             <span
-              className={`shrink-0 rounded-full px-1.5 py-0.5 text-[15px] font-semibold leading-none ${pillClass}`}
+              className={`shrink-0 rounded-full px-1.5 py-0.5 text-[13px] font-semibold leading-none ${pillClass}`}
             >
               {count}
             </span>
@@ -57,13 +63,24 @@ const SummaryCard = ({ title, count = 0, description, icon, tone = "neutral" }) 
 const BatchesModalHeader = ({
   selected,
   tracksExpiration,
-  summary,
   rowsCount = 0,
   search = "",
   setSearch,
   icons,
 }) => {
-  const availableStockLabel = Stock.display(summary.totalQty, selected?.measurement);
+  const availableStockLabel = Stock.display(
+    selected?.stockDisplay?.current || 0,
+    selected?.measurement,
+  );
+  const expiringSoonLabel = Stock.display(
+    selected?.expiringSoon?.display || 0,
+    selected?.measurement,
+  );
+
+  const expiredLabel = Stock.display(
+    selected?.expired?.display || 0,
+    selected?.measurement,
+  );
 
   return (
     <div className="space-y-3">
@@ -89,7 +106,7 @@ const BatchesModalHeader = ({
         />
         <SummaryCard
           title="Expiring Soon"
-          count={tracksExpiration ? summary.expiringSoon : "N/A"}
+          count={tracksExpiration ? expiringSoonLabel : "N/A"}
           description={
             tracksExpiration ? "Reorder / use first" : "Expiration not tracked"
           }
@@ -98,8 +115,10 @@ const BatchesModalHeader = ({
         />
         <SummaryCard
           title="Expired"
-          count={tracksExpiration ? summary.expired : "N/A"}
-          description={tracksExpiration ? "Needs disposal" : "Expiration not tracked"}
+          count={tracksExpiration ? expiredLabel : "N/A"}
+          description={
+            tracksExpiration ? "Needs disposal" : "Expiration not tracked"
+          }
           icon={icons.expired}
           tone={tracksExpiration ? "danger" : "neutral"}
         />
@@ -107,8 +126,9 @@ const BatchesModalHeader = ({
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
-          Showing <span className="font-medium text-foreground">{rowsCount}</span>{" "}
-          batch{rowsCount === 1 ? "" : "es"}
+          Showing{" "}
+          <span className="font-medium text-foreground">{rowsCount}</span> batch
+          {rowsCount === 1 ? "" : "es"}
           {!tracksExpiration ? (
             <>
               <Badge variant="secondary" className="ml-2 font-normal">
