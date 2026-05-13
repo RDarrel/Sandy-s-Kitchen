@@ -25,7 +25,6 @@ import {
   SetCREATE,
 } from "@/services/redux/slices/inventory/inventoryItems";
 import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/procurement/suppliers";
-import { Stock } from "@/services/utilities";
 
 const FilterSelect = ({
   value,
