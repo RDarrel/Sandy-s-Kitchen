@@ -167,6 +167,16 @@ const DeliveredDetailsModal = ({ open, onOpenChange, purchase }) => {
                 {formatDateTime(receivedAt)}
               </p>
             </div>
+            {purchase?.received?.note ? (
+              <div className="sm:col-span-3 mt-3 rounded-lg border border-border/70 bg-background/40 px-3 py-2">
+                <p className="text-xs font-medium text-muted-foreground">
+                  Remarks
+                </p>
+                <p className="mt-1 text-sm text-foreground">
+                  {purchase?.received?.note}
+                </p>
+              </div>
+            ) : null}
           </div>
         </DialogHeader>
 
