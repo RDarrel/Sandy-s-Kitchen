@@ -6,11 +6,12 @@ const express = require("express"),
   cors = require("cors"),
   whitelisted = require("./middleware/whitelist"),
   whitelist = require("./config/whitelist"),
+  syncExpiredBatches = require("./utilities/syncExpiredBatches"),
   { red, green } = require("colorette");
 require("dotenv").config();
-
+require("./jobs/expirationJob");
 require("./config/db")()
-  .then(() => {
+  .then(async () => {
     const corsConfig = {
       origin: whitelist, // Do not use wildcard
       methods: ["GET", "POST", "PUT", "DELETE"], // List only available methods
@@ -23,7 +24,7 @@ require("./config/db")()
         "Authorization",
       ], // Allowed Headers to be received
     };
-
+    await syncExpiredBatches();
     // Comment when client and server are joined
     app.use(cors(corsConfig)); // Pass configuration to cors
 
@@ -32,7 +33,7 @@ require("./config/db")()
       express.urlencoded({
         extended: true,
         limit: "50mb",
-      })
+      }),
     );
     app.use(express.json({ limit: "50mb" }));
 
@@ -49,7 +50,7 @@ require("./config/db")()
     // used when deployed, make sure it is below routes.
     app.use(express.static(path.join(__dirname, "./view")));
     app.get("*", (req, res) =>
-      res.sendFile(path.resolve(__dirname, "./", "view", "index.html"))
+      res.sendFile(path.resolve(__dirname, "./", "view", "index.html")),
     );
 
     const server = http.createServer(app);
@@ -57,7 +58,7 @@ require("./config/db")()
     require("./config/socket")(
       new Server(server, {
         cors: corsConfig, // Pass configuration to websocket
-      })
+      }),
     );
 
     const port = process.env.PORT || 5000; // Dynamic port for deployment
@@ -66,7 +67,7 @@ require("./config/db")()
     });
 
     server.on("error", (error) =>
-      console.log(red(`[Server] ${error.message}`))
+      console.log(red(`[Server] ${error.message}`)),
     );
   })
   .catch((err) => {

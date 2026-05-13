@@ -84,6 +84,10 @@ const modelSchema = new mongoose.Schema(
         type: Number,
         default: 0,
       },
+      expired: {
+        type: Number,
+        default: 0,
+      },
     },
     baseUnit: {
       type: String,
