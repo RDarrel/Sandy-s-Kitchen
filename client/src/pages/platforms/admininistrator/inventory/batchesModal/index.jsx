@@ -33,7 +33,7 @@ import { capitalize } from "lodash";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const getExpiryStatus = (expiryDate, soonDays = 14) => {
+const getExpiryStatus = (expiryDate, soonDays = 7) => {
   if (!expiryDate) return "unknown";
   const today = new Date();
   const expiry = new Date(expiryDate);
@@ -43,12 +43,6 @@ const getExpiryStatus = (expiryDate, soonDays = 14) => {
   if (diffDays < 0) return "expired";
   if (diffDays <= soonDays) return "expiring soon";
   return "good";
-};
-
-const getBatchState = (remainingQuantity) => {
-  const remaining = Number(remainingQuantity ?? 0);
-  if (Number.isNaN(remaining)) return "consumed";
-  return remaining > 0 ? "active" : "consumed";
 };
 
 const statusBadge = (status) => {
@@ -113,30 +107,28 @@ const InventoryBatchesModal = () => {
       .trim()
       .toLowerCase();
     const list = Array.isArray(batches) ? batches : [];
-	    const enriched = list.map((batch, index) => {
-	      const supplierName =
-	        batch?.purchase?.supplier?.name || batch?.supplier?.name || "Supplier";
-	      const receivedDate = batch?.createdAt;
-	      const expirationDate = tracksExpiration
-	        ? batch?.expirationDate || batch?.expiryAt
-	        : null;
-	      const state = getBatchState(
-	        batch?.remainingQuantity ?? batch?.remainingQty,
-	      );
-	      const expiryStatus = tracksExpiration
-	        ? getExpiryStatus(expirationDate)
-	        : "not tracked";
-	      return {
-	        ...batch,
-	        supplierName,
-	        receivedDate,
-	        expirationDate,
-	        status: state,
-	        expiryStatus,
-	        isExpired: tracksExpiration && expiryStatus === "expired",
-	        displayCode: toBatchCode(index),
-	      };
-	    });
+    const enriched = list.map((batch, index) => {
+      const supplierName =
+        batch?.purchase?.supplier?.name || batch?.supplier?.name || "Supplier";
+      const receivedDate = batch?.createdAt;
+      const expirationDate = tracksExpiration
+        ? batch?.expirationDate || batch?.expiryAt
+        : null;
+
+      const expiryStatus = tracksExpiration
+        ? getExpiryStatus(expirationDate)
+        : "active";
+      return {
+        ...batch,
+        supplierName,
+        receivedDate,
+        expirationDate,
+        status: expiryStatus,
+        expiryStatus,
+        isExpired: tracksExpiration && expiryStatus === "expired",
+        displayCode: toBatchCode(index),
+      };
+    });
 
     if (!keyword) return enriched;
     return enriched.filter((batch) => {
@@ -386,25 +378,25 @@ const InventoryBatchesModal = () => {
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge className={badge.className}>{badge.label}</Badge>
-	                      </TableCell>
-	                      {tracksExpiration ? (
-	                        <TableCell className="text-center">
-	                          {batch.isExpired ? (
-	                            <Button
-	                              type="button"
-	                              size="sm"
-	                              variant="outline"
-	                              className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-	                            >
-	                              Dispose
-	                            </Button>
-	                          ) : (
-	                            <span className="text-xs text-muted-foreground">
-	                              &mdash;
-	                            </span>
-	                          )}
-	                        </TableCell>
-	                      ) : null}
+                      </TableCell>
+                      {tracksExpiration ? (
+                        <TableCell className="text-center">
+                          {batch.isExpired ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            >
+                              Dispose
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              &mdash;
+                            </span>
+                          )}
+                        </TableCell>
+                      ) : null}
                     </TableRow>
                   );
                 })
