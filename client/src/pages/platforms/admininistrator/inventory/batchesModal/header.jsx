@@ -8,20 +8,20 @@ const SummaryCard = ({ title, count = 0, description, icon, tone = "neutral" }) 
   const IconComponent = icon;
   const toneClass =
     tone === "success"
-      ? "border-emerald-200/60 from-emerald-50/60 to-emerald-50/20 text-emerald-700"
+      ? "border-emerald-200/70 from-emerald-50/60 to-emerald-50/20 text-emerald-800"
       : tone === "warning"
-        ? "border-amber-200/60 from-amber-50/60 to-amber-50/20 text-amber-700"
+        ? "border-amber-200/60 from-amber-50/45 to-amber-50/15 text-amber-800"
         : tone === "danger"
-          ? "border-red-200/60 from-red-50/60 to-red-50/20 text-red-700"
+          ? "border-red-200/70 from-red-50/60 to-red-50/20 text-red-800"
           : "border-border from-muted/40 to-muted/10 text-foreground";
 
   const pillClass =
     tone === "success"
-      ? "bg-emerald-100 text-emerald-700"
+      ? "bg-emerald-100 text-emerald-800"
       : tone === "warning"
-        ? "bg-amber-100 text-amber-700"
+        ? "bg-amber-100 text-amber-800"
         : tone === "danger"
-          ? "bg-red-100 text-red-700"
+          ? "bg-red-100 text-red-800"
           : "bg-muted text-foreground";
 
   return (
@@ -31,7 +31,7 @@ const SummaryCard = ({ title, count = 0, description, icon, tone = "neutral" }) 
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center justify-between gap-3">
-            <p className="truncate text-[10px] font-semibold uppercase leading-none tracking-[0.16em]">
+            <p className="truncate text-[10px] font-bold uppercase leading-none tracking-[0.16em]">
               {title}
             </p>
             <span
