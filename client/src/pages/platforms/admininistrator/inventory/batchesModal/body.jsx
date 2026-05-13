@@ -1,32 +1,53 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CustomAlert } from "@/components/shared/alert";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
 } from "@/components/ui/table";
 import { Formatter } from "@/services/utilities";
 import { LoaderCircle } from "lucide-react";
+import { useState } from "react";
 
 const BatchesModalBody = ({
-  rows = [],
-  isLoading = false,
-  tableColSpan = 7,
-  tracksExpiration = true,
-  formatQty,
-  statusBadge,
+	rows = [],
+	isLoading = false,
+	tableColSpan = 7,
+	tracksExpiration = true,
+	formatQty,
+	statusBadge,
+	onConfirmDispose,
 }) => {
-  return (
-    <div className="overflow-hidden rounded-[7px] border border-border bg-card">
-      <Table>
-        <TableHeader className="bg-muted/70">
-          <TableRow>
-            <TableHead>Batch</TableHead>
-            <TableHead className="text-right">Received Qty</TableHead>
-            <TableHead className="text-right">Remaining Qty</TableHead>
+	const [disposeOpen, setDisposeOpen] = useState(false);
+	const [selectedBatch, setSelectedBatch] = useState(null);
+
+	const handleRequestDispose = (batch) => {
+		setSelectedBatch(batch || null);
+		setDisposeOpen(true);
+	};
+
+	const handleConfirmDispose = () => {
+		try {
+			onConfirmDispose?.(selectedBatch);
+		} finally {
+			setDisposeOpen(false);
+			setSelectedBatch(null);
+		}
+	};
+
+	return (
+		<>
+			<div className="overflow-hidden rounded-[7px] border border-border bg-card">
+				<Table>
+				<TableHeader className="bg-muted/70">
+					<TableRow>
+						<TableHead>Batch</TableHead>
+						<TableHead className="text-right">Received Qty</TableHead>
+						<TableHead className="text-right">Remaining Qty</TableHead>
             <TableHead>Received Date</TableHead>
             <TableHead>Expiration</TableHead>
             <TableHead className="text-center">Status</TableHead>
@@ -87,16 +108,17 @@ const BatchesModalBody = ({
                   {tracksExpiration ? (
                     <TableCell className="text-center">
                       {/* {batch.isExpired ? ( */}
-                      {true ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          Dispose
-                        </Button>
-                      ) : (
+						{true ? (
+							<Button
+								type="button"
+								size="sm"
+								variant="outline"
+								onClick={() => handleRequestDispose(batch)}
+								className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+							>
+								Dispose
+							</Button>
+						) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
@@ -113,10 +135,64 @@ const BatchesModalBody = ({
               </TableCell>
             </TableRow>
           )}
-        </TableBody>
-      </Table>
-    </div>
-  );
+				</TableBody>
+				</Table>
+			</div>
+
+      <CustomAlert
+        isOpen={disposeOpen}
+        formSubmitted={false}
+        capture={handleConfirmDispose}
+        setIsOpen={setDisposeOpen}
+        showCancelButton
+        className="border-border bg-card shadow-[0_28px_90px_rgba(59,36,24,0.18)]"
+        buttonTitle="Dispose Batch"
+        buttonClassName="bg-red-600 hover:bg-red-700"
+        index={0}
+        message={
+          <>
+            <p>
+              Are you sure you want to dispose{" "}
+              <span className="font-semibold text-red-600">
+                {selectedBatch?.displayCode || "this batch"}
+              </span>
+              ?
+            </p>
+
+            <div className="mt-3 space-y-1 text-sm text-muted-foreground">
+              <p>
+                <span className="font-medium text-foreground">Batch:</span>{" "}
+                {selectedBatch?.displayCode || "â€”"}
+              </p>
+              <p>
+                <span className="font-medium text-foreground">
+                  Remaining Qty:
+                </span>{" "}
+                {selectedBatch
+                  ? formatQty?.(selectedBatch?.remainingQtyDisplay) ?? "â€”"
+                  : "â€”"}
+              </p>
+              {tracksExpiration ? (
+                <p>
+                  <span className="font-medium text-foreground">
+                    Expiration:
+                  </span>{" "}
+                  {selectedBatch?.expirationDate
+                    ? Formatter.date(selectedBatch.expirationDate)
+                    : "â€”"}
+                </p>
+              ) : null}
+
+              <p className="pt-2 text-xs leading-5 text-muted-foreground">
+                This action will remove the expired stock from pending disposal
+                records.
+              </p>
+            </div>
+          </>
+        }
+      />
+		</>
+	);
 };
 
 export default BatchesModalBody;
