@@ -113,25 +113,30 @@ const InventoryBatchesModal = () => {
       .trim()
       .toLowerCase();
     const list = Array.isArray(batches) ? batches : [];
-    const enriched = list.map((batch, index) => {
-      const supplierName =
-        batch?.purchase?.supplier?.name || batch?.supplier?.name || "Supplier";
-      const receivedDate = batch?.createdAt;
-      const expirationDate = tracksExpiration
-        ? batch?.expirationDate || batch?.expiryAt
-        : null;
-      const state = getBatchState(
-        batch?.remainingQuantity ?? batch?.remainingQty,
-      );
-      return {
-        ...batch,
-        supplierName,
-        receivedDate,
-        expirationDate,
-        status: state,
-        displayCode: toBatchCode(index),
-      };
-    });
+	    const enriched = list.map((batch, index) => {
+	      const supplierName =
+	        batch?.purchase?.supplier?.name || batch?.supplier?.name || "Supplier";
+	      const receivedDate = batch?.createdAt;
+	      const expirationDate = tracksExpiration
+	        ? batch?.expirationDate || batch?.expiryAt
+	        : null;
+	      const state = getBatchState(
+	        batch?.remainingQuantity ?? batch?.remainingQty,
+	      );
+	      const expiryStatus = tracksExpiration
+	        ? getExpiryStatus(expirationDate)
+	        : "not tracked";
+	      return {
+	        ...batch,
+	        supplierName,
+	        receivedDate,
+	        expirationDate,
+	        status: state,
+	        expiryStatus,
+	        isExpired: tracksExpiration && expiryStatus === "expired",
+	        displayCode: toBatchCode(index),
+	      };
+	    });
 
     if (!keyword) return enriched;
     return enriched.filter((batch) => {
@@ -381,14 +386,25 @@ const InventoryBatchesModal = () => {
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge className={badge.className}>{badge.label}</Badge>
-                      </TableCell>
-                      {tracksExpiration ? (
-                        <TableCell className="text-center">
-                          <Button type="button" size="sm" variant="outline">
-                            View
-                          </Button>
-                        </TableCell>
-                      ) : null}
+	                      </TableCell>
+	                      {tracksExpiration ? (
+	                        <TableCell className="text-center">
+	                          {batch.isExpired ? (
+	                            <Button
+	                              type="button"
+	                              size="sm"
+	                              variant="outline"
+	                              className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+	                            >
+	                              Dispose
+	                            </Button>
+	                          ) : (
+	                            <span className="text-xs text-muted-foreground">
+	                              &mdash;
+	                            </span>
+	                          )}
+	                        </TableCell>
+	                      ) : null}
                     </TableRow>
                   );
                 })
