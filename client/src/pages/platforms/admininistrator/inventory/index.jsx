@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { DESTROY } from "@/services/redux/slices/inventory/inventoryItems";
 import { toast } from "sonner";
 import StockMovementsModal from "./stockMovements";
+import ReportWasteModal from "./reportWaste";
 
 const Inventory = () => {
   const { token } = useSelector(({ auth }) => auth);
@@ -58,6 +59,7 @@ const Inventory = () => {
       <InventoryModal />
       <InventoryBatchesModal />
       <StockMovementsModal />
+      <ReportWasteModal />
     </>
   );
 };
