@@ -94,13 +94,16 @@ const InventoryBatchesModal = () => {
 
     const sorted = list.sort((a, b) => {
       if (tracksExpiration) {
+        if (a.remainingQuantity === 0 && b.remainingQuantity > 0) return 1;
+
+        if (a.remainingQuantity > 0 && b.remainingQuantity === 0) return -1;
         return new Date(a.expirationDate) - new Date(b.expirationDate);
       } else {
         return new Date(b.createdAt) - new Date(a.createdAt);
       }
     });
 
-    const enriched = sorted.map((batch, index) => {
+    const enriched = sorted.map((batch) => {
       const supplierName =
         batch?.purchase?.supplier?.name || batch?.supplier?.name || "Supplier";
       const receivedDate = batch?.createdAt;
@@ -115,7 +118,10 @@ const InventoryBatchesModal = () => {
         supplierName,
         receivedDate,
         expirationDate,
-        status: expiryStatus,
+        status:
+          expiryStatus !== "expired" && batch?.remainingQuantity === 0
+            ? "consumed"
+            : expiryStatus,
         expiryStatus,
         isExpired: tracksExpiration && expiryStatus === "expired",
         displayCode: `B-${batch._id.toString().slice(-6).toUpperCase()}`,
@@ -132,7 +138,7 @@ const InventoryBatchesModal = () => {
 
   return (
     <Dialog open={showBatchesModal} onOpenChange={toggle}>
-      <DialogContent className="border-border bg-card p-5 sm:max-w-6xl">
+      <DialogContent className="border-border bg-card p-5 sm:max-w-5xl">
         <BatchesModalHeader
           selected={selected}
           tracksExpiration={tracksExpiration}

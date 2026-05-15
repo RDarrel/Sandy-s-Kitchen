@@ -109,13 +109,28 @@ const BatchesModalBody = ({
                       </p>
                     </TableCell>
                     <TableCell className="text-right font-normal text-muted-foreground">
-                      {formatQty(batch?.qtyDisplay)}
+                      <p className="tabular-nums text-foreground">
+                        {batch?.qtyDisplay}
+                        <span className="text-xs text-muted-foreground ml-1">
+                          {batch.unit}
+                        </span>
+                      </p>
                     </TableCell>
                     <TableCell className="text-right font-semibold text-foreground">
-                      {formatQty(batch?.remainingQtyDisplay)}
+                      <p className="font-medium tabular-nums text-foreground">
+                        {batch?.remainingQtyDisplay}
+                        <span className="text-xs text-muted-foreground ml-1">
+                          {batch.unit}
+                        </span>
+                      </p>
                     </TableCell>
                     <TableCell className="text-right  text-foreground">
-                      ₱{batch.costPerUnit} / {batch.unit}
+                      <p className="font-medium tabular-nums text-foreground">
+                        ₱{batch.costPerUnit}
+                        <span className="text-xs text-muted-foreground">
+                          / {batch.unit}
+                        </span>
+                      </p>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {batch.receivedDate
