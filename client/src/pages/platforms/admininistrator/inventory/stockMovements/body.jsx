@@ -10,10 +10,40 @@ import { Formatter, fullName } from "@/services/utilities";
 import { LoaderCircle } from "lucide-react";
 import { useSelector } from "react-redux";
 import { capitalize } from "lodash";
+import { Badge } from "@/components/ui/badge";
 const BatchesModalBody = () => {
   const { collections: stockMovements, isLoading } = useSelector(
     ({ stockMovements }) => stockMovements,
   );
+  const tableColSpan = 6;
+
+  const getMovementTypeBadgeClassName = (type) => {
+    switch (type) {
+      case "in":
+        return "border-[color:color-mix(in_srgb,var(--chart-2)_35%,var(--border))] bg-[color:color-mix(in_srgb,var(--chart-2)_18%,var(--card))] text-[color:var(--chart-2)]";
+      case "adjustment":
+        return "border-[color:color-mix(in_srgb,var(--chart-4)_35%,var(--border))] bg-[color:color-mix(in_srgb,var(--chart-4)_18%,var(--card))] text-[color:var(--chart-4)]";
+      case "waste":
+        return "border-[color:color-mix(in_srgb,var(--destructive)_40%,var(--border))] bg-[color:color-mix(in_srgb,var(--destructive)_14%,var(--card))] text-[color:var(--destructive)]";
+      case "out":
+      default:
+        return "border-[color:color-mix(in_srgb,var(--chart-1)_35%,var(--border))] bg-[color:color-mix(in_srgb,var(--chart-1)_16%,var(--card))] text-[color:var(--chart-1)]";
+    }
+  };
+
+  const getMovementQtyClassName = (type) => {
+    switch (type) {
+      case "in":
+        return "text-[color:var(--chart-2)]";
+      case "adjustment":
+        return "text-[color:var(--chart-4)]";
+      case "waste":
+        return "text-[color:var(--destructive)]";
+      case "out":
+      default:
+        return "text-[color:var(--chart-1)]";
+    }
+  };
 
   return (
     <>
@@ -54,20 +84,21 @@ const BatchesModalBody = () => {
                       <TableCell className="whitespace-normal">
                         {Formatter.date(movement.createdAt, true)}
                       </TableCell>
-                      <TableCell className="font-normal text-muted-foreground">
-                        {capitalize(movement.type)}
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={getMovementTypeBadgeClassName(movement.type)}
+                        >
+                          {capitalize(movement.type)}
+                        </Badge>
                       </TableCell>
                       <TableCell className="  text-foreground">
                         {capitalize(movement.source)}
                       </TableCell>
                       <TableCell
-                        className={`font-medium ${
-                          movement.type === "in"
-                            ? "text-green-600"
-                            : movement.type === "adjustment"
-                              ? "text-yellow-600"
-                              : "text-red-600"
-                        }`}
+                        className={`font-medium ${getMovementQtyClassName(
+                          movement.type,
+                        )}`}
                       >
                         {movement.type === "in" ? "+" : "-"} {movement.quantity}{" "}
                         {movement.unit}

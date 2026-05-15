@@ -6,7 +6,6 @@ exports.browse = async (req, res) => {
       inventory: req.query.inventory,
     })
       .populate("createdBy", "fullName")
-
       .sort({ createdAt: -1 });
     res.status(200).json({
       success: "Stock Movements Fetched Successfully",
