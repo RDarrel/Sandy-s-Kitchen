@@ -17,6 +17,7 @@ const initialState = {
   selected: {},
   willCreate: false,
   showBatchesModal: false,
+  showWasteModal: false,
   showMovementsModal: false,
   showModal: false,
   formSubmitted: false,
@@ -151,6 +152,11 @@ export const reduxSlice = createSlice({
       state.selected = payload;
       state.showBatchesModal = true;
     },
+
+    SetREPORT_WASTE: (state, { payload }) => {
+      state.selected = payload;
+      state.showWasteModal = true;
+    },
     SetVIEW_STOCK_MOVEMENTS: (state, { payload }) => {
       state.selected = payload;
       state.showMovementsModal = true;
@@ -185,6 +191,9 @@ export const reduxSlice = createSlice({
     },
     TOGGLE_MOVEMENTS_MODAL: (state) => {
       state.showMovementsModal = !state.showMovementsModal;
+    },
+    TOGGLE_WASTE_MODAL: (state) => {
+      state.showWasteModal = !state.showWasteModal;
     },
   },
   extraReducers: (builder) => {
@@ -294,6 +303,8 @@ export const {
   TOGGLE_MOVEMENTS_MODAL,
   SetVIEW_STOCK_MOVEMENTS,
   DISPOSE,
+  SetREPORT_WASTE,
+  TOGGLE_WASTE_MODAL,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

@@ -31,9 +31,28 @@ const modelSchema = new mongoose.Schema(
 
     source: {
       type: String,
-      enum: ["purchase", "order", "manual", "expired"],
+      enum: [
+        "purchase",
+        "order",
+        "manual",
+        "expired",
+        "damaged",
+        "spoiled", //panis,mabaho
+        "other",
+      ],
       required: true,
     },
+    batches: [
+      {
+        stockBatch: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "StockBatch",
+        },
+        quantity: {
+          type: Number,
+        },
+      },
+    ],
 
     reference: {
       type: mongoose.Schema.Types.ObjectId, // purchaseId or orderId

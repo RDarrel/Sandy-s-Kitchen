@@ -83,13 +83,13 @@ const convertFromBaseUnit = ({ measurement, qty, unit }) => {
       ? normalizedMeasurement
       : inferMeasurementFromUnit(normalizedUnit);
 
-  const multiplier = unitConversion[measurementKey]?.[normalizedUnit];
+  const divider = unitConversion[measurementKey]?.[normalizedUnit];
 
-  if (!multiplier) {
+  if (!divider) {
     throw new Error(`Invalid unit: ${unit}`);
   }
 
-  return toNumber(qty) / multiplier;
+  return toNumber(qty) / divider;
 };
 
 module.exports = {

@@ -9,7 +9,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, Boxes, Activity } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Boxes,
+  Activity,
+  Trash2Icon,
+  AlertTriangle,
+} from "lucide-react";
 import { capitalize } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import CustomPagination from "@/components/shared/pagination";
@@ -17,6 +24,7 @@ import { Formatter, handlePagination, Stock } from "@/services/utilities";
 import { useMemo, useState } from "react";
 import {
   Set_SELECTED,
+  SetREPORT_WASTE,
   SetVIEW_BATCHES,
   SetVIEW_STOCK_MOVEMENTS,
 } from "@/services/redux/slices/inventory/inventoryItems";
@@ -155,6 +163,14 @@ const InventoryBody = ({
 
                             <TableCell>
                               <div className="flex justify-end gap-2">
+                                <ActionButton
+                                  title="Report Waste"
+                                  icon={AlertTriangle}
+                                  destructive
+                                  onClick={() =>
+                                    dispatch(SetREPORT_WASTE(item))
+                                  }
+                                />
                                 <ActionButton
                                   title="Stock Movements"
                                   icon={Activity}
