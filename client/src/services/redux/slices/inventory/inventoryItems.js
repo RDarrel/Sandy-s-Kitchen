@@ -17,6 +17,7 @@ const initialState = {
   selected: {},
   willCreate: false,
   showBatchesModal: false,
+  showMovementsModal: false,
   showModal: false,
   formSubmitted: false,
   isSuccess: false,
@@ -150,11 +151,40 @@ export const reduxSlice = createSlice({
       state.selected = payload;
       state.showBatchesModal = true;
     },
+    SetVIEW_STOCK_MOVEMENTS: (state, { payload }) => {
+      state.selected = payload;
+      state.showMovementsModal = true;
+    },
+    DISPOSE: (state, payload) => {
+      const updateCollections = (collections) => {
+        const index = collections.findIndex(({ _id }) => _id === payload);
+        if (index > -1) {
+          collections[index] = {
+            ...collections[index],
+            expired: { display: 0, value: 0 },
+          };
+        }
+      };
+      state.selected = {
+        ...state.selected,
+        expired: {
+          value: 0,
+          display: 0,
+        },
+      };
+
+      updateCollections(state.collections);
+      updateCollections(state.filtered);
+      updateCollections(state.cluster);
+    },
     TOGGLE: (state) => {
       state.showModal = !state.showModal;
     },
     TOGGLE_BATCHES_MODAL: (state) => {
       state.showBatchesModal = !state.showBatchesModal;
+    },
+    TOGGLE_MOVEMENTS_MODAL: (state) => {
+      state.showMovementsModal = !state.showMovementsModal;
     },
   },
   extraReducers: (builder) => {
@@ -261,6 +291,9 @@ export const {
   SEARCH,
   TOGGLE_BATCHES_MODAL,
   SetVIEW_BATCHES,
+  TOGGLE_MOVEMENTS_MODAL,
+  SetVIEW_STOCK_MOVEMENTS,
+  DISPOSE,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

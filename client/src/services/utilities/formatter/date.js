@@ -1,9 +1,16 @@
-const format = (date) => {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short", // "Jan", "Feb", etc.
-    day: "2-digit", // "01", "02", etc.
-    year: "numeric", // "2025"
-  });
+const format = (date, withTime = false) => {
+  const options = {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  };
+
+  if (withTime) {
+    options.hour = "2-digit";
+    options.minute = "2-digit";
+  }
+
+  return new Date(date).toLocaleDateString("en-US", options);
 };
 
 export default format;

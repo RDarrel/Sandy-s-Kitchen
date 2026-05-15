@@ -1,7 +1,7 @@
 const router = require("express").Router(),
-  { browse } = require("../../controllers/inventory/StockBatch"),
+  { browse, dispose } = require("../../controllers/inventory/StockBatch"),
   { validate } = require("../../middleware/jwt");
 
-router.get("/browse", validate, browse);
+router.get("/browse", validate, browse).put("/dispose", validate, dispose);
 
 module.exports = router;

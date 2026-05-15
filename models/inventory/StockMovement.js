@@ -15,7 +15,7 @@ const modelSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["in", "out", "adjustment", "waste", "expired"],
+      enum: ["in", "out", "adjustment", "waste"],
       required: true,
     },
 
@@ -31,7 +31,7 @@ const modelSchema = new mongoose.Schema(
 
     source: {
       type: String,
-      enum: ["purchase", "order", "waste", "manual"],
+      enum: ["purchase", "order", "manual", "expired"],
       required: true,
     },
 
@@ -45,7 +45,7 @@ const modelSchema = new mongoose.Schema(
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Users",
     },
   },
   {

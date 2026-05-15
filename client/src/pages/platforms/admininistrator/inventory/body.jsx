@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, Boxes } from "lucide-react";
+import { Pencil, Trash2, Boxes, Activity } from "lucide-react";
 import { capitalize } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
 import CustomPagination from "@/components/shared/pagination";
@@ -18,6 +18,7 @@ import { useMemo, useState } from "react";
 import {
   Set_SELECTED,
   SetVIEW_BATCHES,
+  SetVIEW_STOCK_MOVEMENTS,
 } from "@/services/redux/slices/inventory/inventoryItems";
 import TableLoading from "@/components/shared/loading/table";
 
@@ -154,6 +155,14 @@ const InventoryBody = ({
 
                             <TableCell>
                               <div className="flex justify-end gap-2">
+                                <ActionButton
+                                  title="Stock Movements"
+                                  icon={Activity}
+                                  destructive
+                                  onClick={() =>
+                                    dispatch(SetVIEW_STOCK_MOVEMENTS(item))
+                                  }
+                                />
                                 <ActionButton
                                   title="View Batches"
                                   icon={Boxes}

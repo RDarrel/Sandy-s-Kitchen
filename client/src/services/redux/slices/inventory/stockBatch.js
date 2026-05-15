@@ -55,6 +55,19 @@ export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   }
 });
 
+export const DISPOSE = createAsyncThunk(`${url}/dispose`, (form, thunkAPI) => {
+  try {
+    return axioKit.update(url, form.data, form.token, "dispose");
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
 export const reduxSlice = createSlice({
   name: url,
   initialState,
@@ -141,6 +154,28 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(UPDATE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
+      })
+
+      .addCase(DISPOSE.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(DISPOSE.fulfilled, (state, action) => {
+        const { message, payload } = action.payload;
+        const updateCollections = (collections) => {
+          const index = collections.findIndex(({ _id }) => _id === payload);
+          if (index > -1) collections.splice(index, 1);
+        };
+        updateCollections(state.collections);
+        state.formSubmitted = false;
+        state.message = message;
+        state.isSuccess = true;
+      })
+      .addCase(DISPOSE.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;

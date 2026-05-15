@@ -9,7 +9,7 @@ import transactions from "./slices/commerce/transactions";
 import audit from "./slices/audit";
 import dashboard from "./slices/dashboard";
 import { addOns, menus, menuCategories } from "./slices/menu";
-import { inventoryItems, stockBatch } from "./slices/inventory";
+import { inventoryItems, stockBatch, stockMovements } from "./slices/inventory";
 import { cashier } from "./slices/stations";
 import { suppliers, purchases, stockRequests } from "./slices/procurement";
 const store = configureStore({
@@ -19,6 +19,7 @@ const store = configureStore({
     auth,
     addOns,
     menus,
+    stockMovements,
     menuCategories,
     inventoryItems,
     staffs,
