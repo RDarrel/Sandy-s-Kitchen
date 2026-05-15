@@ -63,6 +63,9 @@ const modelSchema = new mongoose.Schema(
 );
 
 modelSchema.virtual("remainingQtyDisplay").get(function () {
+  if (!this.inventory?.measurement || !this.inventory?.baseUnit) {
+    return `${this.remainingQuantity} ${this.unit}`;
+  }
   const unitMap = {
     g: "kg",
     ml: "l",
@@ -75,6 +78,9 @@ modelSchema.virtual("remainingQtyDisplay").get(function () {
   });
 });
 modelSchema.virtual("qtyDisplay").get(function () {
+  if (!this.inventory?.measurement || !this.inventory?.baseUnit) {
+    return `${this.remainingQuantity} ${this.unit}`;
+  }
   const unitMap = {
     g: "kg",
     ml: "l",

@@ -90,9 +90,17 @@ const InventoryBatchesModal = () => {
     const keyword = String(search || "")
       .trim()
       .toLowerCase();
-    const list = Array.isArray(batches) ? batches : [];
+    const list = Array.isArray(batches) ? [...batches] : [];
 
-    const enriched = list.map((batch, index) => {
+    const sorted = list.sort((a, b) => {
+      if (tracksExpiration) {
+        return new Date(a.expirationDate) - new Date(b.expirationDate);
+      } else {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+    });
+
+    const enriched = sorted.map((batch, index) => {
       const supplierName =
         batch?.purchase?.supplier?.name || batch?.supplier?.name || "Supplier";
       const receivedDate = batch?.createdAt;

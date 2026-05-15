@@ -9,6 +9,6 @@ const router = require("express").Router(),
 router
   .get("/browse", validate, browse)
   .put("/dispose", validate, dispose)
-  .put("/reportWaste", validate, reportWaste);
+  .put("/report-waste", validate, reportWaste);
 
 module.exports = router;

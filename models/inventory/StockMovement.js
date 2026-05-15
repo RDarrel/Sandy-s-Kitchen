@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { convertFromBaseUnit } = require("../../utilities/unitConverter");
 
 const modelSchema = new mongoose.Schema(
   {
@@ -69,9 +70,17 @@ const modelSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
 );
 
+modelSchema.virtual("quantityDisplay").get(function () {
+  return convertFromBaseUnit({
+    qty: this.quantity,
+    unit: this.unit,
+  });
+});
 const Entity = mongoose.model("StockMovement", modelSchema);
 
 module.exports = Entity;

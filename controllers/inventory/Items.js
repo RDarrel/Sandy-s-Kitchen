@@ -1,6 +1,9 @@
 const Item = require("../../models/inventory/Item");
 const StockBatch = require("../../models/inventory/StockBatch");
-const { convertToBaseUnit } = require("../../utilities/unitConverter");
+const {
+  convertToBaseUnit,
+  convertFromBaseUnit,
+} = require("../../utilities/unitConverter");
 exports.save = async (req, res) => {
   try {
     const inventory = await Item.create(req.body);
@@ -74,25 +77,30 @@ exports.browse = async (req, res) => {
 
     const items = rawItems.map((item) => {
       const itemId = item._id.toString();
+      const unitMap = {
+        g: "kg",
+        ml: "l",
+        pcs: "pcs",
+      };
 
       return {
         ...item.toJSON(),
         expiringSoon: {
           display: expiringSoonMap[itemId]
-            ? convertToBaseUnit({
+            ? convertFromBaseUnit({
                 measurement: item.measurement,
                 qty: expiringSoonMap[itemId],
-                unit: item.baseUnit,
+                unit: unitMap[item.baseUnit],
               })
             : 0,
           value: expiringSoonMap[itemId] || 0,
         },
         expired: {
           display: expiringSoonMap[itemId]
-            ? convertToBaseUnit({
+            ? convertFromBaseUnit({
                 measurement: item.measurement,
                 qty: expiredMap[itemId],
-                unit: item.baseUnit,
+                unit: unitMap[item.baseUnit],
               })
             : 0 || 0,
           value: expiredMap[itemId] || 0,

@@ -183,6 +183,21 @@ export const reduxSlice = createSlice({
       updateCollections(state.filtered);
       updateCollections(state.cluster);
     },
+    REPORT_WASTE: (state, { payload }) => {
+      const updateCollections = (collections) => {
+        const index = collections.findIndex(({ _id }) => _id === payload?._id);
+        if (index > -1) {
+          collections[index] = {
+            ...collections[index],
+            ...payload,
+          };
+        }
+      };
+
+      updateCollections(state.collections);
+      updateCollections(state.filtered);
+      updateCollections(state.cluster);
+    },
     TOGGLE: (state) => {
       state.showModal = !state.showModal;
     },
@@ -305,6 +320,7 @@ export const {
   DISPOSE,
   SetREPORT_WASTE,
   TOGGLE_WASTE_MODAL,
+  REPORT_WASTE,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

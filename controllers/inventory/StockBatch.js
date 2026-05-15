@@ -1,7 +1,17 @@
 const StockBatch = require("../../models/inventory/StockBatch");
 const StockMovement = require("../../models/inventory/StockMovement");
 const InventoryItem = require("../../models/inventory/Item");
-const { convertToBaseUnit } = require("../../utilities/unitConverter");
+const mongoose = require("mongoose");
+const {
+  convertToBaseUnit,
+  convertFromBaseUnit,
+} = require("../../utilities/unitConverter");
+
+const unitMap = {
+  g: "kg",
+  ml: "l",
+  pcs: "pcs",
+};
 
 exports.browse = async (req, res) => {
   try {
@@ -75,17 +85,22 @@ exports.reportWaste = async (req, res) => {
       qty,
       unit,
     });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const next7Days = new Date(today);
+    next7Days.setDate(next7Days.getDate() + 7);
     const sortOption = trackExpiration
       ? { expirationDate: 1, createdAt: 1 }
       : { createdAt: 1 };
 
     const batches = await StockBatch.find({
-      inventory: item._id,
+      inventory,
       remainingQuantity: { $gt: 0 },
       status: "available",
     }).sort(sortOption);
 
     const movementBatches = [];
+    let qtyToDeduct = reportWaste;
 
     for (const batch of batches) {
       if (qtyToDeduct <= 0) break;
@@ -113,10 +128,11 @@ exports.reportWaste = async (req, res) => {
         new: true,
       },
     );
+
     await StockMovement.create({
       inventory,
       unit,
-      quantity: reportWaste,
+      quantity: qty,
       remarks: remarks || "",
       type: "waste",
       source: source,
@@ -124,9 +140,40 @@ exports.reportWaste = async (req, res) => {
       batches: movementBatches,
     });
 
+    const expiringSoonStocks = await StockBatch.aggregate([
+      {
+        $match: {
+          inventory: new mongoose.Types.ObjectId(inventory),
+          remainingQuantity: { $gt: 0 },
+          expirationDate: {
+            $gte: today,
+            $lte: next7Days,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$inventory",
+          total: { $sum: "$remainingQuantity" },
+        },
+      },
+    ]);
+    const expiringSoonQty = expiringSoonStocks[0]?.total || 0;
     res.status(200).json({
-      success: "Stock Batch disposed Successfully",
-      payload: updatedInventory,
+      success: "Report Wasted Successfully",
+      payload: {
+        _id: inventory,
+        expiringSoon: {
+          value: expiringSoonQty,
+          display: convertFromBaseUnit({
+            measurement,
+            qty: expiringSoonQty,
+            unit: unitMap[updatedInventory.baseUnit],
+          }),
+        },
+        stock: updatedInventory.stock,
+        stockDisplay: updatedInventory.stockDisplay,
+      },
     });
   } catch (error) {
     res.status(400).json({ error: error.message });

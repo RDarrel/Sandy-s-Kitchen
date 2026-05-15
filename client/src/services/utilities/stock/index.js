@@ -7,7 +7,10 @@ const unitMap = {
 };
 const Stock = {
   display: (stock, measurement) => {
-    const formatted = Number(stock.toFixed(2)); // removes trailing zeros
+    const formatted = Number(stock || 0).toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
     return `${formatted} ${capitalize(unitMap[measurement])}`;
   },
   convertToBaseUnit: (value, type, useNumber = false) => {

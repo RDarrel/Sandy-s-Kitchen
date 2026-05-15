@@ -68,6 +68,24 @@ export const DISPOSE = createAsyncThunk(`${url}/dispose`, (form, thunkAPI) => {
   }
 });
 
+export const REPORT_WASTE = createAsyncThunk(
+  `${url}/report-waste`,
+  (form, thunkAPI) => {
+    try {
+      return axioKit.update(url, form.data, form.token, "report-waste");
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const reduxSlice = createSlice({
   name: url,
   initialState,
@@ -176,6 +194,23 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(DISPOSE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
+      })
+
+      .addCase(REPORT_WASTE.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(REPORT_WASTE.fulfilled, (state, action) => {
+        const { message } = action.payload;
+        state.formSubmitted = false;
+        state.message = message;
+        state.isSuccess = true;
+      })
+      .addCase(REPORT_WASTE.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;
