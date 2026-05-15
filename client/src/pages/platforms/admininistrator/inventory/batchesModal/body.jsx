@@ -69,6 +69,7 @@ const BatchesModalBody = ({
               <TableHead>Batch</TableHead>
               <TableHead className="text-right">Received Qty</TableHead>
               <TableHead className="text-right">Remaining Qty</TableHead>
+              <TableHead className="text-right">Unit Cost</TableHead>
               <TableHead>Received Date</TableHead>
               <TableHead>Expiration</TableHead>
               <TableHead className="text-center">Status</TableHead>
@@ -113,11 +114,15 @@ const BatchesModalBody = ({
                     <TableCell className="text-right font-semibold text-foreground">
                       {formatQty(batch?.remainingQtyDisplay)}
                     </TableCell>
+                    <TableCell className="text-right  text-foreground">
+                      ₱{batch.costPerUnit} / {batch.unit}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {batch.receivedDate
                         ? Formatter.date(batch.receivedDate)
                         : "—"}
                     </TableCell>
+
                     <TableCell className="font-semibold text-foreground">
                       {batch.expirationDate
                         ? Formatter.date(batch.expirationDate)

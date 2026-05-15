@@ -118,7 +118,7 @@ const InventoryBatchesModal = () => {
         status: expiryStatus,
         expiryStatus,
         isExpired: tracksExpiration && expiryStatus === "expired",
-        displayCode: toBatchCode(index),
+        displayCode: `B-${batch._id.toString().slice(-6).toUpperCase()}`,
       };
     });
 
@@ -132,7 +132,7 @@ const InventoryBatchesModal = () => {
 
   return (
     <Dialog open={showBatchesModal} onOpenChange={toggle}>
-      <DialogContent className="border-border bg-card p-5 sm:max-w-5xl">
+      <DialogContent className="border-border bg-card p-5 sm:max-w-6xl">
         <BatchesModalHeader
           selected={selected}
           tracksExpiration={tracksExpiration}

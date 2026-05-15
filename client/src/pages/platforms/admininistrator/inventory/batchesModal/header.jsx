@@ -124,7 +124,7 @@ const BatchesModalHeader = ({
         />
       </div>
 
-      <div className="flex items-center justify-between gap-3">
+      {/* <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
           Showing{" "}
           <span className="font-medium text-foreground">{rowsCount}</span> batch
@@ -146,7 +146,7 @@ const BatchesModalHeader = ({
             placeholder="Search batch code / supplier"
           />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
