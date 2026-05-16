@@ -55,21 +55,21 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg overflow-hidden rounded-2xl bg-white p-0 text-foreground">
-        <div className="max-h-[70vh] overflow-auto px-6 py-6 font-mono">
+      <DialogContent className="max-w-md overflow-hidden rounded-2xl bg-white p-0 text-foreground">
+        <div className="px-6 py-6 font-mono">
           <div className="w-full">
             <div className="text-center">
-              <p className="text-sm font-bold tracking-wide">
+              <p className="text-[15px] font-extrabold tracking-wider">
                 Sandy&apos;s Kitchenette
               </p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
+              <p className="mt-0.5 text-[12px] text-muted-foreground">
                 {nowLabel}
               </p>
             </div>
 
             <div className="my-3 border-t border-dashed border-muted-foreground/40" />
 
-            <div className="space-y-2 text-[12px] leading-5">
+            <div className="space-y-2 text-[13px] leading-6">
               {safeEntries.length ? (
                 safeEntries.map((entry) => {
                   const lineId = String(entry?.line?.id || "");
@@ -93,24 +93,24 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
 
                       {addOns.length ? (
                         <div className="pl-5">
-                          <div className="relative mt-1 pl-5 text-[11px] text-muted-foreground">
+                          <div className="relative mt-1 pl-5 text-[12px] leading-5 text-foreground/80">
                             <span
                               aria-hidden="true"
-                              className="absolute left-1 top-[-7px] h-[calc(0.6rem+7px)] w-px bg-muted-foreground/35"
-                            />
-                            <span
-                              aria-hidden="true"
-                              className="absolute left-1 top-[0.6rem] h-px w-3 bg-muted-foreground/35"
+                              className="absolute left-1 top-[-7px] bottom-[0.6rem] w-px bg-muted-foreground/35"
                             />
                             {addOns.map((addOn) => (
                               <div
                                 key={String(addOn?._id || addOn?.name || "")}
-                                className="flex items-start justify-between gap-3"
+                                className="relative flex items-start justify-between gap-3"
                               >
+                                <span
+                                  aria-hidden="true"
+                                  className="absolute -left-4 top-1/2 h-px w-3 -translate-y-1/2 bg-muted-foreground/35"
+                                />
                                 <p className="min-w-0 break-words">
                                   {String(addOn?.name || "Add-on")}
                                 </p>
-                                <p className="shrink-0">
+                                <p className="shrink-0 font-semibold text-foreground/90">
                                   +{Formatter.amount(Number(addOn?.price) || 0)}
                                 </p>
                               </div>
@@ -130,30 +130,34 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
 
             <div className="my-3 border-t border-dashed border-muted-foreground/40" />
 
-            <div className="text-[12px]">
-              <div className="flex items-center justify-between font-bold">
-                <span>Total</span>
-                <span>{Formatter.amount(totalAmount)}</span>
+            <div className="text-[13px]">
+              <div className="flex items-center justify-between">
+                <span className="font-bold tracking-wide">Total</span>
+                <span className="text-[15px] font-extrabold">
+                  {Formatter.amount(totalAmount)}
+                </span>
               </div>
 
               <div className="mt-3 border-t border-dashed border-muted-foreground/40 pt-3">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-[12px] font-bold">Tendered</span>
+                  <span className="font-bold tracking-wide">Tendered</span>
                   <div className="w-[160px]">
                     <Input
                       inputMode="decimal"
                       value={tenderedRaw}
                       onChange={(e) => setTenderedRaw(e.target.value)}
                       placeholder="0.00"
-                      className="h-9 rounded-lg bg-white text-right font-mono text-sm"
+                      className="h-10 rounded-lg bg-white text-right font-mono text-[14px] "
                     />
                   </div>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-[12px]">
-                  <span className="font-bold">Change</span>
+                <div className="mt-2 flex items-center justify-between text-[13px]">
+                  <span className="font-bold tracking-wide">Change</span>
                   <span
                     className={
-                      change != null && change < 0 ? "text-destructive" : ""
+                      change != null && change < 0
+                        ? "font-bold text-[15px] text-destructive"
+                        : "font-bold text-[15px]"
                     }
                   >
                     {change == null
@@ -161,15 +165,13 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                       : Formatter.amount(Math.max(0, change))}
                   </span>
                 </div>
+                <div className="mt-3 border-t border-dashed border-muted-foreground/40" />
               </div>
             </div>
           </div>
-        </div>
-
-        <DialogFooter className="gap-2 rounded-b-2xl border-t bg-white px-2 py-2">
           <Button
             type="button"
-            className="h-10 rounded-xl w-full"
+            className="h-11 w-full rounded-xl text-base mt-5 "
             onClick={() => {
               // TODO: wire backend payment flow.
               onOpenChange?.(false);
@@ -177,7 +179,7 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
           >
             Continue
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
