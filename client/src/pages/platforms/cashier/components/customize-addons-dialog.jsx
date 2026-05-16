@@ -17,11 +17,17 @@ import {
   SetCustomSelected,
   SetCustomizeState,
 } from "@/services/redux/slices/stations/cashier";
+import { createCartSignature } from "@/services/redux/slices/stations/cashier.utils";
+import animateAddToOrder from "../utils/animate-add-to-order";
 
 const CashierCustomizeAddOnsDialog = () => {
   const dispatch = useDispatch();
-  const { customizeState, customSelected } = useSelector(({ cashier }) => cashier);
-  const { collections: menusCollections = [] } = useSelector(({ menus }) => menus);
+  const { customizeState, customSelected, cart } = useSelector(
+    ({ cashier }) => cashier,
+  );
+  const { collections: menusCollections = [] } = useSelector(
+    ({ menus }) => menus,
+  );
 
   const menu = useMemo(() => {
     const menuId = String(customizeState?.menuId || "");
@@ -67,7 +73,9 @@ const CashierCustomizeAddOnsDialog = () => {
     const map = new Map(
       recommended.map((item) => [String(item?._id || ""), item]),
     );
-    return (selectedIds || []).map((id) => map.get(String(id || ""))).filter(Boolean);
+    return (selectedIds || [])
+      .map((id) => map.get(String(id || "")))
+      .filter(Boolean);
   }, [recommended, selectedIds]);
 
   const basePrice = Number(menu?.price) || 0;
@@ -110,11 +118,56 @@ const CashierCustomizeAddOnsDialog = () => {
       .filter(Boolean);
 
     if (mode === "edit" && customizeState?.lineId) {
-      dispatch(
-        CartUpdateLineAddOns({ lineId: customizeState.lineId, addOns }),
-      );
+      dispatch(CartUpdateLineAddOns({ lineId: customizeState.lineId, addOns }));
     } else {
       dispatch(CartAdd({ menuId, addOns }));
+    }
+
+    if (mode !== "edit") {
+      const sourceMenuId = String(customizeState?.sourceMenuId || menuId || "");
+      const sourceCardEl = sourceMenuId
+        ? document.querySelector(`[data-menu-card][data-menu-id="${sourceMenuId}"]`)
+        : null;
+
+      const signature = createCartSignature(
+        menuId,
+        addOns.map((item) => item?._id),
+      );
+      const existingLineId =
+        (Array.isArray(cart?.lines) ? cart.lines : []).find(
+          (line) => String(line?.signature || "") === signature,
+        )?.id || "";
+      const isNewLine = !existingLineId;
+
+      const orderPanel = document.querySelector("[data-cashier-order-panel]");
+      const cartButton = document.querySelector("[data-cashier-cart-button]");
+      const cartList = document.querySelector("[data-cashier-cart-list]");
+      const targetLineEl = existingLineId
+        ? document.querySelector(
+            `[data-cart-line-id="${String(existingLineId).replaceAll('"', '\\"')}"]`,
+          )
+        : null;
+
+      if (existingLineId) {
+        try {
+          targetLineEl?.scrollIntoView?.({
+            block: "center",
+            inline: "nearest",
+            behavior: "auto",
+          });
+        } catch {
+          // ignore
+        }
+      }
+
+      const targetEl = isNewLine
+        ? cartList || orderPanel || cartButton || null
+        : targetLineEl || cartList || orderPanel || cartButton || null;
+
+      animateAddToOrder(sourceCardEl || customizeState?.fromPoint, menu, {
+        targetEl,
+        targetAlign: isNewLine ? "top" : "center",
+      });
     }
 
     close();
@@ -219,4 +272,3 @@ const CashierCustomizeAddOnsDialog = () => {
 };
 
 export default CashierCustomizeAddOnsDialog;
-
