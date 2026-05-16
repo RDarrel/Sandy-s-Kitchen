@@ -383,8 +383,10 @@ const CashierBody = () => {
               className="col-span-full space-y-4"
             >
               <div className="flex items-center gap-3">
-                <p className="shrink-0 text-base font-semibold leading-none text-foreground">
-                  {group.name}
+                <p className="shrink-0">
+                  <span className="inline-flex items-center rounded-full border bg-muted/30 px-3 py-1 text-sm font-semibold leading-none text-foreground">
+                    {group.name}
+                  </span>
                 </p>
                 <div className="h-px flex-1 bg-border/70" />
                 <p className="shrink-0 rounded-full border bg-background px-2.5 py-1 text-xs font-medium leading-none text-muted-foreground">
