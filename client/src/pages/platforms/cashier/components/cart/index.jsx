@@ -22,7 +22,7 @@ import {
   ShoppingCart,
   Trash2,
 } from "lucide-react";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   CartClear,
@@ -33,6 +33,7 @@ import {
   SetCustomSelected,
   SetCustomizeState,
 } from "@/services/redux/slices/stations/cashier";
+import CashierPaymentModal from "./payment-modal";
 
 const fixedSectionGap = 16;
 
@@ -215,6 +216,7 @@ const CartPanel = ({
   onRemove,
   onCustomize,
 }) => {
+  const [paymentOpen, setPaymentOpen] = useState(false);
   const animatedByLineIdRef = useRef(new Map());
 
   const animateLineEl = useCallback((el, lineId, stamp) => {
@@ -426,13 +428,20 @@ const CartPanel = ({
           className="mt-3 h-10 w-full rounded-xl"
           disabled={!entries.length}
           onClick={() => {
-            // UI-ready; backend order flow can be wired later.
+            setPaymentOpen(true);
           }}
         >
           <CreditCard className="h-4 w-4" />
           Proceed Payment
         </Button>
       </div>
+
+      <CashierPaymentModal
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        totals={totals}
+        entries={entries}
+      />
     </div>
   );
 };
