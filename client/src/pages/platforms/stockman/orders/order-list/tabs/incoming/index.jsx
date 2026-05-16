@@ -21,6 +21,7 @@ import {
 import { memo, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import IncomingSkeleton from "./skeleton";
+import useHighlightPurchase from "../../../short-deliveries/use-highlight-purchase";
 
 const statusMeta = {
   request: {
@@ -45,7 +46,7 @@ const statusMeta = {
   },
 };
 
-const IncomingOrdersTab = () => {
+const IncomingOrdersTab = ({ highlightPurchaseId = null }) => {
   const { filtered: orders, isLoading } = useSelector(
     ({ purchases }) => purchases,
   );
@@ -54,6 +55,16 @@ const IncomingOrdersTab = () => {
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(5);
   const dispatch = useDispatch();
+
+  useHighlightPurchase({
+    highlightPurchaseId,
+    rows,
+    page,
+    pageSize: maxPage,
+    setPage,
+    setOpenById,
+    elementIdPrefix: "incoming-order",
+  });
 
   if (isLoading) {
     return <IncomingSkeleton />;
@@ -116,7 +127,8 @@ const IncomingOrdersTab = () => {
         return (
           <div
             key={purchaseId || supplierName}
-            className="rounded-xl border border-border bg-card/60 p-4 shadow-sm"
+            id={`incoming-order-${purchaseId}`}
+            className={`rounded-xl border border-border bg-card/60 p-4 shadow-sm ${highlightPurchaseId && String(highlightPurchaseId) === purchaseId ? "ring-2 ring-primary/40" : ""}`}
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-1">

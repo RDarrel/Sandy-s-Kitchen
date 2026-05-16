@@ -13,18 +13,56 @@ import IncomingOrdersTab from "./tabs/incoming";
 import ReceivedOrdersTab from "./tabs/delivered";
 import ReceiveOrderModal from "./modal";
 import { Search, Truck } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import {
   BROWSE,
   RESET,
   SEARCH,
 } from "@/services/redux/slices/procurement/purchases";
 
+const tabByStatusParam = {
+  incoming: "incoming",
+  request: "incoming",
+  pending: "incoming",
+  received: "received",
+  delivered: "received",
+};
+
+const validTabs = ["incoming", "received"];
+
+const getTabFromStatusParam = (statusParam) => {
+  const status = String(statusParam || "").toLowerCase();
+  const tab = tabByStatusParam[status];
+
+  return validTabs.includes(tab) ? tab : "incoming";
+};
+
+const getPurchaseParam = (purchaseParam) => {
+  if (!purchaseParam) return null;
+  return String(purchaseParam);
+};
+
 const OrderList = () => {
   const { message, isLoading } = useSelector(({ purchases }) => purchases);
   const { token, auth } = useSelector(({ auth }) => auth);
-  const [tab, setTab] = useState("incoming");
+  const [searchParams] = useSearchParams();
+
+  const initialTab = getTabFromStatusParam(searchParams.get("status"));
+  const initialHighlight = getPurchaseParam(searchParams.get("purchase"));
+
+  const [tab, setTab] = useState(initialTab);
   const [query, setQuery] = useState("");
+  const [highlightPurchaseId, setHighlightPurchaseId] =
+    useState(initialHighlight);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const nextTab = getTabFromStatusParam(searchParams.get("status"));
+    const nextHighlight = getPurchaseParam(searchParams.get("purchase"));
+
+    setTab(nextTab);
+    setHighlightPurchaseId(nextHighlight);
+  }, [searchParams]);
 
   useEffect(() => {
     dispatch(
@@ -101,7 +139,7 @@ const OrderList = () => {
 
             <CardContent className="px-5 pb-5  sm:px-6">
               <TabsContent value="incoming" className="mt-0">
-                <IncomingOrdersTab />
+                <IncomingOrdersTab highlightPurchaseId={highlightPurchaseId} />
               </TabsContent>
               <TabsContent value="received" className="mt-0">
                 <ReceivedOrdersTab />

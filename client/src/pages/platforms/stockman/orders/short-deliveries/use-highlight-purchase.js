@@ -12,6 +12,7 @@ const getTargetPageForPurchase = ({ rows, purchaseId, pageSize }) => {
 
 const scrollToPurchaseElement = ({
   purchaseId,
+  elementIdPrefix = "short-delivery",
   block = "center",
   behavior = "smooth",
   maxAttempts = 20,
@@ -20,7 +21,7 @@ const scrollToPurchaseElement = ({
 }) => {
   if (!purchaseId) return () => {};
   const key = String(purchaseId);
-  const elementId = `short-delivery-${key}`;
+  const elementId = `${elementIdPrefix}-${key}`;
 
   let cancelled = false;
   let attempts = 0;
@@ -59,6 +60,7 @@ const useHighlightPurchase = ({
   setOpenById = () => {},
   setPageDelayMs = 60,
   scrollBlock = "center",
+  elementIdPrefix = "short-delivery",
 } = {}) => {
   const handledRef = useRef({ id: null, done: false });
 
@@ -107,12 +109,21 @@ const useHighlightPurchase = ({
 
     return scrollToPurchaseElement({
       purchaseId: key,
+      elementIdPrefix,
       block: scrollBlock,
       onFound: () => {
         handledRef.current = { id: key, done: true };
       },
     });
-  }, [highlightPurchaseId, page, pageSize, rows, scrollBlock, setOpenById]);
+  }, [
+    elementIdPrefix,
+    highlightPurchaseId,
+    page,
+    pageSize,
+    rows,
+    scrollBlock,
+    setOpenById,
+  ]);
 };
 
 export default useHighlightPurchase;

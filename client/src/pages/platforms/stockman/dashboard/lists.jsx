@@ -6,9 +6,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { BROWSE as BROWSE_PURCHASES } from "@/services/redux/slices/procurement/purchases";
+import {
+  BROWSE as BROWSE_PURCHASES,
+  INCOMING_ORDERS,
+} from "@/services/redux/slices/procurement/purchases";
 import { Formatter, Stock } from "@/services/utilities";
 import { PackageSearch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -43,7 +48,6 @@ const renderListSkeleton = (rows = 5) => {
 };
 
 const Lists = () => {
-  const dispatch = useDispatch();
   const token = useSelector(({ auth }) => auth?.token);
   const { collections: inventory = [], isLoading: inventoryLoading } =
     useSelector(({ inventoryItems }) => inventoryItems);
@@ -53,12 +57,14 @@ const Lists = () => {
   const [receivedOrders, setReceivedOrders] = useState([]);
   const [incomingLoading, setIncomingLoading] = useState(false);
   const [receivedLoading, setReceivedLoading] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) return;
 
     setIncomingLoading(true);
-    dispatch(BROWSE_PURCHASES({ token, params: { status: "incoming" } }))
+    dispatch(INCOMING_ORDERS({ token }))
       .unwrap()
       .then(({ payload = [] } = {}) => setIncomingOrders(payload || []))
       .catch(() => setIncomingOrders([]))
@@ -318,7 +324,14 @@ const Lists = () => {
                         <div className="flex justify-end">
                           <Badge
                             variant="outline"
-                            className="gap-1 rounded-full whitespace-nowrap"
+                            onClick={() =>
+                              navigate(
+                                `/platforms/orders/${purchase?.status === "redelivery" ? "short-deliveries" : "order-list"}?status=${encodeURIComponent(
+                                  purchase?.status || "incoming",
+                                )}&purchase=${encodeURIComponent(purchase?._id)}`,
+                              )
+                            }
+                            className="gap-1 rounded-full whitespace-nowrap cursor-pointer transition-colors hover:bg-accent hover:text-accent-foreground hover:border-border"
                           >
                             <PackageSearch className="h-3.5 w-3.5" />
                             View

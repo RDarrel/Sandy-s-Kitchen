@@ -3,7 +3,8 @@ const PurchaseItem = require("../../models/procurement/PurchaseItem");
 const InventoryItem = require("../../models/inventory/Item");
 const StockBatch = require("../../models/inventory/StockBatch");
 const StockMovement = require("../../models/inventory/StockMovement");
-
+const mongoose = require("mongoose");
+const { convertToBaseUnit } = require("../../utilities/unitConverter");
 exports.save = async (req, res) => {
   try {
     const { cart, purchases } = req.body;
@@ -112,8 +113,28 @@ exports.browse = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-const mongoose = require("mongoose");
-const { convertToBaseUnit } = require("../../utilities/unitConverter");
+
+exports.incomingOrders = async (req, res) => {
+  try {
+    const { status, stockman = "" } = req.query;
+    const purchases = await Purchase.find({
+      status: { $in: ["incoming", "redelivery"] },
+    })
+      .sort({
+        updatedAt: -1,
+      })
+      .populate("supplier")
+      .populate("received.by", "fullName")
+      .lean();
+
+    res.status(200).json({
+      success: "Purchases Fetched Successfully",
+      payload: purchases,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
 const handleShortOrder = async (purchase, orders, session) => {
   const shortOrders = orders.filter(

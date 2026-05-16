@@ -38,6 +38,24 @@ export const BROWSE = createAsyncThunk(
   },
 );
 
+export const INCOMING_ORDERS = createAsyncThunk(
+  `${url}/incoming-orders`,
+  ({ token, params }, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/incoming-orders`, token, params);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
   try {
     return axioKit.save(url, form.data, form.token);
@@ -255,6 +273,22 @@ export const reduxSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
+
+      .addCase(INCOMING_ORDERS.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(INCOMING_ORDERS.fulfilled, (state, action) => {
+        const { payload } = action.payload;
+        state.collections = state.filtered = payload;
+        state.isLoading = false;
+      })
+      .addCase(INCOMING_ORDERS.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.isLoading = false;
