@@ -392,7 +392,7 @@ const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-1.5">
-              <p className="min-w-0 truncate text-base font-semibold">
+              <p className="min-w-0 truncate text-sm font-semibold">
                 {menu?.name || "—"}
               </p>
               {hasDescription ? (
@@ -425,7 +425,7 @@ const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
               ) : null}
             </div>
           </div>
-          <p className="shrink-0 text-base font-bold">
+          <p className="shrink-0 text-sm font-bold">
             {Formatter.amount(price)}
           </p>
         </div>

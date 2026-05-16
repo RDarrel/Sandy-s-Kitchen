@@ -15,7 +15,11 @@ const initialState = {
   sales: [],
   salesFiltered: [],
   activeTab: "menus",
+  category: "all",
+  availability: "all",
+  search: "",
   menus: [],
+  menusCluster: [],
   menusFiltered: [],
   categories: [],
   fuel: {},
@@ -57,6 +61,31 @@ export const BROWSE_MENUS = createAsyncThunk(
     }
   },
 );
+const getIsAvailable = (item) => Boolean(item?.isAvailable ?? item?.isPublish);
+
+const applyFilters = (collections, { category, availability, search }) => {
+  const byCategory =
+    category === "all"
+      ? collections
+      : collections.filter((item) => item?.category?._id === category);
+
+  const byAvailability =
+    availability === "all"
+      ? byCategory
+      : byCategory.filter((item) => {
+          const isAvailable = getIsAvailable(item);
+          return availability === "available" ? isAvailable : !isAvailable;
+        });
+
+  const cluster = byAvailability;
+  const filtered = !search
+    ? cluster
+    : cluster.filter((item) => {
+        return item.name.toLowerCase().includes(search.toLowerCase());
+      });
+
+  return { cluster, filtered };
+};
 
 export const reduxSlice = createSlice({
   name: url,
@@ -206,6 +235,30 @@ export const reduxSlice = createSlice({
       };
       state.cart = { version: 2, lines };
     },
+    SEARCH: (state, { payload }) => {
+      state.search = payload;
+
+      const { filtered } = applyFilters(state.menus, {
+        category: state.category,
+        availability: state.availability,
+        search: state.search,
+      });
+
+      state.menusFiltered = filtered;
+    },
+    FilterBY_CATEGORY: (state, { payload }) => {
+      state.category = payload;
+      state.search = "";
+
+      const { cluster, filtered } = applyFilters(state.menus, {
+        category: state.category,
+        availability: state.availability,
+        search: state.search,
+      });
+
+      state.menusCluster = cluster;
+      state.menusFiltered = filtered;
+    },
     RESET_SALE: (state) => {
       state.sale = 0;
       state.fuel = {};
@@ -246,7 +299,7 @@ export const reduxSlice = createSlice({
             return acc;
           }, {}),
         );
-        state.menus = state.menusFiltered = payload;
+        state.menus = state.menusCluster = state.menusFiltered = payload;
         state.categories = categories;
         state.isLoading = false;
       })
@@ -275,6 +328,8 @@ export const {
   CartUpdateLineAddOns,
   RESET_SALE,
   SetActiveTab,
+  FilterBY_CATEGORY,
+  SEARCH,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

@@ -1,13 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { SEARCH as SEARCH_MENUS } from "@/services/redux/slices/menu/menus";
+import { SEARCH as SEARCH_MENUS } from "@/services/redux/slices/stations/cashier";
 import { Search, SearchX, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 
 const CashierNoResults = () => {
   const dispatch = useDispatch();
-  const { search = "" } = useSelector(({ menus }) => menus);
+  const { search = "" } = useSelector(({ cashier }) => cashier);
 
   const trimmed = String(search || "").trim();
   const hasSearch = Boolean(trimmed);

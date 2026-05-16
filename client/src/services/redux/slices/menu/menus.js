@@ -92,7 +92,9 @@ export const SET_AVAILABILITY = createAsyncThunk(
       return axioKit.update(url, form.data, form.token, "availability");
     } catch (error) {
       const message =
-        (error.response && error.response.data && error.response.data.message) ||
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
         error.message ||
         error.toString();
 

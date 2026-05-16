@@ -1,7 +1,7 @@
 import {
   FilterBY_CATEGORY,
   SEARCH as SEARCH_MENUS,
-} from "@/services/redux/slices/menu/menus";
+} from "@/services/redux/slices/stations/cashier";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -23,13 +23,13 @@ const CashierBodyHeader = () => {
   const [menuToolbarHeight, setMenuToolbarHeight] = useState(0);
   const [menuTopGap, setMenuTopGap] = useState(initialMenuGap);
 
-  const { category: activeCategory = "all", search = "" } = useSelector(
-    ({ menus }) => menus,
-  );
-
-  const { categories, isLoading: categoriesLoading } = useSelector(
-    ({ cashier }) => cashier,
-  );
+  const {
+    categories,
+    category: activeCategory = "all",
+    search = "",
+    isLoading: categoriesLoading,
+  } = useSelector(({ cashier }) => cashier);
+  console.log("search", search);
 
   useEffect(() => {
     const el = menuToolbarRef.current;
