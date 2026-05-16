@@ -5,14 +5,10 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useEffect, useMemo, useState } from "react";
 import { CreditCard } from "lucide-react";
 
-const getLineTotal = (entry) => {
+const getBaseTotal = (entry) => {
   const qty = Number(entry?.line?.quantity) || 0;
   const base = Number(entry?.menu?.price) || 0;
-  const addOnsTotal = (entry?.line?.addOns || []).reduce(
-    (sum, addOn) => sum + (Number(addOn?.price) || 0),
-    0,
-  );
-  return (base + addOnsTotal) * qty;
+  return base * qty;
 };
 
 const formatDateTime = (value) => {
@@ -66,7 +62,7 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
               <p className="text-[15px] font-extrabold tracking-wider">
                 Sandy&apos;s Kitchenette
               </p>
-              <p className="mt-0.5 text-[12px] text-muted-foreground">
+              <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
                 Brgy. Rio Chico Gen. Tinio, Nueva Ecija
               </p>
               <p className="mt-0.5 text-[12px] text-muted-foreground">
@@ -85,7 +81,10 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                   const addOns = Array.isArray(entry?.line?.addOns)
                     ? entry.line.addOns
                     : [];
-                  const lineTotal = getLineTotal(entry);
+                  const bundleItems = Array.isArray(entry?.menu?.bundleItems)
+                    ? entry.menu.bundleItems
+                    : [];
+                  const baseTotal = getBaseTotal(entry);
 
                   return (
                     <div key={lineId} className="space-y-1">
@@ -94,7 +93,7 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                           <span className="font-bold">{qty}x</span> {name}
                         </p>
                         <p className="shrink-0 font-bold">
-                          {Formatter.amount(lineTotal)}
+                          {Formatter.amount(baseTotal)}
                         </p>
                       </div>
 
@@ -118,7 +117,38 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                                   {String(addOn?.name || "Add-on")}
                                 </p>
                                 <p className="shrink-0 font-semibold text-foreground/90">
-                                  +{Formatter.amount(Number(addOn?.price) || 0)}
+                                  +{Formatter.amount(
+                                    (Number(addOn?.price) || 0) * qty,
+                                  )}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {bundleItems.length ? (
+                        <div className="pl-5">
+                          <div className="relative mt-1 pl-5 text-[12px] leading-5 text-foreground/80">
+                            <span
+                              aria-hidden="true"
+                              className="absolute left-1 top-[-7px] bottom-[0.6rem] w-px bg-muted-foreground/35"
+                            />
+                            {bundleItems.map((bundleItem, bundleIndex) => (
+                              <div
+                                key={String(
+                                  bundleItem?._id ||
+                                    bundleItem?.id ||
+                                    `${lineId}-bundle-${bundleIndex}`,
+                                )}
+                                className="relative flex items-start justify-between gap-3"
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className="absolute -left-4 top-1/2 h-px w-3 -translate-y-1/2 bg-muted-foreground/35"
+                                />
+                                <p className="min-w-0 break-words">
+                                  {String(bundleItem?.name || "Bundle item")}
                                 </p>
                               </div>
                             ))}
