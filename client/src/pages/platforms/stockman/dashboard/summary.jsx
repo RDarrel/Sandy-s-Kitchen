@@ -1,12 +1,25 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TriangleAlert, Package, PackageCheck } from "lucide-react";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { normalizeStatus } from "./utils";
 
-const renderKpiCard = ({ tone, title, description, value, footnote, badge }) => {
+const renderKpiCard = ({
+  tone,
+  title,
+  description,
+  value,
+  footnote,
+  badge,
+}) => {
   const toneClasses =
     tone === "danger"
       ? "from-destructive/8 via-transparent to-transparent"
@@ -15,7 +28,9 @@ const renderKpiCard = ({ tone, title, description, value, footnote, badge }) => 
         : "from-emerald-500/10 via-transparent to-transparent";
 
   return (
-    <Card className={`gap-3 bg-gradient-to-br py-4 ${toneClasses} lg:col-span-4`}>
+    <Card
+      className={`gap-3 bg-gradient-to-br py-4 ${toneClasses} lg:col-span-4`}
+    >
       <CardHeader className="space-y-1 px-4">
         <CardTitle className="flex items-center gap-2 text-sm">
           {title}
@@ -86,26 +101,19 @@ const Summary = () => {
   return (
     <div className="grid gap-2 lg:col-span-12 lg:grid-cols-12">
       {renderKpiCard({
-        tone: "danger",
+        tone: "ok",
         title: (
           <>
-            <TriangleAlert className="h-4 w-4 text-destructive" />
-            Out of stock
+            <PackageCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
+            In stock
           </>
         ),
-        description: "Immediate reorder required",
-        value: summary.outCount,
-        footnote: `${summary.total} items tracked`,
+        description: "Healthy items",
+        value: summary.inCount,
+        footnote: `Inventory ${isLoading ? "syncing" : "updated"}`,
         badge: (
-          <Badge
-            variant="outline"
-            className={
-              summary.outCount
-                ? "rounded-full border-destructive/30 bg-destructive/5 text-destructive"
-                : "rounded-full border-border"
-            }
-          >
-            {summary.outCount ? "Urgent" : "OK"}
+          <Badge className="rounded-full" variant="secondary">
+            {isLoading ? "Loading..." : "Up to date"}
           </Badge>
         ),
       })}
@@ -130,25 +138,31 @@ const Summary = () => {
                 : "rounded-full border-border"
             }
           >
-            {summary.lowCount ? "Reorder soon" : "OK"}
+            {summary.lowCount ? "Reorder soon" : "No issues"}
           </Badge>
         ),
       })}
-
       {renderKpiCard({
-        tone: "ok",
+        tone: "danger",
         title: (
           <>
-            <PackageCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
-            In stock
+            <TriangleAlert className="h-4 w-4 text-destructive" />
+            Out of stock
           </>
         ),
-        description: "Healthy items",
-        value: summary.inCount,
-        footnote: `Inventory ${isLoading ? "syncing" : "updated"}`,
+        description: "Immediate reorder required",
+        value: summary.outCount,
+        footnote: `${summary.total} items tracked`,
         badge: (
-          <Badge className="rounded-full" variant="secondary">
-            {isLoading ? "Loading..." : "Up to date"}
+          <Badge
+            variant="outline"
+            className={
+              summary.outCount
+                ? "rounded-full border-destructive/30 bg-destructive/5 text-destructive"
+                : "rounded-full border-border"
+            }
+          >
+            {summary.outCount ? "Urgent" : "No issues"}
           </Badge>
         ),
       })}
