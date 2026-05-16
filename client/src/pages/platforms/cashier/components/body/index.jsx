@@ -30,12 +30,12 @@ const CashierBody = () => {
   const cart = useSelector(({ cashier }) => cashier?.cart);
 
   const cartLines = useMemo(() => {
-    const lines = Array.isArray(cart?.lines) ? cart.lines : [];
+    const lines = Array.isArray(cart) ? cart : [];
     return lines
       .map((line) => ({
         ...line,
         id: String(line?.id || ""),
-        menuId: String(line?.menuId || ""),
+        menuId: String(line?.menuId || line?.menu?._id || ""),
         quantity: Math.max(0, Number(line?.quantity) || 0),
         signature: String(line?.signature || ""),
       }))
@@ -184,7 +184,7 @@ const CashierBody = () => {
                       targetEl,
                       targetAlign: isNewLine ? "top" : "center",
                     });
-                    dispatch(CartAdd({ menuId, addOns: [] }));
+                    dispatch(CartAdd({ menu, addOns: [] }));
                   }}
                 />
               );

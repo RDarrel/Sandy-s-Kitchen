@@ -25,7 +25,7 @@ const initialState = {
   fuel: {},
   fuels: [],
   cartOpen: false,
-  cart: { version: 2, lines: [] },
+  cart: [],
   customizeState: null,
   customSelected: [],
   isLoading: false,
@@ -116,10 +116,11 @@ export const reduxSlice = createSlice({
       state.cart = normalizeCart(payload);
     },
     CartClear: (state) => {
-      state.cart = { version: 2, lines: [] };
+      state.cart = [];
     },
     CartAdd: (state, { payload }) => {
-      const menuId = String(payload?.menuId || "");
+      const menu = payload?.menu || null;
+      const menuId = String(menu?._id || payload?.menuId || "");
       if (!menuId) return;
 
       const now = Date.now();
@@ -129,7 +130,7 @@ export const reduxSlice = createSlice({
         addOns.map((item) => item._id),
       );
 
-      const lines = Array.isArray(state.cart?.lines) ? state.cart.lines : [];
+      const lines = Array.isArray(state.cart) ? state.cart : [];
       const index = lines.findIndex(
         (line) => String(line?.signature || "") === signature,
       );
@@ -142,13 +143,14 @@ export const reduxSlice = createSlice({
           updatedAt: now,
           attentionAt: now,
         };
-        state.cart = { version: 2, lines };
+        state.cart = lines;
         return;
       }
 
       const nextLine = {
         id: createCartLineId(),
         menuId,
+        menu,
         quantity: 1,
         addOns,
         signature,
@@ -157,14 +159,14 @@ export const reduxSlice = createSlice({
         attentionAt: now,
       };
 
-      state.cart = { version: 2, lines: [nextLine, ...lines] };
+      state.cart = [nextLine, ...lines];
     },
     CartIncrement: (state, { payload }) => {
       const lineId = String(payload || "");
       if (!lineId) return;
 
       const now = Date.now();
-      const lines = Array.isArray(state.cart?.lines) ? state.cart.lines : [];
+      const lines = Array.isArray(state.cart) ? state.cart : [];
       const index = lines.findIndex(
         (line) => String(line?.id || "") === lineId,
       );
@@ -176,14 +178,14 @@ export const reduxSlice = createSlice({
         quantity: (Number(current?.quantity) || 0) + 1,
         updatedAt: now,
       };
-      state.cart = { version: 2, lines };
+      state.cart = lines;
     },
     CartDecrement: (state, { payload }) => {
       const lineId = String(payload || "");
       if (!lineId) return;
 
       const now = Date.now();
-      const lines = Array.isArray(state.cart?.lines) ? state.cart.lines : [];
+      const lines = Array.isArray(state.cart) ? state.cart : [];
       const index = lines.findIndex(
         (line) => String(line?.id || "") === lineId,
       );
@@ -192,29 +194,26 @@ export const reduxSlice = createSlice({
       const current = lines[index];
       const nextQty = Math.max(0, (Number(current?.quantity) || 0) - 1);
       if (nextQty <= 0) {
-        state.cart = {
-          version: 2,
-          lines: lines.filter((l) => l.id !== lineId),
-        };
+        state.cart = lines.filter((l) => l.id !== lineId);
         return;
       }
 
       lines[index] = { ...current, quantity: nextQty, updatedAt: now };
-      state.cart = { version: 2, lines };
+      state.cart = lines;
     },
     CartRemove: (state, { payload }) => {
       const lineId = String(payload || "");
       if (!lineId) return;
 
-      const lines = Array.isArray(state.cart?.lines) ? state.cart.lines : [];
-      state.cart = { version: 2, lines: lines.filter((l) => l.id !== lineId) };
+      const lines = Array.isArray(state.cart) ? state.cart : [];
+      state.cart = lines.filter((l) => l.id !== lineId);
     },
     CartUpdateLineAddOns: (state, { payload }) => {
       const lineId = String(payload?.lineId || "");
       if (!lineId) return;
 
       const now = Date.now();
-      const lines = Array.isArray(state.cart?.lines) ? state.cart.lines : [];
+      const lines = Array.isArray(state.cart) ? state.cart : [];
       const index = lines.findIndex(
         (line) => String(line?.id || "") === lineId,
       );
@@ -223,7 +222,7 @@ export const reduxSlice = createSlice({
       const current = lines[index];
       const addOns = normalizeAddOns(payload?.addOns || []);
       const signature = createCartSignature(
-        String(current?.menuId || ""),
+        String(current?.menuId || current?.menu?._id || ""),
         addOns.map((item) => item._id),
       );
 
@@ -233,7 +232,7 @@ export const reduxSlice = createSlice({
         signature,
         updatedAt: now,
       };
-      state.cart = { version: 2, lines };
+      state.cart = lines;
     },
     SEARCH: (state, { payload }) => {
       state.search = payload;

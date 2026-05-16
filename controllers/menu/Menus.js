@@ -233,8 +233,13 @@ const attachRecommendedAddOns = async (menus = []) => {
     menu: { $in: menuIds },
     ...ACTIVE_FILTER,
   })
-    .populate("addOn", "name price description group")
+    .populate("addOn", "name price description group hasRecipe")
     .lean();
+  const linksIds = links.map((link) => String(link.addOn?._id));
+  const recipes = await Recipe.find({
+    parentType: "AddOn",
+    parentId: { $in: linksIds },
+  });
 
   const addOnsByMenuId = links.reduce((accumulator, link) => {
     const menuId = String(link.menu);
@@ -245,7 +250,15 @@ const attachRecommendedAddOns = async (menus = []) => {
     }
 
     if (addOn) {
-      accumulator.get(menuId).push(addOn);
+      var recipe = [];
+      if (addOn.hasRecipe) {
+        recipe = recipes.find(
+          (rec) => String(rec.parentId) === String(addOn._id),
+        );
+      }
+      accumulator
+        .get(menuId)
+        .push({ ...addOn, ingredients: recipe?.ingredients || [] });
     }
 
     return accumulator;

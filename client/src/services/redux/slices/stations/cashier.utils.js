@@ -14,46 +14,71 @@ export function createCartSignature(menuId, addOnIds = []) {
 
 export function normalizeAddOns(addOns = []) {
   return (Array.isArray(addOns) ? addOns : [])
-    .map((item) => ({
-      _id: String(item?._id || ""),
-      name: item?.name || "Untitled add-on",
-      price: Number(item?.price) || 0,
-      group: item?.group || "extras",
-    }))
-    .filter((item) => item._id)
-    .sort((a, b) => a._id.localeCompare(b._id));
+    .map((item) => {
+      const id = String(item?._id || "");
+      if (!id) return null;
+      return {
+        ...(item || {}),
+        _id: id,
+        price: Number(item?.price) || 0,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => String(a._id).localeCompare(String(b._id)));
 }
 
 export function normalizeCart(cart) {
-  const lines = Array.isArray(cart?.lines) ? cart.lines : [];
-  const normalizedLines = lines
-    .map((line) => ({
-      id: String(line?.id || ""),
-      menuId: String(line?.menuId || ""),
-      quantity: Math.max(0, Number(line?.quantity) || 0),
-      addOns: normalizeAddOns(line?.addOns || []),
-      signature: String(line?.signature || ""),
-      updatedAt: Number(line?.updatedAt) || 0,
-      addedAt: Number(line?.addedAt) || 0,
-      attentionAt: Number(line?.attentionAt) || 0,
-    }))
-    .filter((line) => line.id && line.menuId && line.quantity > 0);
+  const rawLines = Array.isArray(cart)
+    ? cart
+    : Array.isArray(cart?.lines)
+      ? cart.lines
+      : [];
 
-  return { version: 2, lines: normalizedLines };
+  return rawLines
+    .map((line) => {
+      const id = String(line?.id || "");
+      const menu = line?.menu || null;
+      const menuId = String(line?.menuId || menu?._id || "");
+      const quantity = Math.max(0, Number(line?.quantity) || 0);
+      if (!id || !menuId || quantity <= 0) return null;
+
+      const addOns = normalizeAddOns(line?.addOns || []);
+      const signature = String(
+        line?.signature || createCartSignature(menuId, addOns.map((a) => a._id)),
+      );
+
+      return {
+        ...(line || {}),
+        id,
+        menuId,
+        menu: menu || (line?.menuId ? null : menu),
+        quantity,
+        addOns,
+        signature,
+        updatedAt: Number(line?.updatedAt) || 0,
+        addedAt: Number(line?.addedAt) || 0,
+        attentionAt: Number(line?.attentionAt) || 0,
+      };
+    })
+    .filter(Boolean);
 }
 
 export function loadCashierCartFromStorage() {
   try {
     const saved = localStorage.getItem("cashierCart");
-    if (!saved) return { version: 2, lines: [] };
+    if (!saved) return [];
     const parsed = JSON.parse(saved);
 
+    // Current format: array of cart line objects
+    if (Array.isArray(parsed)) return normalizeCart(parsed);
+
+    // Legacy format: { version, lines }
     if (parsed && typeof parsed === "object" && Array.isArray(parsed.lines)) {
-      return normalizeCart(parsed);
+      return normalizeCart(parsed.lines);
     }
 
-    // Legacy object format: { [menuId]: qty }
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+    // Older legacy object format: { [menuId]: qty }
+    if (parsed && typeof parsed === "object") {
       const legacyLines = Object.entries(parsed)
         .map(([menuId, qty]) => {
           const quantity = Math.max(0, Number(qty) || 0);
@@ -62,19 +87,21 @@ export function loadCashierCartFromStorage() {
           return {
             id: createCartLineId(),
             menuId: normalizedMenuId,
+            menu: null,
             quantity,
             addOns: [],
             signature: createCartSignature(normalizedMenuId, []),
             updatedAt: 0,
             addedAt: 0,
+            attentionAt: 0,
           };
         })
         .filter(Boolean);
-      return normalizeCart({ version: 2, lines: legacyLines });
+      return normalizeCart(legacyLines);
     }
 
-    return { version: 2, lines: [] };
+    return [];
   } catch {
-    return { version: 2, lines: [] };
+    return [];
   }
 }

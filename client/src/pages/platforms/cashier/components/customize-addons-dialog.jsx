@@ -120,7 +120,7 @@ const CashierCustomizeAddOnsDialog = () => {
     if (mode === "edit" && customizeState?.lineId) {
       dispatch(CartUpdateLineAddOns({ lineId: customizeState.lineId, addOns }));
     } else {
-      dispatch(CartAdd({ menuId, addOns }));
+      dispatch(CartAdd({ menu, menuId, addOns }));
     }
 
     if (mode !== "edit") {
@@ -136,7 +136,7 @@ const CashierCustomizeAddOnsDialog = () => {
         addOns.map((item) => item?._id),
       );
       const existingLineId =
-        (Array.isArray(cart?.lines) ? cart.lines : []).find(
+        (Array.isArray(cart) ? cart : []).find(
           (line) => String(line?.signature || "") === signature,
         )?.id || "";
       const isNewLine = !existingLineId;

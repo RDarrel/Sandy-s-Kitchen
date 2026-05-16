@@ -54,12 +54,13 @@ const CashierCart = () => {
   }, [menusCollections]);
 
   const cartLines = useMemo(() => {
-    const lines = Array.isArray(cart?.lines) ? cart.lines : [];
+    const lines = Array.isArray(cart) ? cart : [];
     return lines
       .map((line) => ({
         ...line,
         id: String(line?.id || ""),
-        menuId: String(line?.menuId || ""),
+        menuId: String(line?.menuId || line?.menu?._id || ""),
+        menu: line?.menu || null,
         quantity: Math.max(0, Number(line?.quantity) || 0),
         addOns: Array.isArray(line?.addOns) ? line.addOns : [],
         signature: String(line?.signature || ""),
@@ -72,7 +73,7 @@ const CashierCart = () => {
   const cartEntries = useMemo(() => {
     return cartLines
       .map((line) => {
-        const menu = menuById.get(String(line.menuId));
+        const menu = line?.menu || menuById.get(String(line.menuId));
         if (!menu) return null;
         return { line, menu };
       })
@@ -186,7 +187,9 @@ const CartHeader = ({ hasItems, onClear }) => {
       <div>
         <p className="text-sm font-semibold">Current order</p>
         <p className="text-xs text-muted-foreground">
-          {hasItems ? "Review items before checkout." : "No items yet."}
+          {hasItems
+            ? "Review items before proceeding to payment."
+            : "No items yet."}
         </p>
       </div>
       <Button
@@ -398,7 +401,7 @@ const CartPanel = ({
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/40">
               <ShoppingCart className="h-5 w-5 text-muted-foreground" />
             </div>
-            <p className="mt-3 text-sm font-semibold">Cart is empty</p>
+            <p className="mt-3 text-sm font-semibold">No items selected</p>
             <p className="mt-1 max-w-[220px] text-xs text-muted-foreground">
               Tap any menu card to add items.
             </p>
@@ -415,7 +418,7 @@ const CartPanel = ({
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
           {totals.totalItems || 0} item
-          {(totals.totalItems || 0) === 1 ? "" : "s"} in cart
+          {(totals.totalItems || 0) === 1 ? "" : "s"} selected
         </p>
         <Button
           type="button"
@@ -426,7 +429,7 @@ const CartPanel = ({
           }}
         >
           <ShoppingCart className="h-4 w-4" />
-          Checkout
+          Proceed Payment
         </Button>
       </div>
     </div>

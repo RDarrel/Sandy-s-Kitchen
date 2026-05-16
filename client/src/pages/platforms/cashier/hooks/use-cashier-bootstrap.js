@@ -69,7 +69,7 @@ const useCashierBootstrap = () => {
     try {
       localStorage.setItem(
         "cashierCart",
-        JSON.stringify(cart || { version: 2, lines: [] }),
+        JSON.stringify(Array.isArray(cart) ? cart : []),
       );
     } catch {
       // ignore write errors

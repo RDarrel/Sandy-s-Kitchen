@@ -81,7 +81,7 @@ const CashierTopbar = () => {
   }, [displayName]);
 
   const cartTotals = useMemo(() => {
-    const lines = Array.isArray(cart?.lines) ? cart.lines : [];
+    const lines = Array.isArray(cart) ? cart : [];
     const totalItems = lines.reduce(
       (sum, line) => sum + (Number(line?.quantity) || 0),
       0,
