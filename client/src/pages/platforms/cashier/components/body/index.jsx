@@ -22,19 +22,7 @@ const CashierBody = () => {
   const { menusFiltered = [], isLoading: menusLoading } = useSelector(
     ({ cashier }) => cashier,
   );
-  const { collections: categoriesCollections = [] } = useSelector(
-    ({ menuCategories }) => menuCategories,
-  );
   const cart = useSelector(({ cashier }) => cashier?.cart);
-
-  const categories = useMemo(() => {
-    return (Array.isArray(categoriesCollections) ? categoriesCollections : [])
-      .filter((category) => !category?.deletedAt)
-      .filter((category) => !category?.status || category.status === "active")
-      .sort((a, b) =>
-        String(a?.name || "").localeCompare(String(b?.name || "")),
-      );
-  }, [categoriesCollections]);
 
   const cartLines = useMemo(() => {
     const lines = Array.isArray(cart?.lines) ? cart.lines : [];
@@ -264,16 +252,11 @@ const CashierBody = () => {
               const menuId = String(menu?._id || "");
               const quantity = quantityByMenuId.get(menuId) || 0;
               const imageSrc = getMenuImgSrc(menu);
-              const categoryName =
-                categories.find(
-                  (c) => String(c?._id) === String(menu?.category),
-                )?.name || "";
 
               return (
                 <MenuCard
                   key={menuId}
                   menu={menu}
-                  categoryName={categoryName}
                   quantity={quantity}
                   imageSrc={imageSrc}
                   onAdd={async (e) => {
@@ -335,7 +318,7 @@ const CashierBody = () => {
   );
 };
 
-const MenuCard = ({ menu, categoryName, quantity, imageSrc, onAdd }) => {
+const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
   const isAvailable = true;
   const hasAddOns =
     Array.isArray(menu?.recommendedAddOns) && menu.recommendedAddOns.length > 0;
@@ -408,51 +391,43 @@ const MenuCard = ({ menu, categoryName, quantity, imageSrc, onAdd }) => {
       <div className="p-4 pt-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">
-              {menu?.name || "—"}
-            </p>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <p className="min-w-0 truncate text-base font-semibold">
+                {menu?.name || "—"}
+              </p>
+              {hasDescription ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="Menu description"
+                      className="inline-flex h-4 w-4 shrink-0 items-center justify-center leading-none text-muted-foreground/60 transition hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="start"
+                    sideOffset={2}
+                    className="max-w-[280px]"
+                  >
+                    <p className="whitespace-normal text-xs leading-5">
+                      {description}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : null}
+            </div>
           </div>
-          <p className="shrink-0 text-sm font-bold">
+          <p className="shrink-0 text-base font-bold">
             {Formatter.amount(price)}
           </p>
-        </div>
-
-        <div className="mt-1.5 flex items-center justify-between gap-2">
-          <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-            {categoryName || "Uncategorized"}
-          </p>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                aria-label="Menu description"
-                className={`inline-flex h-4 w-4 shrink-0 items-center justify-center leading-none text-muted-foreground/60 transition hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 ${
-                  hasDescription ? "" : "cursor-default opacity-35"
-                }`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                onPointerDown={(e) => e.stopPropagation()}
-              >
-                <Info className="h-3.5 w-3.5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent
-              side="top"
-              align="end"
-              sideOffset={2}
-              className="max-w-[280px]"
-            >
-              {hasDescription ? (
-                <p className="whitespace-normal text-xs leading-5">
-                  {description}
-                </p>
-              ) : (
-                <p className="text-xs">No description</p>
-              )}
-            </TooltipContent>
-          </Tooltip>
         </div>
       </div>
     </Card>
