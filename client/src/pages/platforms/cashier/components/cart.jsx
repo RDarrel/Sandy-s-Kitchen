@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   ChefHat,
+  CreditCard,
   Layers3,
   Minus,
   Plus,
@@ -428,7 +429,7 @@ const CartPanel = ({
             // UI-ready; backend order flow can be wired later.
           }}
         >
-          <ShoppingCart className="h-4 w-4" />
+          <CreditCard className="h-4 w-4" />
           Proceed Payment
         </Button>
       </div>
