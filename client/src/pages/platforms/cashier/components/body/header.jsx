@@ -29,6 +29,7 @@ const CashierBodyHeader = () => {
     search = "",
     isLoading: categoriesLoading,
   } = useSelector(({ cashier }) => cashier);
+  const previousSearchRef = useRef("");
 
   useEffect(() => {
     const el = menuToolbarRef.current;
@@ -141,6 +142,21 @@ const CashierBodyHeader = () => {
       // ignore
     }
   }, []);
+
+  useEffect(() => {
+    const prev = String(previousSearchRef.current || "");
+    const next = String(search || "");
+    previousSearchRef.current = next;
+
+    const wasSearching = prev.trim().length > 0;
+    const isSearching = next.trim().length > 0;
+    if (!wasSearching || isSearching) return;
+
+    const firstCategoryId = String(categories?.[0]?._id || "");
+    if (!firstCategoryId) return;
+
+    dispatch(SetActiveCategory(firstCategoryId));
+  }, [search, categories, dispatch]);
 
   const handleCategorySelect = useCallback(
     (value) => {
