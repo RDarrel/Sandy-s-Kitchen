@@ -16,6 +16,7 @@ const initialState = {
   salesFiltered: [],
   activeTab: "menus",
   category: "all",
+  activeCategory: "",
   availability: "all",
   search: "",
   menus: [],
@@ -258,6 +259,9 @@ export const reduxSlice = createSlice({
       state.menusCluster = cluster;
       state.menusFiltered = filtered;
     },
+    SetActiveCategory: (state, { payload }) => {
+      state.activeCategory = String(payload || "");
+    },
     RESET_SALE: (state) => {
       state.sale = 0;
       state.fuel = {};
@@ -327,6 +331,7 @@ export const {
   CartUpdateLineAddOns,
   RESET_SALE,
   SetActiveTab,
+  SetActiveCategory,
   FilterBY_CATEGORY,
   SEARCH,
 } = reduxSlice.actions;

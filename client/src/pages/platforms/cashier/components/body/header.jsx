@@ -1,5 +1,5 @@
 import {
-  FilterBY_CATEGORY,
+  SetActiveCategory,
   SEARCH as SEARCH_MENUS,
 } from "@/services/redux/slices/stations/cashier";
 import { Input } from "@/components/ui/input";
@@ -25,11 +25,10 @@ const CashierBodyHeader = () => {
 
   const {
     categories,
-    category: activeCategory = "all",
+    activeCategory = "",
     search = "",
     isLoading: categoriesLoading,
   } = useSelector(({ cashier }) => cashier);
-  console.log("search", search);
 
   useEffect(() => {
     const el = menuToolbarRef.current;
@@ -76,6 +75,91 @@ const CashierBodyHeader = () => {
 
   const menuToolbarSpacer = (menuToolbarHeight || 128) + menuTopGap;
 
+  const scrollToCategory = useCallback((categoryId) => {
+    const id = String(categoryId || "");
+    if (!id || typeof document === "undefined") return;
+
+    try {
+      if (window.__cashierCategoryLockRaf) {
+        window.cancelAnimationFrame(window.__cashierCategoryLockRaf);
+        window.__cashierCategoryLockRaf = 0;
+      }
+      window.__cashierDisableScrollSpy = true;
+      window.__cashierCategoryScrollTarget = id;
+      window.__cashierCategoryScrollTargetExpiresAt = Date.now() + 6000;
+      window.__cashierCategoryScrollTargetSetAt = Date.now();
+    } catch {
+      // ignore
+    }
+
+    const el = document.getElementById(`cashier-category-${id}`);
+    if (!el) return;
+
+    const toolbarEl = document.querySelector("[data-cashier-menu-toolbar]");
+    const toolbarBottom = toolbarEl?.getBoundingClientRect?.()?.bottom || 0;
+    const y = window.scrollY + el.getBoundingClientRect().top - toolbarBottom - 12;
+
+    try {
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    } catch {
+      window.scrollTo(0, Math.max(0, y));
+    }
+
+    // Clear the lock once we've arrived (works even if scroll events stop firing).
+    try {
+      const checkArrived = () => {
+        const lockId = String(window.__cashierCategoryScrollTarget || "");
+        const expiresAt = Number(window.__cashierCategoryScrollTargetExpiresAt) || 0;
+        if (!lockId) return;
+        if (expiresAt && Date.now() > expiresAt) {
+          window.__cashierCategoryScrollTarget = "";
+          window.__cashierCategoryScrollTargetExpiresAt = 0;
+          window.__cashierCategoryScrollTargetSetAt = 0;
+          window.__cashierCategoryLockRaf = 0;
+          return;
+        }
+
+        const targetEl = document.getElementById(`cashier-category-${lockId}`);
+        const toolbarEl = document.querySelector("[data-cashier-menu-toolbar]");
+        const toolbarBottomNow =
+          toolbarEl?.getBoundingClientRect?.()?.bottom || 0;
+        const anchorY = toolbarBottomNow + 16;
+        const delta = targetEl?.getBoundingClientRect?.()?.top - anchorY;
+        if (Number.isFinite(delta) && Math.abs(delta) <= 24) {
+          window.__cashierCategoryScrollTarget = "";
+          window.__cashierCategoryScrollTargetExpiresAt = 0;
+          window.__cashierCategoryScrollTargetSetAt = 0;
+          window.__cashierCategoryLockRaf = 0;
+          return;
+        }
+
+        window.__cashierCategoryLockRaf = window.requestAnimationFrame(checkArrived);
+      };
+
+      window.__cashierCategoryLockRaf = window.requestAnimationFrame(checkArrived);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleCategorySelect = useCallback(
+    (value) => {
+      const id = String(value || "");
+      if (!id) return;
+      if (typeof window === "undefined") return;
+
+      const isSearching = String(search || "").trim().length > 0;
+      if (isSearching) dispatch(SEARCH_MENUS(""));
+
+      // Wait for list to re-render (ungrouped -> grouped) before scrolling.
+      window.setTimeout(() => {
+        scrollToCategory(id);
+        dispatch(SetActiveCategory(id));
+      }, 0);
+    },
+    [dispatch, scrollToCategory, search],
+  );
+
   return (
     <>
       <div
@@ -87,14 +171,24 @@ const CashierBodyHeader = () => {
         <div className="mx-auto w-full max-w-screen-2xl px-4 lg:px-6">
           <div className="grid min-w-0 gap-4 lg:grid-cols-[1fr_380px]">
             <div ref={menuToolbarRef} className="min-w-0 pt-4 pb-0">
-              <div className="min-w-0 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm">
+              <div
+                data-cashier-menu-toolbar
+                className="min-w-0 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm"
+              >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
                     <div className="relative w-full sm:max-w-[280px]">
                       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
                         value={search}
-                        onChange={(e) => dispatch(SEARCH_MENUS(e.target.value))}
+                        onChange={(e) => {
+                          dispatch(SEARCH_MENUS(e.target.value));
+                          try {
+                            window.scrollTo({ top: 0, behavior: "auto" });
+                          } catch {
+                            // ignore
+                          }
+                        }}
                         placeholder="Search menu..."
                         className="h-10 rounded-xl pl-9"
                       />
@@ -106,24 +200,19 @@ const CashierBodyHeader = () => {
                           categories={categories}
                           activeCategory={activeCategory}
                           isLoading={categoriesLoading}
-                          onChange={(value) =>
-                            dispatch(FilterBY_CATEGORY(value || "all"))
-                          }
+                          onChange={handleCategorySelect}
                         />
                       </div>
 
                       <div className="md:hidden">
                         <Select
                           value={activeCategory}
-                          onValueChange={(value) =>
-                            dispatch(FilterBY_CATEGORY(value || "all"))
-                          }
+                          onValueChange={handleCategorySelect}
                         >
                           <SelectTrigger className="h-10 rounded-xl">
-                            <SelectValue placeholder="All categories" />
+                            <SelectValue placeholder="Select category" />
                           </SelectTrigger>
                           <SelectContent align="start">
-                            <SelectItem value="all">All categories</SelectItem>
                             {categories.map((category) => (
                               <SelectItem
                                 key={category._id}
@@ -199,6 +288,36 @@ const CategoryScroller = ({
       window.removeEventListener("resize", onResize);
     };
   }, [updateScrollButtons, categories?.length, isLoading]);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    if (isLoading) return;
+    const id = String(activeCategory || "");
+    if (!id) return;
+    if (isDragging || dragRef.current.isDragging) return;
+
+    const activeEl = el.querySelector(`[data-category-id="${id}"]`);
+    if (!activeEl?.getBoundingClientRect) return;
+
+    const containerRect = el.getBoundingClientRect();
+    const itemRect = activeEl.getBoundingClientRect();
+    const padding = 12;
+
+    const overflowLeft = itemRect.left < containerRect.left + padding;
+    const overflowRight = itemRect.right > containerRect.right - padding;
+
+    if (!overflowLeft && !overflowRight) return;
+
+    const targetLeft =
+      activeEl.offsetLeft - (el.clientWidth - activeEl.clientWidth) / 2;
+
+    try {
+      el.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
+    } catch {
+      el.scrollLeft = Math.max(0, targetLeft);
+    }
+  }, [activeCategory, isLoading, isDragging]);
 
   const scrollByAmount = useCallback((delta) => {
     const el = scrollerRef.current;
@@ -367,15 +486,16 @@ const CategoryScroller = ({
                   />
                 ))
             : [
-                { _id: "all", name: "All" },
                 ...(Array.isArray(categories) ? categories : []),
               ].map((category) => {
-                const id = String(category?._id || "all");
+                const id = String(category?._id || "");
+                if (!id) return null;
                 const isActive = String(activeCategory) === id;
 
                 return (
                   <button
                     key={id}
+                    data-category-id={id}
                     type="button"
                     onClick={() => handleCategoryClick(id)}
                     className={`inline-flex h-9 shrink-0 items-center rounded-full px-3 py-0 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:px-4 sm:text-sm ${

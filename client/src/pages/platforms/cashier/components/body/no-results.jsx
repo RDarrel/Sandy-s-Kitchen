@@ -23,9 +23,6 @@ const CashierNoResults = () => {
               <SearchX className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
-          <span className="absolute -bottom-2 -right-2 inline-flex h-7 w-7 items-center justify-center rounded-full border bg-background shadow-sm">
-            <Search className="h-4 w-4 text-muted-foreground" />
-          </span>
         </div>
 
         <div className="space-y-2">

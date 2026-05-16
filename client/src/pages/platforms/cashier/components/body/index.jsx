@@ -9,10 +9,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ChefHat, Info } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   CartAdd,
+  SetActiveCategory,
   SetCustomSelected,
   SetCustomizeState,
 } from "@/services/redux/slices/stations/cashier";
@@ -24,9 +25,12 @@ import animateAddToOrder from "../../utils/animate-add-to-order";
 const CashierBody = () => {
   const dispatch = useDispatch();
 
-  const { menusFiltered = [], isLoading: menusLoading } = useSelector(
-    ({ cashier }) => cashier,
-  );
+  const {
+    menusFiltered = [],
+    isLoading: menusLoading,
+    categories = [],
+    search = "",
+  } = useSelector(({ cashier }) => cashier);
   const cart = useSelector(({ cashier }) => cashier?.cart);
 
   const cartLines = useMemo(() => {
@@ -56,144 +60,346 @@ const CashierBody = () => {
     return null;
   };
 
+  const categoryNameById = useMemo(() => {
+    const map = new Map();
+    for (const category of Array.isArray(categories) ? categories : []) {
+      const id = String(category?._id || "");
+      if (!id) continue;
+      map.set(id, String(category?.name || "").trim());
+    }
+    return map;
+  }, [categories]);
+
+  const categoryOrderById = useMemo(() => {
+    const map = new Map();
+    const list = Array.isArray(categories) ? categories : [];
+    for (let index = 0; index < list.length; index += 1) {
+      const id = String(list[index]?._id || "");
+      if (!id) continue;
+      if (!map.has(id)) map.set(id, index);
+    }
+    return map;
+  }, [categories]);
+
+  const groupedMenus = useMemo(() => {
+    const groups = new Map();
+    const list = Array.isArray(menusFiltered) ? menusFiltered : [];
+
+    for (const menu of list) {
+      const categoryId = String(menu?.category?._id || menu?.category || "");
+      const fallbackName =
+        String(menu?.category?.name || "").trim() || "Uncategorized";
+      const categoryName =
+        categoryNameById.get(categoryId) || fallbackName || "Uncategorized";
+      const id = categoryId || "uncategorized";
+
+      if (!groups.has(id)) groups.set(id, { id, name: categoryName, menus: [] });
+      groups.get(id).menus.push(menu);
+    }
+
+    return Array.from(groups.values())
+      .map((group) => ({
+        ...group,
+        menus: (group.menus || []).slice().sort((a, b) =>
+          String(a?.name || "").localeCompare(String(b?.name || "")),
+        ),
+      }))
+      .sort((a, b) => {
+        if (a.id === "uncategorized" && b.id !== "uncategorized") return 1;
+        if (b.id === "uncategorized" && a.id !== "uncategorized") return -1;
+
+        const aIndex = categoryOrderById.get(a.id);
+        const bIndex = categoryOrderById.get(b.id);
+        const aHas = Number.isFinite(aIndex);
+        const bHas = Number.isFinite(bIndex);
+        if (aHas && bHas) return aIndex - bIndex;
+        if (aHas) return -1;
+        if (bHas) return 1;
+        return String(a.name || "").localeCompare(String(b.name || ""));
+      });
+  }, [menusFiltered, categoryNameById, categoryOrderById]);
+
+  useEffect(() => {
+    const isSearching = String(search || "").trim().length > 0;
+    if (isSearching) return;
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+    if (!groupedMenus.length) return;
+
+    const enableOnUserScroll = () => {
+      try {
+        if (!window.__cashierDisableScrollSpy) return;
+        window.__cashierDisableScrollSpy = false;
+        window.__cashierCategoryScrollTarget = "";
+        window.__cashierCategoryScrollTargetExpiresAt = 0;
+        window.__cashierCategoryScrollTargetSetAt = 0;
+      } catch {
+        // ignore
+      }
+    };
+
+    const onKeyDown = (e) => {
+      const key = e?.key || "";
+      if (
+        key === "ArrowDown" ||
+        key === "ArrowUp" ||
+        key === "PageDown" ||
+        key === "PageUp" ||
+        key === "Home" ||
+        key === "End" ||
+        key === " " // space
+      ) {
+        enableOnUserScroll();
+      }
+    };
+
+    window.addEventListener("wheel", enableOnUserScroll, { passive: true });
+    window.addEventListener("touchmove", enableOnUserScroll, { passive: true });
+    window.addEventListener("keydown", onKeyDown);
+
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        const toolbarEl = document.querySelector("[data-cashier-menu-toolbar]");
+        const toolbarBottom = toolbarEl?.getBoundingClientRect?.()?.bottom || 0;
+        const anchorY = toolbarBottom + 16;
+
+        const disableScrollSpy = (() => {
+          try {
+            return Boolean(window.__cashierDisableScrollSpy);
+          } catch {
+            return false;
+          }
+        })();
+
+        const lockId = (() => {
+          try {
+            const id = String(window.__cashierCategoryScrollTarget || "");
+            const expiresAt = Number(window.__cashierCategoryScrollTargetExpiresAt) || 0;
+            if (!id) return "";
+            if (expiresAt && Date.now() > expiresAt) {
+              window.__cashierCategoryScrollTarget = "";
+              window.__cashierCategoryScrollTargetExpiresAt = 0;
+              window.__cashierCategoryScrollTargetSetAt = 0;
+              return "";
+            }
+            return id;
+          } catch {
+            return "";
+          }
+        })();
+
+        if (disableScrollSpy) {
+          if (lockId) dispatch(SetActiveCategory(lockId));
+          return;
+        }
+
+        if (lockId) {
+          dispatch(SetActiveCategory(lockId));
+          return;
+        }
+
+        // If user is at the bottom, ensure the last category becomes active
+        // even when its section is shorter than the viewport.
+        try {
+          const doc = document.documentElement;
+          const scrollBottom = window.scrollY + window.innerHeight;
+          const docHeight = doc?.scrollHeight || 0;
+          if (docHeight && scrollBottom >= docHeight - 24) {
+            const lastId = groupedMenus[groupedMenus.length - 1]?.id || "";
+            if (lastId) dispatch(SetActiveCategory(lastId));
+            return;
+          }
+        } catch {
+          // ignore
+        }
+
+        let activeId = groupedMenus[0]?.id || "";
+        for (const group of groupedMenus) {
+          const el = document.getElementById(`cashier-category-${group.id}`);
+          if (!el) continue;
+          const top = el.getBoundingClientRect().top;
+          if (top - anchorY <= 0) activeId = group.id;
+          else break;
+        }
+
+        if (activeId) dispatch(SetActiveCategory(activeId));
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener("wheel", enableOnUserScroll);
+      window.removeEventListener("touchmove", enableOnUserScroll);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, [groupedMenus, dispatch, search]);
+
+  const renderMenuCard = (menu) => {
+    const menuId = String(menu?._id || "");
+    if (!menuId) return null;
+
+    const quantity = quantityByMenuId.get(menuId) || 0;
+    const imageSrc = getMenuImgSrc(menu);
+    const hasAddOns =
+      Array.isArray(menu?.recommendedAddOns) && menu.recommendedAddOns.length > 0;
+
+    return (
+      <MenuCard
+        key={menuId}
+        menu={menu}
+        quantity={quantity}
+        imageSrc={imageSrc}
+        onAdd={async (e) => {
+          if (hasAddOns) {
+            try {
+              const rect = e?.currentTarget?.getBoundingClientRect?.();
+              if (rect) {
+                dispatch(SetCustomSelected([]));
+                dispatch(
+                  SetCustomizeState({
+                    mode: "add",
+                    menuId,
+                    sourceMenuId: menuId,
+                    fromPoint: {
+                      x: rect.left + rect.width / 2,
+                      y: rect.top + rect.height / 2,
+                    },
+                  }),
+                );
+                return;
+              }
+            } catch {
+              // ignore
+            }
+
+            dispatch(SetCustomSelected([]));
+            dispatch(
+              SetCustomizeState({
+                mode: "add",
+                menuId,
+                sourceMenuId: menuId,
+              }),
+            );
+            return;
+          }
+
+          const signature = createCartSignature(menuId, []);
+          const existingLineId =
+            cartLines.find((line) => String(line?.signature || "") === signature)
+              ?.id || "";
+          const isNewLine = !existingLineId;
+          const orderPanel = document.querySelector("[data-cashier-order-panel]");
+          const cartButton = document.querySelector(
+            "[data-cashier-cart-button]",
+          );
+          const cartList = document.querySelector("[data-cashier-cart-list]");
+          const targetLineEl = existingLineId
+            ? document.querySelector(
+                `[data-cart-line-id="${String(existingLineId).replaceAll('"', '\\"')}"]`,
+              )
+            : null;
+
+          if (existingLineId) {
+            try {
+              targetLineEl?.scrollIntoView?.({
+                block: "center",
+                inline: "nearest",
+                behavior: "auto",
+              });
+            } catch {
+              // ignore
+            }
+          }
+
+          const targetEl = isNewLine
+            ? cartList || orderPanel || cartButton || null
+            : targetLineEl || cartList || orderPanel || cartButton || null;
+
+          if (isNewLine && cartList) {
+            try {
+              cartList.scrollTo?.({ top: 0, behavior: "auto" });
+            } catch {
+              try {
+                cartList.scrollTop = 0;
+              } catch {
+                // ignore
+              }
+            }
+          }
+
+          await animateAddToOrder(e?.currentTarget, menu, {
+            targetEl,
+            targetAlign: isNewLine ? "top" : "center",
+          });
+          dispatch(CartAdd({ menu, addOns: [] }));
+        }}
+      />
+    );
+  };
+
   return (
     <section className="min-w-0">
       <CashierBodyHeader />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
-        {menusLoading
-          ? new Array(12).fill(null).map((_, index) => (
-              <Card
-                key={index}
-                className="gap-0 overflow-hidden rounded-xl py-0 shadow-sm"
-              >
-                <Skeleton className="h-40 w-full rounded-b-md" />
-                <div className="p-4 pt-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <Skeleton className="h-4 w-2/3" />
-                      <Skeleton className="h-3 w-1/3" />
-                    </div>
-                    <Skeleton className="h-4 w-12" />
+      {menusLoading ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
+          {new Array(12).fill(null).map((_, index) => (
+            <Card
+              key={index}
+              className="gap-0 overflow-hidden rounded-xl py-0 shadow-sm"
+            >
+              <Skeleton className="h-40 w-full rounded-b-md" />
+              <div className="p-4 pt-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-3 w-1/3" />
                   </div>
+                  <Skeleton className="h-4 w-12" />
                 </div>
-              </Card>
-            ))
-          : menusFiltered.map((menu) => {
-              const menuId = String(menu?._id || "");
-              const quantity = quantityByMenuId.get(menuId) || 0;
-              const imageSrc = getMenuImgSrc(menu);
-              const hasAddOns =
-                Array.isArray(menu?.recommendedAddOns) &&
-                menu.recommendedAddOns.length > 0;
-
-              return (
-                <MenuCard
-                  key={menuId}
-                  menu={menu}
-                  quantity={quantity}
-                  imageSrc={imageSrc}
-                  onAdd={async (e) => {
-                    if (hasAddOns) {
-                      try {
-                        const rect =
-                          e?.currentTarget?.getBoundingClientRect?.();
-                        if (rect) {
-                          dispatch(SetCustomSelected([]));
-                          dispatch(
-                            SetCustomizeState({
-                              mode: "add",
-                              menuId,
-                              sourceMenuId: menuId,
-                              fromPoint: {
-                                x: rect.left + rect.width / 2,
-                                y: rect.top + rect.height / 2,
-                              },
-                            }),
-                          );
-                          return;
-                        }
-                      } catch {
-                        // ignore
-                      }
-
-                      dispatch(SetCustomSelected([]));
-                      dispatch(
-                        SetCustomizeState({
-                          mode: "add",
-                          menuId,
-                          sourceMenuId: menuId,
-                        }),
-                      );
-                      return;
-                    }
-
-                    const signature = createCartSignature(menuId, []);
-                    const existingLineId =
-                      cartLines.find(
-                        (line) => String(line?.signature || "") === signature,
-                      )?.id || "";
-                    const isNewLine = !existingLineId;
-                    const orderPanel = document.querySelector(
-                      "[data-cashier-order-panel]",
-                    );
-                    const cartButton = document.querySelector(
-                      "[data-cashier-cart-button]",
-                    );
-                    const cartList = document.querySelector(
-                      "[data-cashier-cart-list]",
-                    );
-                    const targetLineEl = existingLineId
-                      ? document.querySelector(
-                          `[data-cart-line-id="${String(existingLineId).replaceAll('"', '\\"')}"]`,
-                        )
-                      : null;
-
-                    if (existingLineId) {
-                      try {
-                        targetLineEl?.scrollIntoView?.({
-                          block: "center",
-                          inline: "nearest",
-                          behavior: "auto",
-                        });
-                      } catch {
-                        // ignore
-                      }
-                    }
-
-                    const targetEl = isNewLine
-                      ? cartList || orderPanel || cartButton || null
-                      : targetLineEl ||
-                        cartList ||
-                        orderPanel ||
-                        cartButton ||
-                        null;
-
-                    if (isNewLine && cartList) {
-                      try {
-                        cartList.scrollTo?.({ top: 0, behavior: "auto" });
-                      } catch {
-                        try {
-                          cartList.scrollTop = 0;
-                        } catch {
-                          // ignore
-                        }
-                      }
-                    }
-
-                    await animateAddToOrder(e?.currentTarget, menu, {
-                      targetEl,
-                      targetAlign: isNewLine ? "top" : "center",
-                    });
-                    dispatch(CartAdd({ menu, addOns: [] }));
-                  }}
-                />
-              );
-            })}
-        {!menusLoading && (!menusFiltered || menusFiltered.length === 0) ? (
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : String(search || "").trim().length ? (
+        menusFiltered.length ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
+            {menusFiltered.map(renderMenuCard)}
+          </div>
+        ) : (
           <CashierNoResults />
-        ) : null}
-      </div>
+        )
+      ) : groupedMenus.length ? (
+        <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] sm:gap-x-4">
+          {groupedMenus.map((group) => (
+            <div
+              key={group.id}
+              id={`cashier-category-${group.id}`}
+              className="col-span-full space-y-4"
+            >
+              <div className="flex items-center gap-3">
+                <p className="shrink-0 text-base font-semibold leading-none text-foreground">
+                  {group.name}
+                </p>
+                <div className="h-px flex-1 bg-border/70" />
+                <p className="shrink-0 rounded-full border bg-background px-2.5 py-1 text-xs font-medium leading-none text-muted-foreground">
+                  {group.menus.length} item{group.menus.length === 1 ? "" : "s"}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
+                {group.menus.map(renderMenuCard)}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <CashierNoResults />
+      )}
     </section>
   );
 };
