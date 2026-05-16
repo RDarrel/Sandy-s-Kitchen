@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const initialMenuGap = 16;
@@ -23,14 +23,13 @@ const CashierBodyHeader = () => {
   const [menuToolbarHeight, setMenuToolbarHeight] = useState(0);
   const [menuTopGap, setMenuTopGap] = useState(initialMenuGap);
 
-  const {
-    category: activeCategory = "all",
-    search = "",
-  } = useSelector(({ menus }) => menus);
-  const {
-    collections: categoriesCollections = [],
-    isLoading: categoriesLoading,
-  } = useSelector(({ menuCategories }) => menuCategories);
+  const { category: activeCategory = "all", search = "" } = useSelector(
+    ({ menus }) => menus,
+  );
+
+  const { categories, isLoading: categoriesLoading } = useSelector(
+    ({ cashier }) => cashier,
+  );
 
   useEffect(() => {
     const el = menuToolbarRef.current;
@@ -74,15 +73,6 @@ const CashierBodyHeader = () => {
       if (raf) window.cancelAnimationFrame(raf);
     };
   }, []);
-
-  const categories = useMemo(() => {
-    return (Array.isArray(categoriesCollections) ? categoriesCollections : [])
-      .filter((category) => !category?.deletedAt)
-      .filter((category) => !category?.status || category.status === "active")
-      .sort((a, b) =>
-        String(a?.name || "").localeCompare(String(b?.name || "")),
-      );
-  }, [categoriesCollections]);
 
   const menuToolbarSpacer = (menuToolbarHeight || 128) + menuTopGap;
 
@@ -358,22 +348,24 @@ const CategoryScroller = ({
           onWheel={handleWheel}
         >
           {isLoading
-            ? new Array(10).fill(null).map((_, index) => (
-                <Skeleton
-                  key={index}
-                  className={`h-9 shrink-0 rounded-full ${
-                    index % 5 === 0
-                      ? "w-16"
-                      : index % 5 === 1
-                        ? "w-24"
-                        : index % 5 === 2
-                          ? "w-20"
-                          : index % 5 === 3
-                            ? "w-28"
-                            : "w-24"
-                  }`}
-                />
-              ))
+            ? new Array(10)
+                .fill(null)
+                .map((_, index) => (
+                  <Skeleton
+                    key={index}
+                    className={`h-9 shrink-0 rounded-full ${
+                      index % 5 === 0
+                        ? "w-16"
+                        : index % 5 === 1
+                          ? "w-24"
+                          : index % 5 === 2
+                            ? "w-20"
+                            : index % 5 === 3
+                              ? "w-28"
+                              : "w-24"
+                    }`}
+                  />
+                ))
             : [
                 { _id: "all", name: "All" },
                 ...(Array.isArray(categories) ? categories : []),
@@ -417,4 +409,3 @@ const CategoryScroller = ({
 };
 
 export default CashierBodyHeader;
-

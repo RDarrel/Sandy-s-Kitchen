@@ -15,6 +15,9 @@ const initialState = {
   sales: [],
   salesFiltered: [],
   activeTab: "menus",
+  menus: [],
+  menusFiltered: [],
+  categories: [],
   fuel: {},
   fuels: [],
   cartOpen: false,
@@ -36,6 +39,24 @@ export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
     return thunkAPI.rejectWithValue(message);
   }
 });
+
+export const BROWSE_MENUS = createAsyncThunk(
+  `${url}/menus`,
+  ({ token, params }, thunkAPI) => {
+    try {
+      return axioKit.universal(`/menu/menus/browse`, token, params);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
 export const reduxSlice = createSlice({
   name: url,
@@ -115,7 +136,9 @@ export const reduxSlice = createSlice({
 
       const now = Date.now();
       const lines = Array.isArray(state.cart?.lines) ? state.cart.lines : [];
-      const index = lines.findIndex((line) => String(line?.id || "") === lineId);
+      const index = lines.findIndex(
+        (line) => String(line?.id || "") === lineId,
+      );
       if (index === -1) return;
 
       const current = lines[index];
@@ -132,13 +155,18 @@ export const reduxSlice = createSlice({
 
       const now = Date.now();
       const lines = Array.isArray(state.cart?.lines) ? state.cart.lines : [];
-      const index = lines.findIndex((line) => String(line?.id || "") === lineId);
+      const index = lines.findIndex(
+        (line) => String(line?.id || "") === lineId,
+      );
       if (index === -1) return;
 
       const current = lines[index];
       const nextQty = Math.max(0, (Number(current?.quantity) || 0) - 1);
       if (nextQty <= 0) {
-        state.cart = { version: 2, lines: lines.filter((l) => l.id !== lineId) };
+        state.cart = {
+          version: 2,
+          lines: lines.filter((l) => l.id !== lineId),
+        };
         return;
       }
 
@@ -158,7 +186,9 @@ export const reduxSlice = createSlice({
 
       const now = Date.now();
       const lines = Array.isArray(state.cart?.lines) ? state.cart.lines : [];
-      const index = lines.findIndex((line) => String(line?.id || "") === lineId);
+      const index = lines.findIndex(
+        (line) => String(line?.id || "") === lineId,
+      );
       if (index === -1) return;
 
       const current = lines[index];
@@ -198,6 +228,29 @@ export const reduxSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
+      .addCase(BROWSE_MENUS.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(BROWSE_MENUS.fulfilled, (state, action) => {
+        const { payload } = action.payload;
+        const categories = Object.values(
+          payload?.reduce((acc, item) => {
+            const { category } = item;
+            acc[category?._id] = item?.category;
+            return acc;
+          }, {}),
+        );
+        state.menus = state.menusFiltered = payload;
+        state.categories = categories;
+        state.isLoading = false;
+      })
+      .addCase(BROWSE_MENUS.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.isLoading = false;

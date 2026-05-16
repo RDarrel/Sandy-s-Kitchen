@@ -2,8 +2,17 @@ import Cloudinary from "@/services/utilities/cloudinary";
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   ChefHat,
   Layers3,
@@ -28,12 +37,17 @@ const fixedSectionGap = 16;
 
 const CashierCart = () => {
   const dispatch = useDispatch();
-  const { cartOpen, cart } = useSelector(({ cashier }) => cashier);
-  const { collections: menusCollections = [] } = useSelector(({ menus }) => menus);
+  const {
+    cartOpen,
+    cart,
+    menus: menusCollections,
+  } = useSelector(({ cashier }) => cashier);
 
   const menuById = useMemo(() => {
     const map = new Map();
-    for (const item of Array.isArray(menusCollections) ? menusCollections : []) {
+    for (const item of Array.isArray(menusCollections)
+      ? menusCollections
+      : []) {
       if (item?._id) map.set(String(item._id), item);
     }
     return map;
@@ -101,7 +115,10 @@ const CashierCart = () => {
 
   return (
     <aside className="min-w-0">
-      <Sheet open={cartOpen} onOpenChange={(next) => dispatch(SetCartOpen(next))}>
+      <Sheet
+        open={cartOpen}
+        onOpenChange={(next) => dispatch(SetCartOpen(next))}
+      >
         <SheetContent side="right" className="w-full sm:max-w-md">
           <SheetHeader className="pb-2">
             <SheetTitle>Current order</SheetTitle>
@@ -129,7 +146,9 @@ const CashierCart = () => {
       <div className="hidden lg:block">
         <div
           className="relative"
-          style={{ height: "calc(100dvh - var(--cashier-topbar-height, 92px))" }}
+          style={{
+            height: "calc(100dvh - var(--cashier-topbar-height, 92px))",
+          }}
         >
           <div
             data-cashier-order-panel
@@ -184,7 +203,14 @@ const CartHeader = ({ hasItems, onClear }) => {
   );
 };
 
-const CartPanel = ({ entries, totals, onIncrement, onDecrement, onRemove, onCustomize }) => {
+const CartPanel = ({
+  entries,
+  totals,
+  onIncrement,
+  onDecrement,
+  onRemove,
+  onCustomize,
+}) => {
   const animatedByLineIdRef = useRef(new Map());
 
   const animateLineEl = useCallback((el, lineId, stamp) => {
@@ -197,8 +223,9 @@ const CartPanel = ({ entries, totals, onIncrement, onDecrement, onRemove, onCust
 
     try {
       if (typeof window !== "undefined") {
-        const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")
-          ?.matches;
+        const reduce = window.matchMedia?.(
+          "(prefers-reduced-motion: reduce)",
+        )?.matches;
         if (reduce) return;
       }
 
@@ -302,14 +329,18 @@ const CartPanel = ({ entries, totals, onIncrement, onDecrement, onRemove, onCust
                     {(() => {
                       const hasAddOns = Boolean(
                         Array.isArray(menu?.recommendedAddOns) &&
-                          menu.recommendedAddOns.length,
+                        menu.recommendedAddOns.length,
                       );
-                      const tooltip = hasAddOns ? "Add-ons" : "No add-ons available";
+                      const tooltip = hasAddOns
+                        ? "Add-ons"
+                        : "No add-ons available";
 
                       return (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className={`inline-flex ${hasAddOns ? "" : "cursor-not-allowed"}`}>
+                            <span
+                              className={`inline-flex ${hasAddOns ? "" : "cursor-not-allowed"}`}
+                            >
                               <Button
                                 type="button"
                                 variant="outline"
@@ -383,8 +414,8 @@ const CartPanel = ({ entries, totals, onIncrement, onDecrement, onRemove, onCust
           </span>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          {totals.totalItems || 0} item{(totals.totalItems || 0) === 1 ? "" : "s"}{" "}
-          in cart
+          {totals.totalItems || 0} item
+          {(totals.totalItems || 0) === 1 ? "" : "s"} in cart
         </p>
         <Button
           type="button"

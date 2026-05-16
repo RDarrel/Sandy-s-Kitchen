@@ -1,11 +1,9 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  BROWSE as BROWSE_MENUS,
-  FilterBY_AVAILABILITY,
-} from "@/services/redux/slices/menu/menus";
+import { FilterBY_AVAILABILITY } from "@/services/redux/slices/menu/menus";
 import { BROWSE as BROWSE_CATEGORIES } from "@/services/redux/slices/menu/categories";
 import {
+  BROWSE_MENUS,
   HydrateCart,
   SetCartOpen,
 } from "@/services/redux/slices/stations/cashier";
@@ -61,7 +59,7 @@ const useCashierBootstrap = () => {
   useEffect(() => {
     dispatch(FilterBY_AVAILABILITY("all"));
     if (token) {
-      dispatch(BROWSE_MENUS({ token }));
+      dispatch(BROWSE_MENUS({ token, params: { station: "cashier" } }));
       dispatch(BROWSE_CATEGORIES({ token }));
     }
   }, [token, dispatch]);
@@ -80,4 +78,3 @@ const useCashierBootstrap = () => {
 };
 
 export default useCashierBootstrap;
-

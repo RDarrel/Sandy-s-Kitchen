@@ -18,8 +18,9 @@ import CashierNoResults from "./no-results";
 
 const CashierBody = () => {
   const dispatch = useDispatch();
-  const { filtered: menusFiltered = [], isLoading: menusLoading } = useSelector(
-    ({ menus }) => menus,
+
+  const { menusFiltered = [], isLoading: menusLoading } = useSelector(
+    ({ cashier }) => cashier,
   );
   const { collections: categoriesCollections = [] } = useSelector(
     ({ menuCategories }) => menuCategories,
@@ -311,7 +312,11 @@ const CashierBody = () => {
 
                     const targetEl = isNewLine
                       ? cartList || orderPanel || cartButton || null
-                      : targetLineEl || cartList || orderPanel || cartButton || null;
+                      : targetLineEl ||
+                        cartList ||
+                        orderPanel ||
+                        cartButton ||
+                        null;
 
                     await animateAddToOrder(e?.currentTarget, menu, {
                       targetEl,

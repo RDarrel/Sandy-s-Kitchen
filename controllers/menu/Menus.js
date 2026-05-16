@@ -78,8 +78,7 @@ const buildMenuPayload = (
     type,
     category: body.category,
     hasRecipe: type === "prepared" ? normalizedIngredients.length > 0 : false,
-    inventory:
-      type === "bundle" ? null : primaryIngredient?.inventory || null,
+    inventory: type === "bundle" ? null : primaryIngredient?.inventory || null,
     qtyPerOrder:
       type === "bundle" ? null : primaryIngredient?.qtyPerOrder || null,
     unit: type === "bundle" ? null : primaryIngredient?.unit || null,
@@ -380,7 +379,16 @@ exports.save = async (req, res) => {
 
 exports.browse = async (req, res) => {
   try {
-    const menus = await Menu.find(ACTIVE_FILTER).sort({ createdAt: -1 }).lean();
+    const station = req?.query?.station || "";
+    var menus = [];
+    if (station === "cashier") {
+      menus = await Menu.find(ACTIVE_FILTER)
+        .sort({ createdAt: -1 })
+        .populate("category", "name")
+        .lean();
+    } else {
+      menus = await Menu.find(ACTIVE_FILTER).sort({ createdAt: -1 }).lean();
+    }
 
     res.status(200).json({
       success: "Menu Fetched Successfully",
