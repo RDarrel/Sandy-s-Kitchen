@@ -168,6 +168,18 @@ const CashierBody = () => {
                         cartButton ||
                         null;
 
+                    if (isNewLine && cartList) {
+                      try {
+                        cartList.scrollTo?.({ top: 0, behavior: "auto" });
+                      } catch {
+                        try {
+                          cartList.scrollTop = 0;
+                        } catch {
+                          // ignore
+                        }
+                      }
+                    }
+
                     await animateAddToOrder(e?.currentTarget, menu, {
                       targetEl,
                       targetAlign: isNewLine ? "top" : "center",

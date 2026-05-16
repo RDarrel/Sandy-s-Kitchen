@@ -25,8 +25,8 @@ const CashierCustomizeAddOnsDialog = () => {
   const { customizeState, customSelected, cart } = useSelector(
     ({ cashier }) => cashier,
   );
-  const { collections: menusCollections = [] } = useSelector(
-    ({ menus }) => menus,
+  const { menus: menusCollections = [] } = useSelector(
+    ({ cashier }) => cashier,
   );
 
   const menu = useMemo(() => {
@@ -126,7 +126,9 @@ const CashierCustomizeAddOnsDialog = () => {
     if (mode !== "edit") {
       const sourceMenuId = String(customizeState?.sourceMenuId || menuId || "");
       const sourceCardEl = sourceMenuId
-        ? document.querySelector(`[data-menu-card][data-menu-id="${sourceMenuId}"]`)
+        ? document.querySelector(
+            `[data-menu-card][data-menu-id="${sourceMenuId}"]`,
+          )
         : null;
 
       const signature = createCartSignature(
@@ -163,6 +165,18 @@ const CashierCustomizeAddOnsDialog = () => {
       const targetEl = isNewLine
         ? cartList || orderPanel || cartButton || null
         : targetLineEl || cartList || orderPanel || cartButton || null;
+
+      if (isNewLine && cartList) {
+        try {
+          cartList.scrollTo?.({ top: 0, behavior: "auto" });
+        } catch {
+          try {
+            cartList.scrollTop = 0;
+          } catch {
+            // ignore
+          }
+        }
+      }
 
       animateAddToOrder(sourceCardEl || customizeState?.fromPoint, menu, {
         targetEl,
