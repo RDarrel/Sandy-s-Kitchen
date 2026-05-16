@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, CreditCard } from "lucide-react";
+import { CreditCard } from "lucide-react";
 
 const getLineTotal = (entry) => {
   const qty = Number(entry?.line?.quantity) || 0;
@@ -57,14 +57,17 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md overflow-hidden rounded-2xl bg-white p-0 text-foreground">
-        <div
-          className="px-6 py-6"
-          style={{ fontFamily: "'Courier New', Courier, monospace" }}
-        >
-          <div className="w-full">
+        <div className="px-6 py-6">
+          <div
+            className="w-full"
+            style={{ fontFamily: "'Courier New', Courier, monospace" }}
+          >
             <div className="text-center">
               <p className="text-[15px] font-extrabold tracking-wider">
                 Sandy&apos;s Kitchenette
+              </p>
+              <p className="mt-0.5 text-[12px] text-muted-foreground">
+                Brgy. Rio Chico Gen. Tinio, Nueva Ecija
               </p>
               <p className="mt-0.5 text-[12px] text-muted-foreground">
                 {nowLabel}
@@ -175,7 +178,7 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
           </div>
           <Button
             type="button"
-            className="h-11 w-full rounded-xl text-base mt-5 "
+            className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-base  font-sans"
             onClick={() => {
               // TODO: wire backend payment flow.
               onOpenChange?.(false);
