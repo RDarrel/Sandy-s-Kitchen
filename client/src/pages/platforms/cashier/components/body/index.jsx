@@ -96,7 +96,8 @@ const CashierBody = () => {
                   onAdd={async (e) => {
                     if (hasAddOns) {
                       try {
-                        const rect = e?.currentTarget?.getBoundingClientRect?.();
+                        const rect =
+                          e?.currentTarget?.getBoundingClientRect?.();
                         if (rect) {
                           dispatch(SetCustomSelected([]));
                           dispatch(
@@ -199,8 +200,10 @@ const CashierBody = () => {
 
 const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
   const isAvailable = true;
-  const hasAddOns =
-    Array.isArray(menu?.recommendedAddOns) && menu.recommendedAddOns.length > 0;
+
+  const bundleItems = Array.isArray(menu?.bundleItems) ? menu.bundleItems : [];
+  const bundleCount = bundleItems.length;
+  const hasBundle = (menu?.type || "") === "bundle" && bundleCount > 0;
   const price = Number(menu?.price) || 0;
   const description = String(menu?.description || "").trim();
   const hasDescription = Boolean(description);
@@ -248,14 +251,36 @@ const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
           </Badge>
         )}
 
-        {hasAddOns && (
-          <Badge
-            variant="secondary"
-            className="absolute bottom-2 left-2 rounded-full bg-background/90 text-foreground shadow-sm"
-          >
-            {menu.recommendedAddOns.length} add-on(s)
-          </Badge>
-        )}
+        {hasBundle ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="secondary"
+                className="absolute bottom-2 left-2 rounded-full bg-background/90 text-foreground shadow-sm"
+              >
+                Includes {bundleCount} item{bundleCount === 1 ? "" : "s"}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent
+              side="top"
+              align="start"
+              sideOffset={6}
+              className="max-w-[260px]"
+            >
+              <div className="space-y-1">
+                {bundleItems.map((item, index) => {
+                  const name = String(item?.name || "").trim();
+                  if (!name) return null;
+                  return (
+                    <p key={String(item?._id || item?.id || index)}>
+                      {index + 1}. {name}
+                    </p>
+                  );
+                })}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
 
         {!isAvailable && (
           <Badge
