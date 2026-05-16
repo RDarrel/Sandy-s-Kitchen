@@ -186,7 +186,13 @@ export const reduxSlice = createSlice({
         const { message, payload } = action.payload;
         const updateCollections = (collections) => {
           const index = collections.findIndex(({ _id }) => _id === payload);
-          if (index > -1) collections.splice(index, 1);
+          if (index > -1) {
+            collections[index] = {
+              ...collections[index],
+              remainingQuantity: 0,
+              remainingQtyDisplay: 0,
+            };
+          }
         };
         updateCollections(state.collections);
         state.formSubmitted = false;

@@ -100,7 +100,7 @@ const SummaryCard = ({
 };
 
 const InventoryHeader = () => {
-  const { token } = useSelector(({ auth }) => auth);
+  const { token, auth } = useSelector(({ auth }) => auth);
   const { params, collections, search } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
@@ -172,13 +172,15 @@ const InventoryHeader = () => {
               and stock condition.
             </CardDescription>
           </div>
-          <Button
-            onClick={() => dispatch(SetCREATE())}
-            className="lg:self-start"
-          >
-            <PackagePlus className="h-4 w-4" />
-            New Inventory
-          </Button>
+          {auth?.role === 1 && (
+            <Button
+              onClick={() => dispatch(SetCREATE())}
+              className="lg:self-start"
+            >
+              <PackagePlus className="h-4 w-4" />
+              New Inventory
+            </Button>
+          )}
         </div>
 
         <div className="grid gap-2 sm:grid-cols-3">

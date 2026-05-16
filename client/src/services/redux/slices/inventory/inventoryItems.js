@@ -161,21 +161,28 @@ export const reduxSlice = createSlice({
       state.selected = payload;
       state.showMovementsModal = true;
     },
-    DISPOSE: (state, payload) => {
+    DISPOSE: (state, { payload }) => {
+      const { remainingQty } = payload;
       const updateCollections = (collections) => {
-        const index = collections.findIndex(({ _id }) => _id === payload);
+        const index = collections.findIndex(
+          ({ _id }) => _id === payload?.inventory,
+        );
         if (index > -1) {
           collections[index] = {
             ...collections[index],
-            expired: { display: 0, value: 0 },
+            expired: {
+              display:
+                collections[index]?.expired?.display - remainingQty?.display,
+              value: collections[index]?.expired?.value - remainingQty?.value,
+            },
           };
         }
       };
       state.selected = {
         ...state.selected,
         expired: {
-          value: 0,
-          display: 0,
+          value: state.selected?.expired?.value - remainingQty?.value,
+          display: state.selected?.expired?.display - remainingQty?.display,
         },
       };
 

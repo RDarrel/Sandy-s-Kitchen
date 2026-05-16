@@ -53,13 +53,21 @@ const BatchesModalBody = ({
       )
         .unwrap()
         .then(() => {
-          dispatch(DISPOSE_INVENTORY_EXPIRED(selectedBatch.inventory?._id));
+          dispatch(
+            DISPOSE_INVENTORY_EXPIRED({
+              inventory: selectedBatch.inventory?._id,
+              remainingQty: {
+                display: selectedBatch.remainingQtyDisplay,
+                value: selectedBatch.remainingQuantity,
+              },
+            }),
+          );
           setDisposeOpen(false);
           setSelectedBatch(null);
         });
     }
   };
-
+  const isAdmin = auth?.role === 1;
   return (
     <>
       <div className="overflow-hidden rounded-[7px] border border-border bg-card">
@@ -69,7 +77,9 @@ const BatchesModalBody = ({
               <TableHead>Batch</TableHead>
               <TableHead className="text-right">Received Qty</TableHead>
               <TableHead className="text-right">Remaining Qty</TableHead>
-              <TableHead className="text-right">Unit Cost</TableHead>
+              {isAdmin && (
+                <TableHead className="text-right">Unit Cost</TableHead>
+              )}
               <TableHead>Received Date</TableHead>
               <TableHead>Expiration</TableHead>
               <TableHead className="text-center">Status</TableHead>
@@ -124,14 +134,16 @@ const BatchesModalBody = ({
                         </span>
                       </p>
                     </TableCell>
-                    <TableCell className="text-right  text-foreground">
-                      <p className="font-medium tabular-nums text-foreground">
-                        ₱{batch.costPerUnit}
-                        <span className="text-xs text-muted-foreground">
-                          / {batch.unit}
-                        </span>
-                      </p>
-                    </TableCell>
+                    {isAdmin && (
+                      <TableCell className="text-right  text-foreground">
+                        <p className="font-medium tabular-nums text-foreground">
+                          ₱{batch.costPerUnit}
+                          <span className="text-xs text-muted-foreground">
+                            / {batch.unit}
+                          </span>
+                        </p>
+                      </TableCell>
+                    )}
                     <TableCell className="text-muted-foreground">
                       {batch.receivedDate
                         ? Formatter.date(batch.receivedDate)

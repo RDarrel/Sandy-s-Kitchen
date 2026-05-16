@@ -1,9 +1,15 @@
-import { ClipboardList, Gauge, GitPullRequestArrow } from "lucide-react";
+import {
+  ClipboardList,
+  Gauge,
+  GitPullRequestArrow,
+  Package,
+} from "lucide-react";
 import Dashboard from "./dashboard";
 import RequestStock from "./request-stock/create-request";
 import MyRequests from "./request-stock/my-requests";
 import orderList from "./orders/order-list";
 import shortDeliveries from "./orders/short-deliveries";
+import Inventory from "../admininistrator/inventory";
 
 const access = [
   {
@@ -11,6 +17,12 @@ const access = [
     path: "/dashboard",
     icon: Gauge,
     component: Dashboard,
+  },
+  {
+    name: "Inventory",
+    path: "/inventory",
+    icon: Package,
+    component: Inventory,
   },
   {
     name: "Stock Requests",

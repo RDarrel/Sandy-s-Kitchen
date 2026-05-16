@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { CustomAlert } from "@/components/shared/alert";
 import { CardContent } from "@/components/ui/card";
@@ -14,8 +15,8 @@ import {
   Trash2,
   Boxes,
   Activity,
-  Trash2Icon,
   AlertTriangle,
+  MoreHorizontalIcon,
 } from "lucide-react";
 import { capitalize } from "lodash";
 import { useDispatch, useSelector } from "react-redux";
@@ -28,25 +29,41 @@ import {
   SetVIEW_BATCHES,
   SetVIEW_STOCK_MOVEMENTS,
 } from "@/services/redux/slices/inventory/inventoryItems";
+
+import { ButtonGroup } from "@/components/ui/button-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import TableLoading from "@/components/shared/loading/table";
 
-const ActionButton = ({ title, icon: Icon, destructive = false, onClick }) => (
+const ActionButton = ({
+  title,
+  icon: Icon,
+  destructive = false,
+  onClick,
+  variant = "outline",
+}) => (
   <Button
     type="button"
     size="icon"
-    variant="outline"
+    title={title}
+    variant={variant}
     onClick={onClick}
     className={
       destructive
         ? "border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-        : "hover:bg-accent/15 hover:text-accent-foreground"
+        : "hover:bg-accent hover:text-accent-foreground"
     }
   >
     <Icon className="h-4 w-4" />
     <span className="sr-only">{title}</span>
   </Button>
 );
-
 const InventoryBody = ({
   deleteOpen,
   setDeleteOpen,
@@ -54,7 +71,8 @@ const InventoryBody = ({
   onRequestDelete,
   onConfirmDelete,
 }) => {
-  const { filtered, formSubmitted, isLoading } = useSelector(
+  const { auth } = useSelector(({ auth }) => auth),
+    { filtered, formSubmitted, isLoading } = useSelector(
       ({ inventoryItems }) => inventoryItems,
     ),
     [page, setPage] = useState(1),
@@ -85,6 +103,9 @@ const InventoryBody = ({
       })
       .map(({ item }) => item);
   }, [filtered]);
+
+  const isAdmin = auth?.role === 1;
+
   return (
     <>
       <CardContent className="space-y-4">
@@ -95,7 +116,7 @@ const InventoryBody = ({
                 <TableHeader className="bg-muted/70">
                   <TableRow>
                     <TableHead>Item</TableHead>
-                    <TableHead>Unit Cost</TableHead>
+                    {isAdmin && <TableHead>Unit Cost</TableHead>}
                     <TableHead>Available Stock</TableHead>
                     <TableHead>Expiring Soon</TableHead>
                     <TableHead>Expired</TableHead>
@@ -113,30 +134,32 @@ const InventoryBody = ({
                                 <p className="font-semibold text-foreground">
                                   {capitalize(item.name)}
                                 </p>
-                                <p className="max-w-xs text-xs leading-5 text-muted-foreground">
+                                <p className="max-w-xs text-xs leading-5 text-muted-foreground text-nowrap text-ellipsis overflow-hidden">
                                   {item.description ||
                                     "No description provided."}
                                 </p>
                               </div>
                             </TableCell>
 
-                            <TableCell>
-                              <p className="font-medium text-foreground">{`${Formatter.amount(item.cost)} / ${Stock.getUnit(item.measurement)}`}</p>
-                              {item?.supplier ? (
-                                <p className="text-xs text-muted-foreground">
-                                  From {item.supplier.name}
-                                  {item?.suppliers?.length > 1 && (
-                                    <span className="ml-1">
-                                      (+{item.suppliers.length - 1} more)
-                                    </span>
-                                  )}
-                                </p>
-                              ) : (
-                                <p className="text-xs text-muted-foreground">
-                                  No supplier
-                                </p>
-                              )}
-                            </TableCell>
+                            {isAdmin && (
+                              <TableCell>
+                                <p className="font-medium text-foreground">{`${Formatter.amount(item.cost)} / ${Stock.getUnit(item.measurement)}`}</p>
+                                {item?.supplier ? (
+                                  <p className="text-xs text-muted-foreground">
+                                    From {item.supplier.name}
+                                    {item?.suppliers?.length > 1 && (
+                                      <span className="ml-1">
+                                        (+{item.suppliers.length - 1} more)
+                                      </span>
+                                    )}
+                                  </p>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground">
+                                    No supplier
+                                  </p>
+                                )}
+                              </TableCell>
+                            )}
                             <TableCell>
                               <p className="font-medium text-foreground">
                                 {Stock.display(
@@ -162,43 +185,102 @@ const InventoryBody = ({
                             </TableCell>
 
                             <TableCell>
-                              <div className="flex justify-end gap-2">
-                                <ActionButton
-                                  title="Report Waste"
-                                  icon={AlertTriangle}
-                                  destructive
-                                  onClick={() =>
-                                    dispatch(SetREPORT_WASTE(item))
-                                  }
-                                />
-                                <ActionButton
-                                  title="Stock Movements"
-                                  icon={Activity}
-                                  destructive
-                                  onClick={() =>
-                                    dispatch(SetVIEW_STOCK_MOVEMENTS(item))
-                                  }
-                                />
-                                <ActionButton
-                                  title="View Batches"
-                                  icon={Boxes}
-                                  destructive
-                                  onClick={() =>
-                                    dispatch(SetVIEW_BATCHES(item))
-                                  }
-                                />
-                                <ActionButton
-                                  title="Edit"
-                                  icon={Pencil}
-                                  onClick={() => dispatch(Set_SELECTED(item))}
-                                />
+                              <div className="flex justify-center gap-2">
+                                {isAdmin ? (
+                                  <ButtonGroup>
+                                    <ActionButton
+                                      title="Edit"
+                                      icon={Pencil}
+                                      onClick={() =>
+                                        dispatch(Set_SELECTED(item))
+                                      }
+                                    />
 
-                                <ActionButton
-                                  title="Delete"
-                                  icon={Trash2}
-                                  destructive
-                                  onClick={() => onRequestDelete(item)}
-                                />
+                                    <ActionButton
+                                      title="Delete"
+                                      icon={Trash2}
+                                      destructive
+                                      onClick={() => onRequestDelete(item)}
+                                    />
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          aria-label="More Options"
+                                        >
+                                          <MoreHorizontalIcon />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent
+                                        align="end"
+                                        className="w-40"
+                                      >
+                                        <DropdownMenuGroup>
+                                          <DropdownMenuItem
+                                            onClick={() =>
+                                              dispatch(SetVIEW_BATCHES(item))
+                                            }
+                                          >
+                                            <Boxes />
+                                            View Batches
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem
+                                            onClick={() =>
+                                              dispatch(
+                                                SetVIEW_STOCK_MOVEMENTS(item),
+                                              )
+                                            }
+                                          >
+                                            <Activity />
+                                            Stock Movements
+                                          </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuGroup>
+                                          <DropdownMenuItem
+                                            onClick={() =>
+                                              dispatch(SetREPORT_WASTE(item))
+                                            }
+                                          >
+                                            <AlertTriangle />
+                                            Report Waste
+                                          </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </ButtonGroup>
+                                ) : (
+                                  <>
+                                    <ActionButton
+                                      title="View Batches"
+                                      icon={Boxes}
+                                      variant="secondary"
+                                      onClick={() =>
+                                        dispatch(SetVIEW_BATCHES(item))
+                                      }
+                                    />
+
+                                    <ActionButton
+                                      title="Stock Movements"
+                                      icon={Activity}
+                                      variant="outline"
+                                      onClick={() =>
+                                        dispatch(SetVIEW_STOCK_MOVEMENTS(item))
+                                      }
+                                    />
+
+                                    <ActionButton
+                                      title="Report Waste"
+                                      className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                                      icon={AlertTriangle}
+                                      destructive
+                                      onClick={() =>
+                                        dispatch(SetREPORT_WASTE(item))
+                                      }
+                                    />
+                                  </>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
