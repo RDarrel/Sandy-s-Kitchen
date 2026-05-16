@@ -143,7 +143,12 @@ const InventoryBody = ({
 
                             {isAdmin && (
                               <TableCell>
-                                <p className="font-medium text-foreground">{`${Formatter.amount(item.cost)} / ${Stock.getUnit(item.measurement)}`}</p>
+                                <p className="font-medium tabular-nums text-foreground">
+                                  {Formatter.amount(item.cost)}
+                                  <span className="text-xs text-muted-foreground">
+                                    / {Stock.getUnit(item.measurement)}
+                                  </span>
+                                </p>
                                 {item?.supplier ? (
                                   <p className="text-xs text-muted-foreground">
                                     From {item.supplier.name}
@@ -161,27 +166,32 @@ const InventoryBody = ({
                               </TableCell>
                             )}
                             <TableCell>
-                              <p className="font-medium text-foreground">
-                                {Stock.display(
-                                  item?.stockDisplay?.current,
-                                  item.measurement,
-                                )}
+                              <p className="font-medium tabular-nums text-foreground">
+                                {item?.stockDisplay?.current}
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  {Stock.getUnit(item.measurement)}
+                                </span>
                               </p>
+
                               <p className="text-xs text-muted-foreground">
                                 {capitalize(item?.stockStatus)}
                               </p>
                             </TableCell>
                             <TableCell className="font-medium text-foreground">
-                              {Stock.display(
-                                item?.expiringSoon?.display,
-                                item.measurement,
-                              )}
+                              <p className="font-medium tabular-nums text-foreground">
+                                {item?.expiringSoon?.display}
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  {Stock.getUnit(item.measurement)}
+                                </span>
+                              </p>
                             </TableCell>
                             <TableCell className="font-medium text-foreground">
-                              {Stock.display(
-                                item?.expired?.display,
-                                item.measurement,
-                              )}
+                              <p className="font-medium tabular-nums text-foreground">
+                                {item?.expired?.display}
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  {Stock.getUnit(item.measurement)}
+                                </span>
+                              </p>
                             </TableCell>
 
                             <TableCell>

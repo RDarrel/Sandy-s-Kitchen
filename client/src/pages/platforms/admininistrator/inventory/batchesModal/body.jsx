@@ -138,7 +138,7 @@ const BatchesModalBody = ({
                       <TableCell className="text-right  text-foreground">
                         <p className="font-medium tabular-nums text-foreground">
                           ₱{batch.costPerUnit}
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground ml-1">
                             / {batch.unit}
                           </span>
                         </p>
