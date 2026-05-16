@@ -7,6 +7,8 @@ const {
 exports.save = async (req, res) => {
   try {
     const inventory = await Item.create(req.body);
+
+    await inventory.populate("suppliers.supplier");
     res.status(201).json({
       success: "Inventory item Created Successfully",
       payload: inventory,

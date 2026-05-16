@@ -167,7 +167,7 @@ const InventoryBody = ({
                             )}
                             <TableCell>
                               <p className="font-medium tabular-nums text-foreground">
-                                {item?.stockDisplay?.current}
+                                {item?.stockDisplay?.current || 0}
                                 <span className="text-xs text-muted-foreground ml-1">
                                   {Stock.getUnit(item.measurement)}
                                 </span>
@@ -179,7 +179,7 @@ const InventoryBody = ({
                             </TableCell>
                             <TableCell className="font-medium text-foreground">
                               <p className="font-medium tabular-nums text-foreground">
-                                {item?.expiringSoon?.display}
+                                {item?.expiringSoon?.display || 0}
                                 <span className="text-xs text-muted-foreground ml-1">
                                   {Stock.getUnit(item.measurement)}
                                 </span>
@@ -187,7 +187,7 @@ const InventoryBody = ({
                             </TableCell>
                             <TableCell className="font-medium text-foreground">
                               <p className="font-medium tabular-nums text-foreground">
-                                {item?.expired?.display}
+                                {item?.expired?.display || 0}
                                 <span className="text-xs text-muted-foreground ml-1">
                                   {Stock.getUnit(item.measurement)}
                                 </span>

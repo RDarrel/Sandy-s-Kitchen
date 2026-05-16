@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Formatter } from "@/services/utilities";
-import { LoaderCircle } from "lucide-react";
+import { Boxes, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { DISPOSE } from "@/services/redux/slices/inventory/stockBatch";
@@ -182,10 +182,22 @@ const BatchesModalBody = ({
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={tableColSpan} className="py-12 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    No batches matched your search.
-                  </p>
+                <TableCell colSpan={10} className="py-14 text-center">
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="rounded-full border border-border bg-muted/30 p-3">
+                      <Boxes className="h-6 w-6 text-muted-foreground" />
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        No stock batches found
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Stock batch records will appear here once supplier
+                        deliveries are received.
+                      </p>
+                    </div>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
