@@ -220,20 +220,32 @@ const CashierCustomizeAddOnsDialog = () => {
                       const id = String(item?._id || "");
                       const checked = selectedSet.has(id);
                       return (
-                        <button
+                        <div
                           key={id}
-                          type="button"
+                          role="button"
+                          tabIndex={0}
                           onClick={() => toggle(id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              toggle(id);
+                            }
+                          }}
                           className={`flex items-start gap-3 rounded-xl border px-3 py-2 text-left transition ${
                             checked
                               ? "bg-[color:color-mix(in_srgb,var(--primary)_10%,var(--card))] shadow-[inset_4px_0_0_var(--color-primary)]"
                               : "bg-background hover:bg-[color:color-mix(in_srgb,var(--primary)_5%,var(--card))]"
                           }`}
                         >
-                          <Checkbox
-                            checked={checked}
-                            onCheckedChange={() => toggle(id)}
-                          />
+                          <span
+                            onClick={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                          >
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={() => toggle(id)}
+                            />
+                          </span>
                           <span className="min-w-0 flex-1">
                             <span className="flex items-start justify-between gap-2">
                               <span className="truncate text-sm font-semibold">
@@ -249,7 +261,7 @@ const CashierCustomizeAddOnsDialog = () => {
                               </span>
                             ) : null}
                           </span>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
