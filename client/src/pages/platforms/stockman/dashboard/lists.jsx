@@ -125,6 +125,7 @@ const Lists = () => {
 
         rows.push({
           key: String(item?._id || item?.inventory?._id || name),
+          _id: item?._id,
           name,
           expiry,
           daysLeft,
@@ -254,19 +255,46 @@ const Lists = () => {
                           <p className="truncate text-sm font-medium text-foreground">
                             {row.name}
                           </p>
+
                           <p className="mt-0.5 text-xs text-muted-foreground">
-                            Expires {Formatter.date(row.expiry)} •{" "}
-                            {row.daysLeft} day(s)
+                            {row.daysLeft < 0 ? (
+                              <>
+                                Expired on {Formatter.date(row.expiry)} •{" "}
+                                {Math.abs(row.daysLeft)} day(s) ago
+                              </>
+                            ) : row.daysLeft === 0 ? (
+                              <>Expires today</>
+                            ) : (
+                              <>
+                                Expires on {Formatter.date(row.expiry)} •{" "}
+                                {row.daysLeft} day(s) left
+                              </>
+                            )}
                           </p>
                         </div>
                       </TableCell>
+
                       <TableCell className="py-2 text-right">
-                        <Badge
-                          variant="outline"
-                          className="rounded-full border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-                        >
-                          Soon
-                        </Badge>
+                        {-2 < 0 ? (
+                          <Badge
+                            variant="outline"
+                            onClick={() =>
+                              navigate(
+                                `/platforms/inventory?id=${row._id}&&name=${row.name}`,
+                              )
+                            }
+                            className="cursor-pointer rounded-full border-destructive/30 bg-destructive/10 text-destructive transition-colors hover:bg-destructive/20"
+                          >
+                            Dispose
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="rounded-full border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                          >
+                            Soon
+                          </Badge>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

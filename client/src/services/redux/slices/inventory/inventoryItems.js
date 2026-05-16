@@ -39,18 +39,23 @@ export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
   }
 });
 
-export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
-  try {
-    return axioKit.universal(`${url}/browse`, token);
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
+export const BROWSE = createAsyncThunk(
+  `${url}/inventory-items`,
+  ({ token }, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/browse`, token);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
 
-    return thunkAPI.rejectWithValue(message);
-  }
-});
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
 export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   try {
