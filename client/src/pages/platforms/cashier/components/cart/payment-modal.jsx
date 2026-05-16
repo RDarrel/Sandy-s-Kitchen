@@ -1,8 +1,9 @@
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useEffect, useMemo, useState } from "react";
+import { ArrowRight } from "lucide-react";
 
 const getLineTotal = (entry) => {
   const qty = Number(entry?.line?.quantity) || 0;
@@ -56,7 +57,10 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md overflow-hidden rounded-2xl bg-white p-0 text-foreground">
-        <div className="px-6 py-6 font-mono">
+        <div
+          className="px-6 py-6"
+          style={{ fontFamily: "'Courier New', Courier, monospace" }}
+        >
           <div className="w-full">
             <div className="text-center">
               <p className="text-[15px] font-extrabold tracking-wider">
@@ -147,7 +151,7 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                       value={tenderedRaw}
                       onChange={(e) => setTenderedRaw(e.target.value)}
                       placeholder="0.00"
-                      className="h-10 rounded-lg bg-white text-right font-mono text-[14px] "
+                      className="h-10 rounded-lg bg-white text-right text-[14px] font-semibold"
                     />
                   </div>
                 </div>
@@ -178,6 +182,7 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
             }}
           >
             Continue
+            <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </DialogContent>
