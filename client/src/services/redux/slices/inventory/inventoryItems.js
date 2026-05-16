@@ -222,6 +222,13 @@ export const reduxSlice = createSlice({
     TOGGLE_WASTE_MODAL: (state) => {
       state.showWasteModal = !state.showWasteModal;
     },
+    RESET: (state, data) => {
+      state.isSuccess = false;
+      state.message = "";
+      state.formSubmitted = false;
+      state.selected = {};
+      state.search = "";
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -336,6 +343,7 @@ export const {
   SetREPORT_WASTE,
   TOGGLE_WASTE_MODAL,
   REPORT_WASTE,
+  RESET,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

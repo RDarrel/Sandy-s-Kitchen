@@ -275,7 +275,7 @@ const Lists = () => {
                       </TableCell>
 
                       <TableCell className="py-2 text-right">
-                        {-2 < 0 ? (
+                        {row.daysLeft < 0 ? (
                           <Badge
                             variant="outline"
                             onClick={() =>
