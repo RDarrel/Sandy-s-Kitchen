@@ -232,7 +232,10 @@ export const reduxSlice = createSlice({
       })
       .addCase(BROWSE.fulfilled, (state, action) => {
         const { payload } = action.payload;
-        state.collections = state.cluster = state.filtered = payload;
+        state.collections = state.cluster = payload;
+        if (!state?.search) {
+          state.filtered = payload;
+        }
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
