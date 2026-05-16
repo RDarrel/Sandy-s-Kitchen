@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CreditCard } from "lucide-react";
 
 const getLineTotal = (entry) => {
   const qty = Number(entry?.line?.quantity) || 0;
@@ -181,8 +181,8 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
               onOpenChange?.(false);
             }}
           >
-            Continue
-            <ArrowRight className="h-4 w-4" />
+            <CreditCard className="h-4 w-4" />
+            Complete Payment
           </Button>
         </div>
       </DialogContent>
