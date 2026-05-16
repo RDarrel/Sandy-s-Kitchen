@@ -55,9 +55,9 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg  p-1">
-        <div className=" rounded-1xl  ">
-          <div className="w-full bg-[color:color-mix(in_srgb,var(--card)_65%,white)] px-5 py-4 font-mono shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--border)_70%,transparent)]">
+      <DialogContent className="max-w-lg overflow-hidden rounded-2xl bg-white p-0 text-foreground">
+        <div className="max-h-[70vh] overflow-auto px-6 py-6 font-mono">
+          <div className="w-full">
             <div className="text-center">
               <p className="text-sm font-bold tracking-wide">
                 Sandy&apos;s Kitchenette
@@ -93,8 +93,15 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
 
                       {addOns.length ? (
                         <div className="pl-5">
-                          <div className="border-t border-dashed border-muted-foreground/35 pt-1" />
-                          <div className="space-y-0.5 text-[11px] text-muted-foreground">
+                          <div className="relative mt-1 pl-5 text-[11px] text-muted-foreground">
+                            <span
+                              aria-hidden="true"
+                              className="absolute left-1 top-[-7px] h-[calc(0.6rem+7px)] w-px bg-muted-foreground/35"
+                            />
+                            <span
+                              aria-hidden="true"
+                              className="absolute left-1 top-[0.6rem] h-px w-3 bg-muted-foreground/35"
+                            />
                             {addOns.map((addOn) => (
                               <div
                                 key={String(addOn?._id || addOn?.name || "")}
@@ -138,7 +145,7 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                       value={tenderedRaw}
                       onChange={(e) => setTenderedRaw(e.target.value)}
                       placeholder="0.00"
-                      className="h-9 rounded-lg bg-background/60 text-right font-mono text-sm"
+                      className="h-9 rounded-lg bg-white text-right font-mono text-sm"
                     />
                   </div>
                 </div>
@@ -156,25 +163,13 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                 </div>
               </div>
             </div>
-
-            <div className="mt-3 border-t border-dashed border-muted-foreground/40 pt-2 text-center text-[11px] text-muted-foreground">
-              Thank you!
-            </div>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 border-t bg-card/70 px-5 py-4">
+        <DialogFooter className="gap-2 rounded-b-2xl border-t bg-white px-2 py-2">
           <Button
             type="button"
-            variant="outline"
-            className="h-10 rounded-xl"
-            onClick={() => onOpenChange?.(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            className="h-10 rounded-xl"
+            className="h-10 rounded-xl w-full"
             onClick={() => {
               // TODO: wire backend payment flow.
               onOpenChange?.(false);
