@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import "./print.css";
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { format } from "@/services/utilities";
+import { format, capitalize } from "@/services/utilities";
 
 const normalizeOrder = (raw) => {
   if (!raw || typeof raw !== "object") return null;
@@ -138,7 +138,7 @@ const ViewReceiptModal = ({ isOpen, setIsOpen, order }) => {
                       <div className="flex items-start justify-between gap-2">
                         <p className="min-w-0 break-words">
                           <span className="font-bold tabular-nums">{qty}x</span>{" "}
-                          {item.menuName}
+                          {capitalize(item.menuName)}
                         </p>
                         <p className="shrink-0 font-bold tabular-nums">
                           {format.peso(lineTotal)}
@@ -147,7 +147,7 @@ const ViewReceiptModal = ({ isOpen, setIsOpen, order }) => {
 
                       {addOns.length ? (
                         <div className="pl-5">
-                          <div className="relative mt-0.5 pl-5 text-[15px] leading-6 text-black/80">
+                          <div className="relative mt-0.5 pl-5 text-[14px] leading-6 text-black/80">
                             <span
                               aria-hidden="true"
                               className="absolute left-1 top-[-6px] bottom-4 w-px bg-black/30"
@@ -172,7 +172,9 @@ const ViewReceiptModal = ({ isOpen, setIsOpen, order }) => {
                                     aria-hidden="true"
                                     className="absolute -left-4 top-2 h-px w-3 bg-black/30"
                                   />
-                                  <p className="min-w-0 break-words">{name}</p>
+                                  <p className="min-w-0 break-words">
+                                    {capitalize(name)}
+                                  </p>
                                   <p className="shrink-0 font-semibold tabular-nums text-black/90">
                                     +{format.peso(amount)}
                                   </p>
@@ -185,7 +187,7 @@ const ViewReceiptModal = ({ isOpen, setIsOpen, order }) => {
 
                       {bundleItems.length ? (
                         <div className="pl-5">
-                          <div className="relative mt-0.5 pl-5 text-[15px] leading-6 text-black/80">
+                          <div className="relative mt-0.5 pl-5 text-[14px] leading-6 text-black/80">
                             <span
                               aria-hidden="true"
                               className="absolute left-1 top-[-6px] bottom-4 w-px bg-black/30"
@@ -208,7 +210,9 @@ const ViewReceiptModal = ({ isOpen, setIsOpen, order }) => {
                                     aria-hidden="true"
                                     className="absolute -left-4 top-2 h-px w-3 bg-black/30"
                                   />
-                                  <p className="min-w-0 break-words">{name}</p>
+                                  <p className="min-w-0 break-words">
+                                    {capitalize(name)}
+                                  </p>
                                 </div>
                               );
                             })}

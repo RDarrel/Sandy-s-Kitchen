@@ -341,6 +341,7 @@ export const reduxSlice = createSlice({
 
         state.formSubmitted = false;
         state.isLoading = false;
+        state.sales.unshift(payload);
         localStorage.setItem("order-printout", JSON.stringify(payload));
         window.open(
           "/receipts/order",

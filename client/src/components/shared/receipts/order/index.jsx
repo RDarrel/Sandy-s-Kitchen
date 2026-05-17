@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./print.css";
-import { format } from "@/services/utilities";
+import { format, capitalize } from "@/services/utilities";
 
 const safeParseJson = (value) => {
   if (!value) return null;
@@ -169,7 +169,7 @@ const OrderReceipt = () => {
                   <div className="flex items-start justify-between gap-2">
                     <p className="min-w-0 break-words">
                       <span className="font-bold tabular-nums">{qty}x</span>{" "}
-                      {item.menuName}
+                      {capitalize(item.menuName)}
                     </p>
                     <p className="shrink-0 font-bold tabular-nums">
                       {format.peso(lineTotal)}
@@ -203,7 +203,9 @@ const OrderReceipt = () => {
                                 aria-hidden="true"
                                 className="absolute -left-4 top-2 h-px w-3 bg-black/30"
                               />
-                              <p className="min-w-0 break-words">{name}</p>
+                              <p className="min-w-0 break-words">
+                                {capitalize(name)}
+                              </p>
                               <p className="shrink-0 font-semibold tabular-nums text-black/90">
                                 +{format.peso(amount)}
                               </p>
@@ -239,7 +241,9 @@ const OrderReceipt = () => {
                                 aria-hidden="true"
                                 className="absolute -left-4 top-2 h-px w-3 bg-black/30"
                               />
-                              <p className="min-w-0 break-words">{name}</p>
+                              <p className="min-w-0 break-words">
+                                {capitalize(name)}
+                              </p>
                             </div>
                           );
                         })}
