@@ -1,9 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FilterBY_AVAILABILITY } from "@/services/redux/slices/menu/menus";
-import { BROWSE as BROWSE_CATEGORIES } from "@/services/redux/slices/menu/categories";
 import {
-  BROWSE_MENUS,
   HydrateCart,
   SetCartOpen,
 } from "@/services/redux/slices/stations/cashier";
@@ -11,7 +9,7 @@ import { loadCashierCartFromStorage } from "@/services/redux/slices/stations/cas
 
 const useCashierBootstrap = () => {
   const dispatch = useDispatch();
-  const { token } = useSelector(({ auth }) => auth);
+  const { token, auth } = useSelector(({ auth }) => auth);
   const cart = useSelector(({ cashier }) => cashier?.cart);
 
   useEffect(() => {
@@ -58,11 +56,7 @@ const useCashierBootstrap = () => {
 
   useEffect(() => {
     dispatch(FilterBY_AVAILABILITY("all"));
-    if (token) {
-      dispatch(BROWSE_MENUS({ token, params: { station: "cashier" } }));
-      dispatch(BROWSE_CATEGORIES({ token }));
-    }
-  }, [token, dispatch]);
+  }, [token, dispatch, auth]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

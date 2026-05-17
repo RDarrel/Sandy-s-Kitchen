@@ -1,14 +1,9 @@
-import React, { useMemo } from "react";
-import {
-  PhilippinePeso,
-  ReceiptText,
-  ShoppingBasket,
-  TrendingUp,
-} from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Eye, Printer } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -19,196 +14,199 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { format } from "@/services/utilities";
+import { useDispatch, useSelector } from "react-redux";
+import { BROWSE_SALES } from "@/services/redux/slices/stations/cashier";
 
-const KPI = ({ title, value, helper, icon: Icon, trend }) => (
-  <Card className="relative overflow-hidden transition-shadow hover:shadow-sm">
-    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
-    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-      <div className="space-y-1">
-        <p className="text-muted-foreground text-xs">{title}</p>
-        <div className="flex items-end gap-2">
-          <p className="text-xl font-semibold leading-none tracking-tight">
-            {value}
-          </p>
-          {typeof trend === "number" ? (
-            <Badge
-              variant="secondary"
-              className={cn(
-                "h-5 px-2 text-[11px]",
-                trend >= 0
-                  ? "bg-emerald-500/10 text-emerald-700"
-                  : "bg-rose-500/10 text-rose-700",
-              )}
-            >
-              {trend >= 0 ? "+" : ""}
-              {trend}%
-            </Badge>
-          ) : null}
-        </div>
-        {helper ? <p className="text-muted-foreground text-xs">{helper}</p> : null}
-      </div>
-      <div className="bg-muted text-muted-foreground flex h-9 w-9 items-center justify-center rounded-md border">
-        {React.createElement(Icon, { className: "h-4 w-4" })}
-      </div>
-    </CardHeader>
-  </Card>
+const formatDateTime = (value) => {
+  try {
+    const date = value instanceof Date ? value : new Date(value || Date.now());
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  } catch {
+    return "";
+  }
+};
+
+const SummaryLine = ({ label, value }) => (
+  <div className="flex items-center gap-3 text-sm">
+    <span className="shrink-0 font-medium">{label}</span>
+    <span className="h-0 flex-1 border-t border-dashed border-border" />
+    <span className="shrink-0 font-semibold tabular-nums">{value}</span>
+  </div>
 );
 
 const PaymentBadge = ({ method }) => {
   const mapped = String(method || "").toLowerCase();
   const ui =
     mapped === "cash"
-      ? { className: "bg-emerald-500/10 text-emerald-700", label: "Cash" }
+      ? { className: "bg-primary/10 text-primary", label: "Cash" }
       : mapped === "gcash"
-        ? { className: "bg-sky-500/10 text-sky-800", label: "GCash" }
+        ? {
+            className: "bg-secondary text-secondary-foreground",
+            label: "GCash",
+          }
         : mapped === "card"
-          ? { className: "bg-violet-500/10 text-violet-800", label: "Card" }
-          : { className: "", label: method || "—" };
+          ? { className: "bg-muted text-foreground", label: "Card" }
+          : { className: "bg-muted text-foreground", label: method || "—" };
 
   return (
-    <Badge variant="secondary" className={cn("h-5 px-2 text-[11px]", ui.className)}>
+    <span
+      className={cn(
+        "inline-flex h-5 items-center rounded-full px-2 text-[11px] font-medium",
+        ui.className,
+      )}
+    >
       {ui.label}
-    </Badge>
+    </span>
   );
 };
-
 const Sales = () => {
-  const mockSales = useMemo(
-    () => [
-      {
-        id: "TXN-000231",
-        time: "May 18, 2026 • 11:06 AM",
-        items: 5,
-        method: "Cash",
-        total: 1434.0,
-      },
-      {
-        id: "TXN-000232",
-        time: "May 18, 2026 • 11:24 AM",
-        items: 2,
-        method: "GCash",
-        total: 215.0,
-      },
-      {
-        id: "TXN-000233",
-        time: "May 18, 2026 • 12:02 PM",
-        items: 8,
-        method: "Cash",
-        total: 2120.5,
-      },
-      {
-        id: "TXN-000234",
-        time: "May 18, 2026 • 12:41 PM",
-        items: 3,
-        method: "Card",
-        total: 498.0,
-      },
-      {
-        id: "TXN-000235",
-        time: "May 18, 2026 • 01:09 PM",
-        items: 1,
-        method: "Cash",
-        total: 89.0,
-      },
-    ],
-    [],
-  );
+  const { sales, isLoadingSales } = useSelector(({ cashier }) => cashier);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [selectedSale, setSelectedSale] = useState(null);
 
-  const rows = mockSales;
+  const rows = useMemo(() => {
+    const list = Array.isArray(sales) ? sales : [];
+
+    return list.map((order) => {
+      const items = Array.isArray(order?.items) ? order.items : [];
+      const itemsCount = items.length;
+
+      const createdAt =
+        order?.created?.at ?? order?.createdAt ?? order?.updatedAt ?? null;
+
+      return {
+        id: String(order?._id || ""),
+        time: formatDateTime(createdAt),
+        itemsCount,
+        total: Number(order?.amount ?? 0) || 0,
+        raw: order,
+      };
+    });
+  }, [sales]);
+
+  const handlePrint = (order) => {
+    try {
+      localStorage.setItem("order-printout", JSON.stringify(order));
+      window.open(
+        "/receipts/order",
+        "Order Receipt",
+        "top=100px,left=500px,width=420px,height=780px",
+      );
+    } catch {
+      window.print();
+    }
+  };
 
   const summary = useMemo(() => {
-    const totalSales = rows.reduce((sum, row) => sum + (Number(row.total) || 0), 0);
-    const orders = rows.length;
-    const itemsSold = rows.reduce((sum, row) => sum + (Number(row.items) || 0), 0);
-    const avgOrder = orders ? totalSales / orders : 0;
-    return { totalSales, orders, itemsSold, avgOrder };
+    const totalSales = rows.reduce(
+      (sum, row) => sum + (Number(row.total) || 0),
+      0,
+    );
+    return { totalSales };
   }, [rows]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-4 p-4">
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-3">
+    <div className="mx-auto w-full max-w-5xl space-y-4 p-4">
+      <Card className="overflow-hidden bg-card">
+        <CardHeader className="-mb-2">
           <div className="space-y-1">
             <CardTitle className="text-base">Cashier Sales</CardTitle>
             <p className="text-muted-foreground text-xs">
-              Daily snapshot (mock data for now)
+              Recent orders and total sales.
             </p>
-          </div>
-
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KPI
-              title="Total Sales"
-              value={format.peso(summary.totalSales)}
-              helper="Gross sales (today)"
-              icon={PhilippinePeso}
-              trend={8.4}
-            />
-            <KPI
-              title="Orders"
-              value={summary.orders}
-              helper="Transactions processed"
-              icon={ReceiptText}
-              trend={3.2}
-            />
-            <KPI
-              title="Items Sold"
-              value={summary.itemsSold}
-              helper="Total line items sold"
-              icon={ShoppingBasket}
-            />
-            <KPI
-              title="Avg Order"
-              value={format.peso(summary.avgOrder)}
-              helper="Average ticket size"
-              icon={TrendingUp}
-            />
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-muted-foreground text-xs">
-              Showing {rows.length} transactions
-            </p>
-            <Badge variant="outline" className="h-7 rounded-full px-3">
-              Total: {format.peso(summary.totalSales)}
-            </Badge>
-          </div>
+        <CardContent className="space-y-3">
+          <SummaryLine label="Sales" value={format.peso(summary.totalSales)} />
 
-          <Separator className="my-3" />
-          <div className="overflow-auto rounded-xl border">
-            <Table>
-              <TableHeader className="sticky top-0 z-10 bg-muted/70">
+          <div className="overflow-auto rounded-xl border border-border bg-background">
+            <Table className="w-full table-fixed">
+              <TableHeader className="sticky top-0 z-10 bg-muted/60">
                 <TableRow>
-                  <TableHead className="w-[160px]">Transaction</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead className="text-right">Items</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="w-[180px] whitespace-nowrap">
+                    Transaction Id
+                  </TableHead>
+                  <TableHead className="w-[170px] whitespace-nowrap">
+                    Date/Time
+                  </TableHead>
+                  <TableHead className="w-[70px] whitespace-nowrap text-right">
+                    Items
+                  </TableHead>
+                  <TableHead className="w-[130px] whitespace-nowrap text-right">
+                    Total
+                  </TableHead>
+                  <TableHead className="w-[96px] whitespace-nowrap text-center">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.length ? (
+                {isLoadingSales ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="text-muted-foreground py-10 text-center"
+                    >
+                      Loading sales...
+                    </TableCell>
+                  </TableRow>
+                ) : rows.length ? (
                   rows.map((row) => (
-                    <TableRow key={row.id} className="hover:bg-muted/40">
-                      <TableCell className="font-medium">{row.id}</TableCell>
-                      <TableCell className="text-muted-foreground">
+                    <TableRow key={row.id} className="hover:bg-muted/30">
+                      <TableCell className="whitespace-nowrap font-medium">
+                        {row.id}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-muted-foreground">
                         {row.time}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
-                        {row.items}
-                      </TableCell>
-                      <TableCell>
-                        <PaymentBadge method={row.method} />
+                        {row.itemsCount}
                       </TableCell>
                       <TableCell className="text-right font-semibold tabular-nums">
                         {format.peso(row.total)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="inline-flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 rounded-lg p-0"
+                            onClick={() => {
+                              setSelectedSale(row.raw);
+                              setViewOpen(true);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">View</span>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 rounded-lg p-0"
+                            onClick={() => handlePrint(row.raw)}
+                          >
+                            <Printer className="h-4 w-4" />
+                            <span className="sr-only">Print</span>
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-muted-foreground text-center">
-                      No results found.
+                    <TableCell
+                      colSpan={5}
+                      className="text-muted-foreground py-10 text-center"
+                    >
+                      No sales found.
                     </TableCell>
                   </TableRow>
                 )}
@@ -217,6 +215,72 @@ const Sales = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={viewOpen}
+        onOpenChange={(open) => {
+          setViewOpen(open);
+          if (!open) setSelectedSale(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">
+                {selectedSale?._id || "Transaction"}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {formatDateTime(
+                  selectedSale?.created?.at ??
+                    selectedSale?.createdAt ??
+                    selectedSale?.updatedAt,
+                )}
+              </p>
+            </div>
+
+            <div className="space-y-2 rounded-xl border border-border bg-background p-3">
+              <SummaryLine
+                label="Items"
+                value={
+                  Array.isArray(selectedSale?.items)
+                    ? selectedSale.items.reduce(
+                        (sum, item) => sum + (Number(item?.quantity) || 0),
+                        0,
+                      )
+                    : "—"
+                }
+              />
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">Payment</span>
+                <PaymentBadge method="Cash" />
+              </div>
+              <SummaryLine
+                label="Total"
+                value={format.peso(selectedSale?.amount || 0)}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => setViewOpen(false)}
+              >
+                Close
+              </Button>
+              <Button
+                type="button"
+                className="rounded-xl gap-2"
+                onClick={() => handlePrint(selectedSale)}
+              >
+                <Printer className="h-4 w-4" />
+                Print
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

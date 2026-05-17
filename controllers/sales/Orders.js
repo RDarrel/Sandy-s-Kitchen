@@ -430,3 +430,49 @@ exports.save = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+exports.browse = async (req, res) => {
+  try {
+    const cashier = req.query.cashier;
+    const orders = await Order.find({
+      ...(cashier && { "created.by": cashier }),
+    })
+      .populate("created.by", "fullName")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const orderIds = orders.map((order) => order._id);
+
+    const orderItems = await OrderItem.find({
+      order: { $in: orderIds },
+    })
+      .populate("menu", "name type")
+      .populate("breakdown.addOns.addOn", "name")
+      .populate("breakdown.bundleItems.bundle", "name")
+      .lean();
+
+    const itemsByOrder = new Map();
+
+    for (const item of orderItems) {
+      const orderId = String(item.order);
+
+      if (!itemsByOrder.has(orderId)) {
+        itemsByOrder.set(orderId, []);
+      }
+
+      itemsByOrder.get(orderId).push(item);
+    }
+
+    const formattedOrders = orders.map((order) => ({
+      ...order,
+      items: itemsByOrder.get(String(order._id)) || [],
+    }));
+
+    res.status(200).json({
+      success: "Orders Fetched Successfully",
+      payload: formattedOrders,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};

@@ -30,21 +30,27 @@ const initialState = {
   customizeState: null,
   customSelected: [],
   isLoading: false,
+  isLoadingSales: false,
   formSubmitted: false,
 };
 
-export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
-  try {
-    return axioKit.universal(`${url}/browse`, token);
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
+export const BROWSE_SALES = createAsyncThunk(
+  `${url}/sales`,
+  ({ token, params }, thunkAPI) => {
+    try {
+      return axioKit.universal(`sales/orders/browse`, token, params);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
 
-    return thunkAPI.rejectWithValue(message);
-  }
-});
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
 export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
   try {
@@ -287,20 +293,20 @@ export const reduxSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(BROWSE.pending, (state) => {
-        state.isLoading = true;
+      .addCase(BROWSE_SALES.pending, (state) => {
+        state.isLoadingSales = true;
         state.isSuccess = false;
         state.message = "";
       })
-      .addCase(BROWSE.fulfilled, (state, action) => {
+      .addCase(BROWSE_SALES.fulfilled, (state, action) => {
         const { payload } = action.payload;
-        state.collections = payload;
-        state.isLoading = false;
+        state.sales = payload;
+        state.isLoadingSales = false;
       })
-      .addCase(BROWSE.rejected, (state, action) => {
+      .addCase(BROWSE_SALES.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
-        state.isLoading = false;
+        state.isLoadingSales = false;
       })
       .addCase(BROWSE_MENUS.pending, (state) => {
         state.isLoading = true;
