@@ -31,14 +31,15 @@ const CashierMenusHeader = () => {
   } = useSelector(({ cashier }) => cashier);
   const previousSearchRef = useRef("");
 
-  useEffect(() => {
-    const el = menuToolbarRef.current;
-    if (!el || typeof window === "undefined") return;
+	  useEffect(() => {
+	    const el = menuToolbarRef.current;
+	    if (!el || typeof window === "undefined") return;
 
-    const update = () => {
-      const next = Math.round(el.getBoundingClientRect()?.height || 0);
-      setMenuToolbarHeight(next);
-    };
+	    const update = () => {
+	      const next = Math.round(el.getBoundingClientRect()?.height || 0);
+	      if (!next) return;
+	      setMenuToolbarHeight((prev) => (prev === next ? prev : next));
+	    };
 
     update();
 
