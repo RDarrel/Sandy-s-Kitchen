@@ -3,7 +3,6 @@ import { Eye, Printer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -16,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { format } from "@/services/utilities";
 import { useDispatch, useSelector } from "react-redux";
 import { BROWSE_SALES } from "@/services/redux/slices/stations/cashier";
+import ViewReceiptModal from "@/components/shared/view-receipt";
 
 const formatDateTime = (value) => {
   try {
@@ -214,71 +214,14 @@ const Sales = () => {
         </CardContent>
       </Card>
 
-      <Dialog
-        open={viewOpen}
-        onOpenChange={(open) => {
+      <ViewReceiptModal
+        isOpen={viewOpen}
+        setIsOpen={(open) => {
           setViewOpen(open);
           if (!open) setSelectedSale(null);
         }}
-      >
-        <DialogContent className="max-w-md">
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <p className="text-sm font-semibold">
-                {selectedSale?._id || "Transaction"}
-              </p>
-              <p className="text-muted-foreground text-xs">
-                {formatDateTime(
-                  selectedSale?.created?.at ??
-                    selectedSale?.createdAt ??
-                    selectedSale?.updatedAt,
-                )}
-              </p>
-            </div>
-
-            <div className="space-y-2 rounded-xl border border-border bg-background p-3">
-              <SummaryLine
-                label="Items"
-                value={
-                  Array.isArray(selectedSale?.items)
-                    ? selectedSale.items.reduce(
-                        (sum, item) => sum + (Number(item?.quantity) || 0),
-                        0,
-                      )
-                    : "—"
-                }
-              />
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">Payment</span>
-                <PaymentBadge method="Cash" />
-              </div>
-              <SummaryLine
-                label="Total"
-                value={format.peso(selectedSale?.amount || 0)}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-xl"
-                onClick={() => setViewOpen(false)}
-              >
-                Close
-              </Button>
-              <Button
-                type="button"
-                className="rounded-xl gap-2"
-                onClick={() => handlePrint(selectedSale)}
-              >
-                <Printer className="h-4 w-4" />
-                Print
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        order={selectedSale}
+      />
     </div>
   );
 };
