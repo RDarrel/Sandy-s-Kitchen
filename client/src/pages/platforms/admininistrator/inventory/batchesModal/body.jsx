@@ -9,13 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Formatter } from "@/services/utilities";
+import { Formatter, Stock } from "@/services/utilities";
 import { Boxes, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { DISPOSE } from "@/services/redux/slices/inventory/stockBatch";
 import { DISPOSE as DISPOSE_INVENTORY_EXPIRED } from "@/services/redux/slices/inventory/inventoryItems";
-
 const BatchesModalBody = ({
   rows = [],
   isLoading = false,
@@ -120,7 +119,7 @@ const BatchesModalBody = ({
                     </TableCell>
                     <TableCell className="text-right font-normal text-muted-foreground">
                       <p className="tabular-nums text-foreground">
-                        {batch?.qtyDisplay}
+                        {Stock.format(batch?.qtyDisplay)}
                         <span className="text-xs text-muted-foreground ml-1">
                           {batch.unit}
                         </span>
@@ -128,7 +127,7 @@ const BatchesModalBody = ({
                     </TableCell>
                     <TableCell className="text-right font-semibold text-foreground">
                       <p className="font-medium tabular-nums text-foreground">
-                        {batch?.remainingQtyDisplay}
+                        {Stock.format(batch?.remainingQtyDisplay)}
                         <span className="text-xs text-muted-foreground ml-1">
                           {batch.unit}
                         </span>

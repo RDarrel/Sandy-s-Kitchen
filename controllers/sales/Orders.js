@@ -77,9 +77,7 @@ const deductStocks = async (items, user) => {
 
     const inventories = await InventoryItem.find({
       _id: { $in: inventoryIds },
-      status: "available",
-      remainingQty: { $gt: 0 },
-    }).lean();
+    });
 
     const inventoryMap = new Map(
       inventories.map((inv) => [String(inv._id), inv]),
@@ -136,15 +134,17 @@ const deductStocks = async (items, user) => {
         }
 
         const deductQty = Math.min(batch.remainingQuantity, qtyToDeduct);
-
+        inventory.stock.current -= deductQty;
         batch.remainingQuantity -= deductQty;
         qtyToDeduct -= deductQty;
 
         if (batch.remainingQuantity <= 0) {
           batch.status = "consumed";
+          inventory.status = "consumed";
         }
 
         await batch.save();
+        await inventory.save();
 
         consumedBatches.push({
           consumedQty: deductQty,
@@ -226,9 +226,9 @@ const handleItems = async (itemsRaw, user, orderId) => {
 
     itemsRaw.forEach((item) => {
       const { menu, addOns = [] } = item;
-      var formattedAddOns = [];
-      var bundleItems = [];
-      var ingredients = [];
+      let formattedAddOns = [];
+      let bundleItems = [];
+      let recipes = [];
       if (addOns?.length > 0) {
         formattedAddOns = formattedBreakdown(
           menu?._id,
@@ -259,7 +259,7 @@ const handleItems = async (itemsRaw, user, orderId) => {
       }
 
       if (menu?.type === "prepared" || menu?.type === "resell") {
-        ingredients = formattedBreakdown(
+        recipes = formattedBreakdown(
           menu?._id,
           menu?.ingredients,
           consumedBatches,
@@ -269,16 +269,13 @@ const handleItems = async (itemsRaw, user, orderId) => {
       const breakdownRaw = {
         addOns: formattedAddOns,
         bundleItems,
-        ingredients,
+        recipes,
       };
       const breakdown = Object.fromEntries(
         Object.entries(breakdownRaw).filter(([_, value]) => value?.length > 0),
       );
       const totalCost =
-        breakdownRaw.ingredients.reduce(
-          (sum, batch) => sum + batch.totalCost,
-          0,
-        ) +
+        breakdownRaw.recipes.reduce((sum, batch) => sum + batch.totalCost, 0) +
         breakdownRaw.addOns.reduce((sum, batch) => sum + batch.totalCost, 0) +
         breakdownRaw.bundleItems.reduce((sum, item) => sum + item.totalCost, 0);
 
@@ -302,7 +299,12 @@ exports.save = async (req, res) => {
   try {
     const { items, order } = req.body;
     const createdOrder = await Order.create(order);
-    await handleItems(items, order.createdBy, createdOrder._id);
+    await handleItems(items, order.created.by, createdOrder._id);
+
+    res.status(201).json({
+      success: "Order Created Successfully",
+      payload: createdOrder,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

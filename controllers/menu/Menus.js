@@ -292,6 +292,7 @@ const attachRecipes = async (menus = []) => {
     const recipe = recipeMap.get(String(menu._id));
     const ingredients =
       recipe?.ingredients?.map((entry) => ({
+        _id: entry._id,
         inventory: entry.inventory,
         qtyPerOrder: entry.qty,
         unit: normalizeUnit(entry.unit),

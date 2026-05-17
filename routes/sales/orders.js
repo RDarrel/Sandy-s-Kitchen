@@ -1,7 +1,7 @@
 const router = require("express").Router(),
-  { save } = require("../../controllers/sales/Order"),
+  { save } = require("../../controllers/sales/Orders"),
   { validate } = require("../../middleware/jwt");
 
-router.get("/save", validate, save);
+router.post("/save", validate, save);
 
 module.exports = router;

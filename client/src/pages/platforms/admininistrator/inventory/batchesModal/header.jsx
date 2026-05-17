@@ -60,14 +60,7 @@ const SummaryCard = ({
   );
 };
 
-const BatchesModalHeader = ({
-  selected,
-  tracksExpiration,
-  rowsCount = 0,
-  search = "",
-  setSearch,
-  icons,
-}) => {
+const BatchesModalHeader = ({ selected, tracksExpiration, icons }) => {
   const availableStockLabel = Stock.display(
     selected?.stockDisplay?.current || 0,
     selected?.measurement,

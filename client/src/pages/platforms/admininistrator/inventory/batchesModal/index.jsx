@@ -99,7 +99,7 @@ const InventoryBatchesModal = () => {
         if (a.remainingQuantity > 0 && b.remainingQuantity === 0) return -1;
         return new Date(a.expirationDate) - new Date(b.expirationDate);
       } else {
-        return new Date(b.createdAt) - new Date(a.createdAt);
+        return new Date(a.createdAt) - new Date(b.createdAt);
       }
     });
 

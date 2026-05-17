@@ -41,7 +41,7 @@ const CashierCart = () => {
   const dispatch = useDispatch();
   const {
     cartOpen,
-    cart,
+    cart = [],
     menus: menusCollections,
   } = useSelector(({ cashier }) => cashier);
 

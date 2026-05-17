@@ -6,13 +6,28 @@ const unitMap = {
   pieces: "Pcs",
 };
 const Stock = {
-  display: (stock, measurement) => {
-    const formatted = Number(stock || 0).toLocaleString(undefined, {
+  format: (stock) => {
+    const value = Number(stock || 0);
+
+    const truncated = Math.floor(value * 100) / 100;
+
+    return truncated.toLocaleString(undefined, {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     });
-    return `${formatted} ${capitalize(unitMap[measurement])}`;
   },
+  display: (stock, measurement, hasMeasurement = true) => {
+    const value = Number(stock || 0);
+
+    const truncated = Math.floor(value * 100) / 100;
+
+    const formatted = truncated.toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+    return `${formatted} ${hasMeasurement ? capitalize(unitMap[measurement]) : ""}`;
+  },
+
   convertToBaseUnit: (value, type, useNumber = false) => {
     const baseUnit = unitMap[type];
     let unit = 0;
