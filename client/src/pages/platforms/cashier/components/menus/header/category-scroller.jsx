@@ -1,0 +1,288 @@
+import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+const CategoryScroller = ({
+  categories = [],
+  activeCategory = "all",
+  isLoading,
+  onChange,
+}) => {
+  const scrollerRef = useRef(null);
+  const dragRef = useRef({
+    isDragging: false,
+    pointerId: null,
+    startX: 0,
+    startScrollLeft: 0,
+    moved: false,
+    cleanup: null,
+  });
+
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const updateScrollButtons = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+
+    const epsilon = 1;
+    setCanScrollLeft(el.scrollLeft > epsilon);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - epsilon);
+  }, []);
+
+  useEffect(() => {
+    updateScrollButtons();
+
+    const el = scrollerRef.current;
+    if (!el) return;
+
+    const onScroll = () => updateScrollButtons();
+    el.addEventListener("scroll", onScroll, { passive: true });
+
+    const onResize = () => updateScrollButtons();
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [updateScrollButtons, categories?.length, isLoading]);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    if (isLoading) return;
+    const id = String(activeCategory || "");
+    if (!id) return;
+    if (isDragging || dragRef.current.isDragging) return;
+
+    const activeEl = el.querySelector(`[data-category-id="${id}"]`);
+    if (!activeEl?.getBoundingClientRect) return;
+
+    const containerRect = el.getBoundingClientRect();
+    const itemRect = activeEl.getBoundingClientRect();
+    const padding = 12;
+
+    const overflowLeft = itemRect.left < containerRect.left + padding;
+    const overflowRight = itemRect.right > containerRect.right - padding;
+
+    if (!overflowLeft && !overflowRight) return;
+
+    const targetLeft =
+      activeEl.offsetLeft - (el.clientWidth - activeEl.clientWidth) / 2;
+
+    try {
+      el.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
+    } catch {
+      el.scrollLeft = Math.max(0, targetLeft);
+    }
+  }, [activeCategory, isLoading, isDragging]);
+
+  const scrollByAmount = useCallback((delta) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: delta, behavior: "smooth" });
+  }, []);
+
+  const endPointer = useCallback(
+    (e) => {
+      const el = scrollerRef.current;
+      const didDrag = dragRef.current.moved;
+      dragRef.current.isDragging = false;
+      setIsDragging(false);
+      try {
+        el?.releasePointerCapture(e.pointerId);
+      } catch {
+        // Ignore.
+      }
+
+      if (typeof dragRef.current.cleanup === "function") dragRef.current.cleanup();
+
+      if (didDrag) {
+        setTimeout(() => {
+          dragRef.current.moved = false;
+        }, 0);
+      }
+    },
+    [setIsDragging],
+  );
+
+  const handlePointerDown = useCallback(
+    (e) => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+
+      if (typeof dragRef.current.cleanup === "function") dragRef.current.cleanup();
+
+      dragRef.current.isDragging = false;
+      dragRef.current.pointerId = e.pointerId;
+      dragRef.current.startX = e.clientX;
+      dragRef.current.startScrollLeft = el.scrollLeft;
+      dragRef.current.moved = false;
+
+      const onWindowPointerUp = (ev) => {
+        if (dragRef.current.pointerId !== ev.pointerId) return;
+        endPointer(ev);
+      };
+
+      const onWindowPointerCancel = (ev) => {
+        if (dragRef.current.pointerId !== ev.pointerId) return;
+        endPointer(ev);
+      };
+
+      window.addEventListener("pointerup", onWindowPointerUp);
+      window.addEventListener("pointercancel", onWindowPointerCancel);
+
+      dragRef.current.cleanup = () => {
+        window.removeEventListener("pointerup", onWindowPointerUp);
+        window.removeEventListener("pointercancel", onWindowPointerCancel);
+        dragRef.current.cleanup = null;
+      };
+    },
+    [endPointer],
+  );
+
+  const handlePointerMove = useCallback(
+    (e) => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      if (dragRef.current.pointerId !== e.pointerId) return;
+
+      if (e.pointerType === "mouse" && (e.buttons & 1) === 0) {
+        endPointer(e);
+        return;
+      }
+
+      const dx = e.clientX - dragRef.current.startX;
+      if (Math.abs(dx) <= 4 && !dragRef.current.isDragging) return;
+
+      if (!dragRef.current.isDragging) {
+        dragRef.current.isDragging = true;
+        setIsDragging(true);
+        dragRef.current.moved = true;
+
+        try {
+          el.setPointerCapture(e.pointerId);
+        } catch {
+          // Ignore.
+        }
+      }
+
+      el.scrollLeft = dragRef.current.startScrollLeft - dx;
+    },
+    [endPointer],
+  );
+
+  const handleWheel = useCallback((e) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    if (el.scrollWidth <= el.clientWidth) return;
+
+    const delta = e.shiftKey ? e.deltaY : e.deltaX;
+    if (delta) el.scrollLeft += delta;
+  }, []);
+
+  const handleCategoryClick = useCallback(
+    (categoryId) => {
+      if (dragRef.current.moved) return;
+      if (typeof onChange === "function") onChange(categoryId);
+    },
+    [onChange],
+  );
+
+  return (
+    <div className="flex w-full min-w-0 items-center gap-2">
+      <button
+        type="button"
+        aria-label="Scroll categories left"
+        onClick={() => scrollByAmount(-240)}
+        disabled={!canScrollLeft}
+        className={`hidden h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border border-border bg-card/80 text-foreground shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 md:inline-flex ${
+          canScrollLeft ? "hover:bg-card" : "cursor-default opacity-30"
+        }`}
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+
+      <div className="relative min-w-0 flex-1 overflow-hidden">
+        {canScrollLeft && (
+          <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-10 bg-gradient-to-r from-background to-transparent" />
+        )}
+        {canScrollRight && (
+          <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-10 bg-gradient-to-l from-background to-transparent" />
+        )}
+        <div
+          ref={scrollerRef}
+          className={`flex min-w-0 items-center gap-2 overflow-x-auto overflow-y-hidden py-0.5 pr-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+            isDragging ? "cursor-grabbing select-none" : "cursor-grab"
+          }`}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={endPointer}
+          onPointerCancel={endPointer}
+          onWheel={handleWheel}
+        >
+          {isLoading
+            ? new Array(10).fill(null).map((_, index) => (
+                <Skeleton
+                  key={index}
+                  className={`h-9 shrink-0 rounded-full ${
+                    index % 5 === 0
+                      ? "w-16"
+                      : index % 5 === 1
+                        ? "w-24"
+                        : index % 5 === 2
+                          ? "w-20"
+                          : index % 5 === 3
+                            ? "w-28"
+                            : "w-24"
+                  }`}
+                />
+              ))
+            : [...(Array.isArray(categories) ? categories : [])].map(
+                (category) => {
+                  const id = String(category?._id || "");
+                  if (!id) return null;
+                  const isActive = String(activeCategory) === id;
+
+                  return (
+                    <button
+                      key={id}
+                      data-category-id={id}
+                      type="button"
+                      onClick={() => handleCategoryClick(id)}
+                      className={`inline-flex h-9 shrink-0 items-center rounded-full px-3 py-0 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:px-4 sm:text-sm ${
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "border border-border bg-background text-foreground hover:border-primary hover:text-primary"
+                      }`}
+                    >
+                      <span className="max-w-[120px] truncate sm:max-w-none">
+                        {category?.name}
+                      </span>
+                    </button>
+                  );
+                },
+              )}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        aria-label="Scroll categories right"
+        onClick={() => scrollByAmount(240)}
+        disabled={!canScrollRight}
+        className={`hidden h-8 w-8 shrink-0 items-center justify-center self-center rounded-full border border-border bg-card/80 text-foreground shadow-sm backdrop-blur transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 md:inline-flex ${
+          canScrollRight ? "hover:bg-card" : "cursor-default opacity-30"
+        }`}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </div>
+  );
+};
+
+export default CategoryScroller;
+

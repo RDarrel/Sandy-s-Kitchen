@@ -1,5 +1,5 @@
 import CashierTopbar from "./components/topbar";
-import CashierBody from "./components/body";
+import CashierBody from "./components/menus";
 import CashierCart from "./components/cart";
 import CashierCustomizeAddOnsDialog from "./components/customize-addons-dialog";
 import useCashierBootstrap from "./hooks/use-cashier-bootstrap";
