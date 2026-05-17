@@ -224,7 +224,7 @@ const syncMenuAddOns = async (menuId, addOnIds = []) => {
   }
 };
 
-const attachRecommendedAddOns = async (menus = []) => {
+const attachRecommendedAddOns = async (menus = [], station) => {
   if (!menus.length) return [];
 
   const menuIds = menus.map((menu) => menu._id);
@@ -236,10 +236,13 @@ const attachRecommendedAddOns = async (menus = []) => {
     .populate("addOn", "name price description group hasRecipe")
     .lean();
   const linksIds = links.map((link) => String(link.addOn?._id));
-  const recipes = await Recipe.find({
-    parentType: "AddOn",
-    parentId: { $in: linksIds },
-  });
+  const recipes =
+    station === "cashier"
+      ? await Recipe.find({
+          parentType: "AddOn",
+          parentId: { $in: linksIds },
+        })
+      : [];
 
   const addOnsByMenuId = links.reduce((accumulator, link) => {
     const menuId = String(link.menu);
@@ -251,7 +254,7 @@ const attachRecommendedAddOns = async (menus = []) => {
 
     if (addOn) {
       var recipe = [];
-      if (addOn.hasRecipe) {
+      if (addOn.hasRecipe && station === "cashier") {
         recipe = recipes.find(
           (rec) => String(rec.parentId) === String(addOn._id),
         );
@@ -305,7 +308,7 @@ const attachRecipes = async (menus = []) => {
   });
 };
 
-const attachCompositions = async (menus = []) => {
+const attachCompositions = async (menus = [], station) => {
   if (!menus.length) return [];
 
   const compositions = await MenuComposition.find({
@@ -319,26 +322,35 @@ const attachCompositions = async (menus = []) => {
     compositions.map((composition) => [String(composition.menu), composition]),
   );
 
-  return menus.map((menu) => {
-    const composition = compositionMap.get(String(menu._id));
-    const bundleItems =
-      composition?.item?.map((entry) => ({
-        ...(entry.menu || {}),
-        id: entry?.menu?._id || entry?.menu || null,
-        quantity: entry.qty,
-      })) || [];
+  return Promise.all(
+    menus.map(async (menu) => {
+      const composition = compositionMap.get(String(menu._id));
 
-    return {
-      ...menu,
-      bundleItems,
-    };
-  });
+      const bundleItems =
+        composition?.item?.map((entry) => ({
+          ...(entry.menu || {}),
+          id: entry?.menu?._id || entry?.menu || null,
+          quantity: entry.qty,
+        })) || [];
+
+      return {
+        ...menu,
+        bundleItems:
+          station !== "cashier"
+            ? bundleItems
+            : await attachRecipes(bundleItems),
+      };
+    }),
+  );
 };
 
-const hydrateMenus = async (menus = []) => {
+const hydrateMenus = async (menus = [], station) => {
   const menusWithRecipes = await attachRecipes(menus);
-  const menusWithCompositions = await attachCompositions(menusWithRecipes);
-  return attachRecommendedAddOns(menusWithCompositions);
+  const menusWithCompositions = await attachCompositions(
+    menusWithRecipes,
+    station,
+  );
+  return attachRecommendedAddOns(menusWithCompositions, station);
 };
 
 const findMenu = async (_id) => {
@@ -405,7 +417,7 @@ exports.browse = async (req, res) => {
 
     res.status(200).json({
       success: "Menu Fetched Successfully",
-      payload: await hydrateMenus(menus),
+      payload: await hydrateMenus(menus, station),
     });
   } catch (error) {
     res.status(400).json({ error: error.message });

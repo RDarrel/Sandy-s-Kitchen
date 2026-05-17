@@ -89,6 +89,7 @@ exports.reportWaste = async (req, res) => {
     today.setHours(0, 0, 0, 0);
     const next7Days = new Date(today);
     next7Days.setDate(next7Days.getDate() + 7);
+
     const sortOption = trackExpiration
       ? { expirationDate: 1, createdAt: 1 }
       : { createdAt: 1 };
