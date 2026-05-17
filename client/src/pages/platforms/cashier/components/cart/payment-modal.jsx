@@ -24,7 +24,6 @@ const formatDateTime = (value) => {
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     }).format(date);
   } catch {
     return "";
@@ -66,25 +65,25 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
         at: Date.now(),
       },
     };
-    dispatch(
-      SAVE({
-        token,
-        data: {
-          order,
-          items,
-        },
-      }),
-    )
-      .unwrap()
-      .then(() => {
-        onOpenChange(false);
-        dispatch(CartClear());
-        setTenderedRaw("");
-        toast.success("Successfully saved order.");
-      })
-      .catch((error) => {
-        toast.error(error?.message || error || "Failed to save order.");
-      });
+    // dispatch(
+    //   SAVE({
+    //     token,
+    //     data: {
+    //       order,
+    //       items,
+    //     },
+    //   }),
+    // )
+    //   .unwrap()
+    //   .then(() => {
+    //     onOpenChange(false);
+    //     dispatch(CartClear());
+    //     setTenderedRaw("");
+    //     toast.success("Successfully saved order.");
+    //   })
+    //   .catch((error) => {
+    //     toast.error(error?.message || error || "Failed to save order.");
+    //   });
   };
 
   return (
@@ -219,7 +218,8 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                     <span className="font-bold tracking-wide">Tendered</span>
                     <div className="w-[160px]">
                       <Input
-                        inputMode="number"
+                        inputMode="decimal"
+                        type="number"
                         required
                         value={tenderedRaw}
                         min={Number(totalAmount)}
@@ -249,9 +249,7 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
             </div>
             <Button
               type="submit"
-              disabled={
-                !tenderedRaw || tenderedRaw < totalAmount || formSubmitted
-              }
+              disabled={formSubmitted}
               className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-base  font-sans"
             >
               <CreditCard className="h-4 w-4" />
