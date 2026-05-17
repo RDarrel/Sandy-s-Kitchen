@@ -1,4 +1,4 @@
-import { Formatter } from "@/services/utilities";
+import { Formatter, capitalize } from "@/services/utilities";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
@@ -7,7 +7,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ChefHat, Info } from "lucide-react";
-
 const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
   const isAvailable = true;
   const bundleItems = Array.isArray(menu?.bundleItems) ? menu.bundleItems : [];
@@ -106,7 +105,7 @@ const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-1.5">
               <p className="min-w-0 truncate text-sm font-semibold">
-                {menu?.name || "—"}
+                {capitalize(menu?.name) || "—"}
               </p>
               {hasDescription ? (
                 <Tooltip>
@@ -138,7 +137,9 @@ const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
               ) : null}
             </div>
           </div>
-          <p className="shrink-0 text-sm font-bold">{Formatter.amount(price)}</p>
+          <p className="shrink-0 text-sm font-bold">
+            {Formatter.amount(price)}
+          </p>
         </div>
       </div>
     </Card>
@@ -146,4 +147,3 @@ const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
 };
 
 export default MenuCard;
-

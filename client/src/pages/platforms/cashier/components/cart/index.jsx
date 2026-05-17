@@ -2,6 +2,7 @@ import Cloudinary from "@/services/utilities/cloudinary";
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { capitalize } from "@/services/utilities";
 import {
   Sheet,
   SheetContent,
@@ -306,7 +307,7 @@ const CartPanel = ({
 
                     <div className="min-w-0 flex-1">
                       <p className="min-w-0 truncate text-sm font-semibold">
-                        {menu?.name}
+                        {capitalize(menu?.name)}
                       </p>
                       <p className="truncate text-[11px] font-semibold text-muted-foreground">
                         {Formatter.amount(unitTotal)}

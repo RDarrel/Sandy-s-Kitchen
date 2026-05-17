@@ -8,6 +8,7 @@ import { CreditCard } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import Spinner from "@/components/shared/spinner";
 import { toast } from "sonner";
+import { capitalize } from "@/services/utilities";
 const getBaseTotal = (entry) => {
   const qty = Number(entry?.line?.quantity) || 0;
   const base = Number(entry?.menu?.price) || 0;
@@ -88,28 +89,25 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md overflow-hidden rounded-2xl bg-white p-0 text-foreground">
+      <DialogContent className="max-w-sm  rounded-2xl bg-white p-0 text-foreground">
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-6">
-            <div
-              className="w-full"
-              style={{ fontFamily: "'Courier New', Courier, monospace" }}
-            >
+            <div className="w-full font-mono antialiased text-slate-900">
               <div className="text-center">
-                <p className="text-[15px] font-extrabold tracking-wider">
+                <p className="text-[16px] font-extrabold tracking-wide">
                   Sandy&apos;s Kitchenette
                 </p>
-                <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
+                <p className="mt-0.5 text-[12px] leading-snug text-slate-600">
                   Brgy. Rio Chico Gen. Tinio, Nueva Ecija
                 </p>
-                <p className="mt-0.5 text-[12px] text-muted-foreground">
+                <p className="mt-0.5 text-[12px] font-medium text-slate-700">
                   {nowLabel}
                 </p>
               </div>
 
               <div className="my-3 border-t border-dashed border-muted-foreground/40" />
 
-              <div className="space-y-2 text-[13px] leading-6">
+              <div className="space-y-2 text-[14px] leading-6">
                 {safeEntries.length ? (
                   safeEntries.map((entry) => {
                     const lineId = String(entry?.line?.id || "");
@@ -127,16 +125,19 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                       <div key={lineId} className="space-y-1">
                         <div className="flex items-start justify-between gap-3">
                           <p className="min-w-0 break-words">
-                            <span className="font-bold">{qty}x</span> {name}
+                            <span className="font-bold tabular-nums">
+                              {qty}x
+                            </span>{" "}
+                            {capitalize(name)}
                           </p>
-                          <p className="shrink-0 font-bold">
+                          <p className="shrink-0 font-bold tabular-nums">
                             {Formatter.amount(baseTotal)}
                           </p>
                         </div>
 
                         {addOns.length ? (
                           <div className="pl-5">
-                            <div className="relative mt-1 pl-5 text-[12px] leading-5 text-foreground/80">
+                            <div className="relative mt-1 pl-5 text-[13px] leading-5 text-slate-700">
                               <span
                                 aria-hidden="true"
                                 className="absolute left-1 top-[-7px] bottom-[0.6rem] w-px bg-muted-foreground/35"
@@ -151,9 +152,9 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                                     className="absolute -left-4 top-1/2 h-px w-3 -translate-y-1/2 bg-muted-foreground/35"
                                   />
                                   <p className="min-w-0 break-words">
-                                    {String(addOn?.name || "Add-on")}
+                                    {capitalize(addOn?.name)}
                                   </p>
-                                  <p className="shrink-0 font-semibold text-foreground/90">
+                                  <p className="shrink-0 font-semibold tabular-nums text-slate-800">
                                     +
                                     {Formatter.amount(
                                       (Number(addOn?.price) || 0) * qty,
@@ -167,7 +168,7 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
 
                         {bundleItems.length ? (
                           <div className="pl-5">
-                            <div className="relative mt-1 pl-5 text-[12px] leading-5 text-foreground/80">
+                            <div className="relative mt-1 pl-5 text-[13px] leading-5 text-slate-700">
                               <span
                                 aria-hidden="true"
                                 className="absolute left-1 top-[-7px] bottom-[0.6rem] w-px bg-muted-foreground/35"
@@ -186,7 +187,7 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                                     className="absolute -left-4 top-1/2 h-px w-3 -translate-y-1/2 bg-muted-foreground/35"
                                   />
                                   <p className="min-w-0 break-words">
-                                    {String(bundleItem?.name || "Bundle item")}
+                                    {capitalize(bundleItem?.name)}
                                   </p>
                                 </div>
                               ))}
@@ -205,10 +206,10 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
 
               <div className="my-3 border-t border-dashed border-muted-foreground/40" />
 
-              <div className="text-[13px]">
+              <div className="text-[14px]">
                 <div className="flex items-center justify-between">
                   <span className="font-bold tracking-wide">Total</span>
-                  <span className="text-[15px] font-extrabold">
+                  <span className="text-[16px] font-extrabold tabular-nums">
                     {Formatter.amount(totalAmount)}
                   </span>
                 </div>
@@ -225,17 +226,17 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                         min={Number(totalAmount)}
                         onChange={(e) => setTenderedRaw(e.target.value)}
                         placeholder="0.00"
-                        className="h-10 rounded-lg bg-white text-right text-[14px] font-semibold"
+                        className="h-10 rounded-lg bg-white text-right text-[14px] font-semibold tabular-nums text-slate-900 placeholder:text-slate-400"
                       />
                     </div>
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-[13px]">
+                  <div className="mt-2 flex items-center justify-between text-[14px]">
                     <span className="font-bold tracking-wide">Change</span>
                     <span
                       className={
                         change != null && change < 0
-                          ? "font-bold text-[15px] text-destructive"
-                          : "font-bold text-[15px]"
+                          ? "font-bold text-[16px] tabular-nums text-destructive"
+                          : "font-bold text-[16px] tabular-nums"
                       }
                     >
                       {change == null
