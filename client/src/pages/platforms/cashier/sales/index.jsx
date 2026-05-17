@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Eye, Printer } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Eye, Printer, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -11,19 +12,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import { format } from "@/services/utilities";
-import { useDispatch, useSelector } from "react-redux";
-import { BROWSE_SALES } from "@/services/redux/slices/stations/cashier";
+import { useSelector } from "react-redux";
 import ViewReceiptModal from "@/components/shared/view-receipt";
 
 const formatDateTime = (value) => {
   try {
     const date = value instanceof Date ? value : new Date(value || Date.now());
     return new Intl.DateTimeFormat(undefined, {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     }).format(date);
@@ -44,35 +40,11 @@ const SummaryLine = ({ label, value }) => (
   </div>
 );
 
-const PaymentBadge = ({ method }) => {
-  const mapped = String(method || "").toLowerCase();
-  const ui =
-    mapped === "cash"
-      ? { className: "bg-primary/10 text-primary", label: "Cash" }
-      : mapped === "gcash"
-        ? {
-            className: "bg-secondary text-secondary-foreground",
-            label: "GCash",
-          }
-        : mapped === "card"
-          ? { className: "bg-muted text-foreground", label: "Card" }
-          : { className: "bg-muted text-foreground", label: method || "—" };
-
-  return (
-    <span
-      className={cn(
-        "inline-flex h-5 items-center rounded-full px-2 text-[11px] font-medium",
-        ui.className,
-      )}
-    >
-      {ui.label}
-    </span>
-  );
-};
 const Sales = () => {
   const { sales, isLoadingSales } = useSelector(({ cashier }) => cashier);
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
+  const [transactionQuery, setTransactionQuery] = useState("");
 
   const rows = useMemo(() => {
     const list = Array.isArray(sales) ? sales : [];
@@ -93,6 +65,14 @@ const Sales = () => {
       };
     });
   }, [sales]);
+
+  const filteredRows = useMemo(() => {
+    const q = String(transactionQuery || "")
+      .trim()
+      .toLowerCase();
+    if (!q) return rows;
+    return rows.filter((row) => row.id.toLowerCase().includes(q));
+  }, [rows, transactionQuery]);
 
   const handlePrint = (order) => {
     try {
@@ -116,25 +96,44 @@ const Sales = () => {
   }, [rows]);
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-4 p-4">
+    <div className="mx-auto w-full max-w-4xl space-y-4 p-4">
       <Card className="overflow-hidden bg-card">
-        <CardHeader className="-mb-2">
-          <div className="space-y-1">
-            <CardTitle className="text-base">Today's Transactions</CardTitle>
-            <p className="text-muted-foreground text-xs">
-              Recent transactions and total sales today.
-            </p>
+        <CardHeader className="gap-3 -mb-6">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-1">
+              <CardTitle className="text-base">
+                Today&apos;s Transactions
+              </CardTitle>
+              <p className="text-muted-foreground text-xs">
+                View transactions and receipts.
+              </p>
+            </div>
+
+            <div className="w-full sm:w-[260px]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={transactionQuery}
+                  onChange={(e) => setTransactionQuery(e.target.value)}
+                  placeholder="Search transaction Id..."
+                  className="h-10 rounded-md pl-9"
+                />
+              </div>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <SummaryLine label="Sales" value={format.peso(summary.totalSales)} />
 
-          <div className="overflow-auto rounded-xl border border-border bg-background">
+          <div className="overflow-auto max-h-[64vh] rounded-md border border-border bg-background">
             <Table className="w-full table-fixed">
               <TableHeader className="sticky top-0 z-10 bg-muted/60">
                 <TableRow>
+                  <TableHead className="w-[190px] whitespace-nowrap">
+                    Transaction Id
+                  </TableHead>
                   <TableHead className="w-[170px] whitespace-nowrap">
-                    Date/Time
+                    Time
                   </TableHead>
                   <TableHead className="w-[70px] whitespace-nowrap text-right">
                     Items
@@ -157,9 +156,12 @@ const Sales = () => {
                       Loading sales...
                     </TableCell>
                   </TableRow>
-                ) : rows.length ? (
-                  rows.map((row) => (
+                ) : filteredRows.length ? (
+                  filteredRows.map((row) => (
                     <TableRow key={row.id} className="hover:bg-muted/30">
+                      <TableCell className="whitespace-nowrap  text-muted-foreground">
+                        {row.id}
+                      </TableCell>
                       <TableCell className="whitespace-nowrap text-muted-foreground">
                         {row.time}
                       </TableCell>
@@ -186,7 +188,6 @@ const Sales = () => {
                           </Button>
                           <Button
                             type="button"
-                            variant="outline"
                             size="sm"
                             className="h-8 w-8 rounded-lg p-0"
                             onClick={() => handlePrint(row.raw)}
@@ -204,7 +205,9 @@ const Sales = () => {
                       colSpan={5}
                       className="text-muted-foreground py-10 text-center"
                     >
-                      No sales found.
+                      {transactionQuery.trim()
+                        ? "No transactions match that id."
+                        : "No sales found."}
                     </TableCell>
                   </TableRow>
                 )}
