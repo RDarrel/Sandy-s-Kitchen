@@ -2,14 +2,93 @@ import React, { useEffect, useState } from "react";
 import "./print.css";
 import { format } from "@/services/utilities";
 
+const safeParseJson = (value) => {
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
+
+const normalizeOrderPrintout = (raw) => {
+  const data = raw?.payload ? raw.payload : raw;
+  if (!data || typeof data !== "object") return null;
+
+  const createdAt =
+    data?.created?.at ?? data?.createdAt ?? data?.updatedAt ?? Date.now();
+
+  const cashierRaw =
+    data?.created?.by?.fullName ||
+    data?.createdBy?.fullName ||
+    data?.cashier?.fullName ||
+    "";
+
+  const cashierName =
+    typeof cashierRaw === "string"
+      ? cashierRaw
+      : cashierRaw && typeof cashierRaw === "object"
+        ? [cashierRaw?.fname, cashierRaw?.mname, cashierRaw?.lname]
+            .filter(Boolean)
+            .join(" ")
+        : "";
+
+  const itemsRaw = Array.isArray(data?.items)
+    ? data.items
+    : Array.isArray(data?.cart)
+      ? data.cart
+      : [];
+
+  const items = itemsRaw
+    .map((item) => {
+      const menuName = item?.menu?.name || item?.name || "—";
+      const quantity = Number(item?.quantity ?? item?.line?.quantity ?? 0) || 0;
+      const amount = Number(item?.amount ?? item?.lineTotal ?? 0) || 0;
+      const price = Number(item?.price ?? item?.menu?.price ?? 0) || 0;
+
+      const addOns = Array.isArray(item?.breakdown?.addOns)
+        ? item.breakdown.addOns
+        : Array.isArray(item?.line?.addOns)
+          ? item.line.addOns
+          : [];
+
+      const bundleItems = Array.isArray(item?.breakdown?.bundleItems)
+        ? item.breakdown.bundleItems
+        : Array.isArray(item?.menu?.bundleItems)
+          ? item.menu.bundleItems
+          : [];
+
+      return {
+        _id: String(item?._id || item?.id || ""),
+        menuName: String(menuName),
+        quantity,
+        amount: amount || price * quantity,
+        addOns,
+        bundleItems,
+      };
+    })
+    .filter((item) => item.quantity > 0 || item.amount > 0);
+
+  const totalAmount = Number(data?.amount ?? data?.totalAmount ?? 0) || 0;
+  const cash = Number(data?.cash ?? data?.tendered ?? 0) || 0;
+
+  return {
+    _id: String(data?._id || ""),
+    createdAt,
+    cashierName: String(cashierName || ""),
+    totalAmount,
+    cash,
+    items,
+  };
+};
+
 const ClaimStub = () => {
-  const [sale, setSale] = useState({});
+  const [sale, setSale] = useState(null);
 
   useEffect(() => {
-    const fakeDb = localStorage.getItem("claimStub");
-    if (!fakeDb) return false;
-    const data = JSON.parse(fakeDb);
-    setSale(data);
+    const raw = localStorage.getItem("order-printout");
+    const parsed = safeParseJson(raw);
+    setSale(normalizeOrderPrintout(parsed));
   }, []);
 
   useEffect(() => {
@@ -21,8 +100,14 @@ const ClaimStub = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const { cashier, cart = [], amount: totalAmount, cash = 0, createdAt } = sale;
-  const { fullName = {} } = cashier || {};
+  const {
+    _id,
+    items = [],
+    totalAmount = 0,
+    cash = 0,
+    createdAt,
+    cashierName,
+  } = sale || {};
   const change = cash - totalAmount;
 
   const vatRate = 0.12;
@@ -32,13 +117,13 @@ const ClaimStub = () => {
   return (
     <div className="container-receipt mt-1">
       <div className="header">
-        <h6 className="store">PETROMIC</h6>
-        <h6 className=" -mt-1  block">Gas Station</h6>
+        <h6 className="store">Sandy's Kitchenette</h6>
         <h6 className="address">Brgy. Rio Chico Gen. Tinio, Nueva Ecija</h6>
       </div>
       <small className="font-bold text-center block">
-        {new Date(createdAt).toDateString()},{" "}
-        {new Date(createdAt).toLocaleTimeString()}
+        {createdAt ? new Date(createdAt).toDateString() : ""}
+        {createdAt ? ", " : ""}
+        {createdAt ? new Date(createdAt).toLocaleTimeString() : ""}
       </small>
       <div
         className="text-center"
@@ -63,31 +148,111 @@ const ClaimStub = () => {
         >
           Transaction ID
         </small>
-        <span className="block mt-">{sale?._id}</span>
+        <span className="block mt-">{_id || "—"}</span>
       </div>
 
       <div className="receipt-table mt-1">
-        <div className="receipt-table-header-container">
-          <div className="receipt-table-header">
-            <span>Fuel</span>
-            <span>Liters</span>
-            <span>Amount</span>
-          </div>
-        </div>
+        <div className="space-y-1 text-[10px] leading-4">
+          {items.length ? (
+            items.map((item, i) => {
+              const lineKey = item._id || `${item.menuName}-${i}`;
+              const qty = Number(item.quantity) || 0;
+              const lineTotal = Number(item.amount) || 0;
 
-        {cart.map((item, i) => {
-          const { fuel, amount } = item;
-          const { pricing } = fuel;
-          const { cost, markup } = pricing;
-          const srp = cost + markup;
-          return (
-            <div key={i} className="receipt-row">
-              <span className="item-name">{fuel.name}</span>
-              <span>{format.liters(amount, srp)}</span>
-              <span>{format.peso(amount)}</span>
-            </div>
-          );
-        })}
+              const addOns = Array.isArray(item.addOns) ? item.addOns : [];
+              const bundleItems = Array.isArray(item.bundleItems)
+                ? item.bundleItems
+                : [];
+
+              return (
+                <div key={lineKey} className="space-y-0.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="min-w-0 break-words">
+                      <span className="font-bold tabular-nums">{qty}x</span>{" "}
+                      {item.menuName}
+                    </p>
+                    <p className="shrink-0 font-bold tabular-nums">
+                      {format.peso(lineTotal)}
+                    </p>
+                  </div>
+
+                  {addOns.length ? (
+                    <div className="pl-5">
+                      <div className="relative mt-0.5 pl-5 text-[10px] leading-4 text-black/80">
+                        <span
+                          aria-hidden="true"
+                          className="absolute left-1 top-[-6px] bottom-[0.5rem] w-px bg-black/30"
+                        />
+                        {addOns.map((row, addOnIndex) => {
+                          const name = String(
+                            row?.addOn?.name || row?.name || "Add-on",
+                          );
+                          const amount =
+                            Number(row?.amount ?? row?.price ?? 0) || 0;
+                          return (
+                            <div
+                              key={String(
+                                row?._id ||
+                                  row?.addOn?._id ||
+                                  row?.addOn ||
+                                  `${lineKey}-addon-${addOnIndex}`,
+                              )}
+                              className="relative flex items-start justify-between gap-2"
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="absolute -left-4 top-2 h-px w-3 bg-black/30"
+                              />
+                              <p className="min-w-0 break-words">{name}</p>
+                              <p className="shrink-0 font-semibold tabular-nums text-black/90">
+                                +{format.peso(amount)}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {bundleItems.length ? (
+                    <div className="pl-5">
+                      <div className="relative mt-0.5 pl-5 text-[10px] leading-4 text-black/80">
+                        <span
+                          aria-hidden="true"
+                          className="absolute left-1 top-[-6px] bottom-[0.5rem] w-px bg-black/30"
+                        />
+                        {bundleItems.map((row, bundleIndex) => {
+                          const name = String(
+                            row?.bundle?.name || row?.name || "Bundle item",
+                          );
+                          return (
+                            <div
+                              key={String(
+                                row?._id ||
+                                  row?.bundle?._id ||
+                                  row?.bundle ||
+                                  `${lineKey}-bundle-${bundleIndex}`,
+                              )}
+                              className="relative flex items-start justify-between gap-2"
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="absolute -left-4 top-2 h-px w-3 bg-black/30"
+                              />
+                              <p className="min-w-0 break-words">{name}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-center opacity-70">No items</p>
+          )}
+        </div>
 
         <div className="totals-printout">
           <span>VATable Sales:</span>
@@ -115,7 +280,7 @@ const ClaimStub = () => {
         </div>
         <div className="flex justify-between cashier">
           <span>Cashier:</span>
-          <span>{`${fullName.fname} ${fullName.lname}`}</span>
+          <span>{cashierName || "—"}</span>
         </div>
 
         <div className="text-center mt-3">
