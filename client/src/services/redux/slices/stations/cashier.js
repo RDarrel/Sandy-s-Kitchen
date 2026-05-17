@@ -30,11 +30,25 @@ const initialState = {
   customizeState: null,
   customSelected: [],
   isLoading: false,
+  formSubmitted: false,
 };
 
 export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
   try {
     return axioKit.universal(`${url}/browse`, token);
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
+export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
+  try {
+    return axioKit.save("sales/orders", form.data, form.token);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -310,6 +324,20 @@ export const reduxSlice = createSlice({
         const { error } = action;
         state.message = error.message;
         state.isLoading = false;
+      })
+      .addCase(SAVE.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(SAVE.fulfilled, (state, action) => {
+        state.formSubmitted = false;
+        state.isLoading = false;
+      })
+      .addCase(SAVE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
       });
   },
 });

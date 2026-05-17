@@ -1,8 +1,8 @@
 const InventoryItem = require("../../models/inventory/Item");
 const StockBatch = require("../../models/inventory/StockBatch");
 const StockMovement = require("../../models/inventory/StockMovement");
-const Order = require("../../models/sales/Order");
-const OrderItem = require("../../models/sales/OrderItem");
+const Order = require("../../models/sales/order/Order");
+const OrderItem = require("../../models/sales/order/OrderItem");
 const { convertToBaseUnit } = require("../../utilities/unitConverter");
 const getIngredients = (items, quantity) => {
   return items.flatMap((item) => {
