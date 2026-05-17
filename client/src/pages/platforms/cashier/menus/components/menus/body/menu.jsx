@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ChefHat, Info } from "lucide-react";
 const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
-  const isAvailable = true;
+  const isAvailable = menu?.isAvailable ?? menu?.isPublish;
   const bundleItems = Array.isArray(menu?.bundleItems) ? menu.bundleItems : [];
   const bundleCount = bundleItems.length;
   const hasBundle = (menu?.type || "") === "bundle" && bundleCount > 0;
@@ -23,7 +23,7 @@ const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
       role="button"
       tabIndex={0}
       aria-label={`Add ${menu?.name || "menu item"} to current order`}
-      onClick={onAdd}
+      onClick={isAvailable ? onAdd : () => {}}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
