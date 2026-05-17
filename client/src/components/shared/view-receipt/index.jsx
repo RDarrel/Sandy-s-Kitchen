@@ -88,7 +88,7 @@ const ViewReceiptModal = ({ isOpen, setIsOpen, order }) => {
             </h6>
           </div>
 
-          <small className="font-bold text-center block text-[14px]">
+          <small className="font-bold text-center block text-[13px]">
             {createdAt ? new Date(createdAt).toDateString() : ""}
             {createdAt ? ", " : ""}
             {createdAt ? new Date(createdAt).toLocaleTimeString() : ""}
