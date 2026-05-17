@@ -128,7 +128,7 @@ const InventoryBody = ({
                     handlePagination(sortedFiltered, page, maxPage).map(
                       (item) => {
                         return (
-                          <TableRow key={item._id} className="">
+                          <TableRow key={item._id}>
                             <TableCell className="whitespace-normal">
                               <div className="space-y-1">
                                 <p className="font-semibold text-foreground">

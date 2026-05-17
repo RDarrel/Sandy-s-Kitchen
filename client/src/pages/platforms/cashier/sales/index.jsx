@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Eye, Printer, Search } from "lucide-react";
+import { Eye, Printer, Search, ReceiptText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import {
 import { format } from "@/services/utilities";
 import { useSelector } from "react-redux";
 import ViewReceiptModal from "@/components/shared/view-receipt";
+import TableLoading from "@/components/shared/loading/table";
 
 const formatDateTime = (value) => {
   try {
@@ -45,7 +46,6 @@ const Sales = () => {
   const [viewOpen, setViewOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
   const [transactionQuery, setTransactionQuery] = useState("");
-
   const rows = useMemo(() => {
     const list = Array.isArray(sales) ? sales : [];
 
@@ -126,8 +126,8 @@ const Sales = () => {
           <SummaryLine label="Sales" value={format.peso(summary.totalSales)} />
 
           <div className="overflow-auto max-h-[64vh] rounded-md border border-border bg-background">
-            <Table className="w-full table-fixed">
-              <TableHeader className="sticky top-0 z-10 bg-muted/60">
+            <Table className="w-full ">
+              <TableHeader className="sticky top-0 z-10 bg-muted/70">
                 <TableRow>
                   <TableHead className="w-[190px] whitespace-nowrap">
                     Transaction Id
@@ -148,17 +148,10 @@ const Sales = () => {
               </TableHeader>
               <TableBody>
                 {isLoadingSales ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="text-muted-foreground py-10 text-center"
-                    >
-                      Loading sales...
-                    </TableCell>
-                  </TableRow>
+                  <TableLoading />
                 ) : filteredRows.length ? (
                   filteredRows.map((row) => (
-                    <TableRow key={row.id} className="hover:bg-muted/30">
+                    <TableRow key={row.id}>
                       <TableCell className="whitespace-nowrap  text-muted-foreground">
                         {row.id}
                       </TableCell>
@@ -201,13 +194,26 @@ const Sales = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={5}
-                      className="text-muted-foreground py-10 text-center"
-                    >
-                      {transactionQuery.trim()
-                        ? "No transactions match that id."
-                        : "No sales found."}
+                    <TableCell colSpan={5} className="p-0">
+                      <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 px-6 py-10 text-center">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                          <ReceiptText className="h-7 w-7 text-muted-foreground" />
+                        </div>
+
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-foreground">
+                            {transactionQuery.trim()
+                              ? "No matching transactions"
+                              : "No sales yet"}
+                          </p>
+
+                          <p className="max-w-sm text-sm text-muted-foreground">
+                            {transactionQuery.trim()
+                              ? "Try searching with a different transaction ID."
+                              : "Completed sales transactions will appear here."}
+                          </p>
+                        </div>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
