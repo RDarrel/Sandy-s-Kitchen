@@ -242,6 +242,8 @@ const attachRecommendedAddOns = async (menus = [], station) => {
           parentType: "AddOn",
           parentId: { $in: linksIds },
         })
+          .populate("ingredients.inventory")
+          .lean()
       : [];
 
   const addOnsByMenuId = links.reduce((accumulator, link) => {

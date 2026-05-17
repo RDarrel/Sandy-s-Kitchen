@@ -60,21 +60,37 @@ const modelSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "AddOn",
           },
-          recipe: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Recipe",
-          },
+          recipes: [
+            {
+              recipe: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Recipe",
+              },
+              totalCost: {
+                type: Number,
+              },
+              costPerUnit: {
+                type: Number,
+              },
+              consumedQty: {
+                type: Number,
+              },
+              unit: {
+                type: String,
+              },
+            },
+          ],
           totalCost: {
             type: Number,
           },
-          costPerUnit: {
+          price: {
             type: Number,
           },
-          consumedQty: {
+          quantity: {
             type: Number,
           },
-          unit: {
-            type: String,
+          amount: {
+            type: Number,
           },
         },
       ],

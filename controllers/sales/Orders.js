@@ -4,7 +4,7 @@ const StockMovement = require("../../models/inventory/StockMovement");
 const Order = require("../../models/sales/order/Order");
 const OrderItem = require("../../models/sales/order/OrderItem");
 const { convertToBaseUnit } = require("../../utilities/unitConverter");
-const getIngredients = (items, quantity) => {
+const getIngredients = (items) => {
   return items.flatMap((item) => {
     const { menu, quantity, addOns } = item;
     var ingredients = [];
@@ -52,13 +52,19 @@ const getIngredients = (items, quantity) => {
       ];
     }
 
-    if (addOns?.length) {
-      addOns.forEach((element) => {
-        ingredients.push({
-          ...element,
-          addOnId: element._id,
-          qtyPerOrder: element.qty * quantity,
-          menu: menu._id,
+    const addOnsWithRecipes = addOns?.filter(({ hasRecipe }) => hasRecipe);
+
+    if (addOnsWithRecipes?.length > 0) {
+      addOnsWithRecipes.forEach((element) => {
+        const { ingredients: addOnsIngredients = [] } = element;
+        console.log("addOnId", element);
+        addOnsIngredients.forEach((ing) => {
+          ingredients.push({
+            ...ing,
+            addOn: element?._id,
+            qtyPerOrder: ing.qty * quantity,
+            menu: menu._id,
+          });
         });
       });
     }
@@ -187,7 +193,7 @@ const deductStocks = async (items, user) => {
         totalCost,
         recipe: ingredient._id,
         menu: ingredient?.menu,
-        addOn: ingredient?.addOnId,
+        addOn: ingredient?.addOn,
         bundle: ingredient?.bundleId,
         costPerUnit: costPerUnit,
         consumedQty: qtyConverted,
@@ -223,19 +229,31 @@ const handleItems = async (itemsRaw, user, orderId) => {
   try {
     const items = [];
     const consumedBatches = await deductStocks(itemsRaw, user);
-
+    console.log("consumedBatches", consumedBatches);
     itemsRaw.forEach((item) => {
       const { menu, addOns = [] } = item;
       let formattedAddOns = [];
       let bundleItems = [];
       let recipes = [];
       if (addOns?.length > 0) {
-        formattedAddOns = formattedBreakdown(
-          menu?._id,
-          addOns,
-          consumedBatches,
-          "addOn",
-        );
+        addOns.forEach((addOn) => {
+          const consumed = consumedBatches.filter(
+            (batch) =>
+              String(batch.addOn) === String(addOn._id) &&
+              batch.menu === menu?._id,
+          );
+          formattedAddOns.push({
+            addOn: addOn?._id,
+            recipes: consumed,
+            price: addOn.price,
+            amount: item?.quantity * addOn.price,
+            quantity: 1,
+            totalCost: consumed.reduce(
+              (sum, batch) => sum + batch.totalCost,
+              0,
+            ),
+          });
+        });
       }
       if (menu?.bundleItems?.length > 0 && menu?.type === "bundle") {
         menu.bundleItems.forEach((bundleItem) => {
