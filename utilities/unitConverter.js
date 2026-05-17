@@ -49,9 +49,9 @@ const inferMeasurementFromUnit = (unit) => {
   )
     return "volume";
   if (
-    Object.prototype.hasOwnProperty.call(unitConversion.count, normalizedUnit)
+    Object.prototype.hasOwnProperty.call(unitConversion.pieces, normalizedUnit)
   )
-    return "count";
+    return "pieces";
 
   return null;
 };

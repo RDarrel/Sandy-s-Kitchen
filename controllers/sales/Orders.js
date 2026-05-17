@@ -30,6 +30,7 @@ const getIngredients = (items) => {
                 qtyPerOrder: quantity * bundleQty,
                 unit: "pcs",
                 menu: menu._id,
+                isResell: true,
               },
             ];
           }
@@ -44,6 +45,7 @@ const getIngredients = (items) => {
     } else {
       ingredients = [
         {
+          isResell: true,
           inventory: menu?.inventory,
           qtyPerOrder: quantity,
           unit: "pcs",
@@ -57,7 +59,6 @@ const getIngredients = (items) => {
     if (addOnsWithRecipes?.length > 0) {
       addOnsWithRecipes.forEach((element) => {
         const { ingredients: addOnsIngredients = [] } = element;
-        console.log("addOnId", element);
         addOnsIngredients.forEach((ing) => {
           ingredients.push({
             ...ing,
@@ -198,6 +199,7 @@ const deductStocks = async (items, user) => {
         costPerUnit: costPerUnit,
         consumedQty: qtyConverted,
         unit: ingredient.unit,
+        isResell: ingredient.isResell,
       });
       consumedBatches = [];
     }
@@ -235,6 +237,7 @@ const handleItems = async (itemsRaw, user, orderId) => {
       let formattedAddOns = [];
       let bundleItems = [];
       let recipes = [];
+      let resell = {};
       if (addOns?.length > 0) {
         addOns.forEach((addOn) => {
           const consumed = consumedBatches.filter(
@@ -276,13 +279,28 @@ const handleItems = async (itemsRaw, user, orderId) => {
         });
       }
 
-      if (menu?.type === "prepared" || menu?.type === "resell") {
+      if (menu?.type === "prepared") {
         recipes = formattedBreakdown(
           menu?._id,
           menu?.ingredients,
           consumedBatches,
           "recipe",
         );
+      }
+      if (menu?.type === "resell") {
+        const consumed = consumedBatches.find(
+          (batch) => batch.menu === menu?._id && batch.isResell,
+        );
+        resell = {
+          recipe: {
+            ...consumed,
+            inventory: menu?.inventory?._id,
+          },
+          price: menu.price,
+          amount: item?.quantity * menu.price,
+          quantity: 1,
+          totalCost: consumed.totalCost,
+        };
       }
       const breakdownRaw = {
         addOns: formattedAddOns,
@@ -294,8 +312,12 @@ const handleItems = async (itemsRaw, user, orderId) => {
       );
       const totalCost =
         breakdownRaw.recipes.reduce((sum, batch) => sum + batch.totalCost, 0) +
-        breakdownRaw.addOns.reduce((sum, batch) => sum + batch.totalCost, 0) +
-        breakdownRaw.bundleItems.reduce((sum, item) => sum + item.totalCost, 0);
+          breakdownRaw.addOns.reduce((sum, batch) => sum + batch.totalCost, 0) +
+          breakdownRaw.bundleItems.reduce(
+            (sum, item) => sum + item.totalCost,
+            0,
+          ) +
+          resell.totalCost || 0;
 
       items.push({
         order: orderId,
@@ -303,7 +325,10 @@ const handleItems = async (itemsRaw, user, orderId) => {
         quantity: item.quantity,
         amount: menu?.price * item.quantity,
         price: menu?.price,
-        breakdown,
+        breakdown: {
+          ...breakdown,
+          ...(resell?.recipe?.inventory && { resell }),
+        },
         totalCost,
       });
     });
