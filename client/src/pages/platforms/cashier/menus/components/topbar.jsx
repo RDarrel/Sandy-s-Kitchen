@@ -161,17 +161,7 @@ const CashierTopbar = () => {
                 className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm"
               >
                 <TrendingUp className="h-4 w-4" />
-                Sales
-                <Badge
-                  variant="secondary"
-                  className={`ml-1 h-5 rounded-full border-0 px-2 text-[10px] font-semibold leading-5 ${
-                    topbarTab === "sales"
-                      ? "bg-accent-foreground/15 text-accent-foreground"
-                      : "bg-background/80 text-foreground"
-                  }`}
-                >
-                  {`${Formatter.amount(1000)}+`}
-                </Badge>
+                Transactions
               </TabsTrigger>
             </TabsList>
           </Tabs>

@@ -112,13 +112,13 @@ const Sales = () => {
   }, [rows]);
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-4 p-4">
+    <div className="mx-auto w-full max-w-3xl space-y-4 p-4">
       <Card className="overflow-hidden bg-card">
         <CardHeader className="-mb-2">
           <div className="space-y-1">
-            <CardTitle className="text-base">Cashier Sales</CardTitle>
+            <CardTitle className="text-base">Today's Transactions</CardTitle>
             <p className="text-muted-foreground text-xs">
-              Recent orders and total sales.
+              Recent transactions and total sales today.
             </p>
           </div>
         </CardHeader>
@@ -129,9 +129,6 @@ const Sales = () => {
             <Table className="w-full table-fixed">
               <TableHeader className="sticky top-0 z-10 bg-muted/60">
                 <TableRow>
-                  <TableHead className="w-[180px] whitespace-nowrap">
-                    Transaction Id
-                  </TableHead>
                   <TableHead className="w-[170px] whitespace-nowrap">
                     Date/Time
                   </TableHead>
@@ -139,7 +136,7 @@ const Sales = () => {
                     Items
                   </TableHead>
                   <TableHead className="w-[130px] whitespace-nowrap text-right">
-                    Total
+                    Total Amount
                   </TableHead>
                   <TableHead className="w-[96px] whitespace-nowrap text-center">
                     Actions
@@ -159,9 +156,6 @@ const Sales = () => {
                 ) : rows.length ? (
                   rows.map((row) => (
                     <TableRow key={row.id} className="hover:bg-muted/30">
-                      <TableCell className="whitespace-nowrap font-medium">
-                        {row.id}
-                      </TableCell>
                       <TableCell className="whitespace-nowrap text-muted-foreground">
                         {row.time}
                       </TableCell>
