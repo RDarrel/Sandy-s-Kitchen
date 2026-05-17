@@ -6,8 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { VALIDATEREFRESH } from "./services/redux/slices/persons/auth";
 import { useEffect } from "react";
 import Cashier from "./pages/platforms/cashier";
-import ClaimStub from "./components/shared/claimStub";
 import Authentication from "./pages/authentication";
+import { OrderReceipt } from "./components/shared/receipts";
 export default function App() {
   const { auth, token } = useSelector(({ auth }) => auth),
     dispatch = useDispatch();
@@ -25,7 +25,7 @@ export default function App() {
         <Route path="*" element={<h2>Not Found</h2>} />
       </Route>
       <Route path="cashier" element={<Cashier />} />
-      <Route path="printout/claimStub" element={<ClaimStub />} />
+      <Route path="receipts/order" element={<OrderReceipt />} />
       <Route path="*" element={<h2>Not Found</h2>} />
     </Routes>
   );

@@ -92,7 +92,10 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
       <DialogContent className="max-w-sm  rounded-2xl bg-white p-0 text-foreground">
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-6">
-            <div className="w-full font-mono antialiased text-slate-900">
+            <div
+              className="w-full antialiased text-slate-900"
+              style={{ fontFamily: "'Times New Roman', Times, serif" }}
+            >
               <div className="text-center">
                 <p className="text-[16px] font-extrabold tracking-wide">
                   Sandy&apos;s Kitchenette

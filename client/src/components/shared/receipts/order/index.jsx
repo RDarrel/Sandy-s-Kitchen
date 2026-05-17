@@ -82,7 +82,7 @@ const normalizeOrderPrintout = (raw) => {
   };
 };
 
-const ClaimStub = () => {
+const OrderReceipt = () => {
   const [sale, setSale] = useState(null);
 
   useEffect(() => {
@@ -292,4 +292,4 @@ const ClaimStub = () => {
   );
 };
 
-export default ClaimStub;
+export default OrderReceipt;
