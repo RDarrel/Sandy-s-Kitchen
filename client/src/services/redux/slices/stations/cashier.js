@@ -332,9 +332,15 @@ export const reduxSlice = createSlice({
       })
       .addCase(SAVE.fulfilled, (state, action) => {
         const { payload } = action.payload;
-        localStorage.setItem("order-printout", JSON.stringify(payload));
+
         state.formSubmitted = false;
         state.isLoading = false;
+        localStorage.setItem("order-printout", JSON.stringify(payload));
+        window.open(
+          "/receipts/order",
+          "order-printout",
+          "top=100px,left=500px,width=700px,height=750px",
+        );
       })
       .addCase(SAVE.rejected, (state, action) => {
         const { error } = action;

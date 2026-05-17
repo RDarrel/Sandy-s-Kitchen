@@ -80,7 +80,6 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
         onOpenChange(false);
         dispatch(CartClear());
         setTenderedRaw("");
-        toast.success("Successfully saved order.");
       })
       .catch((error) => {
         toast.error(error?.message || error || "Failed to save order.");
