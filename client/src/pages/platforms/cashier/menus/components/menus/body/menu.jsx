@@ -66,7 +66,7 @@ const MenuCard = ({ menu, quantity, imageSrc, onAdd }) => {
                 variant="secondary"
                 className="absolute bottom-2 left-2 rounded-full bg-background/90 text-foreground shadow-sm"
               >
-                Includes {bundleCount} item{bundleCount === 1 ? "" : "s"}
+                {bundleCount} item{bundleCount === 1 ? "" : "s"} Included
               </Badge>
             </TooltipTrigger>
             <TooltipContent
