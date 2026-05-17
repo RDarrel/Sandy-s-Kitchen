@@ -99,8 +99,11 @@ const deductStocks = async (items, user) => {
     });
 
     const batchesByInventory = new Map();
-
     const ingrConsumedBatches = [];
+
+    const batchUpdates = new Map();
+    const inventoryUpdates = new Map();
+    const stockMovements = [];
 
     for (const batch of batches) {
       const inventoryId = String(batch.inventory);
@@ -128,13 +131,16 @@ const deductStocks = async (items, user) => {
 
         return new Date(a.createdAt) - new Date(b.createdAt);
       });
+
       var consumedBatches = [];
       const isPcs = inventory.measurement === "pieces";
+
       let qtyConverted = convertToBaseUnit({
         measurement: inventory.measurement,
         qty: ingredient.qtyPerOrder,
         unit: ingredient.unit,
       });
+
       let qtyToDeduct = qtyConverted;
 
       for (const batch of inventoryBatches) {
@@ -143,6 +149,7 @@ const deductStocks = async (items, user) => {
         }
 
         const deductQty = Math.min(batch.remainingQuantity, qtyToDeduct);
+
         inventory.stock.current -= deductQty;
         batch.remainingQuantity -= deductQty;
         qtyToDeduct -= deductQty;
@@ -152,14 +159,36 @@ const deductStocks = async (items, user) => {
           inventory.status = "consumed";
         }
 
-        await batch.save();
-        await inventory.save();
+        batchUpdates.set(String(batch._id), {
+          updateOne: {
+            filter: { _id: batch._id },
+            update: {
+              $set: {
+                remainingQuantity: batch.remainingQuantity,
+                status: batch.status,
+              },
+            },
+          },
+        });
+
+        inventoryUpdates.set(String(inventory._id), {
+          updateOne: {
+            filter: { _id: inventory._id },
+            update: {
+              $set: {
+                "stock.current": inventory.stock.current,
+                status: inventory.status,
+              },
+            },
+          },
+        });
 
         consumedBatches.push({
           consumedQty: deductQty,
           costPerUnit: batch.costPerUnit,
         });
-        await StockMovement.create({
+
+        stockMovements.push({
           inventory: inventory._id,
           unit: isPcs
             ? "pcs"
@@ -179,7 +208,9 @@ const deductStocks = async (items, user) => {
           createdBy: user,
         });
       }
+
       if (consumedBatches?.length === 0) continue;
+
       const totalCost = consumedBatches.reduce((sum, batch) => {
         const cost = isPcs ? batch.costPerUnit : batch.costPerUnit / 1000;
         return sum + batch.consumedQty * cost;
@@ -192,6 +223,7 @@ const deductStocks = async (items, user) => {
 
       const cost = totalCost / totalQty;
       const costPerUnit = isPcs ? cost : cost * 1000;
+
       ingrConsumedBatches.push({
         totalCost,
         inventory: ingredient._id,
@@ -203,7 +235,20 @@ const deductStocks = async (items, user) => {
         unit: ingredient.unit,
         isResell: ingredient.isResell,
       });
+
       consumedBatches = [];
+    }
+
+    if (batchUpdates.size > 0) {
+      await StockBatch.bulkWrite([...batchUpdates.values()]);
+    }
+
+    if (inventoryUpdates.size > 0) {
+      await InventoryItem.bulkWrite([...inventoryUpdates.values()]);
+    }
+
+    if (stockMovements.length > 0) {
+      await StockMovement.insertMany(stockMovements);
     }
 
     return ingrConsumedBatches;
