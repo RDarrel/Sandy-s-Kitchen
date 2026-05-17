@@ -1,4 +1,4 @@
-import { Formatter, Inventory } from "@/services/utilities";
+import { Formatter, Inventory, Stock } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -71,7 +71,7 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
           Unit cost
         </span>
         <p className="font-medium tabular-nums text-foreground">
-          {inventory?.stockDisplay?.current}{" "}
+          {Stock.format(inventory?.stockDisplay?.current)}{" "}
           <span className="text-xs text-muted-foreground">{unit || "—"}</span>
         </p>
       </div>

@@ -113,7 +113,7 @@ const CartItemRow = memo(({ item, onUpdate, onRemove }) => {
             <Input
               disabled
               value={currentStockLabel}
-              className="h-9 w-full bg-muted/20 font-normal tabular-nums text-foreground/80 disabled:opacity-80"
+              className="h-9 w-full bg-muted/20 font-normal tabular-nums text-foreground disabled:opacity-90"
             />
           </div>
 
