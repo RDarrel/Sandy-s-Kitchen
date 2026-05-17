@@ -331,6 +331,8 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(SAVE.fulfilled, (state, action) => {
+        const { payload } = action.payload;
+        localStorage.setItem("order-printout", JSON.stringify(payload));
         state.formSubmitted = false;
         state.isLoading = false;
       })

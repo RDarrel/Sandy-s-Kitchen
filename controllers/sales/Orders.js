@@ -357,11 +357,29 @@ exports.save = async (req, res) => {
   try {
     const { items, order } = req.body;
     const createdOrder = await Order.create(order);
+
     await handleItems(items, order.created.by, createdOrder._id);
+
+    const populatedOrder = await Order.findById(createdOrder._id)
+      .populate({
+        path: "created.by",
+        select: "fullName",
+      })
+      .lean();
+
+    const populatedItems = await OrderItem.find({ order: createdOrder._id })
+      .populate("menu", "name type")
+      .populate("breakdown.addOns.addOn", "name")
+      .populate("breakdown.bundleItems.bundle", "name");
+
+    const payload = {
+      ...populatedOrder,
+      items: populatedItems,
+    };
 
     res.status(201).json({
       success: "Order Created Successfully",
-      payload: createdOrder,
+      payload,
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
