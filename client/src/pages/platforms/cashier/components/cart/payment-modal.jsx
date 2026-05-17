@@ -66,25 +66,25 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
         at: Date.now(),
       },
     };
-    // dispatch(
-    //   SAVE({
-    //     token,
-    //     data: {
-    //       order,
-    //       items,
-    //     },
-    //   }),
-    // )
-    //   .unwrap()
-    //   .then(() => {
-    //     onOpenChange(false);
-    //     dispatch(CartClear());
-    //     setTenderedRaw("");
-    //     toast.success("Successfully saved order.");
-    //   })
-    //   .catch((error) => {
-    //     toast.error(error?.message || error || "Failed to save order.");
-    //   });
+    dispatch(
+      SAVE({
+        token,
+        data: {
+          order,
+          items,
+        },
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        onOpenChange(false);
+        dispatch(CartClear());
+        setTenderedRaw("");
+        toast.success("Successfully saved order.");
+      })
+      .catch((error) => {
+        toast.error(error?.message || error || "Failed to save order.");
+      });
   };
 
   return (
