@@ -33,10 +33,14 @@ const formatDateTime = (value) => {
 };
 
 const SummaryLine = ({ label, value }) => (
-  <div className="flex items-center gap-3 text-sm">
-    <span className="shrink-0 font-medium">{label}</span>
-    <span className="h-0 flex-1 border-t border-dashed border-border" />
-    <span className="shrink-0 font-semibold tabular-nums">{value}</span>
+  <div className="flex items-center gap-3">
+    <span className="shrink-0 text-sm font-medium text-foreground">
+      {label}
+    </span>
+    <span className="h-0 flex-1 border-t border-dashed border-border/80" />
+    <span className="shrink-0 text-base font-bold tabular-nums text-primary">
+      {value}
+    </span>
   </div>
 );
 
