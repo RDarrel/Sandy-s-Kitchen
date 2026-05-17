@@ -430,12 +430,27 @@ exports.save = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+const toStartOfDayUTC = (dateStr) => {
+  const date = new Date(dateStr);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+};
+
+const toEndOfDayUTC = (dateStr) => {
+  const date = new Date(dateStr);
+  date.setHours(23, 59, 59, 999);
+  return date.toISOString();
+};
 
 exports.browse = async (req, res) => {
   try {
-    const cashier = req.query.cashier;
+    const { from, to, cashier = "" } = req.query;
+
+    const start = toStartOfDayUTC(from);
+    const end = toEndOfDayUTC(to);
     const orders = await Order.find({
       ...(cashier && { "created.by": cashier }),
+      createdAt: { $gte: start, $lte: end },
     })
       .populate("created.by", "fullName")
       .sort({ createdAt: -1 })

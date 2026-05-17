@@ -16,8 +16,22 @@ const Cashier = () => {
   const prevTabRef = useRef(activeTab);
   useEffect(() => {
     if (token) {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const date = new Intl.DateTimeFormat("en-CA", {
+        timeZone: timezone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+        .format(new Date())
+        .replace(/\//g, "-");
       dispatch(BROWSE_MENUS({ token, params: { station: "cashier" } }));
-      dispatch(BROWSE_SALES({ token, params: { cashier: auth?._id } }));
+      dispatch(
+        BROWSE_SALES({
+          token,
+          params: { cashier: auth?._id, from: date, to: date },
+        }),
+      );
       dispatch(BROWSE_CATEGORIES({ token }));
     }
   }, [token, auth, dispatch]);
