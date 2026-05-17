@@ -276,39 +276,42 @@ const attachRecommendedAddOns = async (menus = [], station) => {
 };
 
 const attachRecipes = async (menus = []) => {
-  if (!menus.length) return [];
+  try {
+    if (!menus.length) return [];
 
-  const recipes = await Recipe.find({
-    parentType: "Menu",
-    parentId: { $in: menus.map((item) => item._id) },
-    ...ACTIVE_FILTER,
-  })
-    .populate("ingredients.inventory", "name type category measurement cost")
-    .lean();
+    const recipes = await Recipe.find({
+      parentType: "Menu",
+      parentId: { $in: menus.map((item) => item._id) },
+      ...ACTIVE_FILTER,
+    })
+      .populate("ingredients.inventory", "name type category measurement cost")
+      .lean();
+    const recipeMap = new Map(
+      recipes.map((recipe) => [String(recipe.parentId), recipe]),
+    );
 
-  const recipeMap = new Map(
-    recipes.map((recipe) => [String(recipe.parentId), recipe]),
-  );
+    return menus.map((menu) => {
+      const recipe = recipeMap.get(String(menu._id));
+      const ingredients =
+        recipe?.ingredients?.map((entry) => ({
+          _id: entry?.inventory?._id,
+          inventory: entry.inventory,
+          qtyPerOrder: entry.qty,
+          unit: normalizeUnit(entry.unit),
+        })) || [];
+      const primaryIngredient = ingredients[0] || null;
 
-  return menus.map((menu) => {
-    const recipe = recipeMap.get(String(menu._id));
-    const ingredients =
-      recipe?.ingredients?.map((entry) => ({
-        _id: entry._id,
-        inventory: entry.inventory,
-        qtyPerOrder: entry.qty,
-        unit: normalizeUnit(entry.unit),
-      })) || [];
-    const primaryIngredient = ingredients[0] || null;
-
-    return {
-      ...menu,
-      ingredients,
-      inventory: primaryIngredient?.inventory || menu.inventory || null,
-      qtyPerOrder: primaryIngredient?.qtyPerOrder || menu.qtyPerOrder || null,
-      unit: primaryIngredient?.unit || menu.unit || null,
-    };
-  });
+      return {
+        ...menu,
+        ingredients,
+        inventory: primaryIngredient?.inventory || menu.inventory || null,
+        qtyPerOrder: primaryIngredient?.qtyPerOrder || menu.qtyPerOrder || null,
+        unit: primaryIngredient?.unit || menu.unit || null,
+      };
+    });
+  } catch (error) {
+    console.log("Error in attachRecipes", error?.message);
+  }
 };
 
 const attachCompositions = async (menus = [], station) => {

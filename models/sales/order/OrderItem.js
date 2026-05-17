@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 
 const recipeCostSchema = new mongoose.Schema(
   {
-    recipe: {
+    inventory: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Recipe",
+      ref: "Item",
       required: true,
     },
     totalCost: {
@@ -45,33 +45,15 @@ const addOnBreakdownSchema = new mongoose.Schema(
 
 const resellBreakdownSchema = new mongoose.Schema(
   {
-    recipe: {
-      inventory: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Item",
-        required: true,
-      },
-      totalCost: {
-        type: Number,
-        required: true,
-      },
-      costPerUnit: {
-        type: Number,
-        required: true,
-      },
-      consumedQty: {
-        type: Number,
-        required: true,
-      },
-      unit: {
-        type: String,
-        required: true,
-      },
+    inventory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Item",
     },
     quantity: Number,
     price: Number,
     amount: Number,
     totalCost: Number,
+    costPerUnit: Number,
   },
   { _id: false },
 );
@@ -84,11 +66,16 @@ const bundleItemBreakdownSchema = new mongoose.Schema(
       required: true,
     },
     recipes: [recipeCostSchema],
-    resell: resellBreakdownSchema,
+    inventory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Item",
+    },
+    type: String,
     quantity: Number,
     price: Number,
     amount: Number,
     totalCost: Number,
+    costPerUnit: Number,
   },
   { _id: false },
 );

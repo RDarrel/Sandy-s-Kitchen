@@ -31,15 +31,17 @@ const getIngredients = (items) => {
                 unit: "pcs",
                 menu: menu._id,
                 isResell: true,
+                bundleId: _id,
               },
             ];
+          } else {
+            return ingredients?.flatMap((ing) => ({
+              ...ing,
+              bundleId: _id,
+              qtyPerOrder: quantity * bundleQty * ing.qtyPerOrder,
+              menu: menu._id,
+            }));
           }
-          return ingredients?.flatMap((ing) => ({
-            ...ing,
-            bundleId: _id,
-            qtyPerOrder: quantity * bundleQty * ing.qtyPerOrder,
-            menu: menu._id,
-          }));
         },
       );
     } else {
@@ -192,7 +194,7 @@ const deductStocks = async (items, user) => {
       const costPerUnit = isPcs ? cost : cost * 1000;
       ingrConsumedBatches.push({
         totalCost,
-        recipe: ingredient._id,
+        inventory: ingredient._id,
         menu: ingredient?.menu,
         addOn: ingredient?.addOn,
         bundle: ingredient?.bundleId,
@@ -231,7 +233,6 @@ const handleItems = async (itemsRaw, user, orderId) => {
   try {
     const items = [];
     const consumedBatches = await deductStocks(itemsRaw, user);
-    console.log("consumedBatches", consumedBatches);
     itemsRaw.forEach((item) => {
       const { menu, addOns = [] } = item;
       let formattedAddOns = [];
@@ -260,22 +261,38 @@ const handleItems = async (itemsRaw, user, orderId) => {
       }
       if (menu?.bundleItems?.length > 0 && menu?.type === "bundle") {
         menu.bundleItems.forEach((bundleItem) => {
-          const consumed = consumedBatches.filter(
-            (batch) =>
-              String(batch.bundle) === String(bundleItem._id) &&
-              batch.menu === menu?._id,
-          );
-          bundleItems.push({
-            recipes: consumed,
-            bundle: bundleItem?._id,
-            price: bundleItem.price,
-            amount: bundleItem.quantity * item?.quantity * bundleItem.price,
-            quantity: bundleItem.qtyPerOrder,
-            totalCost: consumed.reduce(
-              (sum, batch) => sum + batch.totalCost,
-              0,
-            ),
-          });
+          if (bundleItem?.type === "prepared") {
+            const consumed = consumedBatches.filter(
+              (batch) =>
+                String(batch.bundle) === String(bundleItem._id) &&
+                batch.menu === menu?._id,
+            );
+            bundleItems.push({
+              recipes: consumed,
+              bundle: bundleItem?._id,
+              price: bundleItem.price,
+              amount: bundleItem.quantity * item?.quantity * bundleItem.price,
+              quantity: bundleItem.quantity * item?.quantity,
+              totalCost: consumed.reduce(
+                (sum, batch) => sum + batch.totalCost,
+                0,
+              ),
+            });
+          } else {
+            const consumed = consumedBatches.find(
+              (batch) => batch.bundle === bundleItem?._id && batch.isResell,
+            );
+            bundleItems.push({
+              bundle: bundleItem?._id,
+              inventory: bundleItem?.inventory?._id,
+              type: "resell",
+              costPerUnit: consumed?.costPerUnit,
+              price: bundleItem.price,
+              amount: bundleItem.quantity * item?.quantity * bundleItem.price,
+              quantity: item.quantity * bundleItem.quantity,
+              totalCost: consumed.totalCost,
+            });
+          }
         });
       }
 
@@ -284,7 +301,7 @@ const handleItems = async (itemsRaw, user, orderId) => {
           menu?._id,
           menu?.ingredients,
           consumedBatches,
-          "recipe",
+          "inventory",
         );
       }
       if (menu?.type === "resell") {
@@ -292,14 +309,12 @@ const handleItems = async (itemsRaw, user, orderId) => {
           (batch) => batch.menu === menu?._id && batch.isResell,
         );
         resell = {
-          recipe: {
-            ...consumed,
-            inventory: menu?.inventory?._id,
-          },
+          inventory: menu?.inventory?._id,
           price: menu.price,
           amount: item?.quantity * menu.price,
-          quantity: 1,
+          quantity: item.quantity,
           totalCost: consumed.totalCost,
+          costPerUnit: consumed.costPerUnit,
         };
       }
       const breakdownRaw = {
@@ -327,7 +342,7 @@ const handleItems = async (itemsRaw, user, orderId) => {
         price: menu?.price,
         breakdown: {
           ...breakdown,
-          ...(resell?.recipe?.inventory && { resell }),
+          ...(resell?.inventory && { resell }),
         },
         totalCost,
       });
