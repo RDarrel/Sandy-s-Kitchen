@@ -9,7 +9,7 @@ const verifyToken = (token) =>
       } else {
         resolve(decoded);
       }
-    })
+    }),
   );
 
 exports.validate = (req, res, proceed) => {
@@ -51,15 +51,15 @@ exports.validate = (req, res, proceed) => {
           res.status(403).json({
             error: "Invalid Token",
             message: "The provided token contains invalid information.",
-          })
-        )
+          }),
+        ),
     )
     //when the token is expired or invalid
     .catch(() =>
       res.status(403).json({
         error: "Invalid Token",
         message: "The provided token is either invalid or expired.",
-      })
+      }),
     );
 };
 

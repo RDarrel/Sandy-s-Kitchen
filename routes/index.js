@@ -4,7 +4,6 @@ const fs = require("fs"),
 const generateRoutes = async (app, folder, src) => {
   //read files except index.js
   const files = fs.readdirSync(src).filter((r) => r !== "index.js");
-
   //loop files
   for (const file of files) {
     //detect if file
@@ -13,7 +12,6 @@ const generateRoutes = async (app, folder, src) => {
       const formatPath = (api = false) => {
         if (!folder) return "";
         const baseSrc = src.slice(9, src.length);
-
         if (api) return `${baseSrc}/`;
 
         return `[${baseSrc.split("/").join("][")}]`;
@@ -27,11 +25,10 @@ const generateRoutes = async (app, folder, src) => {
 
       //log if success
       console.log(
-        blue(`[Route]${formatPath()}[${file}] created successfully.`)
+        blue(`[Route]${formatPath()}[${file}] created successfully.`),
       );
       continue;
     }
-
     //recursive function
     generateRoutes(app, folder ? `${folder}/${file}` : file, `${src}/${file}`);
   }
