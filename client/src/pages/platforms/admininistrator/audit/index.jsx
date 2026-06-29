@@ -3,23 +3,11 @@ const CodeExam = () => {
 
   const waitingDays = (temperatures) => {
     const diffDays = [];
+    const stack = new Array(7).fill(0);
+    const results = [];
     const end = temperatures.length;
     for (let i = 0; i < end; i++) {
-      let left = i + 1;
-      const temp = temperatures[i];
-      if (i === end - 1) {
-        diffDays.push(0);
-        continue;
-      }
-      for (let j = left; j < end; j++) {
-        if (temperatures[j] > temp) {
-          diffDays.push(j - i);
-          break;
-        } else if (j === end - 1) {
-          diffDays.push(0);
-          break;
-        }
-      }
+      stack.push();
     }
     return diffDays;
   };
