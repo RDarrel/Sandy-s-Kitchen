@@ -2,20 +2,18 @@ import { Routes, Route } from "react-router-dom";
 import "./App.css";
 import Platforms from "./pages/platforms";
 import RouteConfig from "./pages/RouteConfig";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { VALIDATEREFRESH } from "./services/redux/slices/persons/auth";
 import { useEffect } from "react";
 import Cashier from "./pages/platforms/cashier";
 import Authentication from "./pages/authentication";
 import { OrderReceipt } from "./components/shared/receipts";
 export default function App() {
-  const { auth, token } = useSelector(({ auth }) => auth),
-    dispatch = useDispatch();
+  const dispatch = useDispatch();
+
   useEffect(() => {
-    if (!auth?._id && token) {
-      dispatch(VALIDATEREFRESH(token));
-    }
-  }, [token, auth]);
+    dispatch(VALIDATEREFRESH());
+  }, [dispatch]);
   return (
     <Routes>
       <Route path="/" element={<Authentication />} />

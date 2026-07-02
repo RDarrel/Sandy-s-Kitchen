@@ -15,7 +15,6 @@ const verifyToken = (token) =>
 exports.validate = (req, res, proceed) => {
   const token = req.cookies.token;
   const { authorization } = req.headers;
-  console.log("token", token);
   if (!token)
     return res.status(401).json({
       error: "Unauthorized",
@@ -56,12 +55,13 @@ exports.validate = (req, res, proceed) => {
         ),
     )
     //when the token is expired or invalid
-    .catch(() =>
+    .catch((error) => {
+      console.log("error", error);
       res.status(403).json({
         error: "Invalid Token",
         message: "The provided token is either invalid or expired.",
-      }),
-    );
+      });
+    });
 };
 
 exports.notFound = (req, res, proceed) => {
