@@ -7,13 +7,12 @@ import axios from "axios";
  * @param {string} token - Authorization Token.
  * @returns {{ success: boolean, payload: object }} - The result object containing success and payload.
  */
-const save = async (entity, data, token) =>
+const save = async (entity, data) =>
   await axios
     .post(`${entity}/save`, data, {
-      headers: {
-        Authorization: `QTracy ${token}`,
-      },
+      withCredentials: true,
     })
+
     .then(({ data }) => data)
     .catch(({ response }) => {
       const { error, message } = response.data;

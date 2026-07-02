@@ -21,9 +21,7 @@ const universal = async (name, token, key = "") => {
 
   try {
     const response = await axios.get(`${name}${queryString}`, {
-      headers: {
-        Authorization: `QTracy ${token}`,
-      },
+      withCredentials: true,
     });
 
     return response.data;

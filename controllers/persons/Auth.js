@@ -38,14 +38,21 @@ exports.login = (req, res) => {
       const user = { ...item._doc };
       delete user.password;
 
+      res.cookie("token", generateToken({ _id: item?._id, role: item.role }), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 3600000,
+      });
+
       res.json({
         success: "Login Success",
         payload: {
-          token: generateToken({ _id: item?._id, role: item.role }),
           user,
         },
       });
     })
+
     .catch((error) => res.status(400).json({ error: error.message }));
 };
 

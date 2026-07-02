@@ -6,12 +6,10 @@ import axios from "axios";
  * @param {string} token - Authorization Token.
  * @returns {{ success: boolean, payload: Array<any>|object }} - The result object containing success and payload.
  */
-const validateRefresh = async (token) =>
+const validateRefresh = async () =>
   await axios
     .get(`persons/auth/validateRefresh`, {
-      headers: {
-        Authorization: `QTracy ${token}`,
-      },
+      withCredentials: true,
     })
     .then(({ data }) => data)
     .catch(({ response }) => {

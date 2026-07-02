@@ -1,5 +1,6 @@
 const express = require("express"),
   app = express(),
+  cookieParser = require("cookie-parser"),
   path = require("path"),
   http = require("http"),
   { Server } = require("socket.io"),
@@ -36,6 +37,7 @@ require("./config/db")()
       }),
     );
     app.use(express.json({ limit: "50mb" }));
+    app.use(cookieParser());
 
     // declare public access for assets
     app.use("/assets", express.static(path.join(__dirname, "assets")));

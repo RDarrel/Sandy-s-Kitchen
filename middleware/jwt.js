@@ -13,21 +13,22 @@ const verifyToken = (token) =>
   );
 
 exports.validate = (req, res, proceed) => {
+  const token = req.cookies.token;
   const { authorization } = req.headers;
-
-  if (!authorization)
+  console.log("token", token);
+  if (!token)
     return res.status(401).json({
       error: "Unauthorized",
       message: "Authentication token is missing or invalid.",
     });
 
-  if (!authorization.startsWith(process.env.JWT_HEADER))
-    return res.status(400).json({
-      error: "Invalid Token",
-      message: "The provided token is not in the correct format.",
-    });
+  // if (!authorization.startsWith(process.env.JWT_HEADER))
+  //   return res.status(400).json({
+  //     error: "Invalid Token",
+  //     message: "The provided token is not in the correct format.",
+  //   });
 
-  verifyToken(authorization.split(" ")[1])
+  verifyToken(token)
     .then((response) =>
       Users.findById(response._id)
         .select("-password")

@@ -9,10 +9,11 @@ import axios from "axios";
  */
 const login = async (email, password) =>
   await axios
-    .get(`persons/auth/login?email=${email}&password=${password}`)
+    .get(`persons/auth/login?email=${email}&password=${password}`, {
+      withCredentials: true,
+    })
     .then(({ data }) => {
       const { payload } = data;
-      localStorage.setItem("token", payload.token);
       localStorage.setItem("email", payload.user.email);
       return data;
     })
