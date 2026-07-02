@@ -38,13 +38,7 @@ const statusBadge = (status) => {
   return { label: "Unknown", className: "bg-muted text-foreground" };
 };
 
-const toBatchCode = (index) => {
-  const number = String(index + 1).padStart(4, "0");
-  return `Batch-${number}`;
-};
-
 const InventoryBatchesModal = () => {
-  const { token } = useSelector(({ auth }) => auth);
   const { showBatchesModal, selected } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
@@ -75,16 +69,15 @@ const InventoryBatchesModal = () => {
   const toggle = () => dispatch(TOGGLE_BATCHES_MODAL());
 
   useEffect(() => {
-    if (showBatchesModal && selectedId && token) {
+    if (showBatchesModal && selectedId) {
       dispatch(
         BROWSE_STOCK_BATCH({
-          token,
           params: { inventory: selectedId, includeConsumed: 1 },
         }),
       );
       setSearch("");
     }
-  }, [dispatch, showBatchesModal, selectedId, token]);
+  }, [dispatch, showBatchesModal, selectedId]);
 
   const rows = useMemo(() => {
     const keyword = String(search || "")

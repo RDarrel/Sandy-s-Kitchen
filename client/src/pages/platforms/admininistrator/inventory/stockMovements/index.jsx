@@ -10,7 +10,6 @@ import BatchesModalHeader from "./header";
 import BatchesModalBody from "./body";
 
 const StockMovementsModal = () => {
-  const { token } = useSelector(({ auth }) => auth);
   const { showMovementsModal, selected } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
@@ -24,16 +23,15 @@ const StockMovementsModal = () => {
   const toggle = () => dispatch(TOGGLE_MOVEMENTS_MODAL());
 
   useEffect(() => {
-    if (showMovementsModal && selectedId && token) {
+    if (showMovementsModal && selectedId) {
       dispatch(
         BROWSE_STOCK_MOVEMENTS({
-          token,
           params: { inventory: selectedId },
         }),
       );
       setSearch("");
     }
-  }, [dispatch, showMovementsModal, selectedId, token]);
+  }, [dispatch, showMovementsModal, selectedId]);
 
   return (
     <Dialog open={showMovementsModal} onOpenChange={toggle}>

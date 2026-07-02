@@ -1,5 +1,4 @@
 import {
-  BookKey,
   BrickWall,
   ContactRound,
   Gauge,
@@ -7,6 +6,7 @@ import {
   Package,
   Users,
   UtensilsCrossed,
+  ChefHat,
 } from "lucide-react";
 import Dashboard from "./dashboard";
 import Staffs from "./staffs";
@@ -21,6 +21,7 @@ import CreateOrder from "./orders/create-order";
 import OrderList from "./orders/order-list";
 import ShortDeliveries from "./orders/short-deliveries";
 import StockRequests from "./orders/stock-requests";
+import Packages from "./catering/packages";
 
 const access = [
   {
@@ -55,6 +56,23 @@ const access = [
         name: "Categories",
         path: "/categories",
         component: Categories,
+      },
+    ],
+  },
+  {
+    name: "Catering",
+    path: "/catering",
+    icon: ChefHat,
+    children: [
+      {
+        name: "Packages",
+        path: "/packages",
+        component: Packages,
+      },
+      {
+        name: "Add Ons",
+        path: "/add-ons",
+        component: AddOns,
       },
     ],
   },
