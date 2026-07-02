@@ -8,12 +8,10 @@ import Lists from "./lists";
 
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const token = useSelector(({ auth }) => auth?.token);
 
   useEffect(() => {
-    if (!token) return;
-    dispatch(BROWSE_INVENTORY({ token }));
-  }, [dispatch, token]);
+    dispatch(BROWSE_INVENTORY());
+  }, [dispatch]);
 
   return (
     <div className="w-full px-4 py-4 sm:px-6 lg:px-8">

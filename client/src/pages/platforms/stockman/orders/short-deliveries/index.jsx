@@ -51,7 +51,6 @@ const getPurchaseParam = (purchaseParam) => {
 };
 
 const ShortDeliveries = () => {
-  const { token } = useSelector(({ auth }) => auth);
   const { isLoading } = useSelector(({ purchases }) => purchases);
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
@@ -78,11 +77,8 @@ const ShortDeliveries = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!token) return;
-
     dispatch(
       BROWSE({
-        token,
         params: {
           status: statusByTab[tab] || "review",
           isShort: true,
@@ -91,7 +87,7 @@ const ShortDeliveries = () => {
     );
 
     return () => dispatch(RESET());
-  }, [dispatch, tab, token]);
+  }, [dispatch, tab]);
 
   useEffect(() => {
     dispatch(SEARCH_PURCHASES(query));

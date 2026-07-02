@@ -19,15 +19,13 @@ import {
 
 const MyRequests = () => {
   const { isLoading } = useSelector(({ stockRequests }) => stockRequests);
-  const { token } = useSelector(({ auth }) => auth);
   const [tab, setTab] = useState("pending");
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!token) return;
-    dispatch(BROWSE({ token, params: { status: tab } }));
+    dispatch(BROWSE({ params: { status: tab } }));
     return () => dispatch(RESET());
-  }, [dispatch, token, tab]);
+  }, [dispatch, tab]);
 
   return (
     <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8">

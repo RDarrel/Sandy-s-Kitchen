@@ -44,7 +44,7 @@ const getPurchaseParam = (purchaseParam) => {
 
 const OrderList = () => {
   const { message, isLoading } = useSelector(({ purchases }) => purchases);
-  const { token, auth } = useSelector(({ auth }) => auth);
+  const { auth } = useSelector(({ auth }) => auth);
   const [searchParams] = useSearchParams();
 
   const initialTab = getTabFromStatusParam(searchParams.get("status"));
@@ -67,7 +67,6 @@ const OrderList = () => {
   useEffect(() => {
     dispatch(
       BROWSE({
-        token,
         params: {
           status: tab,
           ...(tab === "received" && { stockman: auth?._id }),
@@ -75,7 +74,7 @@ const OrderList = () => {
       }),
     );
     return () => dispatch(RESET());
-  }, [dispatch, token, tab, auth]);
+  }, [dispatch, tab, auth]);
 
   useEffect(() => {
     dispatch(SEARCH(query));
