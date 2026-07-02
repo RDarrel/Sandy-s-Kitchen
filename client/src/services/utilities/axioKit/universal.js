@@ -8,7 +8,7 @@ import axios from "axios";
  * @returns {{ success: boolean, payload: Array<any>|object }} - The result object containing success and payload.
  */
 
-const universal = async (name, token, key = "") => {
+const universal = async (name, key = "") => {
   let queryString = "";
 
   if (typeof key === "object") {

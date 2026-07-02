@@ -29,8 +29,7 @@ import ChangeRole from "./changeRole";
 import { Role } from "@/services/fakeDB";
 
 const Staffs = () => {
-  const { token } = useSelector(({ auth }) => auth),
-    { collections, isLoading } = useSelector(({ staffs }) => staffs),
+  const { collections, isLoading } = useSelector(({ staffs }) => staffs),
     [staffs, setStaffs] = useState([]),
     [selected, setSelected] = useState({}),
     [page, setPage] = useState(1),
@@ -41,10 +40,8 @@ const Staffs = () => {
     dispatch = useDispatch();
 
   useEffect(() => {
-    if (token) {
-      dispatch(BROWSE({ token }));
-    }
-  }, [dispatch, token]);
+    dispatch(BROWSE());
+  }, [dispatch]);
 
   useEffect(() => {
     setStaffs(collections);

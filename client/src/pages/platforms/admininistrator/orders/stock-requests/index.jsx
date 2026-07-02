@@ -22,21 +22,19 @@ import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/procurement/
 
 const StockRequests = () => {
   const { isLoading } = useSelector(({ stockRequests }) => stockRequests);
-  const { token } = useSelector(({ auth }) => auth);
   const [tab, setTab] = useState("pending");
   const [query, setQuery] = useState("");
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(BROWSE({ token, params: { status: tab.toLowerCase() } }));
+    dispatch(BROWSE({ params: { status: tab.toLowerCase() } }));
     return () => dispatch(RESET());
-  }, [dispatch, token, tab]);
+  }, [dispatch, tab]);
 
   useEffect(() => {
-    if (!token) return;
-    dispatch(BROWSE_INVENTORY_ITEMS({ token }));
-    dispatch(BROWSE_SUPPLIERS({ token }));
-  }, [dispatch, token]);
+    dispatch(BROWSE_INVENTORY_ITEMS());
+    dispatch(BROWSE_SUPPLIERS());
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(SEARCH_STOCK_REQUESTS(query));

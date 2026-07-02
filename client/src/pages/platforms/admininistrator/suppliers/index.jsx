@@ -38,10 +38,8 @@ import {
 import { CustomAlert } from "@/components/shared/alert";
 
 const Suppliers = () => {
-  const { token } = useSelector(({ auth }) => auth),
-    { collections, isLoading, message, isSuccess, formSubmitted } = useSelector(
-      ({ suppliers }) => suppliers,
-    ),
+  const { collections, isLoading, message, isSuccess, formSubmitted } =
+      useSelector(({ suppliers }) => suppliers),
     [suppliers, setSuppliers] = useState([]),
     [selected, setSelected] = useState({}),
     [deletedIndex, setDeletedIndex] = useState(-1),
@@ -54,10 +52,8 @@ const Suppliers = () => {
     dispatch = useDispatch();
 
   useEffect(() => {
-    if (token) {
-      dispatch(BROWSE({ token }));
-    }
-  }, [dispatch, token]);
+    dispatch(BROWSE());
+  }, [dispatch]);
 
   useEffect(() => {
     if (message && isSuccess) {
@@ -84,7 +80,7 @@ const Suppliers = () => {
   };
 
   const handleDelete = () => {
-    dispatch(DESTROY({ token, data: { _id: suppliers[deletedIndex]?._id } }));
+    dispatch(DESTROY({ data: { _id: suppliers[deletedIndex]?._id } }));
   };
 
   return (
