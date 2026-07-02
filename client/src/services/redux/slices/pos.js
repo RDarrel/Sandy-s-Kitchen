@@ -17,9 +17,9 @@ const initialState = {
   isLoading: false,
 };
 
-export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
+export const BROWSE = createAsyncThunk(`${url}`, (_, thunkAPI) => {
   try {
-    return axioKit.universal(`${url}/browse`, token);
+    return axioKit.universal(`${url}/browse`);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -32,9 +32,9 @@ export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
 
 export const SALES = createAsyncThunk(
   `${url}/pos/sales`,
-  ({ token, params }, thunkAPI) => {
+  ({ params }, thunkAPI) => {
     try {
-      return axioKit.universal(`commerce/deals/browse`, token, params);
+      return axioKit.universal(`commerce/deals/browse`, params);
     } catch (error) {
       const message =
         (error.response &&
@@ -45,14 +45,14 @@ export const SALES = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const SOLD_LITERS = createAsyncThunk(
   `${url}/commerce/deals/soldLiters`,
-  ({ token, params }, thunkAPI) => {
+  ({ params }, thunkAPI) => {
     try {
-      return axioKit.universal(`commerce/deals/soldLiters`, token, params);
+      return axioKit.universal(`commerce/deals/soldLiters`, params);
     } catch (error) {
       const message =
         (error.response &&
@@ -63,12 +63,12 @@ export const SOLD_LITERS = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
-export const FUELS = createAsyncThunk(`${url}/fuels`, ({ token }, thunkAPI) => {
+export const FUELS = createAsyncThunk(`${url}/fuels`, (_, thunkAPI) => {
   try {
-    return axioKit.universal(`assets/fuels/available`, token);
+    return axioKit.universal(`assets/fuels/available`);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -83,7 +83,7 @@ export const SAVE = createAsyncThunk(
   `${url}/commerce/deals`,
   (form, thunkAPI) => {
     try {
-      return axioKit.save(`commerce/deals`, form.data, form.token);
+      return axioKit.save(`commerce/deals`, form.data);
     } catch (error) {
       const message =
         (error.response &&
@@ -94,12 +94,12 @@ export const SAVE = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   try {
-    return axioKit.update(url, form.data, form.token);
+    return axioKit.update(url, form.data);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -112,7 +112,7 @@ export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
 
 export const DESTROY = createAsyncThunk(`sales/destroy`, (form, thunkAPI) => {
   try {
-    return axioKit.destroy("commerce/deals", form.data, form.token);
+    return axioKit.destroy("commerce/deals", form.data);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -227,7 +227,7 @@ export const reduxSlice = createSlice({
         window.open(
           "/printout/claimStub",
           "Claim Stub",
-          "top=100px,left=500px,width=400px,height=750px"
+          "top=100px,left=500px,width=400px,height=750px",
         );
       })
       .addCase(SAVE.rejected, (state, action) => {
@@ -244,7 +244,7 @@ export const reduxSlice = createSlice({
       .addCase(UPDATE.fulfilled, (state, action) => {
         const { message, payload } = action.payload;
         const index = state.collections.findIndex(
-          ({ _id }) => _id === payload?._id
+          ({ _id }) => _id === payload?._id,
         );
         state.collections[index] = payload;
         state.formSubmitted = false;
@@ -265,7 +265,7 @@ export const reduxSlice = createSlice({
         const { message, payload } = action.payload;
         const updateCollections = (collections) => {
           const index = collections.findIndex(
-            ({ _id }) => _id === payload?._id
+            ({ _id }) => _id === payload?._id,
           );
           collections[index] = {
             ...collections[index],

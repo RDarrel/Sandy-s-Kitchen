@@ -23,9 +23,9 @@ const initialState = {
 
 export const BROWSE = createAsyncThunk(
   `${sliceName}`,
-  ({ token, params }, thunkAPI) => {
+  ({ params }, thunkAPI) => {
     try {
-      return axioKit.universal(`${apiUrl}/browse`, token, params);
+      return axioKit.universal(`${apiUrl}/browse`, params);
     } catch (error) {
       const message =
         (error.response &&
@@ -41,7 +41,7 @@ export const BROWSE = createAsyncThunk(
 
 export const SAVE = createAsyncThunk(`${sliceName}/save`, (form, thunkAPI) => {
   try {
-    return axioKit.save(apiUrl, form.data, form.token);
+    return axioKit.save(apiUrl, form.data);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -56,7 +56,7 @@ export const UPDATE = createAsyncThunk(
   `${sliceName}/update`,
   (form, thunkAPI) => {
     try {
-      return axioKit.update(apiUrl, form.data, form.token);
+      return axioKit.update(apiUrl, form.data);
     } catch (error) {
       const message =
         (error.response &&
@@ -74,7 +74,7 @@ export const RECEIVE_DELIVERY = createAsyncThunk(
   `${sliceName}/receive-delivery`,
   (form, thunkAPI) => {
     try {
-      return axioKit.update(apiUrl, form.data, form.token, "receive-delivery");
+      return axioKit.update(apiUrl, form.data, "receive-delivery");
     } catch (error) {
       const message =
         (error.response &&
@@ -92,7 +92,7 @@ export const DESTROY = createAsyncThunk(
   `${sliceName}/destroy`,
   (form, thunkAPI) => {
     try {
-      return axioKit.destroy(apiUrl, form.data, form.token);
+      return axioKit.destroy(apiUrl, form.data);
     } catch (error) {
       const message =
         (error.response &&

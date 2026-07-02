@@ -36,9 +36,9 @@ const initialState = {
 
 export const BROWSE_SALES = createAsyncThunk(
   `${url}/sales`,
-  ({ token, params }, thunkAPI) => {
+  ({ params }, thunkAPI) => {
     try {
-      return axioKit.universal(`sales/orders/browse`, token, params);
+      return axioKit.universal(`sales/orders/browse`, params);
     } catch (error) {
       const message =
         (error.response &&
@@ -54,7 +54,7 @@ export const BROWSE_SALES = createAsyncThunk(
 
 export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
   try {
-    return axioKit.save("sales/orders", form.data, form.token);
+    return axioKit.save("sales/orders", form.data);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -67,9 +67,9 @@ export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
 
 export const BROWSE_MENUS = createAsyncThunk(
   `${url}/menus`,
-  ({ token, params }, thunkAPI) => {
+  ({ params }, thunkAPI) => {
     try {
-      return axioKit.universal(`/menu/menus/browse`, token, params);
+      return axioKit.universal(`/menu/menus/browse`, params);
     } catch (error) {
       const message =
         (error.response &&

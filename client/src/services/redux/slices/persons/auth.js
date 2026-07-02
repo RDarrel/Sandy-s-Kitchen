@@ -62,9 +62,9 @@ export const CHANGE_PASSWORD = createAsyncThunk(
 
 export const VALIDATEREFRESH = createAsyncThunk(
   `${name}/validateRefresh`,
-  (token, thunkAPI) => {
+  (_, thunkAPI) => {
     try {
-      return axioKit.validateRefresh(token);
+      return axioKit.validateRefresh();
     } catch (error) {
       const message =
         (error.response &&
@@ -80,7 +80,7 @@ export const VALIDATEREFRESH = createAsyncThunk(
 
 export const UPDATE = createAsyncThunk(`${name}/update`, (form, thunkAPI) => {
   try {
-    return axioKit.update("users", form.data, form.token);
+    return axioKit.update("users", form.data);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -93,9 +93,9 @@ export const UPDATE = createAsyncThunk(`${name}/update`, (form, thunkAPI) => {
 
 export const UPLOAD = createAsyncThunk(
   `${name}/upload`,
-  ({ data, token }, thunkAPI) => {
+  ({ data }, thunkAPI) => {
     try {
-      return axioKit.upload(data, token);
+      return axioKit.upload(data);
     } catch (error) {
       const message =
         (error.response &&

@@ -24,7 +24,7 @@ const initialState = {
 
 export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
   try {
-    return axioKit.save(url, form.data, form.token);
+    return axioKit.save(url, form.data);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -35,9 +35,9 @@ export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
   }
 });
 
-export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
+export const BROWSE = createAsyncThunk(`${url}`, (_, thunkAPI) => {
   try {
-    return axioKit.universal(`${url}/browse`, token);
+    return axioKit.universal(`${url}/browse`);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -50,7 +50,7 @@ export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
 
 export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   try {
-    return axioKit.update(url, form.data, form.token);
+    return axioKit.update(url, form.data);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -63,7 +63,7 @@ export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
 
 export const DESTROY = createAsyncThunk(`${url}/destroy`, (form, thunkAPI) => {
   try {
-    return axioKit.destroy(url, form.data, form.token);
+    return axioKit.destroy(url, form.data);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||

@@ -11,9 +11,9 @@ const initialState = {
   message: "",
 };
 
-export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
+export const BROWSE = createAsyncThunk(`${url}`, (_, thunkAPI) => {
   try {
-    return axioKit.universal(`${url}/browse`, token);
+    return axioKit.universal(`${url}/browse`);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -26,7 +26,7 @@ export const BROWSE = createAsyncThunk(`${url}`, ({ token }, thunkAPI) => {
 
 export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   try {
-    return axioKit.update(url, form.data, form.token);
+    return axioKit.update(url, form.data);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -96,7 +96,7 @@ export const reduxSlice = createSlice({
       .addCase(UPDATE.fulfilled, (state, action) => {
         const { success, payload } = action.payload;
         const index = state.collections.findIndex(
-          ({ _id }) => _id === payload?._id
+          ({ _id }) => _id === payload?._id,
         );
         state.collections[index] = payload;
         state.formSubmitted = false;

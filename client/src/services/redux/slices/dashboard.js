@@ -17,29 +17,24 @@ const initialState = {
   message: "",
 };
 
-export const SALES = createAsyncThunk(
-  `${url}`,
-  ({ token, params }, thunkAPI) => {
-    try {
-      return axioKit.universal(`${url}/sales`, token, params);
-    } catch (error) {
-      const message =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
-        error.message ||
-        error.toString();
+export const SALES = createAsyncThunk(`${url}`, ({ params }, thunkAPI) => {
+  try {
+    return axioKit.universal(`${url}/sales`, params);
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
 
-      return thunkAPI.rejectWithValue(message);
-    }
+    return thunkAPI.rejectWithValue(message);
   }
-);
+});
 
 export const TOP_PRODUCTS = createAsyncThunk(
   `${url}/topProducts`,
-  ({ token, params }, thunkAPI) => {
+  ({ params }, thunkAPI) => {
     try {
-      return axioKit.universal(`${url}/topProducts`, token, params);
+      return axioKit.universal(`${url}/topProducts`, params);
     } catch (error) {
       const message =
         (error.response &&
@@ -50,14 +45,14 @@ export const TOP_PRODUCTS = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const TRANSACTIONS = createAsyncThunk(
   `${url}/transactions`,
-  ({ token, params }, thunkAPI) => {
+  ({ params }, thunkAPI) => {
     try {
-      return axioKit.universal(`${url}/transactions`, token, params);
+      return axioKit.universal(`${url}/transactions`, params);
     } catch (error) {
       const message =
         (error.response &&
@@ -68,14 +63,14 @@ export const TRANSACTIONS = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const LITERS = createAsyncThunk(
   `${url}/liters`,
-  ({ token, params }, thunkAPI) => {
+  ({ params }, thunkAPI) => {
     try {
-      return axioKit.universal(`${url}/liters`, token, params);
+      return axioKit.universal(`${url}/liters`, params);
     } catch (error) {
       const message =
         (error.response &&
@@ -86,7 +81,7 @@ export const LITERS = createAsyncThunk(
 
       return thunkAPI.rejectWithValue(message);
     }
-  }
+  },
 );
 
 export const reduxSlice = createSlice({

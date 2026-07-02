@@ -11,23 +11,18 @@ const initialState = {
   message: "",
 };
 
-export const BROWSE = createAsyncThunk(
-  `${url}`,
-  ({ token, params }, thunkAPI) => {
-    try {
-      return axioKit.universal(`${url}/browse`, token, params);
-    } catch (error) {
-      const message =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
-        error.message ||
-        error.toString();
+export const BROWSE = createAsyncThunk(`${url}`, ({ params }, thunkAPI) => {
+  try {
+    return axioKit.universal(`${url}/browse`, params);
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
 
-      return thunkAPI.rejectWithValue(message);
-    }
-  },
-);
+    return thunkAPI.rejectWithValue(message);
+  }
+});
 
 export const reduxSlice = createSlice({
   name: url,
