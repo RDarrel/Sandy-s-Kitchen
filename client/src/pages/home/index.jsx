@@ -61,7 +61,7 @@ const HomePage = () => {
                 className="navbar__logo"
               />
 
-              <h1 className="navbar__title">S'K</h1>
+              <h1 className="navbar__title">Sandy's Kitchennete</h1>
             </div>
 
             <div className="flex gap-5">
@@ -94,9 +94,12 @@ const HomePage = () => {
           </p>
 
           {/* Optional Button */}
-          {/* <Button className="mt-8">
-            Reserve Now
-          </Button> */}
+          <div className="gap-5 flex">
+            <Button variant={"outline"} className="mt-8 text-black">
+              Book Catering
+            </Button>
+            <Button className="bg-accent mt-8">Reserve Venue</Button>
+          </div>
         </div>
 
         <div className="hero__triangle" />
