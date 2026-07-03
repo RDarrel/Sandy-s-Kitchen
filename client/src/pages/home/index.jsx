@@ -62,7 +62,10 @@ const HomePage = () => {
                 className="navbar__logo"
               />
 
-              <h1 className="navbar__title">Sandy's Kitchennete</h1>
+              <h1 className="navbar__title">
+                <span>Sandy's</span>
+                <small>Kitchenette</small>
+              </h1>
             </div>
 
             <div className="flex gap-5">
