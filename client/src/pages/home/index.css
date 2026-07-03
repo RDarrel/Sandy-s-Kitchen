@@ -117,12 +117,16 @@
 }
 
 .hero__title {
-  font-size: 4rem;
+  font-size: clamp(2.8rem, 6vw, 6.2rem);
   font-style: italic;
-  font-weight: 700;
-  line-height: 1.1;
+  font-weight: 900;
+  line-height: 0.95;
   margin-bottom: 1.5rem;
-  text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0;
+  color: white;
+  text-shadow:
+    0 0.04em 0 rgba(0, 0, 0, 0.45),
+    0 10px 24px rgba(0, 0, 0, 0.55);
 }
 
 .hero__subtitle {

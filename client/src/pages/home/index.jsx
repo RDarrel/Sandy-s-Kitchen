@@ -75,14 +75,16 @@ const HomePage = () => {
         </nav>
 
         <div className="hero__content text-center">
-          <h2 className="hero__title">Sandy's Kitchenette</h2>
+          <h2 className="hero__title">
+            Sandy's <span>Kitchenette</span>
+          </h2>
 
           <p className="hero__subtitle">
-            From casual dining to unforgettable celebrations,
+            Plan your next celebration with ease.
             <br />
-            Sandy's Kitchenette offers delicious meals,
+            Book catering appointments and reserve our venue
             <br />
-            professional catering, and beautiful venue reservations.
+            for birthdays, weddings, meetings, and special gatherings.
           </p>
 
           {/* Optional Button */}
