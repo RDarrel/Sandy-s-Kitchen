@@ -42,7 +42,7 @@
 .hero__overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.55);
   z-index: 1;
 }
 
@@ -117,7 +117,7 @@
 }
 
 .hero__title {
-  font-size: clamp(2.8rem, 6vw, 6.2rem);
+  font-size: clamp(2.5rem, 5.2vw, 5.4rem);
   font-style: italic;
   font-weight: 900;
   line-height: 0.95;
@@ -130,12 +130,33 @@
 }
 
 .hero__subtitle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+
   font-size: 1.1rem;
   line-height: 1.8;
 
   opacity: 0.9;
 
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.hero__subtitle-line {
+  display: inline-block;
+}
+
+@media (max-width: 640px) {
+  .hero__subtitle {
+    width: 100%;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .hero__subtitle-line {
+    max-width: 100%;
+  }
 }
 
 /* ===========================

@@ -11,6 +11,12 @@ import "swiper/css";
 import "./index.css";
 import "swiper/css/effect-fade";
 const HomePage = () => {
+  const subtitleLines = [
+    "Plan your next celebration with ease.",
+    "Book catering appointments and reserve our venue",
+    "for birthdays, weddings, meetings, and special gatherings.",
+  ];
+
   return (
     <>
       <section className="hero">
@@ -80,11 +86,11 @@ const HomePage = () => {
           </h2>
 
           <p className="hero__subtitle">
-            Plan your next celebration with ease.
-            <br />
-            Book catering appointments and reserve our venue
-            <br />
-            for birthdays, weddings, meetings, and special gatherings.
+            {subtitleLines.map((line) => (
+              <span className="hero__subtitle-line" key={line}>
+                {line}
+              </span>
+            ))}
           </p>
 
           {/* Optional Button */}
