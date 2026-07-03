@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { CalendarCheck, MapPin } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
 import bg1 from "../../assets/backgrounds/bg1.png";
@@ -82,7 +83,12 @@ const HomePage = () => {
 
         <div className="hero__content text-center">
           <h2 className="hero__title">
-            Sandy's <span>Kitchenette</span>
+            <span className="hero__title-word">
+              <span className="hero__title-accent">S</span>andy's
+            </span>{" "}
+            <span className="hero__title-word">
+              <span className="hero__title-accent">K</span>itchenette
+            </span>
           </h2>
 
           <p className="hero__subtitle">
@@ -93,12 +99,15 @@ const HomePage = () => {
             ))}
           </p>
 
-          {/* Optional Button */}
-          <div className="gap-5 flex">
-            <Button variant={"outline"} className="mt-8 text-black">
+          <div className="hero__actions">
+            <Button className="hero__action hero__action--catering">
+              <CalendarCheck />
               Book Catering
             </Button>
-            <Button className="bg-accent mt-8">Reserve Venue</Button>
+            <Button className="hero__action hero__action--venue">
+              <MapPin />
+              Reserve Venue
+            </Button>
           </div>
         </div>
 
