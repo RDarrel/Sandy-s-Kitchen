@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import Cashier from "./pages/platforms/cashier";
 import Authentication from "./pages/authentication";
 import { OrderReceipt } from "./components/shared/receipts";
+import HomePage from "./pages/home";
 export default function App() {
   const dispatch = useDispatch();
 
@@ -16,8 +17,8 @@ export default function App() {
   }, [dispatch]);
   return (
     <Routes>
-      <Route path="/" element={<Authentication />} />
-      {/* <Route path="/authentication/:action" element={<Authentication />} /> */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/authentication/:action" element={<Authentication />} />
       <Route path="/platforms" element={<Platforms />}>
         {RouteConfig()}
         <Route path="*" element={<h2>Not Found</h2>} />
