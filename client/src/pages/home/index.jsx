@@ -1,42 +1,48 @@
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, EffectFade } from "swiper/modules";
 import bg1 from "../../assets/backgrounds/bg1.png";
 import bg2 from "../../assets/backgrounds/bg2.png";
 import bg3 from "../../assets/backgrounds/bg3.png";
 import bg4 from "../../assets/backgrounds/bg4.png";
 
 import logo from "../../assets/logos/kitchenette.jpg";
-
+import "swiper/css";
 import "./index.css";
-
-const backgrounds = [bg1, bg2, bg3, bg4];
-
+import "swiper/css/effect-fade";
 const HomePage = () => {
-  const [currentImage, setCurrentImage] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImage((prev) => (prev + 1) % backgrounds.length);
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <>
       <section className="hero">
-        {backgrounds.map((background, index) => (
-          <div
-            key={index}
-            className={`hero__bg ${
-              currentImage === index ? "hero__bg--active" : ""
-            }`}
-            style={{
-              backgroundImage: `url(${background})`,
-            }}
-          />
-        ))}
+        <Swiper
+          modules={[Autoplay, EffectFade]}
+          effect="fade"
+          loop={true}
+          speed={1200}
+          slidesPerView={1}
+          autoplay={{
+            delay: 5000,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          }}
+          className="hero__swiper"
+        >
+          <SwiperSlide>
+            <img src={bg1} />
+          </SwiperSlide>
+
+          <SwiperSlide>
+            <img src={bg2} />
+          </SwiperSlide>
+
+          <SwiperSlide>
+            <img src={bg3} />
+          </SwiperSlide>
+
+          <SwiperSlide>
+            <img src={bg4} />
+          </SwiperSlide>
+        </Swiper>
 
         <div className="hero__overlay" />
 
@@ -49,7 +55,7 @@ const HomePage = () => {
                 className="navbar__logo"
               />
 
-              {/* <h1 className="navbar__title">Sandy's Kitchenette</h1> */}
+              <h1 className="navbar__title">S'K</h1>
             </div>
 
             <div className="flex gap-5">
