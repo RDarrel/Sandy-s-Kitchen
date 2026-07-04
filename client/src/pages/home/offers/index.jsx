@@ -8,25 +8,28 @@ import "./style.css";
 const Offers = () => {
   const offers = [
     {
-      icon: <Utensils />,
-      image: foodImage,
-      title: "Dine-In Meals",
-      text: "Comforting favorites served fresh for everyday cravings and family meals.",
-      action: "View Dining",
-    },
-    {
       icon: <CalendarCheck />,
       image: cateringImage,
       title: "Catering Packages",
-      text: "Food trays and event packages prepared for birthdays, weddings, and meetings.",
+      label: "For Events",
+      text: "Food trays and event packages prepared for birthdays, weddings, meetings, and family celebrations.",
       action: "Book Catering",
       featured: true,
+    },
+    {
+      icon: <Utensils />,
+      image: foodImage,
+      title: "Dine-In Meals",
+      label: "Daily Favorites",
+      text: "Comforting meals served fresh for everyday cravings and family dining.",
+      action: "View Dining",
     },
     {
       icon: <MapPin />,
       image: venueImage,
       title: "Venue Reservation",
-      text: "A cozy space for private gatherings, simple celebrations, and special occasions.",
+      label: "Private Gatherings",
+      text: "A cozy space for simple celebrations and special occasions.",
       action: "Reserve Venue",
     },
   ];
@@ -35,15 +38,19 @@ const Offers = () => {
     <section className="offers" id="offers">
       <div className="offers__inner">
         <div className="offers__header">
-          <p className="offers__eyebrow">What We Offer</p>
-          <h2 className="offers__title">Good food, warm service, easy plans.</h2>
+          <div>
+            <p className="offers__eyebrow">What We Offer</p>
+            <h2 className="offers__title">
+              Good food, warm service, easy plans.
+            </h2>
+          </div>
           <p className="offers__lead">
             Choose the service that fits your next meal, event, or celebration.
           </p>
         </div>
 
         <div className="offers__grid">
-          {offers.map(({ icon, image, title, text, action, featured }) => (
+          {offers.map(({ icon, image, title, label, text, action, featured }) => (
             <article
               className={`offers__card${featured ? " offers__card--featured" : ""}`}
               key={title}
@@ -52,7 +59,10 @@ const Offers = () => {
               <div className="offers__overlay" />
 
               <div className="offers__content">
-                <div className="offers__icon">{icon}</div>
+                <div className="offers__topline">
+                  <div className="offers__icon">{icon}</div>
+                  <span>{label}</span>
+                </div>
                 <h3>{title}</h3>
                 <p>{text}</p>
                 <Button
