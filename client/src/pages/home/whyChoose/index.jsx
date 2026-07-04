@@ -6,34 +6,34 @@ import {
   Sparkles,
   Utensils,
 } from "lucide-react";
+import cateringImage from "../../../assets/whyChoose/catering.jpg";
 import celebrationImage from "../../../assets/whyChoose/celebration.jpg";
 import diningImage from "../../../assets/whyChoose/dining.jpg";
 import foodsImage from "../../../assets/whyChoose/foods.jpg";
-import staffsImage from "../../../assets/whyChoose/staffs.jpg";
 import "./style.css";
 
 const WhyChoose = () => {
   const reasons = [
     {
-      icon: <ChefHat />,
-      image: foodsImage,
-      title: "Fresh, generous plates",
-      label: "Comfort food",
-      text: "Hearty servings, familiar flavors, and meals prepared with care.",
-    },
-    {
       icon: <HeartHandshake />,
-      image: staffsImage,
-      title: "Hands-on event care",
-      label: "Catering team",
-      text: "Friendly service that keeps gatherings organized and welcoming.",
+      image: cateringImage,
+      title: "Catering handled with care",
+      label: "Book catering",
+      text: "Food service, setup support, and a team that keeps events organized.",
     },
     {
       icon: <Sparkles />,
-      image: celebrationImage,
-      title: "Celebrations made polished",
-      label: "Special occasions",
-      text: "Thoughtful setup details for birthdays, meetings, and family moments.",
+      image: diningImage,
+      title: "Venue ready for gatherings",
+      label: "Reserve venue",
+      text: "A cozy space for birthdays, meetings, family events, and private moments.",
+    },
+    {
+      icon: <ChefHat />,
+      image: foodsImage,
+      title: "Dine-in comfort meals",
+      label: "Visit us",
+      text: "Hearty meals are available for guests who want to dine at the venue.",
     },
   ];
 
@@ -47,32 +47,32 @@ const WhyChoose = () => {
           </p>
 
           <h2 className="why-choose__title">
-            Premium comfort food, cozy dining, and events made easy.
+            Catering packages and venue reservations made easy.
           </h2>
 
           <p className="why-choose__lead">
-            From everyday cravings to milestone celebrations, Sandy's
-            Kitchenette brings together comforting food, attentive service, and
-            a warm venue that makes guests feel looked after.
+            Sandy's Kitchenette helps you plan celebrations with reliable
+            catering, a welcoming venue, and dine-in meals available for guests
+            who visit.
           </p>
         </div>
 
         <div className="why-choose__showcase">
           <article className="why-choose__feature">
             <img
-              src={diningImage}
-              alt="Sandy's Kitchenette dining area"
+              src={celebrationImage}
+              alt="Celebration setup by Sandy's Kitchenette"
               className="why-choose__feature-image"
             />
             <div className="why-choose__feature-copy">
               <div className="why-choose__seal">
                 <BadgeCheck />
-                <span>Trusted for meals and events</span>
+                <span>Trusted for catering and venue reservations</span>
               </div>
-              <h3>A place that feels ready for family meals and celebrations.</h3>
+              <h3>Catering and venue details prepared for your celebration.</h3>
               <p>
-                Enjoy a warm space, generous food, and simple planning for
-                dine-in days, catered events, and private gatherings.
+                Book food service and reserve a warm space for birthdays,
+                meetings, family gatherings, and private celebrations.
               </p>
             </div>
           </article>
@@ -97,15 +97,15 @@ const WhyChoose = () => {
         <div className="why-choose__notes">
           <div>
             <MapPin />
-            <span>Cozy venue for simple gatherings</span>
+            <span>Venue reservation for private gatherings</span>
           </div>
           <div>
             <BadgeCheck />
-            <span>Prepared for dine-in and catering</span>
+            <span>Catering packages for special events</span>
           </div>
           <div>
             <Sparkles />
-            <span>Styled details for memorable moments</span>
+            <span>Dine-in meals available at the venue</span>
           </div>
         </div>
       </div>
