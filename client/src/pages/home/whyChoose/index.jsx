@@ -10,6 +10,7 @@ import celebrationImage from "../../../assets/whyChoose/celebration.jpg";
 import diningImage from "../../../assets/whyChoose/dining.jpg";
 import foodsImage from "../../../assets/whyChoose/foods.jpg";
 import staffsImage from "../../../assets/whyChoose/staffs.jpg";
+import venueImage from "../../../assets/whyChoose/venue.jpg";
 import "./style.css";
 
 const WhyChoose = () => {
@@ -26,10 +27,10 @@ const WhyChoose = () => {
           alt: "Catering venue setup",
         },
       ],
-      title: "Event catering, handled end to end",
-      label: "Catering",
-      text: "Buffet service, plated meals, and setup support for birthdays, meetings, family gatherings, and private events.",
-      action: "Food service with a team",
+      title: "Less stress from planning to serving",
+      label: "Reliable team",
+      text: "You get food preparation, buffet coordination, and serving support from one team, so your event feels organized from setup to cleanup.",
+      action: "Plan with confidence",
     },
     {
       icon: <MapPin />,
@@ -38,11 +39,15 @@ const WhyChoose = () => {
           src: celebrationImage,
           alt: "Celebration setup by Sandy's Kitchenette",
         },
+        {
+          src: venueImage,
+          alt: "Sandy's Kitchenette venue seating area",
+        },
       ],
-      title: "A venue dressed for milestones",
-      label: "Venue",
-      text: "A warm, prepared space for birthdays, baptisms, meetings, and intimate celebrations, with details ready before guests arrive.",
-      action: "Reserve a celebration space",
+      title: "A celebration space that feels ready",
+      label: "Prepared venue",
+      text: "The place is arranged to welcome guests, take photos, share meals, and celebrate comfortably without starting from an empty room.",
+      action: "Celebrate with ease",
       reverse: true,
     },
     {
@@ -57,10 +62,10 @@ const WhyChoose = () => {
           alt: "Dine-in meals at Sandy's Kitchenette",
         },
       ],
-      title: "Fresh meals for visiting guests",
-      label: "Dine-in",
-      text: "Hearty plates and comfort meals are still served at Sandy's Kitchenette for guests who want to dine in.",
-      action: "Available at the venue",
+      title: "Food your guests can actually enjoy",
+      label: "Guest comfort",
+      text: "Whether guests come for an event or a simple dine-in visit, they are welcomed with fresh, familiar meals and a comfortable dining setting.",
+      action: "Serve guests well",
     },
   ];
 
@@ -75,19 +80,19 @@ const WhyChoose = () => {
             </p>
 
             <h2 className="why-choose__title">
-              Food, venue, and service ready for your event.
+              Celebrate with fewer worries and better care.
             </h2>
           </div>
 
           <div className="why-choose__summary">
             <p className="why-choose__lead">
-              Sandy's Kitchenette brings together event catering, a welcoming
-              celebration space, and dine-in meals for guests who visit.
+              Choose a team that helps make gatherings feel easier, warmer,
+              and more memorable for the people around your table.
             </p>
 
             <div className="why-choose__seal">
               <BadgeCheck />
-              <span>Catering first, venue next, dine-in for visiting guests</span>
+              <span>One trusted place for food, venue, and guest comfort</span>
             </div>
           </div>
         </div>
