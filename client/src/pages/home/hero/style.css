@@ -85,9 +85,14 @@
 }
 
 .navbar--scrolled {
-  background: color-mix(in srgb, var(--foreground) 88%, #120b08);
-  border-bottom: 1px solid rgba(255, 232, 160, 0.14);
+  color: var(--foreground);
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
   box-shadow: 0 0.85rem 2rem rgba(59, 36, 24, 0.18);
+}
+
+.navbar--scrolled .navbar__title small {
+  color: var(--muted-foreground);
 }
 
 .navbar__content {
