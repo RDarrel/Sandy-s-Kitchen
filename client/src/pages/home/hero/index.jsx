@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CalendarCheck, MapPin } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -12,15 +13,28 @@ import "swiper/css";
 import "./style.css";
 import "swiper/css/effect-fade";
 const Hero = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+
   const subtitleLines = [
     "Plan your next celebration with ease.",
     "Book catering appointments and reserve our venue",
     "for birthdays, weddings, meetings, and special gatherings.",
   ];
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 24);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
-      <section className="hero">
+      <section className="hero" id="top">
         <Swiper
           modules={[Autoplay, EffectFade]}
           effect="fade"
@@ -53,7 +67,7 @@ const Hero = () => {
 
         <div className="hero__overlay" />
 
-        <nav className="navbar">
+        <nav className={`navbar${isScrolled ? " navbar--scrolled" : ""}`}>
           <div className="navbar__content my-2">
             <div className="flex items-center gap-3">
               <img
@@ -69,11 +83,13 @@ const Hero = () => {
             </div>
 
             <div className="flex gap-5">
-              <a className="text-secondary">Home</a>
-              <a>Dining</a>
-              <a>Catering</a>
-              <a>Venue</a>
-              <a>About</a>
+              <a href="#top" className="text-secondary">
+                Home
+              </a>
+              <a href="#offers">Dining</a>
+              <a href="#offers">Catering</a>
+              <a href="#offers">Venue</a>
+              <a href="#about">About</a>
             </div>
 
             <div className="flex gap-5 items-center">
