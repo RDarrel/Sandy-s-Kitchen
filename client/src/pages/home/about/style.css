@@ -88,8 +88,7 @@
 }
 
 .about__badge svg,
-.about__eyebrow svg,
-.about__story-icon svg {
+.about__eyebrow svg {
   width: 0.95rem;
   height: 0.95rem;
 }
@@ -133,44 +132,42 @@
 .about__story {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-top: 1.45rem;
+  gap: 1.4rem;
+  margin-top: 1.55rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
 }
 
 .about__story-item {
-  display: grid;
-  grid-template-columns: 2.1rem 1fr;
-  gap: 0.75rem;
-  min-height: 6.1rem;
-  padding: 0.85rem;
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  background: rgba(255, 253, 248, 0.82);
-  box-shadow: 0 0.75rem 1.8rem rgba(74, 44, 18, 0.07);
-}
-
-.about__story-icon {
-  display: grid;
-  place-items: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  border-radius: 50%;
-  color: var(--accent-foreground);
-  background: color-mix(in srgb, var(--accent) 76%, white);
+  position: relative;
+  padding-left: 0.9rem;
 }
 
 .about__story-item h3 {
   margin: 0;
   color: var(--primary);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .about__story-item p {
-  margin: 0.28rem 0 0;
+  margin: 0.4rem 0 0;
   color: var(--muted-foreground);
-  font-size: 0.85rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.about__story-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.12rem;
+  width: 3px;
+  height: 2.6rem;
+  border-radius: 999px;
+  background: var(--accent);
 }
 
 @media (max-width: 1040px) {

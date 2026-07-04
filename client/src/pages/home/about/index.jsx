@@ -1,4 +1,4 @@
-import { CalendarCheck, ChefHat, MapPin, Sparkles } from "lucide-react";
+import { ChefHat, Sparkles } from "lucide-react";
 import cateringImage from "../../../assets/about/catering.jpg";
 import foodImage from "../../../assets/about/food.jpg";
 import "./style.css";
@@ -6,13 +6,11 @@ import "./style.css";
 const About = () => {
   const storyBlocks = [
     {
-      icon: <MapPin />,
-      title: "What We Are?",
+      title: "What We Are",
       text: "A warm kitchenette for hearty meals, simple celebrations, and cozy gatherings.",
     },
     {
-      icon: <CalendarCheck />,
-      title: "What We Do?",
+      title: "What We Do",
       text: "We serve dine-in favorites, catering packages, and venue reservations for special moments.",
     },
   ];
@@ -57,13 +55,10 @@ const About = () => {
           </p>
 
           <div className="about__story">
-            {storyBlocks.map(({ icon, title, text }) => (
+            {storyBlocks.map(({ title, text }) => (
               <article className="about__story-item" key={title}>
-                <div className="about__story-icon">{icon}</div>
-                <div>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
-                </div>
+                <h3>{title}</h3>
+                <p>{text}</p>
               </article>
             ))}
           </div>
