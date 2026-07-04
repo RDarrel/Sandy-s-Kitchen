@@ -1,0 +1,228 @@
+.about {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(3.5rem, 6vw, 5.75rem) 1.5rem;
+  background:
+    linear-gradient(180deg, #fff 0%, var(--background) 28%, #fff6e7 100%),
+    var(--background);
+}
+
+.about::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 14% 18%,
+      color-mix(in srgb, var(--accent) 18%, transparent),
+      transparent 28rem
+    ),
+    radial-gradient(
+      circle at 88% 84%,
+      color-mix(in srgb, var(--primary) 10%, transparent),
+      transparent 24rem
+    );
+}
+
+.about__inner {
+  position: relative;
+  z-index: 1;
+  width: min(70vw, 1180px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.84fr) minmax(20rem, 1fr);
+  gap: clamp(2.25rem, 5vw, 4.5rem);
+  align-items: center;
+}
+
+.about__media {
+  position: relative;
+  min-height: clamp(21rem, 33vw, 28.5rem);
+}
+
+.about__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about__image--main {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 82%;
+  height: 88%;
+  border-radius: 1.1rem;
+  box-shadow: 0 2rem 4rem rgba(74, 44, 18, 0.22);
+}
+
+.about__image-card {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 54%;
+  aspect-ratio: 1 / 0.82;
+  overflow: hidden;
+  border: 0.42rem solid var(--card);
+  border-radius: 1rem;
+  box-shadow: 0 1.5rem 3.25rem rgba(59, 36, 24, 0.24);
+}
+
+.about__badge {
+  position: absolute;
+  left: clamp(1rem, 4vw, 2.25rem);
+  bottom: clamp(1.4rem, 4vw, 2.8rem);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 3rem;
+  padding: 0 0.85rem;
+  border: 1px solid rgba(255, 232, 160, 0.82);
+  border-radius: 999px;
+  color: var(--accent-foreground);
+  background: color-mix(in srgb, var(--accent) 88%, white);
+  box-shadow: 0 1rem 2.2rem rgba(74, 44, 18, 0.22);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.about__badge svg,
+.about__eyebrow svg,
+.about__story-icon svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.about__content {
+  color: var(--foreground);
+}
+
+.about__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+  color: var(--primary);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.about__title {
+  max-width: 36rem;
+  margin: 0;
+  color: var(--foreground);
+  font-size: clamp(1.75rem, 3vw, 3rem);
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+.about__lead {
+  margin: 1.15rem 0 0;
+  max-width: 37rem;
+  color: color-mix(in srgb, var(--foreground) 88%, white);
+  font-size: clamp(0.92rem, 1.05vw, 1.02rem);
+  font-weight: 650;
+  line-height: 1.75;
+}
+
+.about__story {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.45rem;
+}
+
+.about__story-item {
+  display: grid;
+  grid-template-columns: 2.1rem 1fr;
+  gap: 0.75rem;
+  min-height: 6.1rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: rgba(255, 253, 248, 0.82);
+  box-shadow: 0 0.75rem 1.8rem rgba(74, 44, 18, 0.07);
+}
+
+.about__story-icon {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  color: var(--accent-foreground);
+  background: color-mix(in srgb, var(--accent) 76%, white);
+}
+
+.about__story-item h3 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.about__story-item p {
+  margin: 0.28rem 0 0;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 1040px) {
+  .about__inner {
+    width: min(88vw, 1180px);
+  }
+}
+
+@media (max-width: 860px) {
+  .about__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .about__media {
+    min-height: clamp(19rem, 68vw, 27rem);
+  }
+
+  .about__image--main {
+    width: 78%;
+  }
+}
+
+@media (max-width: 720px) {
+  .about {
+    padding-inline: 1rem;
+  }
+
+  .about__inner {
+    width: min(100%, 36rem);
+  }
+
+  .about__story {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 460px) {
+  .about__media {
+    min-height: 19rem;
+  }
+
+  .about__image--main {
+    width: 100%;
+    height: 72%;
+  }
+
+  .about__image-card {
+    width: 68%;
+  }
+
+  .about__badge {
+    left: 0.85rem;
+    bottom: 5.3rem;
+  }
+}
