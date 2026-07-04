@@ -1,0 +1,315 @@
+.moments {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(2rem, 3.4vw, 3rem) 0 0;
+  background:
+    linear-gradient(180deg, #fffdf8 0%, #fff8ed 100%),
+    var(--background);
+}
+
+.moments::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(246, 184, 26, 0.07), transparent 26%),
+    radial-gradient(
+      circle at 86% 12%,
+      color-mix(in srgb, var(--primary) 4%, transparent),
+      transparent 18rem
+    );
+}
+
+.moments__inner {
+  position: relative;
+  z-index: 1;
+  width: min(70vw, 1180px);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.moments__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.42fr);
+  gap: clamp(1rem, 3vw, 2.5rem);
+  align-items: center;
+  margin-bottom: clamp(0.95rem, 1.8vw, 1.35rem);
+  padding-bottom: clamp(0.75rem, 1.4vw, 1rem);
+  border-bottom: 1px solid rgba(74, 44, 18, 0.12);
+}
+
+.moments__heading,
+.moments__summary {
+  min-width: 0;
+}
+
+.moments__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.55rem;
+  color: var(--primary);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.moments__eyebrow svg,
+.moments__note svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+}
+
+.moments__title {
+  max-width: 42rem;
+  margin: 0;
+  color: var(--foreground);
+  font-size: clamp(1.32rem, 2vw, 2rem);
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+
+.moments__summary {
+  display: grid;
+  gap: 0.55rem;
+  padding-left: clamp(0.8rem, 1.5vw, 1.15rem);
+  border-left: 1px solid rgba(74, 44, 18, 0.14);
+}
+
+.moments__summary p {
+  max-width: 28rem;
+  margin: 0;
+  color: color-mix(in srgb, var(--foreground) 84%, white);
+  font-size: clamp(0.78rem, 0.9vw, 0.86rem);
+  font-weight: 650;
+  line-height: 1.52;
+}
+
+.moments__note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: fit-content;
+  color: var(--accent-foreground);
+  font-size: 0.68rem;
+  font-weight: 850;
+}
+
+.moments__reels {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.65rem;
+  padding: 0 0 0.2rem;
+}
+
+.moments__reels::before {
+  left: 0;
+  background:
+    linear-gradient(90deg, #fff8ed 0%, rgba(255, 248, 237, 0.72) 44%, transparent 100%);
+}
+
+.moments__reels::after {
+  right: 0;
+  background:
+    linear-gradient(270deg, #fff8ed 0%, rgba(255, 248, 237, 0.72) 44%, transparent 100%);
+}
+
+.moments__reels::before,
+.moments__reels::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  width: min(10vw, 6rem);
+  pointer-events: none;
+}
+
+.moments__reel {
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+.moments__track {
+  display: flex;
+  width: max-content;
+  gap: clamp(0.55rem, 1.1vw, 0.8rem);
+  padding-inline: 0.8rem;
+  animation: moments-scroll 46s linear infinite;
+}
+
+.moments__reel--reverse .moments__track {
+  animation-direction: reverse;
+  animation-duration: 54s;
+}
+
+.moments__reel:hover .moments__track {
+  animation-play-state: paused;
+}
+
+.moments__card {
+  position: relative;
+  flex: 0 0 clamp(13.5rem, 22vw, 21rem);
+  height: clamp(8rem, 11vw, 10.25rem);
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(74, 44, 18, 0.1);
+  border-radius: 8px;
+  background: var(--muted);
+  box-shadow:
+    0 0.8rem 1.6rem rgba(74, 44, 18, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.moments__card--portrait {
+  flex-basis: clamp(8.75rem, 13vw, 12rem);
+}
+
+.moments__card--wide {
+  flex-basis: clamp(13rem, 20vw, 18.5rem);
+}
+
+.moments__card--featured {
+  flex-basis: clamp(14.5rem, 22vw, 20rem);
+}
+
+.moments__card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 44%, rgba(45, 28, 20, 0.76)),
+    linear-gradient(135deg, rgba(74, 44, 18, 0.08), rgba(198, 40, 40, 0.14));
+}
+
+.moments__card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.01);
+  transition: transform 0.55s ease;
+}
+
+.moments__card:hover img {
+  transform: scale(1.055);
+}
+
+.moments__card:hover {
+  border-color: rgba(198, 40, 40, 0.22);
+  box-shadow:
+    0 1rem 2rem rgba(74, 44, 18, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  transform: translateY(-0.18rem);
+}
+
+.moments__card figcaption {
+  position: absolute;
+  left: 0.7rem;
+  right: 0.7rem;
+  bottom: 0.65rem;
+  z-index: 1;
+}
+
+.moments__card figcaption span {
+  display: block;
+  max-width: 100%;
+  color: white;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0.1rem 0.5rem rgba(0, 0, 0, 0.48);
+}
+
+@keyframes moments-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moments__track {
+    animation: none;
+  }
+
+  .moments__reel {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 1040px) {
+  .moments__inner {
+    width: min(88vw, 1180px);
+  }
+}
+
+@media (max-width: 900px) {
+  .moments__header {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+    align-items: start;
+  }
+
+  .moments__summary {
+    max-width: 42rem;
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .moments {
+    padding: clamp(1.8rem, 7vw, 2.5rem) 0 0;
+  }
+
+  .moments__inner {
+    width: min(100%, 36rem);
+    padding: 0 1rem;
+  }
+
+  .moments__reels {
+    gap: 0.55rem;
+    padding: 0 0 0.15rem;
+  }
+
+  .moments__track {
+    gap: 0.55rem;
+    padding-inline: 0.65rem;
+  }
+
+  .moments__card {
+    flex-basis: 12.5rem;
+    height: 8.25rem;
+  }
+
+  .moments__card--portrait {
+    flex-basis: 9.5rem;
+  }
+
+  .moments__card--wide {
+    flex-basis: 13.75rem;
+  }
+
+  .moments__card--featured {
+    flex-basis: 14.75rem;
+  }
+}

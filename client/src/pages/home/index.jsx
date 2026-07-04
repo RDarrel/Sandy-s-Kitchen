@@ -3,6 +3,7 @@ import Hero from "./hero";
 import Offers from "./offers";
 import Footer from "./footer";
 import WhyChoose from "./whyChoose";
+import Moments from "./moments";
 const HomePage = () => {
   return (
     <>
@@ -10,6 +11,8 @@ const HomePage = () => {
       <About />
       <Offers />
       <WhyChoose />
+      <Moments />
+
       <Footer />
     </>
   );
