@@ -96,6 +96,13 @@
   color: var(--muted-foreground);
 }
 
+.navbar--scrolled .navbar__title span {
+  color: var(--accent);
+  text-shadow:
+    0 1px 0 rgba(74, 44, 18, 0.18),
+    0 0 0.55rem rgba(255, 255, 255, 0.72);
+}
+
 .navbar__content {
   width: min(70vw, 1120px);
   --navbar-pill-x: 1.15rem;
