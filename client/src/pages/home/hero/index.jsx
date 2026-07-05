@@ -82,14 +82,26 @@ const Hero = () => {
               </h1>
             </div>
 
-            <div className="flex gap-5">
-              <a href="#top" className="text-secondary">
+            <div className="navbar__links">
+              <a
+                href="#top"
+                className="navbar__link navbar__link--active"
+                aria-current="page"
+              >
                 Home
               </a>
-              <a href="#offers">Dining</a>
-              <a href="#offers">Catering</a>
-              <a href="#offers">Venue</a>
-              <a href="#about">About</a>
+              <a href="#offers" className="navbar__link">
+                Dining
+              </a>
+              <a href="#offers" className="navbar__link">
+                Catering
+              </a>
+              <a href="#offers" className="navbar__link">
+                Venue
+              </a>
+              <a href="#about" className="navbar__link">
+                About
+              </a>
             </div>
 
             <div className="flex gap-5 items-center">
