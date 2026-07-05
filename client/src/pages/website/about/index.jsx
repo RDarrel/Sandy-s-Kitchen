@@ -1,5 +1,6 @@
 import { HeartHandshake, MapPin, Sparkles, Utensils } from "lucide-react";
 import cateringImage from "../../../assets/about/catering.jpg";
+import pinImage from "./images/pin.png";
 import storyCustomersImage from "./images/story/customers.jpg";
 import storyExteriorImage from "./images/story/exterior.jpg";
 import storyInteriorImage from "./images/story/interior.jpg";
@@ -94,7 +95,12 @@ const About = () => {
                   <div className="about-page__images">
                     {images.map(({ alt, src }) => (
                       <figure className="about-page__photo" key={alt}>
-                        <span className="about-page__pin" aria-hidden="true" />
+                        <img
+                          alt=""
+                          aria-hidden="true"
+                          className="about-page__pin"
+                          src={pinImage}
+                        />
                         <img alt={alt} src={src} />
                       </figure>
                     ))}
