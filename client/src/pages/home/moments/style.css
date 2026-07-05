@@ -2,23 +2,11 @@
   position: relative;
   overflow: hidden;
   padding: clamp(2rem, 3.4vw, 3rem) 0 0;
-  background:
-    linear-gradient(180deg, #fffdf8 0%, #fff8ed 100%),
-    var(--background);
+  background: var(--background);
 }
 
 .moments::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(246, 184, 26, 0.07), transparent 26%),
-    radial-gradient(
-      circle at 86% 12%,
-      color-mix(in srgb, var(--primary) 4%, transparent),
-      transparent 18rem
-    );
+  content: none;
 }
 
 .moments__inner {

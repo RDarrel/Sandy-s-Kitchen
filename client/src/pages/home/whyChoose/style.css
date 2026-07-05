@@ -2,27 +2,11 @@
   position: relative;
   overflow: hidden;
   padding: clamp(2.25rem, 4vw, 3.5rem) 1.5rem;
-  background:
-    linear-gradient(180deg, #fffdf8 0%, #fff8ed 100%),
-    var(--card);
+  background: var(--background);
 }
 
 .why-choose::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      circle at 10% 16%,
-      color-mix(in srgb, var(--accent) 8%, transparent),
-      transparent 20rem
-    ),
-    radial-gradient(
-      circle at 92% 80%,
-      color-mix(in srgb, var(--primary) 5%, transparent),
-      transparent 18rem
-    );
+  content: none;
 }
 
 .why-choose__inner {

@@ -2,27 +2,11 @@
   position: relative;
   overflow: hidden;
   padding: clamp(3.5rem, 6vw, 5.75rem) 1.5rem;
-  background:
-    linear-gradient(180deg, #fff 0%, var(--background) 28%, #fff6e7 100%),
-    var(--background);
+  background: var(--background);
 }
 
 .about::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      circle at 14% 18%,
-      color-mix(in srgb, var(--accent) 18%, transparent),
-      transparent 28rem
-    ),
-    radial-gradient(
-      circle at 88% 84%,
-      color-mix(in srgb, var(--primary) 10%, transparent),
-      transparent 24rem
-    );
+  content: none;
 }
 
 .about__inner {
