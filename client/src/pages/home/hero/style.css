@@ -432,7 +432,7 @@
   position: absolute;
 
   left: 50%;
-  bottom: 0;
+  bottom: -1px;
 
   transform: translateX(-50%);
 
@@ -441,7 +441,7 @@
 
   border-left: 4.3rem solid transparent;
   border-right: 4.3rem solid transparent;
-  border-bottom: 1.1rem solid white;
+  border-bottom: 1.15rem solid var(--background);
 
   z-index: 3;
 }
