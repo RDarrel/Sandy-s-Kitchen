@@ -64,16 +64,19 @@ const HomePage = () => {
   return (
     <main className="home-page">
       <Hero />
-      <About />
-      <SectionDivider />
-      <Offers />
-      <SectionDivider />
-      <WhyChoose />
-      <SectionDivider />
-      <FAQs />
-      <SectionDivider />
-      <Moments />
-      <Footer />
+      <div className="home-sections">
+        <div className="home-sections__triangle" aria-hidden="true" />
+        <About />
+        <SectionDivider />
+        <Offers />
+        <SectionDivider />
+        <WhyChoose />
+        <SectionDivider />
+        <FAQs />
+        <SectionDivider />
+        <Moments />
+        <Footer />
+      </div>
     </main>
   );
 };

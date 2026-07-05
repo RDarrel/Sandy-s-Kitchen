@@ -141,8 +141,6 @@ const Hero = () => {
             </Button>
           </div>
         </div>
-
-        <div className="hero__triangle" />
       </section>
     </>
   );

@@ -14,7 +14,7 @@
 =========================== */
 
 .hero__swiper {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 0;
 }
@@ -41,7 +41,7 @@
 =========================== */
 
 .hero__overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1;
@@ -52,8 +52,7 @@
 =========================== */
 
 .navbar,
-.hero__content,
-.hero__triangle {
+.hero__content {
   position: relative;
   z-index: 2;
 }
@@ -282,6 +281,8 @@
 =========================== */
 
 .hero__content {
+  position: fixed;
+  inset: 0;
   min-height: 100vh;
 
   display: flex;
@@ -424,24 +425,3 @@
   }
 }
 
-/* ===========================
-   Triangle
-=========================== */
-
-.hero__triangle {
-  position: absolute;
-
-  left: 50%;
-  bottom: -1px;
-
-  transform: translateX(-50%);
-
-  width: 0;
-  height: 0;
-
-  border-left: 4.3rem solid transparent;
-  border-right: 4.3rem solid transparent;
-  border-bottom: 1.15rem solid var(--background);
-
-  z-index: 3;
-}
