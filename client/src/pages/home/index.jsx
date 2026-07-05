@@ -4,6 +4,7 @@ import Offers from "./offers";
 import Footer from "./footer";
 import WhyChoose from "./whyChoose";
 import Moments from "./moments";
+import FAQs from "./FAQs";
 const HomePage = () => {
   return (
     <>
@@ -11,8 +12,8 @@ const HomePage = () => {
       <About />
       <Offers />
       <WhyChoose />
+      <FAQs />
       <Moments />
-
       <Footer />
     </>
   );
