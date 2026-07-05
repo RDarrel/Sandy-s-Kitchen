@@ -209,7 +209,7 @@
   border-radius: 999px;
   color: currentColor;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 400;
   text-decoration: none;
   transition:
     color 0.25s ease,
@@ -246,11 +246,13 @@
 
 .navbar__link--active {
   color: var(--accent);
+  font-weight: 600;
   background: transparent;
 }
 
 .navbar--scrolled .navbar__link {
-  color: color-mix(in srgb, var(--foreground) 78%, white);
+  color: color-mix(in srgb, var(--foreground) 66%, white);
+  font-weight: 400;
 }
 
 .navbar--scrolled .navbar__link:hover {
@@ -265,6 +267,7 @@
 
 .navbar--scrolled .navbar__link--active {
   color: var(--primary);
+  font-weight: 600;
   background: transparent;
   box-shadow: none;
 }

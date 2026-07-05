@@ -68,7 +68,7 @@ const Hero = () => {
         <div className="hero__overlay" />
 
         <nav className={`navbar${isScrolled ? " navbar--scrolled" : ""}`}>
-          <div className="navbar__content my-2">
+          <div className="navbar__content  my-2">
             <div className="navbar__brand flex items-center gap-3">
               <img
                 src={logo}
