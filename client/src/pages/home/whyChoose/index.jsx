@@ -7,26 +7,24 @@ import {
 } from "lucide-react";
 import cateringImage from "../../../assets/whyChoose/catering.jpg";
 import celebrationImage from "../../../assets/whyChoose/celebration.jpg";
-import diningImage from "../../../assets/whyChoose/dining.jpg";
 import foodsImage from "../../../assets/whyChoose/foods.jpg";
 import staffsImage from "../../../assets/whyChoose/staffs.jpg";
 import venueImage from "../../../assets/whyChoose/venue.jpg";
+import diningImage from "../../../assets/whyChoose/dining.jpg";
 import "./style.css";
 
 const WhyChoose = () => {
   const features = [
     {
       icon: <HeartHandshake />,
-      images: [
-        {
-          src: staffsImage,
-          alt: "Sandy's Kitchenette catering team with buffet setup",
-        },
-        {
-          src: cateringImage,
-          alt: "Catering venue setup",
-        },
-      ],
+      image: {
+        src: staffsImage,
+        alt: "Sandy's Kitchenette catering team with buffet setup",
+      },
+      insetImage: {
+        src: cateringImage,
+        alt: "Catering venue setup",
+      },
       title: "Less stress from planning to serving",
       label: "Stress-Free Planning",
       text: "You get food preparation, buffet coordination, and serving support from one team, so your event feels organized from setup to cleanup.",
@@ -34,16 +32,14 @@ const WhyChoose = () => {
     },
     {
       icon: <MapPin />,
-      images: [
-        {
-          src: celebrationImage,
-          alt: "Celebration setup by Sandy's Kitchenette",
-        },
-        {
-          src: venueImage,
-          alt: "Sandy's Kitchenette venue seating area",
-        },
-      ],
+      image: {
+        src: celebrationImage,
+        alt: "Celebration setup by Sandy's Kitchenette",
+      },
+      insetImage: {
+        src: venueImage,
+        alt: "Sandy's Kitchenette venue seating area",
+      },
       title: "A celebration space that feels ready",
       label: "Beautifully Prepared Venue",
       text: "The place is arranged to welcome guests, take photos, share meals, and celebrate comfortably without starting from an empty room.",
@@ -52,16 +48,14 @@ const WhyChoose = () => {
     },
     {
       icon: <ChefHat />,
-      images: [
-        {
-          src: diningImage,
-          alt: "Sandy's Kitchenette dining area",
-        },
-        {
-          src: foodsImage,
-          alt: "Dine-in meals at Sandy's Kitchenette",
-        },
-      ],
+      image: {
+        src: foodsImage,
+        alt: "Dine-in meals at Sandy's Kitchenette",
+      },
+      insetImage: {
+        src: diningImage,
+        alt: "Sandy's Kitchenette dining area",
+      },
       title: "Food your guests can actually enjoy",
       label: "Delicious Food Everyone Loves",
       text: "Whether guests come for an event or a simple dine-in visit, they are welcomed with fresh, familiar meals and a comfortable dining setting.",
@@ -98,23 +92,20 @@ const WhyChoose = () => {
         </div>
 
         <div className="why-choose__features">
-          {features.map(({ icon, images, title, label, text, action, reverse }, index) => (
+          {features.map(({ icon, image, insetImage, title, label, text, action, reverse }, index) => (
             <article
               className={`why-choose__feature why-choose__feature--${index + 1}${
                 reverse ? " why-choose__feature--reverse" : ""
               }`}
               key={title}
             >
-              <div
-                className={`why-choose__media${
-                  images.length > 1 ? " why-choose__media--pair" : ""
-                }`}
-              >
-                {images.map(({ src, alt }) => (
-                  <figure className="why-choose__image" key={alt}>
-                    <img src={src} alt={alt} />
-                  </figure>
-                ))}
+              <div className="why-choose__media">
+                <figure className="why-choose__image">
+                  <img src={image.src} alt={image.alt} />
+                </figure>
+                <figure className="why-choose__image-inset">
+                  <img src={insetImage.src} alt={insetImage.alt} />
+                </figure>
               </div>
 
               <div className="why-choose__feature-copy">
