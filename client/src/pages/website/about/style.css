@@ -91,10 +91,10 @@
 }
 
 .about-page h1 {
-  max-width: 21rem;
+  max-width: 38rem;
   margin: 0;
   color: var(--foreground);
-  font-size: clamp(1.35rem, 2vw, 2.1rem);
+  font-size: clamp(1.5rem, 2.2vw, 2.28rem);
   font-style: italic;
   font-weight: 900;
   line-height: 1.06;
@@ -102,10 +102,10 @@
 }
 
 .about-page__text {
-  max-width: 48rem;
+  max-width: 58rem;
   margin: 1rem 0 0;
   color: color-mix(in srgb, var(--foreground) 82%, white);
-  font-size: clamp(0.9rem, 1vw, 0.98rem);
+  font-size: clamp(0.98rem, 1.08vw, 1.08rem);
   line-height: 1.8;
 }
 
@@ -120,7 +120,11 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background:
-    radial-gradient(circle, color-mix(in srgb, var(--primary) 10%, transparent) 0 0.075rem, transparent 0.08rem),
+    radial-gradient(
+      circle,
+      color-mix(in srgb, var(--primary) 10%, transparent) 0 0.075rem,
+      transparent 0.08rem
+    ),
     color-mix(in srgb, var(--card) 72%, var(--background));
   background-size: 1rem 1rem;
   box-shadow: none;
@@ -140,7 +144,7 @@
   box-shadow: 0 0.45rem 0.9rem rgba(54, 29, 13, 0.18);
 }
 
-.about-page__photo > img:not(.about-page__pin),
+.about-page__photo > img,
 .about-page__image img {
   display: block;
   width: 100%;
@@ -152,16 +156,69 @@
 }
 
 .about-page__pin {
+  --pin-angle: 2deg;
+  --pin-needle-angle: 2deg;
   position: absolute;
   z-index: 2;
-  top: -0.55rem;
+  top: -0.48rem;
   left: auto;
-  right: clamp(0.65rem, 1.5vw, 0.9rem);
-  width: clamp(2.6rem, 4.8vw, 3.55rem);
-  height: auto;
-  filter: none;
-  transform: rotate(10deg);
+  right: clamp(0.9rem, 1.7vw, 1.2rem);
+  width: clamp(1.05rem, 1.8vw, 1.25rem);
+  height: clamp(2rem, 3.2vw, 2.35rem);
+  background: radial-gradient(
+    ellipse at 52% 92%,
+    rgba(48, 27, 12, 0.18) 0 0.1rem,
+    transparent 0.34rem
+  );
+  perspective: 7rem;
+  transform: rotate(var(--pin-angle)) translateY(0.22rem);
+  transform-origin: 50% 88%;
+  transform-style: preserve-3d;
   pointer-events: none;
+}
+
+.about-page__pin::before {
+  content: "";
+  position: absolute;
+  top: 0.08rem;
+  left: 50%;
+  z-index: 2;
+  width: clamp(0.72rem, 1.3vw, 0.92rem);
+  height: clamp(0.72rem, 1.3vw, 0.92rem);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 34% 28%,
+      rgba(255, 255, 255, 0.72),
+      transparent 0.18rem
+    ),
+    radial-gradient(
+      ellipse at 52% 78%,
+      rgba(118, 18, 15, 0.34),
+      transparent 58%
+    ),
+    linear-gradient(145deg, #ee4a3b 0%, #c9342b 56%, #8d1f1b 100%);
+  box-shadow:
+    inset -0.12rem -0.13rem 0.18rem rgba(90, 12, 10, 0.3),
+    0 0.22rem 0.24rem rgba(54, 29, 13, 0.28);
+  transform: translateX(-50%) translateY(0.12rem) translateZ(0.8rem)
+    rotateX(16deg) scaleY(0.88);
+}
+
+.about-page__pin::after {
+  content: "";
+  position: absolute;
+  top: clamp(0.62rem, 1.1vw, 0.78rem);
+  left: 50%;
+  z-index: 1;
+  width: 0.1rem;
+  height: clamp(1.28rem, 2.25vw, 1.62rem);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #d8d1c8 0%, #8d8781 68%, #4f4a46 100%);
+  box-shadow: 0.04rem 0.13rem 0.1rem rgba(54, 29, 13, 0.24);
+  transform: translateX(-50%) translateZ(-0.15rem)
+    rotate(var(--pin-needle-angle)) rotateX(48deg);
+  transform-origin: top center;
 }
 
 .about-page__photo:first-child {
@@ -173,9 +230,10 @@
 }
 
 .about-page__photo:nth-child(2) .about-page__pin {
+  --pin-angle: -2deg;
+  --pin-needle-angle: -2deg;
   right: auto;
-  left: clamp(0.65rem, 1.2vw, 0.9rem);
-  transform: rotate(-12deg);
+  left: clamp(0.9rem, 1.5vw, 1.15rem);
 }
 
 .about-page__photo:nth-child(3) {
@@ -183,9 +241,11 @@
 }
 
 .about-page__photo:nth-child(3) .about-page__pin {
+  --pin-angle: -2deg;
+  --pin-needle-angle: -2deg;
+  top: -0.58rem;
   right: auto;
-  left: clamp(0.65rem, 1.2vw, 0.9rem);
-  transform: rotate(-9deg);
+  left: clamp(0.9rem, 1.5vw, 1.15rem);
 }
 
 .about-page__photo:nth-child(4) {
@@ -193,9 +253,10 @@
 }
 
 .about-page__photo:nth-child(4) .about-page__pin {
+  --pin-angle: 2deg;
+  --pin-needle-angle: 2deg;
   left: auto;
-  right: clamp(0.65rem, 1.2vw, 0.9rem);
-  transform: rotate(12deg);
+  right: clamp(0.9rem, 1.5vw, 1.15rem);
 }
 
 .about-page__image {

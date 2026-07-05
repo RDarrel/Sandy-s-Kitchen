@@ -1,6 +1,5 @@
 import { HeartHandshake, MapPin, Sparkles, Utensils } from "lucide-react";
 import cateringImage from "../../../assets/about/catering.jpg";
-import pinImage from "./images/pin.png";
 import storyCustomersImage from "./images/story/customers.jpg";
 import storyExteriorImage from "./images/story/exterior.jpg";
 import storyInteriorImage from "./images/story/interior.jpg";
@@ -11,8 +10,9 @@ const About = () => {
   const timeline = [
     {
       label: "Our Story",
-      title: "Sandy's Kitchenette",
-      text: "Sandy's Kitchenette brings together home-style cooking, friendly service, and a cozy venue for guests who want meals and gatherings that feel easy, personal, and close to home.",
+      title:
+        "A kitchenette built around comfort, food, and familiar gatherings.",
+      text: "Sandy's Kitchenette started as a place where guests could enjoy home-style meals in a warm, welcoming space. From simple dine-in visits to small celebrations, every detail is shaped to feel personal, relaxed, and close to home.",
       images: [
         {
           src: storyExteriorImage,
@@ -34,39 +34,73 @@ const About = () => {
     },
     {
       label: "Our Mission",
-      title: "Built for everyday cravings and the moments worth gathering for.",
-      text: "We serve people who want more than just a place to eat. Some visit for a comforting meal, some inquire about food packages, and others reserve the venue for a celebration. In every part of the experience, our goal is to keep things welcoming, organized, and worth remembering.",
-      image: {
-        src: cateringImage,
-        alt: "Catering setup at Sandy's Kitchenette",
-      },
+      title: "To make good food and meaningful celebrations easier to enjoy.",
+      text: "Our mission is to serve comforting meals, thoughtful catering, and a cozy venue with care in every step. Whether it is an everyday craving or a planned event, we want guests to feel assisted, welcomed, and well taken care of.",
+      images: [
+        {
+          src: storyExteriorImage,
+          alt: "Exterior view of Sandy's Kitchenette",
+        },
+        {
+          src: storyInteriorImage,
+          alt: "Interior dining space of Sandy's Kitchenette",
+        },
+        {
+          src: storyOwnerImage,
+          alt: "Sandy's Kitchenette owner",
+        },
+        {
+          src: storyCustomersImage,
+          alt: "Guests at Sandy's Kitchenette",
+        },
+      ],
     },
     {
       label: "Our Services",
-      title: "Food, service, and a space that works for real gatherings.",
-      text: "From dine-in favorites to catering requests and venue reservations, Sandy's Kitchenette is shaped around practical needs, warm details, and food people can share.",
-      cards: [
+      title:
+        "Dine-in meals, catering support, and a venue ready for real moments.",
+      text: "We offer food and service for different needs: casual meals, packed food requests, catering arrangements, and venue reservations for birthdays, meetings, family gatherings, and simple celebrations.",
+      images: [
         {
-          icon: <Utensils />,
-          title: "Home-Style Meals",
-          text: "Comforting dishes prepared for dine-in visits, family meals, and casual celebrations.",
+          src: storyExteriorImage,
+          alt: "Exterior view of Sandy's Kitchenette",
         },
         {
-          icon: <HeartHandshake />,
-          title: "Warm Assistance",
-          text: "Helpful service from simple food orders to catering and venue reservation details.",
+          src: storyInteriorImage,
+          alt: "Interior dining space of Sandy's Kitchenette",
         },
         {
-          icon: <MapPin />,
-          title: "Gathering Space",
-          text: "A welcoming venue for birthdays, meetings, small events, and meaningful moments.",
+          src: storyOwnerImage,
+          alt: "Sandy's Kitchenette owner",
+        },
+        {
+          src: storyCustomersImage,
+          alt: "Guests at Sandy's Kitchenette",
         },
       ],
     },
     {
       label: "Visit Us",
-      title: "Still growing through meals shared and celebrations remembered.",
-      text: "Today, we continue serving guests with the same warm, personal touch: hearty meals, thoughtful catering, and a place where simple celebrations can feel special.",
+      title: "Come by for a meal, an inquiry, or your next celebration.",
+      text: "Visit Sandy's Kitchenette to explore our food, ask about catering packages, or reserve the space for your next gathering. We are here to help make every visit feel easy, warm, and worth coming back to.",
+      images: [
+        {
+          src: storyExteriorImage,
+          alt: "Exterior view of Sandy's Kitchenette",
+        },
+        {
+          src: storyInteriorImage,
+          alt: "Interior dining space of Sandy's Kitchenette",
+        },
+        {
+          src: storyOwnerImage,
+          alt: "Sandy's Kitchenette owner",
+        },
+        {
+          src: storyCustomersImage,
+          alt: "Guests at Sandy's Kitchenette",
+        },
+      ],
     },
   ];
 
@@ -95,12 +129,7 @@ const About = () => {
                   <div className="about-page__images">
                     {images.map(({ alt, src }) => (
                       <figure className="about-page__photo" key={alt}>
-                        <img
-                          alt=""
-                          aria-hidden="true"
-                          className="about-page__pin"
-                          src={pinImage}
-                        />
+                        <span aria-hidden="true" className="about-page__pin" />
                         <img alt={alt} src={src} />
                       </figure>
                     ))}
