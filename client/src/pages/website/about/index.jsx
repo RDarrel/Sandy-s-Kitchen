@@ -1,5 +1,4 @@
 import { HeartHandshake, MapPin, Sparkles, Utensils } from "lucide-react";
-import cateringImage from "../../../assets/about/catering.jpg";
 import storyCustomersImage from "./images/story/customers.jpg";
 import storyExteriorImage from "./images/story/exterior.jpg";
 import storyInteriorImage from "./images/story/interior.jpg";
@@ -11,8 +10,8 @@ const About = () => {
     {
       label: "Our Story",
       title:
-        "A kitchenette built around comfort, food, and familiar gatherings.",
-      text: "Sandy's Kitchenette started as a place where guests could enjoy home-style meals in a warm, welcoming space. From simple dine-in visits to small celebrations, every detail is shaped to feel personal, relaxed, and close to home.",
+        "A kitchenette for dining, catering, and meaningful gatherings.",
+      text: "Sandy's Kitchenette was created as a warm place where guests can enjoy comforting dine-in meals, book food for special occasions, and gather in a cozy venue that feels personal and welcoming.",
       images: [
         {
           src: storyExteriorImage,
@@ -34,8 +33,8 @@ const About = () => {
     },
     {
       label: "Our Mission",
-      title: "To make good food and meaningful celebrations easier to enjoy.",
-      text: "Our mission is to serve comforting meals, thoughtful catering, and a cozy venue with care in every step. Whether it is an everyday craving or a planned event, we want guests to feel assisted, welcomed, and well taken care of.",
+      title: "To make good food and simple celebrations easier to plan.",
+      text: "Our mission is to provide satisfying dining experiences, reliable catering support, and a comfortable venue for guests who want their celebrations to feel organized, warm, and stress-free.",
       images: [
         {
           src: storyExteriorImage,
@@ -58,8 +57,8 @@ const About = () => {
     {
       label: "Our Services",
       title:
-        "Dine-in meals, catering support, and a venue ready for real moments.",
-      text: "We offer food and service for different needs: casual meals, packed food requests, catering arrangements, and venue reservations for birthdays, meetings, family gatherings, and simple celebrations.",
+        "Dining, catering, and venue reservations in one welcoming place.",
+      text: "Guests can visit us for dine-in meals, inquire about catering packages, or reserve our venue for birthdays, meetings, family gatherings, and other intimate celebrations.",
       images: [
         {
           src: storyExteriorImage,
@@ -81,8 +80,8 @@ const About = () => {
     },
     {
       label: "Visit Us",
-      title: "Come by for a meal, an inquiry, or your next celebration.",
-      text: "Visit Sandy's Kitchenette to explore our food, ask about catering packages, or reserve the space for your next gathering. We are here to help make every visit feel easy, warm, and worth coming back to.",
+      title: "Visit us for dining, catering inquiries, or venue reservations.",
+      text: "Come to Sandy's Kitchenette to enjoy a meal, discuss catering options, or plan your next gathering in our venue. We are here to help make each visit easy, welcoming, and worth remembering.",
       images: [
         {
           src: storyExteriorImage,

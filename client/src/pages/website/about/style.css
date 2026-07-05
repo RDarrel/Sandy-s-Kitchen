@@ -25,13 +25,7 @@
   top: 0.45rem;
   bottom: 0.45rem;
   width: 1px;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--accent) 82%, white),
-    var(--border) 14%,
-    var(--border) 84%,
-    color-mix(in srgb, var(--primary) 52%, var(--border))
-  );
+  background: var(--border);
 }
 
 .about-page__item {
