@@ -11,6 +11,9 @@ import Cashier from "./pages/platforms/cashier";
 import Authentication from "./pages/authentication";
 import "./App.css";
 import Website from "./pages/website";
+import Dining from "./pages/website/dining";
+import Catering from "./pages/website/catering";
+import Venue from "./pages/website/venue";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -22,6 +25,9 @@ export default function App() {
     <Routes>
       <Route element={<Website />}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/dining" element={<Dining />} />
+        <Route path="/catering" element={<Catering />} />
+        <Route path="/venue" element={<Venue />} />
         <Route path="/about" element={<About />} />
       </Route>
       <Route path="/authentication/:action" element={<Authentication />} />

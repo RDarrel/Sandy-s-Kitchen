@@ -1,0 +1,14 @@
+.website-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.website-layout__main {
+  flex: 1;
+}
+
+.website-layout--inner .website-layout__main {
+  padding-top: 6.75rem;
+  background: var(--background);
+}
