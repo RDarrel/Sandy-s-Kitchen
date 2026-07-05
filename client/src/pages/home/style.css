@@ -10,7 +10,8 @@
   background: var(--background);
 }
 
-.home-sections__triangle {
+.home-sections::before {
+  content: "";
   position: absolute;
   left: 50%;
   top: -1.14rem;

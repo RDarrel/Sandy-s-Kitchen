@@ -65,7 +65,6 @@ const HomePage = () => {
     <main className="home-page">
       <Hero />
       <div className="home-sections">
-        <div className="home-sections__triangle" aria-hidden="true" />
         <About />
         <SectionDivider />
         <Offers />
