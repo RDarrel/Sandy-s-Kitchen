@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { CalendarCheck, MapPin, Utensils } from "lucide-react";
-import cateringImage from "../../../assets/about/catering.jpg";
-import foodImage from "../../../assets/about/food.jpg";
-import venueImage from "../../../assets/about/venue.jpg";
+import cateringImage from "../../../../assets/about/catering.jpg";
+import foodImage from "../../../../assets/about/food.jpg";
+import venueImage from "../../../../assets/about/venue.jpg";
 import "./style.css";
 
 const Offers = () => {
@@ -50,30 +50,32 @@ const Offers = () => {
         </div>
 
         <div className="offers__grid">
-          {offers.map(({ icon, image, title, label, text, action, featured }) => (
-            <article
-              className={`offers__card${featured ? " offers__card--featured" : ""}`}
-              key={title}
-            >
-              <img src={image} alt={title} className="offers__image" />
-              <div className="offers__overlay" />
+          {offers.map(
+            ({ icon, image, title, label, text, action, featured }) => (
+              <article
+                className={`offers__card${featured ? " offers__card--featured" : ""}`}
+                key={title}
+              >
+                <img src={image} alt={title} className="offers__image" />
+                <div className="offers__overlay" />
 
-              <div className="offers__content">
-                <div className="offers__topline">
-                  <div className="offers__icon">{icon}</div>
-                  <span>{label}</span>
+                <div className="offers__content">
+                  <div className="offers__topline">
+                    <div className="offers__icon">{icon}</div>
+                    <span>{label}</span>
+                  </div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                  <Button
+                    className="offers__button"
+                    variant={featured ? "default" : "outline"}
+                  >
+                    {action}
+                  </Button>
                 </div>
-                <h3>{title}</h3>
-                <p>{text}</p>
-                <Button
-                  className="offers__button"
-                  variant={featured ? "default" : "outline"}
-                >
-                  {action}
-                </Button>
-              </div>
-            </article>
-          ))}
+              </article>
+            ),
+          )}
         </div>
       </div>
     </section>

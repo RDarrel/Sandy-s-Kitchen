@@ -1,6 +1,6 @@
 import { ChefHat, Sparkles } from "lucide-react";
-import cateringImage from "../../../assets/about/catering.jpg";
-import foodImage from "../../../assets/about/food.jpg";
+import cateringImage from "../../../../assets/about/catering.jpg";
+import foodImage from "../../../../assets/about/food.jpg";
 import "./style.css";
 
 const About = () => {

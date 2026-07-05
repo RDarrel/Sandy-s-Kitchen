@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import { CalendarCheck, MapPin } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
-import bg1 from "../../../assets/backgrounds/bg1.png";
-import bg2 from "../../../assets/backgrounds/bg2.png";
-import bg3 from "../../../assets/backgrounds/bg3.png";
-import bg4 from "../../../assets/backgrounds/bg4.png";
+import bg1 from "../../../../assets/backgrounds/bg1.png";
+import bg2 from "../../../../assets/backgrounds/bg2.png";
+import bg3 from "../../../../assets/backgrounds/bg3.png";
+import bg4 from "../../../../assets/backgrounds/bg4.png";
 
-import logo from "../../../assets/logos/kitchenette.jpg";
+import logo from "../../../../assets/logos/kitchenette.jpg";
 import "swiper/css";
 import "./style.css";
 import "swiper/css/effect-fade";

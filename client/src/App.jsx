@@ -1,14 +1,17 @@
 import { Routes, Route } from "react-router-dom";
-import "./App.css";
-import Platforms from "./pages/platforms";
-import RouteConfig from "./pages/RouteConfig";
 import { useDispatch } from "react-redux";
 import { VALIDATEREFRESH } from "./services/redux/slices/persons/auth";
 import { useEffect } from "react";
+import { OrderReceipt } from "./components/shared/receipts";
+import HomePage from "./pages/website/home";
+import About from "./pages/website/about";
+import Platforms from "./pages/platforms";
+import RouteConfig from "./pages/RouteConfig";
 import Cashier from "./pages/platforms/cashier";
 import Authentication from "./pages/authentication";
-import { OrderReceipt } from "./components/shared/receipts";
-import HomePage from "./pages/home";
+import "./App.css";
+import Website from "./pages/website";
+
 export default function App() {
   const dispatch = useDispatch();
 
@@ -17,7 +20,10 @@ export default function App() {
   }, [dispatch]);
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route element={<Website />}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<About />} />
+      </Route>
       <Route path="/authentication/:action" element={<Authentication />} />
       <Route path="/platforms" element={<Platforms />}>
         {RouteConfig()}

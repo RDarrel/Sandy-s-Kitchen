@@ -1,17 +1,17 @@
 import { Camera, Heart } from "lucide-react";
-import moment1 from "../../../assets/moments/m1.jpg";
-import moment10 from "../../../assets/moments/m10.jpg";
-import moment11 from "../../../assets/moments/m11.jpg";
-import moment12 from "../../../assets/moments/m12.jpg";
-import moment13 from "../../../assets/moments/m13.jpg";
-import moment2 from "../../../assets/moments/m2.jpg";
-import moment3 from "../../../assets/moments/m3.jpg";
-import moment4 from "../../../assets/moments/m4.jpg";
-import moment5 from "../../../assets/moments/m5.jpg";
-import moment6 from "../../../assets/moments/m6.jpg";
-import moment7 from "../../../assets/moments/m7.jpg";
-import moment8 from "../../../assets/moments/m8.jpg";
-import moment9 from "../../../assets/moments/m9.jpg";
+import moment1 from "../../../../assets/moments/m1.jpg";
+import moment10 from "../../../../assets/moments/m10.jpg";
+import moment11 from "../../../../assets/moments/m11.jpg";
+import moment12 from "../../../../assets/moments/m12.jpg";
+import moment13 from "../../../../assets/moments/m13.jpg";
+import moment2 from "../../../../assets/moments/m2.jpg";
+import moment3 from "../../../../assets/moments/m3.jpg";
+import moment4 from "../../../../assets/moments/m4.jpg";
+import moment5 from "../../../../assets/moments/m5.jpg";
+import moment6 from "../../../../assets/moments/m6.jpg";
+import moment7 from "../../../../assets/moments/m7.jpg";
+import moment8 from "../../../../assets/moments/m8.jpg";
+import moment9 from "../../../../assets/moments/m9.jpg";
 import "./style.css";
 
 const Moments = () => {

@@ -5,12 +5,12 @@ import {
   MapPin,
   Utensils,
 } from "lucide-react";
-import cateringImage from "../../../assets/whyChoose/catering.jpg";
-import celebrationImage from "../../../assets/whyChoose/celebration.jpg";
-import foodsImage from "../../../assets/whyChoose/foods.jpg";
-import staffsImage from "../../../assets/whyChoose/staffs.jpg";
-import venueImage from "../../../assets/whyChoose/venue.jpg";
-import diningImage from "../../../assets/whyChoose/dining.jpg";
+import cateringImage from "../../../../assets/whyChoose/catering.jpg";
+import celebrationImage from "../../../../assets/whyChoose/celebration.jpg";
+import foodsImage from "../../../../assets/whyChoose/foods.jpg";
+import staffsImage from "../../../../assets/whyChoose/staffs.jpg";
+import venueImage from "../../../../assets/whyChoose/venue.jpg";
+import diningImage from "../../../../assets/whyChoose/dining.jpg";
 import "./style.css";
 
 const WhyChoose = () => {
@@ -80,8 +80,8 @@ const WhyChoose = () => {
 
           <div className="why-choose__summary">
             <p className="why-choose__lead">
-              Choose a team that helps make gatherings feel easier, warmer,
-              and more memorable for the people around your table.
+              Choose a team that helps make gatherings feel easier, warmer, and
+              more memorable for the people around your table.
             </p>
 
             <div className="why-choose__seal">
@@ -92,33 +92,38 @@ const WhyChoose = () => {
         </div>
 
         <div className="why-choose__features">
-          {features.map(({ icon, image, insetImage, title, label, text, action, reverse }, index) => (
-            <article
-              className={`why-choose__feature why-choose__feature--${index + 1}${
-                reverse ? " why-choose__feature--reverse" : ""
-              }`}
-              key={title}
-            >
-              <div className="why-choose__media">
-                <figure className="why-choose__image">
-                  <img src={image.src} alt={image.alt} />
-                </figure>
-                <figure className="why-choose__image-inset">
-                  <img src={insetImage.src} alt={insetImage.alt} />
-                </figure>
-              </div>
-
-              <div className="why-choose__feature-copy">
-                <div className="why-choose__topline">
-                  <span className="why-choose__icon">{icon}</span>
-                  <span>{label}</span>
+          {features.map(
+            (
+              { icon, image, insetImage, title, label, text, action, reverse },
+              index,
+            ) => (
+              <article
+                className={`why-choose__feature why-choose__feature--${index + 1}${
+                  reverse ? " why-choose__feature--reverse" : ""
+                }`}
+                key={title}
+              >
+                <div className="why-choose__media">
+                  <figure className="why-choose__image">
+                    <img src={image.src} alt={image.alt} />
+                  </figure>
+                  <figure className="why-choose__image-inset">
+                    <img src={insetImage.src} alt={insetImage.alt} />
+                  </figure>
                 </div>
-                <h3>{title}</h3>
-                <p>{text}</p>
-                <span className="why-choose__action">{action}</span>
-              </div>
-            </article>
-          ))}
+
+                <div className="why-choose__feature-copy">
+                  <div className="why-choose__topline">
+                    <span className="why-choose__icon">{icon}</span>
+                    <span>{label}</span>
+                  </div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                  <span className="why-choose__action">{action}</span>
+                </div>
+              </article>
+            ),
+          )}
         </div>
       </div>
     </section>
