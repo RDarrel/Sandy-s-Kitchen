@@ -16,7 +16,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const { pathname } = useLocation();
   const isHomePage = pathname === "/";
-  const isSolid = !isHomePage || isScrolled;
+  const isInnerPage = !isHomePage;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,7 +29,11 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
   return (
-    <nav className={`navbar${isSolid ? " navbar--scrolled" : ""}`}>
+    <nav
+      className={`navbar${isHomePage && isScrolled ? " navbar--scrolled" : ""}${
+        isInnerPage ? " navbar--inner" : ""
+      }`}
+    >
       <div className="navbar__content  my-2">
         <div className="navbar__brand flex items-center gap-3">
           <img src={logo} alt="Sandy's Kitchenette" className="navbar__logo" />
