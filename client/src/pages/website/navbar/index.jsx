@@ -109,7 +109,7 @@ const Navbar = () => {
           </div>
 
           <div className="navbar__mobile-actions">
-            <Button>Sign-up</Button>
+            <Button variant="outline">Sign-up</Button>
           </div>
         </div>
       </div>

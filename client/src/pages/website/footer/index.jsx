@@ -59,7 +59,6 @@ const Footer = () => {
       </div>
 
       <div className="footer__bottom">
-        <img src={logo} alt="Sandy's Kitchenette" />
         <p>&copy; 2026 Sandy's Kitchenette | All Rights Reserved</p>
       </div>
     </footer>
