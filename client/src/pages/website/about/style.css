@@ -65,7 +65,7 @@
 }
 
 .about-page__content {
-  max-width: 66rem;
+  max-width: 72rem;
 }
 
 .about-page__label {
@@ -85,18 +85,18 @@
 }
 
 .about-page h1 {
-  max-width: 38rem;
+  max-width: 48rem;
   margin: 0;
   color: var(--foreground);
-  font-size: clamp(1.5rem, 2.2vw, 2.28rem);
+  font-size: clamp(1.45rem, 2vw, 2.05rem);
   font-style: italic;
   font-weight: 900;
-  line-height: 1.06;
+  line-height: 1.08;
   letter-spacing: 0;
 }
 
 .about-page__text {
-  max-width: 58rem;
+  max-width: 68rem;
   margin: 1rem 0 0;
   color: color-mix(in srgb, var(--foreground) 82%, white);
   font-size: clamp(0.98rem, 1.08vw, 1.08rem);
@@ -108,7 +108,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(1.1rem, 2vw, 1.5rem);
-  margin-top: 0rem;
+  margin-top: 0.5rem;
   width: min(100%, 56rem);
   border-radius: 0.5rem;
   box-shadow: none;
