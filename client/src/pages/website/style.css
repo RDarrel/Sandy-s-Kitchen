@@ -13,3 +13,9 @@
   padding-top: var(--website-navbar-offset);
   background: var(--background);
 }
+
+@media (max-width: 760px) {
+  .website-layout {
+    --website-navbar-offset: 4.75rem;
+  }
+}
