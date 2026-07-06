@@ -191,17 +191,14 @@
 }
 
 .about-page__photo-wrap:nth-child(4) .about-page__photo {
-  animation: about-card-bottom-left-sway 4.1s ease-in-out infinite alternate;
-  animation-delay: -2.05s;
   transform: rotate(-3deg);
-  transform-origin: top right;
-  will-change: transform, box-shadow;
 }
 
 .about-page__photo-wrap:nth-child(4) .about-page__pin {
   --pin-angle: 40deg;
   left: auto;
-  right: 0rem;
+  top: -2.5rem;
+  right: 0.5rem;
 }
 
 .about-page__image {
@@ -227,26 +224,8 @@
   }
 }
 
-@keyframes about-card-bottom-left-sway {
-  from {
-    box-shadow: 0 0.45rem 0.9rem rgba(54, 29, 13, 0.18);
-    transform: rotate(-2.9deg);
-  }
-
-  50% {
-    box-shadow: 0 0.72rem 1.18rem rgba(54, 29, 13, 0.22);
-    transform: rotate(-6.5deg);
-  }
-
-  to {
-    box-shadow: 0 0.58rem 1rem rgba(54, 29, 13, 0.2);
-    transform: rotate(-4.35deg);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .about-page__photo-wrap:nth-child(3) .about-page__photo,
-  .about-page__photo-wrap:nth-child(4) .about-page__photo {
+  .about-page__photo-wrap:nth-child(3) .about-page__photo {
     animation: none;
   }
 }
