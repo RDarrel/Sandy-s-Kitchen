@@ -14,7 +14,7 @@ const packages = [
     name: "Classic Handaan",
     tag: "Budget Friendly",
     price: "PHP 395",
-    unit: "per guest",
+    unit: "package price",
     minimum: "Minimum 30 guests",
     image: classicBuffetImage,
     description:
@@ -31,7 +31,7 @@ const packages = [
     name: "Family Celebration",
     tag: "Best Seller",
     price: "PHP 485",
-    unit: "per guest",
+    unit: "package price",
     minimum: "Minimum 40 guests",
     image: celebrationImage,
     description:
@@ -48,7 +48,7 @@ const packages = [
     name: "Corporate Buffet",
     tag: "Office Ready",
     price: "PHP 525",
-    unit: "per guest",
+    unit: "package price",
     minimum: "Minimum 50 guests",
     image: diningImage,
     description:
@@ -65,7 +65,7 @@ const packages = [
     name: "Premium Feast",
     tag: "Premium",
     price: "PHP 645",
-    unit: "per guest",
+    unit: "package price",
     minimum: "Minimum 60 guests",
     image: cateringImage,
     description:
@@ -82,7 +82,7 @@ const packages = [
     name: "Venue Banquet",
     tag: "With Venue",
     price: "PHP 720",
-    unit: "per guest",
+    unit: "package price",
     minimum: "Minimum 70 guests",
     image: venueImage,
     description:
@@ -99,7 +99,7 @@ const packages = [
     name: "Full Service Banquet",
     tag: "Complete Setup",
     price: "PHP 850",
-    unit: "per guest",
+    unit: "package price",
     minimum: "Minimum 80 guests",
     image: staffImage,
     description:
@@ -115,7 +115,7 @@ const packages = [
   {
     name: "Simple Food Trays",
     price: "PHP 320",
-    unit: "per guest",
+    unit: "package price",
     minimum: "Minimum 20 guests",
     image: classicBuffetImage,
     description:
