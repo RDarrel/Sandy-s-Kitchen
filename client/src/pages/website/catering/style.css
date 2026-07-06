@@ -277,6 +277,10 @@
 }
 
 @media (max-width: 640px) {
+  .catering-page {
+    padding-top: 0.45rem;
+  }
+
   .catering-package {
     --package-card-height: 17.5rem;
     grid-template-columns: 10rem minmax(0, 1fr);

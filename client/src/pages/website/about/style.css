@@ -326,6 +326,7 @@
 
 @media (max-width: 520px) {
   .about-page {
+    padding-top: 0.45rem;
     padding-inline: 1rem;
   }
 

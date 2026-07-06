@@ -52,6 +52,7 @@
 }
 
 .navbar__content {
+  position: relative;
   width: min(70vw, 1120px);
   --navbar-pill-x: 1.15rem;
 
@@ -59,6 +60,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.1rem 0;
+  margin-block: 0.5rem;
   border: 1px solid transparent;
   border-radius: 999px;
 
@@ -82,6 +84,7 @@
 .navbar--inner .navbar__content {
   width: min(70vw, 1120px);
   padding: 0.1rem 0;
+  margin-block: 0.5rem;
   border-color: transparent;
   background: transparent;
   backdrop-filter: none;
@@ -291,4 +294,205 @@
 .navbar--inner .navbar__link--active::after {
   background: var(--primary);
   opacity: 0.85;
+}
+
+.navbar__actions {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.navbar__actions p {
+  margin: 0;
+}
+
+.navbar__menu-button {
+  display: none;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 0.35rem;
+  color: currentColor;
+  background: transparent;
+}
+
+.navbar__mobile-login {
+  display: none;
+}
+
+.navbar__menu-button svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.navbar__mobile-menu {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  left: 0;
+  right: 0;
+  display: none;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--background) 96%, white);
+  box-shadow: 0 1rem 2.2rem rgba(59, 36, 24, 0.16);
+}
+
+.navbar__mobile-links {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.navbar__mobile-link {
+  display: flex;
+  align-items: center;
+  min-height: 2.35rem;
+  padding: 0 0.8rem;
+  border-radius: 0.45rem;
+  color: var(--foreground);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.navbar__mobile-link--active {
+  color: var(--primary);
+  background: var(--muted);
+}
+
+.navbar__mobile-actions {
+  display: grid;
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 1100px) {
+  .navbar__content,
+  .navbar--inner .navbar__content {
+    width: min(88vw, 960px);
+  }
+
+  .navbar__brand,
+  .navbar--inner .navbar__brand {
+    min-width: 9.5rem;
+  }
+
+  .navbar__links {
+    gap: 0.15rem;
+  }
+
+  .navbar__link {
+    padding: 0 0.52rem;
+    font-size: 0.84rem;
+  }
+
+  .navbar__actions {
+    gap: 0.85rem;
+  }
+}
+
+@media (max-width: 860px) {
+  .navbar,
+  .navbar--scrolled,
+  .navbar--inner {
+    top: 0;
+    color: var(--foreground);
+    border-bottom: 1px solid var(--border);
+    background: var(--background);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: background-color 0.2s ease;
+  }
+
+  .navbar--scrolled {
+    background: var(--background);
+  }
+
+  .navbar:not(.navbar--inner):not(.navbar--scrolled) {
+    color: white;
+    border-bottom-color: transparent;
+    background: rgba(59, 36, 24, 0.18);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .navbar:not(.navbar--inner):not(.navbar--scrolled) .navbar__menu-button {
+    color: white;
+    background: rgba(59, 36, 24, 0.76);
+  }
+
+  .navbar--inner .navbar__menu-button,
+  .navbar--scrolled .navbar__menu-button {
+    color: var(--primary);
+    background: var(--muted);
+  }
+
+  .navbar__content,
+  .navbar--scrolled .navbar__content,
+  .navbar--inner .navbar__content {
+    width: min(92vw, 40rem);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    padding: 0.35rem 0;
+    margin-block: 0.35rem;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .navbar__brand,
+  .navbar--scrolled .navbar__brand,
+  .navbar--inner .navbar__brand {
+    gap: 0;
+    min-width: 8.5rem;
+    justify-self: start;
+  }
+
+  .navbar__logo,
+  .navbar--scrolled .navbar__logo,
+  .navbar--inner .navbar__logo {
+    width: 0;
+    height: 0;
+    flex-basis: 0;
+    opacity: 0;
+    transform: scale(0.2);
+    pointer-events: none;
+  }
+
+  .navbar__links,
+  .navbar__actions {
+    display: none;
+  }
+
+  .navbar__menu-button {
+    display: grid;
+    justify-self: start;
+  }
+
+  .navbar__mobile-login {
+    display: inline-flex;
+    justify-self: end;
+  }
+
+  .navbar--menu-open .navbar__mobile-menu {
+    display: block;
+  }
+}
+
+@media (max-width: 420px) {
+  .navbar__brand,
+  .navbar--scrolled .navbar__brand,
+  .navbar--inner .navbar__brand {
+    min-width: 7.8rem;
+  }
+
+  .navbar__content,
+  .navbar--scrolled .navbar__content,
+  .navbar--inner .navbar__content {
+    gap: 0.5rem;
+  }
+
 }

@@ -14,8 +14,8 @@
   background: var(--background);
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .website-layout {
-    --website-navbar-offset: 4.75rem;
+    --website-navbar-offset: 4.35rem;
   }
 }

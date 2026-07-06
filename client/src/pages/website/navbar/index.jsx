@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import logo from "../../../assets/logos/kitchenette.jpg";
@@ -14,6 +15,7 @@ const navItems = [
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { pathname } = useLocation();
   const isHomePage = pathname === "/";
   const isInnerPage = !isHomePage;
@@ -25,17 +27,36 @@ const Navbar = () => {
 
     handleScroll();
     window.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleScroll);
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, []);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
   return (
     <nav
       className={`navbar${isHomePage && isScrolled ? " navbar--scrolled" : ""}${
         isInnerPage ? " navbar--inner" : ""
-      }`}
+      }${isMenuOpen ? " navbar--menu-open" : ""}`}
     >
-      <div className="navbar__content  my-2">
-        <div className="navbar__brand flex items-center gap-3">
+      <div className="navbar__content">
+        <button
+          aria-expanded={isMenuOpen}
+          aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          className="navbar__menu-button"
+          onClick={() => setIsMenuOpen((current) => !current)}
+          type="button"
+        >
+          {isMenuOpen ? <X /> : <Menu />}
+        </button>
+
+        <div className="navbar__brand">
           <img src={logo} alt="Sandy's Kitchenette" className="navbar__logo" />
 
           <h1 className="navbar__title">
@@ -59,10 +80,37 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="flex gap-5 items-center">
+        <div className="navbar__actions">
           <p>Login</p>
 
           <Button>Sign-up</Button>
+        </div>
+
+        <Button className="navbar__mobile-login">
+          Login
+        </Button>
+
+        <div className="navbar__mobile-menu">
+          <div className="navbar__mobile-links">
+            {navItems.map((item) => (
+              <NavLink
+                className={({ isActive }) =>
+                  `navbar__mobile-link${
+                    isActive ? " navbar__mobile-link--active" : ""
+                  }`
+                }
+                end={item.to === "/"}
+                key={item.to}
+                to={item.to}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+
+          <div className="navbar__mobile-actions">
+            <Button>Sign-up</Button>
+          </div>
         </div>
       </div>
     </nav>

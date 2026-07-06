@@ -328,6 +328,10 @@
 }
 
 @media (max-width: 760px) {
+  .venue-page {
+    padding-top: 0.45rem;
+  }
+
   .venue-page__inner {
     width: min(100%, 34rem);
   }
