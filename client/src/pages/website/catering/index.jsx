@@ -112,6 +112,22 @@ const packages = [
       "Event coordination support",
     ],
   },
+  {
+    name: "Simple Food Trays",
+    price: "PHP 320",
+    unit: "per guest",
+    minimum: "Minimum 20 guests",
+    image: classicBuffetImage,
+    description:
+      "A practical food tray package for casual meals, office snacks, and small gatherings.",
+    inclusions: [
+      "2 main dishes",
+      "Steamed rice",
+      "Pasta tray",
+      "Iced tea",
+      "Disposable utensils",
+    ],
+  },
 ];
 
 const ITEMS_PER_PAGE = 6;
@@ -191,7 +207,7 @@ const Catering = () => {
                 <div className="catering-package__body">
                   <div className="catering-package__content">
                     <div className="catering-package__heading">
-                      <span>{item.tag}</span>
+                      {item.tag && <span>{item.tag}</span>}
                       <h2>{item.name}</h2>
                       <p>{item.description}</p>
                     </div>
