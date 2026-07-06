@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  ListChecks,
+  UsersRound,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import classicBuffetImage from "../../../assets/whyChoose/foods.jpg";
 import celebrationImage from "../../../assets/whyChoose/celebration.jpg";
@@ -25,6 +31,9 @@ const packages = [
       "Steamed rice",
       "Iced tea",
       "Basic buffet setup",
+      "Disposable utensils",
+      "Serving spoons",
+      "Food labels",
     ],
   },
   {
@@ -42,6 +51,7 @@ const packages = [
       "Dessert tray",
       "Iced tea or juice",
       "Styled buffet table",
+      "Basic table centerpiece",
     ],
   },
   {
@@ -120,17 +130,13 @@ const packages = [
     image: classicBuffetImage,
     description:
       "A practical food tray package for casual meals, office snacks, and small gatherings.",
-    inclusions: [
-      "2 main dishes",
-      "Steamed rice",
-      "Pasta tray",
-      "Iced tea",
-      "Disposable utensils",
-    ],
+    inclusions: ["2 main dishes", "Steamed rice", "Pasta tray", "Iced tea"],
   },
 ];
 
 const ITEMS_PER_PAGE = 3;
+const MAX_VISIBLE_INCLUSIONS = 6;
+const MAX_VISIBLE_INCLUSIONS_WITH_MORE = 5;
 
 const Catering = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -196,7 +202,14 @@ const Catering = () => {
 
         <div className="catering-packages">
           {visiblePackages.map((item) => {
-            const visibleInclusions = item.inclusions.slice(0, 4);
+            const hasHiddenInclusions =
+              item.inclusions.length > MAX_VISIBLE_INCLUSIONS;
+            const visibleLimit = hasHiddenInclusions
+              ? MAX_VISIBLE_INCLUSIONS_WITH_MORE
+              : MAX_VISIBLE_INCLUSIONS;
+            const visibleInclusions = item.inclusions.slice(0, visibleLimit);
+            const hiddenInclusions =
+              item.inclusions.length - visibleInclusions.length;
 
             return (
               <article className="catering-package" key={item.name}>
@@ -219,8 +232,14 @@ const Catering = () => {
                   </div>
 
                   <div className="catering-package__summary">
-                    <span>{item.minimum}</span>
-                    <span>{item.inclusions.length} inclusions</span>
+                    <span>
+                      <UsersRound />
+                      {item.minimum}
+                    </span>
+                    <span>
+                      <ListChecks />
+                      {item.inclusions.length} inclusions
+                    </span>
                   </div>
 
                   <ul className="catering-package__inclusions">
@@ -230,6 +249,11 @@ const Catering = () => {
                         {inclusion}
                       </li>
                     ))}
+                    {hasHiddenInclusions && (
+                      <li className="catering-package__more">
+                        +{hiddenInclusions} more
+                      </li>
+                    )}
                   </ul>
 
                   <Button

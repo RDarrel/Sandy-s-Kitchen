@@ -67,7 +67,7 @@
 
   display: grid;
   grid-template-columns: minmax(16rem, 0.4fr) minmax(0, 0.6fr);
-  height: var(--package-card-height);
+  min-height: var(--package-card-height);
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -176,17 +176,18 @@
 .catering-package__summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.38rem;
-  margin: 0.48rem 0.9rem 0;
-  padding: 0.42rem 0;
+  gap: 0.55rem;
+  margin: 0.55rem 0.9rem 0;
+  padding: 0.48rem 0;
   border-block: 1px solid var(--border);
 }
 
 .catering-package__summary span {
   display: inline-flex;
+  gap: 0.35rem;
   align-items: center;
-  min-height: 1.35rem;
-  padding: 0 0.52rem;
+  min-height: 1.45rem;
+  padding: 0 0.58rem;
   border-radius: 999px;
   color: var(--foreground);
   background: var(--muted);
@@ -194,6 +195,13 @@
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
+}
+
+.catering-package__summary svg {
+  width: 0.78rem;
+  height: 0.78rem;
+  flex: 0 0 auto;
+  color: var(--primary);
 }
 
 .catering-package__inclusions {
@@ -222,6 +230,20 @@
   flex: 0 0 auto;
   margin-top: 0.08rem;
   color: var(--primary);
+}
+
+.catering-package__inclusions li.catering-package__more {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 1.35rem;
+  padding: 0 0.52rem;
+  border-radius: 999px;
+  color: var(--foreground);
+  background: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 850;
+  line-height: 1;
 }
 
 .catering-package__button {
@@ -281,7 +303,7 @@
   }
 
   .catering-package {
-    height: auto;
+    min-height: 0;
     grid-template-columns: 1fr;
   }
 
