@@ -129,6 +129,8 @@ const venueOptions = [
 ];
 
 const ITEMS_PER_PAGE = 3;
+const MAX_VISIBLE_INCLUDES = 6;
+const MAX_VISIBLE_INCLUDES_WITH_MORE = 5;
 
 const Venue = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -194,84 +196,100 @@ const Venue = () => {
           {renderPagination("top")}
 
           <div className="venue-reservation__grid">
-            {visibleVenues.map((venue) => (
-              <article className="venue-card" key={venue.name}>
-                <div className="venue-card__gallery">
-                  <img
-                    src={venue.images[0]}
-                    alt={venue.name}
-                    className="venue-card__main-image"
-                  />
-                  <div className="venue-card__thumbs">
-                    {venue.images.slice(1, 4).map((image, index) => (
-                      <img
-                        src={image}
-                        alt={`${venue.name} preview ${index + 2}`}
-                        key={image}
-                      />
-                    ))}
+            {visibleVenues.map((venue) => {
+              const hasHiddenIncludes =
+                venue.includes.length > MAX_VISIBLE_INCLUDES;
+              const visibleLimit = hasHiddenIncludes
+                ? MAX_VISIBLE_INCLUDES_WITH_MORE
+                : MAX_VISIBLE_INCLUDES;
+              const visibleIncludes = venue.includes.slice(0, visibleLimit);
+              const hiddenIncludes =
+                venue.includes.length - visibleIncludes.length;
+
+              return (
+                <article className="venue-card" key={venue.name}>
+                  <div className="venue-card__gallery">
+                    <img
+                      src={venue.images[0]}
+                      alt={venue.name}
+                      className="venue-card__main-image"
+                    />
+                    <div className="venue-card__thumbs">
+                      {venue.images.slice(1, 4).map((image, index) => (
+                        <img
+                          src={image}
+                          alt={`${venue.name} preview ${index + 2}`}
+                          key={image}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
 
                   <div className="venue-card__body">
                     <div className="venue-card__top">
                       <div>
                         <h2>{venue.name}</h2>
                         <p>
-                        <MapPin />
-                        Sandy&apos;s Kitchenette venue space
-                      </p>
-                      <small>{venue.description}</small>
-                    </div>
+                          <MapPin />
+                          Sandy&apos;s Kitchenette venue space
+                        </p>
+                        <small>{venue.description}</small>
+                      </div>
 
-                    <div className="venue-card__rate">
-                      <strong>{venue.rate}</strong>
-                      <small>{venue.rateLabel}</small>
-                    </div>
-                  </div>
-
-                  <div className="venue-card__meta">
-                    <span>
-                      <UsersRound />
-                      <small>Capacity</small>
-                      <strong>{venue.capacity}</strong>
-                    </span>
-                    <span>
-                      <Clock />
-                      <small>Duration</small>
-                      <strong>{venue.duration}</strong>
-                    </span>
-                  </div>
-
-                  <div className="venue-card__details">
-                    <div>
-                      <h3>Best for</h3>
-                      <div className="venue-card__chips">
-                        {venue.bestFor.map((item) => (
-                          <span key={item}>{item}</span>
-                        ))}
+                      <div className="venue-card__rate">
+                        <strong>{venue.rate}</strong>
+                        <small>{venue.rateLabel}</small>
                       </div>
                     </div>
 
-                    <div>
-                      <h3>Included</h3>
-                      <ul>
-                        {venue.includes.map((item) => (
-                          <li key={item}>
-                            <Check />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
+                    <div className="venue-card__meta">
+                      <span>
+                        <UsersRound />
+                        <small>Capacity</small>
+                        <strong>{venue.capacity}</strong>
+                      </span>
+                      <span>
+                        <Clock />
+                        <small>Duration</small>
+                        <strong>{venue.duration}</strong>
+                      </span>
                     </div>
-                  </div>
 
-                  <Button className="venue-card__button" variant="outline">
-                    Inquire Venue
-                  </Button>
-                </div>
-              </article>
-            ))}
+                    <div className="venue-card__details">
+                      <div>
+                        <h3>Best for</h3>
+                        <div className="venue-card__chips">
+                          {venue.bestFor.map((item) => (
+                            <span key={item}>{item}</span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3>Included</h3>
+                        <ul>
+                          {visibleIncludes.map((item) => (
+                            <li key={item}>
+                              <Check />
+                              {item}
+                            </li>
+                          ))}
+                          {hasHiddenIncludes && (
+                            <li className="venue-card__more">
+                              +{hiddenIncludes} more
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <Button className="venue-card__button" variant="outline">
+                      Inquire Venue
+                    </Button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
 
           {renderPagination("bottom")}

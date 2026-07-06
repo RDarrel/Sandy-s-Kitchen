@@ -288,6 +288,20 @@
   color: var(--primary);
 }
 
+.venue-card__details li.venue-card__more {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 1.35rem;
+  padding: 0 0.52rem;
+  border-radius: 999px;
+  color: var(--foreground);
+  background: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
 .venue-card__button {
   width: 100%;
   height: 2.2rem;
@@ -335,8 +349,7 @@
   }
 
   .venue-card__top,
-  .venue-card__details,
-  .venue-card__meta {
+  .venue-card__details {
     grid-template-columns: 1fr;
   }
 
