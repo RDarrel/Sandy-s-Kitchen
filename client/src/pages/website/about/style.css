@@ -147,14 +147,14 @@
 .about-page__pin {
   position: absolute;
   z-index: 2;
-  top: -1.5rem;
-  right: -0.6rem;
-  width: clamp(2.85rem, 5vw, 4rem);
-  height: clamp(3.35rem, 5.8vw, 4.8rem);
+  top: clamp(-1.45rem, -4.8vw, -0.75rem);
+  right: clamp(-0.55rem, -1.8vw, -0.2rem);
+  width: clamp(2.1rem, 10vw, 4rem);
+  height: clamp(2.45rem, 11.6vw, 4.8rem);
   background-image: var(--pin-image);
   background-position: 49% 42%;
   background-repeat: no-repeat;
-  background-size: 5rem auto;
+  background-size: 125% auto;
   filter: drop-shadow(0 0.25rem 0.22rem rgba(54, 29, 13, 0.24));
   pointer-events: none;
   transform: rotate(var(--pin-angle, 2deg));
@@ -172,9 +172,9 @@
 .about-page__photo-wrap:nth-child(2) .about-page__pin {
   --pin-angle: 40deg;
   right: auto;
-  top: -2.5rem;
-  left: -1.6rem;
-  background-size: 5.5rem auto;
+  top: clamp(-2.2rem, -7vw, -1.1rem);
+  left: clamp(-1.3rem, -4vw, -0.55rem);
+  background-size: 138% auto;
 }
 
 .about-page__photo-wrap:nth-child(3) .about-page__photo {
@@ -187,7 +187,7 @@
 .about-page__photo-wrap:nth-child(3) .about-page__pin {
   --pin-angle: -2deg;
   right: auto;
-  left: -0.9rem;
+  left: clamp(-0.85rem, -2.8vw, -0.35rem);
 }
 
 .about-page__photo-wrap:nth-child(4) .about-page__photo {
@@ -197,8 +197,8 @@
 .about-page__photo-wrap:nth-child(4) .about-page__pin {
   --pin-angle: 40deg;
   left: auto;
-  top: -2.5rem;
-  right: 0.5rem;
+  top: clamp(-2.2rem, -7vw, -1.1rem);
+  right: clamp(0.2rem, 1.6vw, 0.5rem);
 }
 
 .about-page__image {
@@ -298,29 +298,25 @@
     padding-left: 2.5rem;
   }
 
+  .about-page__content {
+    padding-left: 2.5rem;
+  }
+
   .about-page__marker {
     left: 0;
   }
 
-  .about-page__images,
   .about-page__cards {
     grid-template-columns: 1fr;
   }
 
   .about-page__images {
-    gap: 0.85rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.65rem, 3vw, 0.85rem);
   }
 
   .about-page__images::before {
     display: none;
-  }
-
-  .about-page__photo-wrap:first-child .about-page__photo,
-  .about-page__photo-wrap:nth-child(2) .about-page__photo,
-  .about-page__photo-wrap:nth-child(3) .about-page__photo,
-  .about-page__photo-wrap:nth-child(4) .about-page__photo {
-    animation: none;
-    transform: none;
   }
 
   .about-page__photo > img {
@@ -335,5 +331,10 @@
 
   .about-page__inner {
     width: min(100%, 36rem);
+  }
+
+  .about-page__heading,
+  .about-page__content {
+    padding-left: 2.2rem;
   }
 }
