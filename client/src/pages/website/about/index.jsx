@@ -1,4 +1,4 @@
-import { HeartHandshake, MapPin, Sparkles, Utensils } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import storyCustomersImage from "./images/story/customers.jpg";
 import storyExteriorImage from "./images/story/exterior.jpg";
 import storyInteriorImage from "./images/story/interior.jpg";
