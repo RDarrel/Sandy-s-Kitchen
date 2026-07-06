@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Footer from "./footer";
 import Navbar from "./navbar";
 import "./style.css";
@@ -6,6 +7,10 @@ import "./style.css";
 const Website = () => {
   const { pathname } = useLocation();
   const isHomePage = pathname === "/";
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [pathname]);
 
   return (
     <div
