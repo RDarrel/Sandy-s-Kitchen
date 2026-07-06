@@ -108,19 +108,9 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(1.1rem, 2vw, 1.5rem);
-  margin-top: clamp(1.75rem, 4vw, 3rem);
+  margin-top: 0rem;
   width: min(100%, 56rem);
-  padding: clamp(0.85rem, 1.6vw, 1.25rem);
-  border: 1px solid var(--border);
   border-radius: 0.5rem;
-  background:
-    radial-gradient(
-      circle,
-      color-mix(in srgb, var(--primary) 10%, transparent) 0 0.075rem,
-      transparent 0.08rem
-    ),
-    color-mix(in srgb, var(--card) 72%, var(--background));
-  background-size: 1rem 1rem;
   box-shadow: none;
 }
 
@@ -128,8 +118,11 @@
   display: none;
 }
 
-.about-page__photo {
+.about-page__photo-wrap {
   position: relative;
+}
+
+.about-page__photo {
   margin: 0;
   padding: clamp(0.32rem, 0.65vw, 0.45rem);
   border: 1px solid rgba(82, 45, 20, 0.18);
@@ -138,7 +131,7 @@
   box-shadow: 0 0.45rem 0.9rem rgba(54, 29, 13, 0.18);
 }
 
-.about-page__photo > img,
+.about-page__photo > img:not(.about-page__pin),
 .about-page__image img {
   display: block;
   width: 100%;
@@ -147,116 +140,108 @@
   object-fit: cover;
   border-radius: 0.03rem;
   background: #fffaf0;
+
+  filter: brightness(0.85);
 }
 
 .about-page__pin {
-  --pin-angle: 2deg;
-  --pin-needle-angle: 2deg;
   position: absolute;
   z-index: 2;
-  top: -0.48rem;
-  left: auto;
-  right: clamp(0.9rem, 1.7vw, 1.2rem);
-  width: clamp(1.05rem, 1.8vw, 1.25rem);
-  height: clamp(2rem, 3.2vw, 2.35rem);
-  background: radial-gradient(
-    ellipse at 52% 92%,
-    rgba(48, 27, 12, 0.18) 0 0.1rem,
-    transparent 0.34rem
-  );
-  perspective: 7rem;
-  transform: rotate(var(--pin-angle)) translateY(0.22rem);
-  transform-origin: 50% 88%;
-  transform-style: preserve-3d;
+  top: -1.5rem;
+  right: -0.6rem;
+  width: clamp(2.85rem, 5vw, 4rem);
+  height: clamp(3.35rem, 5.8vw, 4.8rem);
+  background-image: var(--pin-image);
+  background-position: 49% 42%;
+  background-repeat: no-repeat;
+  background-size: 5rem auto;
+  filter: drop-shadow(0 0.25rem 0.22rem rgba(54, 29, 13, 0.24));
   pointer-events: none;
+  transform: rotate(var(--pin-angle, 2deg));
+  transform-origin: 50% 84%;
 }
 
-.about-page__pin::before {
-  content: "";
-  position: absolute;
-  top: 0.08rem;
-  left: 50%;
-  z-index: 2;
-  width: clamp(0.72rem, 1.3vw, 0.92rem);
-  height: clamp(0.72rem, 1.3vw, 0.92rem);
-  border-radius: 50%;
-  background:
-    radial-gradient(
-      circle at 34% 28%,
-      rgba(255, 255, 255, 0.72),
-      transparent 0.18rem
-    ),
-    radial-gradient(
-      ellipse at 52% 78%,
-      rgba(118, 18, 15, 0.34),
-      transparent 58%
-    ),
-    linear-gradient(145deg, #ee4a3b 0%, #c9342b 56%, #8d1f1b 100%);
-  box-shadow:
-    inset -0.12rem -0.13rem 0.18rem rgba(90, 12, 10, 0.3),
-    0 0.22rem 0.24rem rgba(54, 29, 13, 0.28);
-  transform: translateX(-50%) translateY(0.12rem) translateZ(0.8rem)
-    rotateX(16deg) scaleY(0.88);
-}
-
-.about-page__pin::after {
-  content: "";
-  position: absolute;
-  top: clamp(0.62rem, 1.1vw, 0.78rem);
-  left: 50%;
-  z-index: 1;
-  width: 0.1rem;
-  height: clamp(1.28rem, 2.25vw, 1.62rem);
-  border-radius: 999px;
-  background: linear-gradient(180deg, #d8d1c8 0%, #8d8781 68%, #4f4a46 100%);
-  box-shadow: 0.04rem 0.13rem 0.1rem rgba(54, 29, 13, 0.24);
-  transform: translateX(-50%) translateZ(-0.15rem)
-    rotate(var(--pin-needle-angle)) rotateX(48deg);
-  transform-origin: top center;
-}
-
-.about-page__photo:first-child {
+.about-page__photo-wrap:first-child .about-page__photo {
   transform: rotate(-4deg) translateY(0.35rem);
 }
 
-.about-page__photo:nth-child(2) {
+.about-page__photo-wrap:nth-child(2) .about-page__photo {
   transform: rotate(4deg) translateY(0.05rem);
 }
 
-.about-page__photo:nth-child(2) .about-page__pin {
-  --pin-angle: -2deg;
-  --pin-needle-angle: -2deg;
+.about-page__photo-wrap:nth-child(2) .about-page__pin {
+  --pin-angle: 40deg;
   right: auto;
-  left: clamp(0.9rem, 1.5vw, 1.15rem);
+  top: -2.5rem;
+  left: -1.6rem;
+  background-size: 5.5rem auto;
 }
 
-.about-page__photo:nth-child(3) {
+.about-page__photo-wrap:nth-child(3) .about-page__photo {
+  animation: about-card-bottom-right-sway 5.8s ease-in-out infinite;
   transform: rotate(3deg) translateY(0.05rem);
+  transform-origin: top left;
 }
 
-.about-page__photo:nth-child(3) .about-page__pin {
+.about-page__photo-wrap:nth-child(3) .about-page__pin {
   --pin-angle: -2deg;
-  --pin-needle-angle: -2deg;
-  top: -0.58rem;
   right: auto;
-  left: clamp(0.9rem, 1.5vw, 1.15rem);
+  left: -0.9rem;
 }
 
-.about-page__photo:nth-child(4) {
+.about-page__photo-wrap:nth-child(4) .about-page__photo {
+  animation: about-card-bottom-left-sway 6.2s ease-in-out infinite;
   transform: rotate(-3deg) translateY(0.3rem);
+  transform-origin: top right;
 }
 
-.about-page__photo:nth-child(4) .about-page__pin {
-  --pin-angle: 2deg;
-  --pin-needle-angle: 2deg;
+.about-page__photo-wrap:nth-child(4) .about-page__pin {
+  --pin-angle: 40deg;
   left: auto;
-  right: clamp(0.9rem, 1.5vw, 1.15rem);
+  right: 0rem;
 }
 
 .about-page__image {
   margin-top: clamp(1.75rem, 4vw, 3rem);
   max-width: 45rem;
   aspect-ratio: 16 / 9;
+}
+
+@keyframes about-card-bottom-right-sway {
+  0%,
+  100% {
+    transform: rotate(3deg) translateY(0.05rem);
+  }
+
+  45% {
+    transform: rotate(3.75deg) translateY(0.12rem);
+  }
+
+  70% {
+    transform: rotate(2.7deg) translateY(0.07rem);
+  }
+}
+
+@keyframes about-card-bottom-left-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg) translateY(0.3rem);
+  }
+
+  42% {
+    transform: rotate(-3.75deg) translateY(0.37rem);
+  }
+
+  72% {
+    transform: rotate(-2.7deg) translateY(0.32rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-page__photo-wrap:nth-child(3) .about-page__photo,
+  .about-page__photo-wrap:nth-child(4) .about-page__photo {
+    animation: none;
+  }
 }
 
 .about-page__cards {
@@ -344,14 +329,15 @@
     display: none;
   }
 
-  .about-page__photo:first-child,
-  .about-page__photo:nth-child(2),
-  .about-page__photo:nth-child(3),
-  .about-page__photo:nth-child(4) {
+  .about-page__photo-wrap:first-child .about-page__photo,
+  .about-page__photo-wrap:nth-child(2) .about-page__photo,
+  .about-page__photo-wrap:nth-child(3) .about-page__photo,
+  .about-page__photo-wrap:nth-child(4) .about-page__photo {
+    animation: none;
     transform: none;
   }
 
-  .about-page__photo > img:not(.about-page__pin) {
+  .about-page__photo > img {
     aspect-ratio: 16 / 10;
   }
 }

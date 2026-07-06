@@ -3,14 +3,22 @@ import storyCustomersImage from "./images/story/customers.jpg";
 import storyExteriorImage from "./images/story/exterior.jpg";
 import storyInteriorImage from "./images/story/interior.jpg";
 import storyOwnerImage from "./images/story/owner.jpg";
+import pin1 from "./images/pin1.png";
+import pin2 from "./images/pin2.png";
+import pin3 from "./images/pin3.png";
+import pin4 from "./images/pin4.png";
+import pin5 from "./images/pin5.png";
+import pin6 from "./images/pin6.png";
+import pin7 from "./images/pin7.png";
+import pin8 from "./images/pin8.png";
 import "./style.css";
-
+// const PINS = [pin5, pin6, pin8, pin7];
+const PINS = [pin1, pin6, pin3, pin4];
 const About = () => {
   const timeline = [
     {
       label: "Our Story",
-      title:
-        "A kitchenette for dining, catering, and meaningful gatherings.",
+      title: "A kitchenette for dining, catering, and meaningful gatherings.",
       text: "Sandy's Kitchenette was created as a warm place where guests can enjoy comforting dine-in meals, book food for special occasions, and gather in a cozy venue that feels personal and welcoming.",
       images: [
         {
@@ -56,8 +64,7 @@ const About = () => {
     },
     {
       label: "Our Services",
-      title:
-        "Dining, catering, and venue reservations in one welcoming place.",
+      title: "Dining, catering, and venue reservations in one welcoming place.",
       text: "Guests can visit us for dine-in meals, inquire about catering packages, or reserve our venue for birthdays, meetings, family gatherings, and other intimate celebrations.",
       images: [
         {
@@ -126,11 +133,18 @@ const About = () => {
 
                 {images ? (
                   <div className="about-page__images">
-                    {images.map(({ alt, src }) => (
-                      <figure className="about-page__photo" key={alt}>
-                        <span aria-hidden="true" className="about-page__pin" />
-                        <img alt={alt} src={src} />
-                      </figure>
+                    {images.map(({ alt, src }, idx) => (
+                      <div className="about-page__photo-wrap" key={alt}>
+                        <span
+                          aria-hidden="true"
+                          className="about-page__pin"
+                          style={{ "--pin-image": `url(${PINS[idx]})` }}
+                        />
+
+                        <figure className="about-page__photo">
+                          <img alt={alt} src={src} />
+                        </figure>
+                      </div>
                     ))}
                   </div>
                 ) : null}
