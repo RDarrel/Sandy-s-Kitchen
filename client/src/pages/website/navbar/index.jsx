@@ -7,7 +7,7 @@ import "./style.css";
 
 const navItems = [
   { label: "Home", to: "/" },
-  { label: "Dining", to: "/dining" },
+  // { label: "Dining", to: "/dining" },
   { label: "Catering", to: "/catering" },
   { label: "Venue", to: "/venue" },
   { label: "About", to: "/about" },
@@ -48,7 +48,9 @@ const Navbar = () => {
       <div className="navbar__content">
         <button
           aria-expanded={isMenuOpen}
-          aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-label={
+            isMenuOpen ? "Close navigation menu" : "Open navigation menu"
+          }
           className="navbar__menu-button"
           onClick={() => setIsMenuOpen((current) => !current)}
           type="button"
@@ -86,9 +88,7 @@ const Navbar = () => {
           <Button>Sign-up</Button>
         </div>
 
-        <Button className="navbar__mobile-login">
-          Login
-        </Button>
+        <Button className="navbar__mobile-login">Login</Button>
 
         <div className="navbar__mobile-menu">
           <div className="navbar__mobile-links">
