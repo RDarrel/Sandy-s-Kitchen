@@ -2,6 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  --website-navbar-offset: 3.5rem;
 }
 
 .website-layout__main {
@@ -9,6 +10,6 @@
 }
 
 .website-layout--inner .website-layout__main {
-  padding-top: 6.75rem;
+  padding-top: var(--website-navbar-offset);
   background: var(--background);
 }
