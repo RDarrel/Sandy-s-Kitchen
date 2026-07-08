@@ -104,7 +104,9 @@ const Authentication = () => {
                 className="h-10 w-10 rounded-full"
               />
             </div>
-            Sandy&apos;s Kitchenette.
+            <span className="auth-brand-text">
+              Sandy&apos;s <small>Kitchenette.</small>
+            </span>
           </a>
         </div>
         <div
