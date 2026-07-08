@@ -9,11 +9,13 @@ import Platforms from "./pages/platforms";
 import RouteConfig from "./pages/RouteConfig";
 import Cashier from "./pages/platforms/cashier";
 import Authentication from "./pages/authentication";
-import "./App.css";
 import Website from "./pages/website";
 import Dining from "./pages/website/dining";
 import Catering from "./pages/website/catering";
 import Venue from "./pages/website/venue";
+import Login from "./pages/authentication/login";
+import SignUp from "./pages/authentication/sign-up";
+import "./App.css";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -30,7 +32,11 @@ export default function App() {
         <Route path="/venue" element={<Venue />} />
         <Route path="/about" element={<About />} />
       </Route>
-      <Route path="/authentication/:action" element={<Authentication />} />
+      <Route path="authentication" element={<Authentication />}>
+        <Route path="login" element={<Login />} />
+        <Route path="sign-up" element={<SignUp />} />
+      </Route>
+      {/* <Route path="/authentication/:action" element={<Authentication />} /> */}
       <Route path="/platforms" element={<Platforms />}>
         {RouteConfig()}
         <Route path="*" element={<h2>Not Found</h2>} />

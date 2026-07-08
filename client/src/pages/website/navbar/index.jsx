@@ -83,8 +83,7 @@ const Navbar = () => {
         </div>
 
         <div className="navbar__actions">
-          <p>Login</p>
-
+          <NavLink to={"/authentication/login"}>Login</NavLink>
           <Button>Sign-up</Button>
         </div>
 
