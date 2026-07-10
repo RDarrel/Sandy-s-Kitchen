@@ -410,9 +410,9 @@ exports.save = async (req, res) => {
 
 exports.browse = async (req, res) => {
   try {
-    const station = req?.query?.station || "";
+    const { station } = req.query;
     var menus = [];
-    if (station === "cashier") {
+    if (["catering", "cashier"].includes(station?.toLowerCase())) {
       menus = await Menu.find(ACTIVE_FILTER)
         .sort({ createdAt: -1 })
         .populate("category", "name")

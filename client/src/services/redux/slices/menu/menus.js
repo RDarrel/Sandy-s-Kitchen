@@ -59,9 +59,9 @@ export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
   }
 });
 
-export const BROWSE = createAsyncThunk(`${url}`, (_, thunkAPI) => {
+export const BROWSE = createAsyncThunk(`${url}`, (params, thunkAPI) => {
   try {
-    return axioKit.universal(`${url}/browse`);
+    return axioKit.universal(`${url}/browse`, params);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||

@@ -4,13 +4,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CustomModal from "./modal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { BROWSE } from "@/services/redux/slices/menu/menus";
 
 const Packages = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(BROWSE({ station: "catering" }));
+  }, [dispatch]);
 
   return (
     <>

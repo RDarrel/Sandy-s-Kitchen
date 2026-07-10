@@ -16,6 +16,7 @@ import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SAVE, UPDATE } from "@/services/redux/slices/procurement/suppliers";
+import Menus from "./menus";
 const _form = {
   name: "",
   contact: {
@@ -58,9 +59,11 @@ const CustomModal = ({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>{willCreate ? "Add" : "Update"} Supplier</DialogTitle>
           <DialogDescription>
@@ -70,21 +73,55 @@ const CustomModal = ({
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-5">
-            <div className="grid w-full  items-center gap-1.5">
-              <Label htmlFor="company">*Company name</Label>
-              <Input
-                type="text"
-                value={form?.name || ""}
-                onChange={({ target }) =>
-                  setForm({
-                    ...form,
-                    name: target.value,
-                  })
-                }
-                required
-                id="company"
-                placeholder="Enter company name here.."
-              />
+            <div className="grid grid-cols-3 gap-5">
+              <div>
+                <Label htmlFor="company">*Name</Label>
+                <Input
+                  type="text"
+                  value={form?.name || ""}
+                  onChange={({ target }) =>
+                    setForm({
+                      ...form,
+                      name: target.value,
+                    })
+                  }
+                  required
+                  id="company"
+                  placeholder="Enter package name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="company">*Price</Label>
+                <Input
+                  type="text"
+                  value={form?.name || ""}
+                  onChange={({ target }) =>
+                    setForm({
+                      ...form,
+                      name: target.value,
+                    })
+                  }
+                  required
+                  id="company"
+                  placeholder="Enter package price"
+                />
+              </div>
+              <div>
+                <Label htmlFor="company">*Additional Price Per Pax</Label>
+                <Input
+                  type="text"
+                  value={form?.name || ""}
+                  onChange={({ target }) =>
+                    setForm({
+                      ...form,
+                      name: target.value,
+                    })
+                  }
+                  required
+                  id="company"
+                  placeholder="Enter additional price per pax"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-5">
@@ -144,6 +181,7 @@ const CustomModal = ({
                 placeholder="Enter address here.."
               />
             </div>
+            <Menus />
           </div>
           <DialogFooter className="mt-5">
             <Button type="submit" disabled={formSubmitted}>

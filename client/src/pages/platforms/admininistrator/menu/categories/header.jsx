@@ -11,15 +11,12 @@ import {
 } from "@/services/redux/slices/menu/categories";
 
 const CategoryHeader = () => {
-  const { token } = useSelector(({ auth }) => auth);
   const { search } = useSelector(({ menuCategories }) => menuCategories);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (token) {
-      dispatch(BROWSE({ token }));
-    }
-  }, [dispatch, token]);
+    dispatch(BROWSE());
+  }, [dispatch]);
 
   return (
     <CardHeader className="space-y-4">
