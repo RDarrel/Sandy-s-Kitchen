@@ -7,16 +7,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import { Loader } from "lucide-react";
-
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SAVE, UPDATE } from "@/services/redux/slices/procurement/suppliers";
 import Menus from "./menus";
+import { Textarea } from "@/components/ui/textarea";
 const _form = {
   name: "",
   contact: {
@@ -126,7 +124,7 @@ const CustomModal = ({
 
             <div className="grid grid-cols-2 gap-5">
               <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="person">Contact Person</Label>
+                <Label htmlFor="person">Minimum Pax</Label>
                 <Input
                   type="text"
                   value={form?.contact?.person || ""}
@@ -166,9 +164,9 @@ const CustomModal = ({
             </div>
 
             <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="address">*Address</Label>
-              <Input
-                type="text"
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                type="text-area"
                 value={form?.address || ""}
                 required
                 onChange={({ target }) =>
@@ -178,7 +176,7 @@ const CustomModal = ({
                   })
                 }
                 id="address"
-                placeholder="Enter address here.."
+                placeholder="Enter description here.."
               />
             </div>
             <Menus />

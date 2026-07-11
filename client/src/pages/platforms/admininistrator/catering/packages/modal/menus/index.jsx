@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -9,9 +7,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { capitalize } from "lodash";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
+import Menu from "./menu";
+import Category from "./category";
 
 const Menus = () => {
   const { collections: menus } = useSelector(({ menus }) => menus);
@@ -59,13 +58,18 @@ const Menus = () => {
     }
   }, [actCategory, menus]);
 
-  const toggleMenu = (menuId) => {
-    setSelectedMenus((prev) =>
-      prev.includes(menuId)
-        ? prev.filter((id) => id !== menuId)
-        : [...prev, menuId],
-    );
-  };
+  const toggleMenu = useCallback((menu) => {
+    setSelectedMenus((prev) => {
+      const _menus = [...prev];
+      const index = _menus.findIndex(({ _id }) => menu._id === _id);
+      if (index > -1) {
+        _menus.splice(index, 1);
+      } else {
+        _menus.push(menu);
+      }
+      return _menus;
+    });
+  }, []);
 
   return (
     <div className="max-h-[26rem] overflow-hidden rounded-[7px] border border-border">
@@ -78,23 +82,19 @@ const Menus = () => {
             </p>
           </div>
 
-          <Input
-            className="my-3 h-8 shrink-0"
-            placeholder="Search category"
-          />
+          <Input className="my-3 h-8 shrink-0" placeholder="Search category" />
 
           <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
-            {Object.keys(menusGrouped).map((category) => (
-              <Button
-                key={category}
-                variant={actCategory === category ? "default" : "outline"}
-                type="button"
-                className="h-9 justify-start"
-                onClick={() => setActCategory(category)}
-              >
-                {category}
-              </Button>
-            ))}
+            {Object.keys(menusGrouped).map((category) => {
+              return (
+                <Category
+                  key={category}
+                  variant={actCategory === category ? "default" : "outline"}
+                  setActCategory={setActCategory}
+                  category={category}
+                />
+              );
+            })}
 
             {Object.keys(menusGrouped).length === 0 && (
               <p className="rounded-md border border-dashed p-3 text-center text-xs text-muted-foreground">
@@ -140,31 +140,16 @@ const Menus = () => {
                 {filteredMenus.length > 0 ? (
                   filteredMenus.map((menu) => {
                     const id = String(menu?._id || menu?.name || "");
-                    const isSelected = selectedMenus.includes(id);
-
+                    const isSelected = selectedMenus?.some(
+                      ({ _id }) => _id === menu?._id,
+                    );
                     return (
-                      <TableRow
+                      <Menu
                         key={id}
-                        className={`cursor-pointer transition-colors hover:bg-muted/40 ${
-                          isSelected ? "bg-primary/5" : ""
-                        }`}
-                        onClick={() => toggleMenu(id)}
-                      >
-                        <TableCell>
-                          <div className="flex justify-center">
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => toggleMenu(id)}
-                              onClick={(event) => event.stopPropagation()}
-                              aria-label={`Select ${menu?.name || "menu"}`}
-                            />
-                          </div>
-                        </TableCell>
-
-                        <TableCell className="font-medium text-foreground">
-                          {capitalize(menu?.name || "")}
-                        </TableCell>
-                      </TableRow>
+                        isSelected={isSelected}
+                        menu={menu}
+                        toggleMenu={toggleMenu}
+                      />
                     );
                   })
                 ) : (
