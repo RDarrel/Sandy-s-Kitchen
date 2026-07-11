@@ -13,7 +13,8 @@ import { Loader } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SAVE, UPDATE } from "@/services/redux/slices/procurement/suppliers";
-import Menus from "./menus";
+import MenuChoices from "./menus/choices";
+import SelectedMenus from "./menus/selected";
 import { Textarea } from "@/components/ui/textarea";
 const _form = {
   name: "",
@@ -32,6 +33,7 @@ const CustomModal = ({
   const { token } = useSelector(({ auth }) => auth),
     { formSubmitted, isSuccess } = useSelector(({ suppliers }) => suppliers),
     [form, setForm] = useState(_form),
+    [selectedMenus, setSelectedMenus] = useState([]),
     dispatch = useDispatch();
 
   useEffect(() => {
@@ -179,7 +181,14 @@ const CustomModal = ({
                 placeholder="Enter description here.."
               />
             </div>
-            <Menus />
+            <MenuChoices
+              setSelectedMenus={setSelectedMenus}
+              selectedMenus={selectedMenus}
+            />
+            <SelectedMenus
+              menus={selectedMenus}
+              setSelectedMenus={setSelectedMenus}
+            />
           </div>
           <DialogFooter className="mt-5">
             <Button type="submit" disabled={formSubmitted}>

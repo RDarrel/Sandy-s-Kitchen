@@ -12,12 +12,11 @@ import { useSelector } from "react-redux";
 import Menu from "./menu";
 import Category from "./category";
 
-const Menus = () => {
+const Menus = ({ selectedMenus, setSelectedMenus = () => {} }) => {
   const { collections: menus } = useSelector(({ menus }) => menus);
   const [actCategory, setActCategory] = useState(
     menus[0]?.category?.name || "",
   );
-  const [selectedMenus, setSelectedMenus] = useState([]);
   const [menuSearch, setMenuSearch] = useState("");
 
   const menusGrouped = useMemo(() => {
@@ -60,16 +59,15 @@ const Menus = () => {
 
   const toggleMenu = useCallback((menu) => {
     setSelectedMenus((prev) => {
-      const _menus = [...prev];
-      const index = _menus.findIndex(({ _id }) => menu._id === _id);
-      if (index > -1) {
-        _menus.splice(index, 1);
-      } else {
-        _menus.push(menu);
+      const isSelected = prev.some(({ _id }) => menu._id === _id);
+
+      if (isSelected) {
+        return prev.filter(({ _id }) => menu._id !== _id);
       }
-      return _menus;
+
+      return [...prev, menu];
     });
-  }, []);
+  }, [setSelectedMenus]);
 
   return (
     <div className="max-h-[26rem] overflow-hidden rounded-[7px] border border-border">
