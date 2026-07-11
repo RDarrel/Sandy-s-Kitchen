@@ -3,19 +3,27 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader } from "lucide-react";
+import {
+  Stepper,
+  StepperContent,
+  StepperIndicator,
+  StepperItem,
+  StepperNav,
+  StepperPanel,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
+} from "@/components/reui/stepper";
+import { CheckIcon, LoaderCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SAVE, UPDATE } from "@/services/redux/slices/procurement/suppliers";
-import MenuChoices from "./menus/choices";
-import SelectedMenus from "./menus/selected";
-import { Textarea } from "@/components/ui/textarea";
+import Step1 from "./steps/step1";
+import Step2 from "./steps/step2";
+import Step3 from "./steps/step3";
 const _form = {
   name: "",
   contact: {
@@ -24,6 +32,11 @@ const _form = {
   },
   address: "",
 };
+const steps = [
+  { title: "Information" },
+  { title: "Choose Menus" },
+  { title: "Included Menus" },
+];
 const CustomModal = ({
   isOpen,
   setIsOpen,
@@ -35,6 +48,8 @@ const CustomModal = ({
     [form, setForm] = useState(_form),
     [selectedMenus, setSelectedMenus] = useState([]),
     dispatch = useDispatch();
+
+  const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     if (willCreate) {
@@ -61,6 +76,8 @@ const CustomModal = ({
 
   if (!isOpen) return null;
 
+  console.log("currentStep", currentStep);
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-4xl">
@@ -71,7 +88,63 @@ const CustomModal = ({
             saving.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
+        <Stepper
+          className="w-full  space-y-8"
+          defaultValue={currentStep}
+          value={currentStep}
+          indicators={{
+            completed: <CheckIcon className="size-3.5" />,
+            loading: <LoaderCircleIcon className="size-3.5 animate-spin" />,
+          }}
+        >
+          <StepperNav>
+            {steps.map((step, index) => (
+              <StepperItem
+                key={index}
+                step={index + 1}
+                className="relative flex-1 items-start"
+              >
+                <StepperTrigger className="flex flex-col gap-2.5">
+                  <StepperIndicator>{index + 1}</StepperIndicator>
+                  <StepperTitle>{step.title}</StepperTitle>
+                </StepperTrigger>
+                {steps.length > index + 1 && (
+                  <StepperSeparator className="group-data-[state=completed]/step:bg-primary absolute inset-x-0 top-3 left-[calc(50%+0.875rem)] m-0 group-data-[orientation=horizontal]/stepper-nav:w-[calc(100%-2rem+0.225rem)] group-data-[orientation=horizontal]/stepper-nav:flex-none" />
+                )}
+              </StepperItem>
+            ))}
+          </StepperNav>
+          <StepperPanel className="text-sm">
+            {[Step1, Step2, Step3].map((Step, index) => (
+              <StepperContent key={index} value={index + 1}>
+                <Step
+                  selectedMenus={selectedMenus}
+                  setSelectedMenus={setSelectedMenus}
+                  form={form}
+                  setForm={setForm}
+                />
+              </StepperContent>
+            ))}
+          </StepperPanel>
+          <div className="flex items-center justify-between gap-2.5">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentStep((prev) => prev - 1)}
+              disabled={currentStep === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentStep((prev) => prev + 1)}
+              disabled={currentStep === steps.length}
+            >
+              Next
+            </Button>
+          </div>
+        </Stepper>
+
+        {/* <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-5">
             <div className="grid grid-cols-3 gap-5">
               <div>
@@ -198,7 +271,7 @@ const CustomModal = ({
               )}
             </Button>
           </DialogFooter>
-        </form>
+        </form> */}
       </DialogContent>
     </Dialog>
   );

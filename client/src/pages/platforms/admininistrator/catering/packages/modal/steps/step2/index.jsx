@@ -12,7 +12,7 @@ import { useSelector } from "react-redux";
 import Menu from "./menu";
 import Category from "./category";
 
-const Menus = ({ selectedMenus, setSelectedMenus = () => {} }) => {
+const Step2 = ({ selectedMenus, setSelectedMenus = () => {} }) => {
   const { collections: menus } = useSelector(({ menus }) => menus);
   const [actCategory, setActCategory] = useState(
     menus[0]?.category?.name || "",
@@ -57,17 +57,20 @@ const Menus = ({ selectedMenus, setSelectedMenus = () => {} }) => {
     }
   }, [actCategory, menus]);
 
-  const toggleMenu = useCallback((menu) => {
-    setSelectedMenus((prev) => {
-      const isSelected = prev.some(({ _id }) => menu._id === _id);
+  const toggleMenu = useCallback(
+    (menu) => {
+      setSelectedMenus((prev) => {
+        const isSelected = prev.some(({ _id }) => menu._id === _id);
 
-      if (isSelected) {
-        return prev.filter(({ _id }) => menu._id !== _id);
-      }
+        if (isSelected) {
+          return prev.filter(({ _id }) => menu._id !== _id);
+        }
 
-      return [...prev, menu];
-    });
-  }, [setSelectedMenus]);
+        return [...prev, menu];
+      });
+    },
+    [setSelectedMenus],
+  );
 
   return (
     <div className="max-h-[26rem] overflow-hidden rounded-[7px] border border-border">
@@ -169,4 +172,4 @@ const Menus = ({ selectedMenus, setSelectedMenus = () => {} }) => {
   );
 };
 
-export default Menus;
+export default Step2;
