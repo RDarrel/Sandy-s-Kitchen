@@ -34,8 +34,10 @@ const _form = {
 };
 const steps = [
   { title: "Information" },
-  { title: "Choose Menus" },
-  { title: "Included Menus" },
+  { title: "Main Course" },
+  { title: "Other Menu Categories" },
+  { title: "Guests Served" },
+  { title: "Package Inclusion" },
 ];
 const CustomModal = ({
   isOpen,

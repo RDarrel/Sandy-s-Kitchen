@@ -4,6 +4,7 @@ export const initialForm = {
   price: "",
   type: "prepared",
   description: "",
+  recipeYield: 1,
   image: null,
   bundleItems: [],
   ingredients: [],
@@ -67,4 +68,3 @@ export const getRemoveSetupCopy = (type) => {
       "If you continue, this menu item will be saved as unavailable and it will no longer be sold until you create a recipe again.",
   };
 };
-

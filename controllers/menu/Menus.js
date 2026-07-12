@@ -77,6 +77,7 @@ const buildMenuPayload = (
     description: body.description || "",
     type,
     category: body.category,
+    recipeYield: body.recipeYield || 1,
     hasRecipe: type === "prepared" ? normalizedIngredients.length > 0 : false,
     inventory: type === "bundle" ? null : primaryIngredient?.inventory || null,
     qtyPerOrder:

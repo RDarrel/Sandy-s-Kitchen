@@ -27,6 +27,11 @@ const modelSchema = new mongoose.Schema(
       ref: "MenuCategory",
       required: true,
     },
+    recipeYield: {
+      // The number of people that this recipe serves, For example Good for 2 person
+      type: Number,
+      default: 1,
+    },
     hasRecipe: {
       type: Boolean,
     },

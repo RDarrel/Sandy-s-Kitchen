@@ -57,6 +57,11 @@ import {
   getSetupRequirementLabel,
   initialForm,
 } from "./copy";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 const Modal = () => {
   const { token } = useSelector(({ auth }) => auth);
@@ -143,6 +148,7 @@ const Modal = () => {
 
         setForm({
           ...selected,
+          recipeYield: selected?.recipeYield || 1,
           ingredients: existingIngredients,
           setupRecipe: shouldForceSetup
             ? selected?.type === "prepared"
@@ -614,8 +620,8 @@ const Modal = () => {
                 </div>
               </section>
             ) : (
-              <section className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
+              <section className="grid gap-4 md:grid-cols-6">
+                <div className="space-y-2 col-span-3">
                   <Label htmlFor="item-name">Item Name</Label>
                   <Input
                     id="item-name"
@@ -638,7 +644,7 @@ const Modal = () => {
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 col-span-2">
                   <Label htmlFor="item-price">Price</Label>
                   <div className="relative">
                     <PhilippinePeso className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -657,6 +663,22 @@ const Modal = () => {
                       required
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="item-price">Good For</Label>
+                  <InputGroup className="max-w-xs">
+                    <InputGroupInput
+                      required
+                      type="number"
+                      value={String(form.recipeYield || "")}
+                      onChange={({ target }) =>
+                        handleChange("recipeYield", Number(target.value))
+                      }
+                    />
+                    <InputGroupAddon align="inline-end">
+                      Person(s)
+                    </InputGroupAddon>
+                  </InputGroup>
                 </div>
               </section>
             )}
