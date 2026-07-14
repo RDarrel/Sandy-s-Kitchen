@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Category } from "@/services/fakeDB";
 import { Formatter } from "@/services/utilities";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { ChevronRight, Search } from "lucide-react";
