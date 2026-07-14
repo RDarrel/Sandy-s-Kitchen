@@ -24,6 +24,7 @@ import { SAVE, UPDATE } from "@/services/redux/slices/procurement/suppliers";
 import Step1 from "./steps/step1";
 import Step2 from "./steps/step2";
 import Step3 from "./steps/step3";
+import Step4 from "./steps/step4";
 const _form = {
   name: "",
   contact: {
@@ -118,7 +119,7 @@ const CustomModal = ({
             ))}
           </StepperNav>
           <StepperPanel className="text-sm">
-            {[Step1, Step2, Step3].map((Step, index) => (
+            {[Step1, Step2, Step3, Step4].map((Step, index) => (
               <StepperContent key={index} value={index + 1}>
                 <Step
                   mainCourses={mainCourses}

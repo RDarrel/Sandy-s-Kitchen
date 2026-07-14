@@ -1,14 +1,12 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ListChecks } from "lucide-react";
-import { useSelector } from "react-redux";
 import Seperator from "./seperator";
 import Available from "./available";
 import Selected from "./selected";
 import Header from "./header";
 
-const Step2 = ({ selectedMenus = [], setSelectedMenus = () => {} }) => {
-  const { collections: menus } = useSelector(({ menus }) => menus);
+const Step2 = ({ menus, selectedMenus = [], setSelectedMenus = () => {} }) => {
   const [menuSearch, setMenuSearch] = useState("");
   const [selectedSearch, setSelectedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
