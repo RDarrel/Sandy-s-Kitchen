@@ -139,7 +139,7 @@ const Step2 = ({
             selectedIds={selectedIds}
             toggleMenu={toggleMenu}
             clearFilters={() => {
-              setAvailCategory("");
+              setAvailCategory("all");
               setMenuSearch("");
             }}
           />
@@ -168,6 +168,11 @@ const Step2 = ({
           <Selected
             menus={filteredSelectedMenus}
             removeSelectedMenu={removeSelectedMenu}
+            search={selectedSearch}
+            clearFilters={() => {
+              setSelectedCategory("all");
+              setSelectedSearch("");
+            }}
           />
         </div>
       </div>

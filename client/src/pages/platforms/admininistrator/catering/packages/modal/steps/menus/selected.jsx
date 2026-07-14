@@ -2,10 +2,15 @@ import React from "react";
 import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { capitalize } from "lodash";
 import { Button } from "@/components/ui/button";
-import { ListChecks, Trash2 } from "lucide-react";
-import Cloudinary from "@/services/utilities/cloudinary";
 import { Badge } from "@/components/ui/badge";
-const Selected = ({ menus, removeSelectedMenu = () => {} }) => {
+import { ListChecks, Trash2, Search } from "lucide-react";
+import Cloudinary from "@/services/utilities/cloudinary";
+const Selected = ({
+  search,
+  menus,
+  clearFilters = () => {},
+  removeSelectedMenu = () => {},
+}) => {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <Table className={"w-full"}>
@@ -73,18 +78,41 @@ const Selected = ({ menus, removeSelectedMenu = () => {} }) => {
               </React.Fragment>
             ))
           ) : (
-            <TableRow className={"h-[333px] hover:bg-transparent"}>
+            <TableRow className={"h-[320px] hover:bg-transparent"}>
               <TableCell colSpan={2} className="h-full p-0">
-                <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-                  <ListChecks className="h-8 w-8 text-muted-foreground" />
+                {search ? (
+                  <div className="flex h-full flex-col items-center justify-center px-8 text-center">
+                    <Search className="size-10 text-muted-foreground" />
 
-                  <div>
-                    <p className="font-medium">No menus selected</p>
-                    <p className="text-sm text-muted-foreground">
-                      Selected menus will appear here.
+                    <p className="text-sm font-semibold text-foreground">
+                      No matching menus
                     </p>
+
+                    <p className="mt-2 max-w-xs text-sm text-wrap leading-5 text-muted-foreground">
+                      Try a different keyword or choose another category to find
+                      available menus.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-6"
+                      onClick={clearFilters}
+                    >
+                      Clear filters
+                    </Button>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+                    <ListChecks className="h-8 w-8 text-muted-foreground" />
+
+                    <div>
+                      <p className="font-medium">No menus selected</p>
+                      <p className="text-sm text-muted-foreground">
+                        Selected menus will appear here.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </TableCell>
             </TableRow>
           )}

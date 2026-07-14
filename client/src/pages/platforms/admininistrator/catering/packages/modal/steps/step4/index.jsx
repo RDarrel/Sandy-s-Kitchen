@@ -4,7 +4,7 @@ import { capitalize } from "lodash";
 import { ListChecks, PackageCheck, Trash2, Utensils } from "lucide-react";
 import { useMemo } from "react";
 
-const Step4 = ({ selectedMenus: menus = [], setSelectedMenus = () => {} }) => {
+const Step4 = ({ mainCourses: menus = [], setSelectedMenus = () => {} }) => {
   const groupedMenus = useMemo(() => {
     if (menus.length === 0) return [];
     return menus.reduce((acc, curr) => {
