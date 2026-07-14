@@ -6,7 +6,13 @@ import Available from "./available";
 import Selected from "./selected";
 import Header from "./header";
 
-const Step2 = ({ menus, selectedMenus = [], setSelectedMenus = () => {} }) => {
+const Step2 = ({
+  menus,
+  selectedMenus = [],
+  setSelectedMenus = () => {},
+  availableSubtitle = "",
+  selectedSubtitle = "",
+}) => {
   const [menuSearch, setMenuSearch] = useState("");
   const [selectedSearch, setSelectedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -122,7 +128,7 @@ const Step2 = ({ menus, selectedMenus = [], setSelectedMenus = () => {} }) => {
             }
             search={menuSearch}
             title="Available menus"
-            subTitle="Select your preferred main courses."
+            subTitle={availableSubtitle}
             placeholder="Search menus..."
             categories={availCategories}
             setSearch={setMenuSearch}
@@ -152,7 +158,7 @@ const Step2 = ({ menus, selectedMenus = [], setSelectedMenus = () => {} }) => {
             }
             search={selectedSearch}
             title="Selected menus"
-            subTitle="Review your selected main courses."
+            subTitle={selectedSubtitle}
             placeholder="Search menus..."
             categories={selectedCategories}
             setSearch={setSelectedSearch}

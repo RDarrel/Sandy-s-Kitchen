@@ -14,6 +14,8 @@ const Step2 = ({ sideMenus, mainCourses, setMainCourses = () => {} }) => {
       selectedMenus={mainCourses}
       setSelectedMenus={setMainCourses}
       menus={availableMenus}
+      availableSubtitle="Choose your preferred main courses."
+      selectedSubtitle="Review your selected main courses."
     />
   );
 };

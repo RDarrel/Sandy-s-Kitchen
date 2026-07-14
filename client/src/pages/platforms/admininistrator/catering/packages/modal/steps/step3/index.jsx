@@ -14,6 +14,8 @@ const Step3 = ({ mainCourses = [], sideMenus, setSideMenus = () => {} }) => {
       menus={availableSideMenus}
       selectedMenus={sideMenus}
       setSelectedMenus={setSideMenus}
+      availableSubtitle="Choose your preferred side menus."
+      selectedSubtitle="Review your selected side menus."
     />
   );
 };
