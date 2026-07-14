@@ -48,6 +48,7 @@ const CustomModal = ({
   const { token } = useSelector(({ auth }) => auth),
     { formSubmitted, isSuccess } = useSelector(({ suppliers }) => suppliers),
     [form, setForm] = useState(_form),
+    [mainCourses, setMainCourses] = useState([]),
     [selectedMenus, setSelectedMenus] = useState([]),
     dispatch = useDispatch();
 
@@ -120,8 +121,8 @@ const CustomModal = ({
             {[Step1, Step2, Step3].map((Step, index) => (
               <StepperContent key={index} value={index + 1}>
                 <Step
-                  selectedMenus={selectedMenus}
-                  setSelectedMenus={setSelectedMenus}
+                  mainCourses={mainCourses}
+                  setMainCourses={setMainCourses}
                   form={form}
                   setForm={setForm}
                 />
