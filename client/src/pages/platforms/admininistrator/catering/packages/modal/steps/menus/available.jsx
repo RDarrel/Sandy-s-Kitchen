@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableCell, TableRow, TableBody } from "@/components/ui/table";
 import { capitalize } from "@/services/utilities";
 import Cloudinary from "@/services/utilities/cloudinary";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Search } from "lucide-react";
 const Available = ({
   menus = [],
   selectedIds = [],

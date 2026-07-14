@@ -36,7 +36,7 @@ const _form = {
 const steps = [
   { title: "Information" },
   { title: "Main Course" },
-  { title: "Other Menu Categories" },
+  { title: "Side Menus" },
   { title: "Guests Served" },
   { title: "Package Inclusion" },
 ];
@@ -50,7 +50,7 @@ const CustomModal = ({
     { formSubmitted, isSuccess } = useSelector(({ suppliers }) => suppliers),
     [form, setForm] = useState(_form),
     [mainCourses, setMainCourses] = useState([]),
-    [selectedMenus, setSelectedMenus] = useState([]),
+    [sideMenus, setSideMenus] = useState([]),
     dispatch = useDispatch();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -122,9 +122,11 @@ const CustomModal = ({
             {[Step1, Step2, Step3, Step4].map((Step, index) => (
               <StepperContent key={index} value={index + 1}>
                 <Step
-                  mainCourses={mainCourses}
-                  setMainCourses={setMainCourses}
                   form={form}
+                  mainCourses={mainCourses}
+                  sideMenus={sideMenus}
+                  setSideMenus={setSideMenus}
+                  setMainCourses={setMainCourses}
                   setForm={setForm}
                 />
               </StepperContent>

@@ -1,13 +1,19 @@
 import { useSelector } from "react-redux";
 import Menus from "../menus";
+import { useMemo } from "react";
 
-const Step3 = ({ mainCourses, setMainCourses = () => {} }) => {
+const Step3 = ({ mainCourses = [], sideMenus, setSideMenus = () => {} }) => {
   const { collections } = useSelector(({ menus }) => menus);
+  const availableSideMenus = useMemo(() => {
+    return collections.filter(
+      ({ _id }) => !mainCourses.some((main) => main._id === _id),
+    );
+  }, [mainCourses]);
   return (
     <Menus
-      selectedMenus={mainCourses}
-      setSelectedMenus={setMainCourses}
-      menus={collections}
+      menus={availableSideMenus}
+      selectedMenus={sideMenus}
+      setSelectedMenus={setSideMenus}
     />
   );
 };
