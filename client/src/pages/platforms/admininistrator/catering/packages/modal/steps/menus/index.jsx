@@ -5,7 +5,6 @@ import Seperator from "./seperator";
 import Available from "./available";
 import Selected from "./selected";
 import Header from "./header";
-import { Input } from "@/components/ui/input";
 
 const Step2 = ({
   menus,
@@ -170,9 +169,17 @@ const Step2 = ({
             selectionLimitLabel={selectionLimitLabel}
             selectionLimitValue={selectionLimitValue}
             selectionLimitDescription={
-              selectionLimitValue
-                ? `The customer can select up to ${selectionLimitValue} ${selectionLimitItemLabel}.`
-                : selectedSubtitle
+              selectionLimitValue ? (
+                <>
+                  The customer can select up to{" "}
+                  <span className="font-semibold text-foreground">
+                    {selectionLimitValue}
+                  </span>{" "}
+                  {selectionLimitItemLabel}.
+                </>
+              ) : (
+                selectedSubtitle
+              )
             }
             setSearch={setSelectedSearch}
             setActiveCategory={setSelectedCategory}
