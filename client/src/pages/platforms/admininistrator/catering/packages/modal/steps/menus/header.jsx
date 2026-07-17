@@ -18,6 +18,7 @@ const Header = ({
   title = "",
   subTitle = "",
   placeholder = "",
+  isSelected = false,
   categories = [],
   setSearch = () => {},
   setActiveCategory = () => {},
@@ -29,7 +30,19 @@ const Header = ({
           <p className="truncate text-sm font-semibold text-foreground">
             {title}
           </p>
-          <p className="truncate text-xs text-muted-foreground">{subTitle}</p>
+          {isSelected ? (
+            <div className="grid grid-rows-2">
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-foreground">Main Course Limit</p>
+                <Input className={"h-7 w-15"} type={"number"} />
+              </div>
+              <p className="text-xs text-foreground">
+                The customer can select up to 3 main courses.
+              </p>
+            </div>
+          ) : (
+            <p className="truncate text-xs text-muted-foreground">{subTitle}</p>
+          )}
         </div>
 
         {menusCount}

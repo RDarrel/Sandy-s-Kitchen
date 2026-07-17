@@ -21,6 +21,11 @@ const getCategoryKey = (menu) =>
 
 const getCategoryName = (menu) => menu?.category?.name || "Uncategorized";
 
+const toNumber = (value, fallback = 0) => {
+  const number = Number.parseInt(value, 10);
+  return Number.isNaN(number) ? fallback : number;
+};
+
 const groupMenus = (menus) =>
   menus.reduce((acc, menu) => {
     const key = getCategoryKey(menu);
@@ -52,10 +57,7 @@ const ChoiceLimitInput = ({ label = "Can select" }) => (
         placeholder="0"
         type="number"
       />
-      <InputGroupAddon
-        align="inline-end"
-        className="pr-2 text-xs font-normal"
-      >
+      <InputGroupAddon align="inline-end" className="pr-2 text-xs font-normal">
         menus
       </InputGroupAddon>
     </InputGroup>
@@ -67,6 +69,7 @@ const MenuReviewSection = ({
   subtitle,
   icon,
   menus = [],
+  targetPax = 0,
   emptyTitle,
   emptyDescription,
   sectionLimitLabel,
@@ -75,14 +78,6 @@ const MenuReviewSection = ({
 }) => {
   const groupedMenus = useMemo(() => groupMenus(menus), [menus]);
   const categoriesCount = groupedMenus.length;
-  const totalGuestsServed = useMemo(
-    () =>
-      menus.reduce(
-        (total, menu) => total + Number.parseInt(menu?.qtyServe || 0, 10),
-        0,
-      ),
-    [menus],
-  );
 
   return (
     <section className="overflow-hidden rounded-[7px] border border-border bg-card shadow-sm">
@@ -96,9 +91,7 @@ const MenuReviewSection = ({
             <p className="text-sm font-semibold leading-5 text-foreground">
               {title}
             </p>
-            <p className="truncate text-xs text-muted-foreground">
-              {subtitle}
-            </p>
+            <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
           </div>
         </div>
 
@@ -112,9 +105,6 @@ const MenuReviewSection = ({
           <Badge variant="outline" className="rounded-full px-2.5 py-1">
             {categoriesCount}{" "}
             {categoriesCount === 1 ? "category" : "categories"}
-          </Badge>
-          <Badge variant="outline" className="rounded-full px-2.5 py-1">
-            {totalGuestsServed || 0} guests
           </Badge>
         </div>
       </div>
@@ -155,62 +145,74 @@ const MenuReviewSection = ({
 
                   <ChoiceLimitInput label="Customer can select" />
 
-                  <p className="hidden text-right text-xs text-muted-foreground lg:block">
-                    Guest served
-                  </p>
+                  <span className="hidden lg:block" />
                 </div>
 
                 <div className="divide-y">
-                  {category.menus.map((menu, idx) => (
-                    <div
-                      key={menu?._id || `${category.key}-${idx}`}
-                      className="grid grid-cols-[minmax(0,1fr)_5.5rem_2rem] items-center gap-3 px-3 py-2"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <img
-                          className="size-10 rounded-md border object-cover shadow-sm"
-                          alt={`${menu?.name || "Menu"} preview`}
-                          src={Cloudinary.getMenuImg(menu?.imgId, menu?._id)}
-                        />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-foreground">
-                            {capitalize(menu?.name || "")}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            Good for{" "}
-                            <span className="font-semibold">
-                              {menu?.recipeYield || 1} person(s)
-                            </span>
-                          </p>
-                        </div>
-                      </div>
+                  {category.menus.map((menu, idx) => {
+                    const recipeYield = Math.max(
+                      toNumber(menu?.recipeYield, 1),
+                      1,
+                    );
+                    const suggestedServeQty = targetPax
+                      ? Math.ceil(targetPax / recipeYield)
+                      : 0;
 
-                      <div>
-                        <p className="mb-1 text-right text-[10px] font-medium uppercase text-muted-foreground lg:hidden">
-                          Guests
-                        </p>
-                        <Input
-                          className="h-8 text-right"
-                          min="1"
-                          onChange={({ target }) =>
-                            onUpdateQtyServe(menu._id, target.value)
-                          }
-                          placeholder="0"
-                          type="number"
-                          value={menu?.qtyServe || ""}
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => onRemove(menu._id)}
-                        className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                        aria-label={`Remove ${menu?.name || "menu"}`}
+                    return (
+                      <div
+                        key={menu?._id || `${category.key}-${idx}`}
+                        className="grid gap-3 px-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_13rem_2rem] lg:items-center"
                       >
-                        <Trash2 className="size-4" />
-                      </button>
-                    </div>
-                  ))}
+                        <div className="flex min-w-0 items-center gap-3">
+                          <img
+                            className="size-10 rounded-md border object-cover shadow-sm"
+                            alt={`${menu?.name || "Menu"} preview`}
+                            src={Cloudinary.getMenuImg(menu?.imgId, menu?._id)}
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-foreground">
+                              {capitalize(menu?.name || "")}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              Recipe yield:{" "}
+                              <span className="font-semibold text-foreground">
+                                {recipeYield} serve/person
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <label className="flex items-center justify-end gap-2">
+                          <span className="shrink-0 text-xs font-medium text-muted-foreground">
+                            Serve qty
+                          </span>
+                          <Input
+                            className="h-8 w-20 text-right font-medium"
+                            min="1"
+                            onChange={({ target }) =>
+                              onUpdateQtyServe(menu._id, target.value)
+                            }
+                            placeholder={
+                              suggestedServeQty
+                                ? String(suggestedServeQty)
+                                : "0"
+                            }
+                            type="number"
+                            value={menu?.qtyServe || ""}
+                          />
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => onRemove(menu._id)}
+                          className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                          aria-label={`Remove ${menu?.name || "menu"}`}
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -222,11 +224,16 @@ const MenuReviewSection = ({
 };
 
 const Step4 = ({
+  form = {},
   mainCourses = [],
   sideMenus = [],
   setMainCourses = () => {},
   setSideMenus = () => {},
 }) => {
+  const targetPax = toNumber(
+    form?.minimumPax || form?.minPax || form?.pax || form?.contact?.person,
+  );
+
   const updateMainCourseQtyServe = useCallback(
     (menuId, qtyServe) => {
       setMainCourses((prev) =>
@@ -280,6 +287,7 @@ const Step4 = ({
         subtitle="Review selected main courses and set the guests served."
         icon={<PackageCheck className="size-5" />}
         menus={mainCourses}
+        targetPax={targetPax}
         emptyTitle="No main courses selected yet"
         emptyDescription="Go back to Main Course and choose menus for this package."
         sectionLimitLabel="Main course limit"
@@ -292,6 +300,7 @@ const Step4 = ({
         subtitle="Review selected side menus and set the guests served."
         icon={<Salad className="size-5" />}
         menus={sideMenus}
+        targetPax={targetPax}
         emptyTitle="No side menus selected yet"
         emptyDescription="Go back to Side Menus and choose add-ons for this package."
         onRemove={removeSideMenu}

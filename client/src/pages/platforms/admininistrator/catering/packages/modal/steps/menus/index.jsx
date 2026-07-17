@@ -5,6 +5,7 @@ import Seperator from "./seperator";
 import Available from "./available";
 import Selected from "./selected";
 import Header from "./header";
+import { Input } from "@/components/ui/input";
 
 const Step2 = ({
   menus,
@@ -149,6 +150,7 @@ const Step2 = ({
 
         <div className="flex min-h-0 flex-col border rounded-sm">
           <Header
+            isSelected
             activeCategory={selectedCategory}
             menusCount={
               <Badge variant="secondary" className="shrink-0 rounded-full">

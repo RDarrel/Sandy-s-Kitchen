@@ -86,9 +86,9 @@ const CustomModal = ({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>{willCreate ? "Add" : "Update"} Supplier</DialogTitle>
+          <DialogTitle>{willCreate ? "Add" : "Update"} Package</DialogTitle>
           <DialogDescription>
-            Enter the supplier's details. Make sure everything is correct before
+            Enter the package details. Make sure everything is correct before
             saving.
           </DialogDescription>
         </DialogHeader>
