@@ -37,12 +37,12 @@ const access = [
     children: [
       {
         name: "Stock Items",
-        path: "stock-items",
+        path: "/stock-items",
         component: StockItems,
       },
       {
         name: "Equipment",
-        path: "equipment",
+        path: "/equipment",
         component: Equipment,
       },
     ],
