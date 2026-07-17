@@ -14,7 +14,7 @@ import StockMovementsModal from "./stockMovements";
 import ReportWasteModal from "./reportWaste";
 import { useSearchParams } from "react-router-dom";
 
-const Inventory = () => {
+const StockItems = () => {
   const { token } = useSelector(({ auth }) => auth);
   const { isLoading } = useSelector(({ inventoryItems }) => inventoryItems);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -74,4 +74,4 @@ const Inventory = () => {
   );
 };
 
-export default Inventory;
+export default StockItems;

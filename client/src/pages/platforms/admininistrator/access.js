@@ -11,10 +11,8 @@ import {
 import Dashboard from "./dashboard";
 import Staffs from "./staffs";
 import Suppliers from "./suppliers";
-
 import Audit from "./audit";
 import Items from "./menu/items";
-import Inventory from "./inventory";
 import Categories from "./menu/categories";
 import AddOns from "./menu/addOns";
 import CreateOrder from "./orders/create-order";
@@ -22,6 +20,8 @@ import OrderList from "./orders/order-list";
 import ShortDeliveries from "./orders/short-deliveries";
 import StockRequests from "./orders/stock-requests";
 import Packages from "./catering/packages";
+
+import { StockItems, Equipment } from "./inventory";
 
 const access = [
   {
@@ -34,7 +34,18 @@ const access = [
     name: "Inventory",
     path: "/inventory",
     icon: Package,
-    component: Inventory,
+    children: [
+      {
+        name: "Stock Items",
+        path: "stock-items",
+        component: StockItems,
+      },
+      {
+        name: "Equipment",
+        path: "equipment",
+        component: Equipment,
+      },
+    ],
   },
   // Base Recipes
   {

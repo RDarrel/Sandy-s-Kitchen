@@ -10,7 +10,7 @@ import {
 import {
   categoryOptions,
   typeOptions,
-} from "@/pages/platforms/admininistrator/inventory/config";
+} from "@/pages/platforms/admininistrator/inventory/stockItems/config";
 import { Search } from "lucide-react";
 
 const stockLevelOptions = [
@@ -59,12 +59,12 @@ const RequestStockHeader = ({
     <CardHeader className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-        <CardTitle className="text-2xl text-foreground">
-          Request Items
-        </CardTitle>
-        <CardDescription>
-          Select items and enter the quantities to request.
-        </CardDescription>
+          <CardTitle className="text-2xl text-foreground">
+            Request Items
+          </CardTitle>
+          <CardDescription>
+            Select items and enter the quantities to request.
+          </CardDescription>
         </div>
 
         <div className="relative w-full sm:max-w-[320px]">
