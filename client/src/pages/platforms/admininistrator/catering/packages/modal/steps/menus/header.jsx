@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -19,33 +18,47 @@ const Header = ({
   subTitle = "",
   placeholder = "",
   isSelected = false,
+  selectionLimitLabel = "Selection limit",
+  selectionLimitValue = "",
+  selectionLimitDescription = "",
   categories = [],
   setSearch = () => {},
   setActiveCategory = () => {},
+  setSelectionLimitValue = () => {},
 }) => {
   return (
     <>
       <div className="flex shrink-0 items-center justify-between gap-3 border-b bg-muted/20 px-3 py-2.5">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">
             {title}
           </p>
-          {isSelected ? (
-            <div className="grid grid-rows-2">
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-foreground">Main Course Limit</p>
-                <Input className={"h-7 w-15"} type={"number"} />
-              </div>
-              <p className="text-xs text-foreground">
-                The customer can select up to 3 main courses.
-              </p>
-            </div>
-          ) : (
-            <p className="truncate text-xs text-muted-foreground">{subTitle}</p>
-          )}
+          <p className="truncate text-xs text-muted-foreground">
+            {isSelected ? selectionLimitDescription || subTitle : subTitle}
+          </p>
         </div>
 
-        {menusCount}
+        <div className="flex shrink-0 items-center gap-2">
+          {isSelected ? (
+            <label
+              className="flex h-7 items-center gap-1.5 rounded-md border bg-background px-2 text-xs text-muted-foreground"
+              title={selectionLimitLabel}
+            >
+              <span className="font-medium">Limit</span>
+              <Input
+                aria-label={selectionLimitLabel}
+                className="h-6 w-10 border-0 bg-transparent p-0 text-center text-xs font-semibold shadow-none focus-visible:ring-0"
+                min="1"
+                onChange={({ target }) => setSelectionLimitValue(target.value)}
+                placeholder="0"
+                type="number"
+                value={selectionLimitValue}
+              />
+            </label>
+          ) : (
+            menusCount
+          )}
+        </div>
       </div>
 
       <div className="shrink-0 border-b p-3 grid grid-cols-2 gap-3">

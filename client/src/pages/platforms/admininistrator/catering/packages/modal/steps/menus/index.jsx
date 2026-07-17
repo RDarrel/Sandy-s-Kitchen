@@ -13,6 +13,10 @@ const Step2 = ({
   setSelectedMenus = () => {},
   availableSubtitle = "",
   selectedSubtitle = "",
+  selectionLimitLabel = "Selection limit",
+  selectionLimitItemLabel = "menus",
+  selectionLimitValue = "",
+  setSelectionLimitValue = () => {},
 }) => {
   const [menuSearch, setMenuSearch] = useState("");
   const [selectedSearch, setSelectedSearch] = useState("");
@@ -71,7 +75,7 @@ const Step2 = ({
       const grouped = datas.reduce((acc, curr) => {
         const index = acc.findIndex(({ _id }) => _id === curr.category?._id);
         if (index > -1) {
-          const menus = [...acc[index]?.menus];
+          const menus = [...(acc[index]?.menus || [])];
           menus.push(curr);
           acc[index] = { ...acc[index], menus };
         } else {
@@ -163,8 +167,16 @@ const Step2 = ({
             subTitle={selectedSubtitle}
             placeholder="Search menus..."
             categories={selectedCategories}
+            selectionLimitLabel={selectionLimitLabel}
+            selectionLimitValue={selectionLimitValue}
+            selectionLimitDescription={
+              selectionLimitValue
+                ? `The customer can select up to ${selectionLimitValue} ${selectionLimitItemLabel}.`
+                : selectedSubtitle
+            }
             setSearch={setSelectedSearch}
             setActiveCategory={setSelectedCategory}
+            setSelectionLimitValue={setSelectionLimitValue}
           />
 
           <Selected

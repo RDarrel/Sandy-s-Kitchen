@@ -19,8 +19,7 @@ import {
 } from "@/components/reui/stepper";
 import { CheckIcon, LoaderCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { SAVE, UPDATE } from "@/services/redux/slices/procurement/suppliers";
+import { useSelector } from "react-redux";
 import Step1 from "./steps/step1";
 import Step2 from "./steps/step2";
 import Step3 from "./steps/step3";
@@ -46,12 +45,12 @@ const CustomModal = ({
   willCreate = true,
   selected = {},
 }) => {
-  const { token } = useSelector(({ auth }) => auth),
-    { formSubmitted, isSuccess } = useSelector(({ suppliers }) => suppliers),
+  const { formSubmitted, isSuccess } = useSelector(({ suppliers }) => suppliers),
     [form, setForm] = useState(_form),
     [mainCourses, setMainCourses] = useState([]),
     [sideMenus, setSideMenus] = useState([]),
-    dispatch = useDispatch();
+    [mainCourseLimit, setMainCourseLimit] = useState(""),
+    [sideMenuLimit, setSideMenuLimit] = useState("");
 
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -68,15 +67,6 @@ const CustomModal = ({
       setIsOpen(false);
     }
   }, [formSubmitted, isSuccess, isOpen, setIsOpen]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (willCreate) {
-      dispatch(SAVE({ token, data: form }));
-    } else {
-      dispatch(UPDATE({ token, data: form }));
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -125,8 +115,12 @@ const CustomModal = ({
                   form={form}
                   mainCourses={mainCourses}
                   sideMenus={sideMenus}
+                  mainCourseLimit={mainCourseLimit}
+                  sideMenuLimit={sideMenuLimit}
                   setSideMenus={setSideMenus}
                   setMainCourses={setMainCourses}
+                  setMainCourseLimit={setMainCourseLimit}
+                  setSideMenuLimit={setSideMenuLimit}
                   setForm={setForm}
                 />
               </StepperContent>
