@@ -72,7 +72,6 @@ const MenuReviewSection = ({
   targetPax = 0,
   emptyTitle,
   emptyDescription,
-  sectionLimitLabel,
   onRemove = () => {},
   onUpdateQtyServe = () => {},
 }) => {
@@ -80,8 +79,8 @@ const MenuReviewSection = ({
   const categoriesCount = groupedMenus.length;
 
   return (
-    <section className="overflow-hidden rounded-[7px] border border-border bg-card shadow-sm">
-      <div className="grid gap-3 border-b bg-muted/20 px-4 py-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
+    <section className=" border border-border bg-card shadow-sm rounded-sm">
+      <div className="sticky top-0 rounded-t-md z-30 bg-background  grid gap-3 border-b  px-4 py-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
             {icon}
@@ -120,14 +119,14 @@ const MenuReviewSection = ({
           </div>
         </div>
       ) : (
-        <div className="max-h-[23rem] overflow-y-auto p-3">
+        <div className="  p-3">
           <div className="space-y-2.5">
             {groupedMenus.map((category) => (
               <div
                 key={category.key}
-                className="overflow-hidden rounded-md border border-border bg-background"
+                className=" rounded-md border border-border bg-background"
               >
-                <div className="grid gap-3 border-b bg-muted/20 px-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
+                <div className="sticky  top-16 z-20 grid gap-3 rounded-t-md border-b bg-muted px-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
                   <div className="flex min-w-0 items-center gap-2">
                     <p className="truncate text-sm font-semibold text-foreground">
                       {capitalize(category.name)}
@@ -182,7 +181,7 @@ const MenuReviewSection = ({
 
                         <label className="flex items-center justify-end gap-2">
                           <span className="shrink-0 text-xs font-medium text-muted-foreground">
-                            Serve qty
+                            Preparation Quantity
                           </span>
                           <Input
                             className="h-8 w-20 text-right font-medium"
