@@ -45,14 +45,14 @@ const CustomModal = ({
   willCreate = true,
   selected = {},
 }) => {
-  const { formSubmitted, isSuccess } = useSelector(({ suppliers }) => suppliers),
+  const { formSubmitted, isSuccess } = useSelector(
+      ({ suppliers }) => suppliers,
+    ),
     [form, setForm] = useState(_form),
     [mainCourses, setMainCourses] = useState([]),
     [sideMenus, setSideMenus] = useState([]),
-    [mainCourseLimit, setMainCourseLimit] = useState(""),
-    [sideMenuLimit, setSideMenuLimit] = useState("");
-
-  const [currentStep, setCurrentStep] = useState(1);
+    [mainCourseLimit, setMainCourseLimit] = useState(3),
+    [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     if (willCreate) {
@@ -116,11 +116,9 @@ const CustomModal = ({
                   mainCourses={mainCourses}
                   sideMenus={sideMenus}
                   mainCourseLimit={mainCourseLimit}
-                  sideMenuLimit={sideMenuLimit}
                   setSideMenus={setSideMenus}
                   setMainCourses={setMainCourses}
                   setMainCourseLimit={setMainCourseLimit}
-                  setSideMenuLimit={setSideMenuLimit}
                   setForm={setForm}
                 />
               </StepperContent>

@@ -5,7 +5,7 @@ import { useMemo } from "react";
 const Step2 = ({
   sideMenus,
   mainCourses,
-  mainCourseLimit = "",
+  mainCourseLimit = 0,
   setMainCourses = () => {},
   setMainCourseLimit = () => {},
 }) => {
@@ -17,6 +17,7 @@ const Step2 = ({
   }, [collections, sideMenus]);
   return (
     <Menus
+      isMainCourse
       selectedMenus={mainCourses}
       setSelectedMenus={setMainCourses}
       menus={availableMenus}

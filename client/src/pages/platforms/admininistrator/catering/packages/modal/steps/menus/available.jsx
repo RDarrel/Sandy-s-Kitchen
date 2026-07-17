@@ -33,11 +33,6 @@ const Available = ({
                         <p className="truncate text-sm font-medium text-foreground">
                           {capitalize(menu?.name || "")}
                         </p>
-                        {menu?.description && (
-                          <p className="truncate w-60 text-xs text-muted-foreground ">
-                            {menu.description}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </TableCell>

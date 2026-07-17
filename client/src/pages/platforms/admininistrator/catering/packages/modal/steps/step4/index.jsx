@@ -95,8 +95,6 @@ const MenuReviewSection = ({
           </div>
         </div>
 
-        {sectionLimitLabel && <ChoiceLimitInput label={sectionLimitLabel} />}
-
         <div className="flex flex-wrap gap-2 lg:justify-end">
           <Badge variant="secondary" className="rounded-full px-2.5 py-1">
             <ListChecks className="mr-1 size-3.5" />

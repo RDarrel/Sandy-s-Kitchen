@@ -15,6 +15,7 @@ const Step2 = ({
   selectionLimitLabel = "Selection limit",
   selectionLimitItemLabel = "menus",
   selectionLimitValue = "",
+  isMainCourse = false,
   setSelectionLimitValue = () => {},
 }) => {
   const [menuSearch, setMenuSearch] = useState("");
@@ -153,7 +154,7 @@ const Step2 = ({
 
         <div className="flex min-h-0 flex-col border rounded-sm">
           <Header
-            isSelected
+            isSelected={isMainCourse}
             activeCategory={selectedCategory}
             menusCount={
               <Badge variant="secondary" className="shrink-0 rounded-full">
@@ -169,13 +170,16 @@ const Step2 = ({
             selectionLimitLabel={selectionLimitLabel}
             selectionLimitValue={selectionLimitValue}
             selectionLimitDescription={
-              selectionLimitValue ? (
+              isMainCourse ? (
                 <>
                   The customer can select up to{" "}
                   <span className="font-semibold text-foreground">
                     {selectionLimitValue}
                   </span>{" "}
-                  {selectionLimitItemLabel}.
+                  {selectionLimitItemLabel}.{" "}
+                  <span className="font-semibold text-foreground">
+                    {selectedMenus.length} selected.
+                  </span>
                 </>
               ) : (
                 selectedSubtitle

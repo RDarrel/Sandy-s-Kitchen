@@ -54,10 +54,6 @@ const Selected = ({
                           <p className="truncate font-medium">
                             {capitalize(menu.name)}
                           </p>
-
-                          <p className="truncate w-50 text-xs text-muted-foreground">
-                            {menu.description || ""}
-                          </p>
                         </div>
                       </div>
                     </TableCell>
