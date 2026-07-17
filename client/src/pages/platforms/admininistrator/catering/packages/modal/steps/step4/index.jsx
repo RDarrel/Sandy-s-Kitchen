@@ -15,6 +15,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { useCallback, useMemo } from "react";
+import Cluster from "./cluster";
 
 const getCategoryKey = (menu) =>
   menu?.category?._id || menu?.category?.name || "uncategorized";
@@ -126,7 +127,7 @@ const MenuReviewSection = ({
                 key={category.key}
                 className=" rounded-md border border-border bg-background"
               >
-                <div className="sticky  top-16 z-20 grid gap-3 rounded-t-md border-b bg-muted px-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
+                <div className="sticky  top-16 z-20 grid gap-3 rounded-t-md border-b bg-muted/90 px-3 py-2 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
                   <div className="flex min-w-0 items-center gap-2">
                     <p className="truncate text-sm font-semibold text-foreground">
                       {capitalize(category.name)}
@@ -147,6 +148,7 @@ const MenuReviewSection = ({
 
                 <div className="divide-y">
                   {category.menus.map((menu, idx) => {
+                    console.log("running", menu?.name);
                     const recipeYield = Math.max(
                       toNumber(menu?.recipeYield, 1),
                       1,
@@ -279,20 +281,31 @@ const Step4 = ({
 
   return (
     <div className="space-y-5">
-      <MenuReviewSection
+      <Cluster
         title="Main Courses"
         subtitle="Review selected main courses and set the guests served."
         icon={<PackageCheck className="size-5" />}
         menus={mainCourses}
         targetPax={targetPax}
+        key={"cluster-1"}
+      />
+      <Cluster
+        title="Side Menus"
+        subtitle="Review selected side menus and set the guests served."
+        icon={<Salad className="size-5" />}
+        menus={sideMenus}
+        targetPax={targetPax}
+        key={"cluster-2"}
+      />
+      {/* <MenuReviewSection
         emptyTitle="No main courses selected yet"
         emptyDescription="Go back to Main Course and choose menus for this package."
         sectionLimitLabel="Main course limit"
         onRemove={removeMainCourse}
         onUpdateQtyServe={updateMainCourseQtyServe}
-      />
+      /> */}
 
-      <MenuReviewSection
+      {/* <MenuReviewSection
         title="Side Menus"
         subtitle="Review selected side menus and set the guests served."
         icon={<Salad className="size-5" />}
@@ -302,7 +315,7 @@ const Step4 = ({
         emptyDescription="Go back to Side Menus and choose add-ons for this package."
         onRemove={removeSideMenu}
         onUpdateQtyServe={updateSideMenuQtyServe}
-      />
+      /> */}
     </div>
   );
 };
