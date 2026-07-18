@@ -45,6 +45,7 @@ const CustomModal = ({
       ({ suppliers }) => suppliers,
     ),
     [form, setForm] = useState(_form),
+    [isDraft, setIsDraft] = useState(false),
     [mainCourses, setMainCourses] = useState([]),
     [sideMenus, setSideMenus] = useState([]),
     [mainCourseLimit, setMainCourseLimit] = useState(3),
@@ -53,6 +54,8 @@ const CustomModal = ({
   if (!isOpen) return null;
   const handleSubmit = (e) => {
     e.preventDefault();
+    const action = e.nativeEvent.submitter.value;
+    console.log("action", action);
     setCurrentStep((prev) => prev + 1);
   };
   return (
@@ -104,6 +107,7 @@ const CustomModal = ({
                     setMainCourses={setMainCourses}
                     setMainCourseLimit={setMainCourseLimit}
                     setForm={setForm}
+                    isDraft={isDraft}
                   />
                 </StepperContent>
               ))}
@@ -111,18 +115,31 @@ const CustomModal = ({
             <div className="flex items-center justify-between gap-2.5">
               <Button
                 variant="outline"
+                type="button"
                 onClick={() => setCurrentStep((prev) => prev - 1)}
                 disabled={currentStep === 1}
               >
                 Previous
               </Button>
-              <Button
-                variant="outline"
-                disabled={currentStep === steps.length}
-                type="submit"
-              >
-                Next
-              </Button>
+              <div className="flex gap-5">
+                <Button
+                  variant={"outline"}
+                  disabled={currentStep === steps.length}
+                  onClick={() => setIsDraft(true)}
+                  type="submit"
+                  value="draft"
+                >
+                  Save as Draft
+                </Button>
+                <Button
+                  disabled={currentStep === steps.length}
+                  type="submit"
+                  value="next"
+                  onClick={() => setIsDraft(false)}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </Stepper>
         </form>

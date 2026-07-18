@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-const Step1 = ({ form, setForm = () => {} }) => {
+const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
   return (
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-2 gap-5">
@@ -16,7 +16,7 @@ const Step1 = ({ form, setForm = () => {} }) => {
                 name: target.value,
               })
             }
-            required
+            required={true}
             id="name"
             placeholder="Enter package name"
           />
@@ -51,6 +51,7 @@ const Step1 = ({ form, setForm = () => {} }) => {
                 minimumGuests: Number(target.value),
               })
             }
+            required={!isDraft}
             id="minGuests"
             placeholder="Enter minimum pax"
           />
@@ -66,7 +67,7 @@ const Step1 = ({ form, setForm = () => {} }) => {
                 addPricePerGuest: Number(target.value),
               })
             }
-            required
+            required={!isDraft}
             id="pricePerPax"
             placeholder="Enter additional price per pax"
           />
@@ -78,7 +79,6 @@ const Step1 = ({ form, setForm = () => {} }) => {
         <Textarea
           type="text-area"
           value={form?.address || ""}
-          required
           onChange={({ target }) =>
             setForm({
               ...form,
