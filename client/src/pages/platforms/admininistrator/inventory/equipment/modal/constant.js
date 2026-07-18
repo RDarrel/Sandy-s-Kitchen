@@ -1,4 +1,4 @@
-export const UNITS = ["pcs", "set", "unit", "pair"];
+export const UNITS = ["pcs", "sets", "pairs", "rolls", "boxes"];
 
 export const CATEGORIES = [
   "Furniture",

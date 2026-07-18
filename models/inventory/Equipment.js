@@ -33,7 +33,7 @@ const modelSchema = new mongoose.Schema(
     unit: {
       type: String,
       enum: {
-        values: ["pcs", "set", "unit", "pair"],
+        values: ["pcs", "sets", "pairs", "rolls", "boxes"],
         message: "{VALUE} is not supported",
       },
       required: true,
