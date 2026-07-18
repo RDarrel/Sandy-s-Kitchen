@@ -32,8 +32,8 @@ const steps = [
   { title: "Information" },
   { title: "Main Course" },
   { title: "Side Menus" },
-  { title: "Menu Configuration" },
-  { title: "Package Inclusion" },
+  { title: "Rules" },
+  { title: "Inclusions" },
 ];
 const CustomModal = ({
   isOpen,
