@@ -1,19 +1,19 @@
 import { memo } from "react";
 import { Input } from "@/components/ui/input";
 import { capitalize } from "lodash";
-import { Trash2 } from "lucide-react";
 import Cloudinary from "@/services/utilities/cloudinary";
 
 const Menu = ({
   menu,
+  isMainCourse,
+  prepQty = 0,
   targetPax,
   onUpdateQtyServe = () => {},
-  onRemove = () => {},
 }) => {
-  const recipeYield = Math.max(menu.recipeYield, 1);
+  const recipeYield = Math.max(menu.recipeYield || 1, 1);
   const suggestedServeQty = targetPax / recipeYield;
   return (
-    <div className="grid gap-3 px-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_13rem_2rem] lg:items-center">
+    <div className="grid gap-3 px-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_13rem_0rem] lg:items-center">
       <div className="flex min-w-0 items-center gap-3">
         <img
           className="size-10 rounded-md border object-cover shadow-sm"
@@ -38,23 +38,21 @@ const Menu = ({
           Preparation Quantity
         </span>
         <Input
-          className="h-8 w-20 text-right font-medium"
+          className="h-8 w-20 text-center font-medium"
           min="1"
-          onChange={({ target }) => onUpdateQtyServe(menu._id, target.value)}
-          placeholder={suggestedServeQty ? String(suggestedServeQty) : "0"}
+          onChange={({ target }) =>
+            onUpdateQtyServe(
+              isMainCourse,
+              menu?.category?._id,
+              menu._id,
+              Number(target.value),
+            )
+          }
+          placeholder={"0"}
           type="number"
-          value={menu?.qtyServe || ""}
+          value={String(prepQty || suggestedServeQty)}
         />
       </label>
-
-      <button
-        type="button"
-        onClick={() => onRemove(menu._id)}
-        className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-        aria-label={`Remove ${menu?.name || "menu"}`}
-      >
-        <Trash2 className="size-4" />
-      </button>
     </div>
   );
 };

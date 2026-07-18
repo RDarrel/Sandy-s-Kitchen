@@ -6,10 +6,10 @@ import Available from "./available";
 import Selected from "./selected";
 import Header from "./header";
 
-const Step2 = ({
+const Menus = ({
   menus,
-  selectedMenus = [],
-  setSelectedMenus = () => {},
+  menuCategories = [],
+  setMenuCategories = () => {},
   availableSubtitle = "",
   selectedSubtitle = "",
   selectionLimitLabel = "Selection limit",
@@ -23,10 +23,20 @@ const Step2 = ({
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [availCategory, setAvailCategory] = useState("all");
 
-  const selectedIds = useMemo(
-    () => new Set(selectedMenus.map(({ _id }) => _id)),
-    [selectedMenus],
-  );
+  const selectedIds = useMemo(() => {
+    return new Set(
+      menuCategories.flatMap((section) =>
+        section.choices.map((choice) => choice?.menu?._id),
+      ),
+    );
+  }, [menuCategories]);
+
+  const matchesKeyWord = (keyword, menu) =>
+    [menu.name, menu.description, menu?.category?.name].some((value) =>
+      String(value || "")
+        .toLowerCase()
+        .includes(keyword),
+    );
 
   const availMenus = useMemo(() => {
     if (availCategory === "all") return menus;
@@ -38,13 +48,7 @@ const Step2 = ({
 
     if (!keyword) return availMenus;
 
-    return availMenus.filter((menu) =>
-      [menu?.name, menu?.description].some((value) =>
-        String(value || "")
-          .toLowerCase()
-          .includes(keyword),
-      ),
-    );
+    return availMenus.filter((menu) => matchesKeyWord(keyword, menu));
   }, [menuSearch, availMenus]);
 
   const availCategories = useMemo(() => {
@@ -56,69 +60,75 @@ const Step2 = ({
   }, [menus]);
 
   const selectedCategories = useMemo(() => {
-    return [
-      ...new Map(
-        selectedMenus.map(({ category }) => [category?._id, category]),
-      ).values(),
-    ];
-  }, [selectedMenus]);
+    return menuCategories.map(({ category }) => category);
+  }, [menuCategories]);
 
   const selectedMenusByCategory = useMemo(() => {
-    if (selectedCategory === "all") return selectedMenus;
-    return selectedMenus.filter(
-      ({ category }) => category?._id === selectedCategory,
+    if (selectedCategory === "all") return menuCategories;
+    return menuCategories.filter(
+      ({ category }) => category._id === selectedCategory,
     );
-  }, [selectedCategory, selectedMenus]);
+  }, [selectedCategory, menuCategories]);
 
   const filteredSelectedMenus = useMemo(() => {
-    const groupedMenus = (datas) => {
-      const grouped = datas.reduce((acc, curr) => {
-        const index = acc.findIndex(({ _id }) => _id === curr.category?._id);
-        if (index > -1) {
-          const menus = [...(acc[index]?.menus || [])];
-          menus.push(curr);
-          acc[index] = { ...acc[index], menus };
-        } else {
-          acc.push({ ...curr.category, menus: [curr] });
-        }
-        return acc;
-      }, []);
-
-      return grouped;
-    };
     const keyword = selectedSearch.trim().toLowerCase();
 
-    if (!keyword) return groupedMenus(selectedMenusByCategory);
-    const results = selectedMenusByCategory.filter((menu) =>
-      [menu?.name, menu?.description, menu?.category?.name].some((value) =>
-        String(value || "")
-          .toLowerCase()
-          .includes(keyword),
-      ),
-    );
-    return groupedMenus(results);
+    if (!keyword) return selectedMenusByCategory;
+    const results = selectedMenusByCategory.map((section) => {
+      const { choices = [] } = section;
+      const results = choices.filter(({ menu }) =>
+        matchesKeyWord(keyword, menu),
+      );
+      return { ...section, choices: results };
+    });
+    return results.filter(({ choices }) => choices.length);
   }, [selectedMenusByCategory, selectedSearch]);
 
-  const toggleMenu = useCallback(
-    (menu) => {
-      setSelectedMenus((prev) => {
-        const isSelected = prev.some(({ _id }) => menu._id === _id);
+  const toggleMenu = useCallback((menu) => {
+    setMenuCategories((prev) => {
+      const updated = [...prev];
+      const index = updated.findIndex(
+        ({ category }) => category?._id === menu?.category?._id,
+      );
+      if (index > -1) {
+        const existing = {
+          ...updated[index],
+          choices: [{ menu }, ...updated[index].choices],
+        };
+        updated.splice(index, 1);
+        updated.unshift(existing);
+      } else {
+        updated.unshift({ category: menu?.category, choices: [{ menu }] });
+      }
+      return updated;
+    });
+  }, []);
 
-        if (isSelected) {
-          return prev.filter(({ _id }) => menu._id !== _id);
-        }
+  const removeSelectedMenu = useCallback((cId, mId) => {
+    setMenuCategories((prev) => {
+      const updated = [...prev];
+      const pIdx = updated.findIndex(({ category }) => category?._id === cId);
 
-        return [menu, ...prev];
-      });
-    },
-    [setSelectedMenus],
-  );
-  const removeSelectedMenu = useCallback(
-    (menuId) => {
-      setSelectedMenus((prev) => prev.filter(({ _id }) => _id !== menuId));
-    },
-    [setSelectedMenus],
-  );
+      if (pIdx < 0) return prev;
+
+      const choices = [...updated[pIdx].choices];
+      const cIdx = choices.findIndex(({ menu }) => menu?._id === mId);
+
+      if (cIdx < 0) return prev;
+      choices.splice(cIdx, 1);
+
+      if (choices.length === 0) {
+        //if the choices is empty remove the parent category
+        updated.splice(pIdx, 1);
+      } else {
+        updated[pIdx] = {
+          ...updated[pIdx],
+          choices,
+        };
+      }
+      return updated;
+    });
+  }, []);
 
   return (
     <div className="max-h-[30rem] overflow-hidden rounded-[7px] border border-border bg-card">
@@ -143,6 +153,7 @@ const Step2 = ({
             menus={filteredMenus}
             selectedIds={selectedIds}
             toggleMenu={toggleMenu}
+            removeSelectedMenu={removeSelectedMenu}
             clearFilters={() => {
               setAvailCategory("all");
               setMenuSearch("");
@@ -159,7 +170,7 @@ const Step2 = ({
             menusCount={
               <Badge variant="secondary" className="shrink-0 rounded-full">
                 <ListChecks className="mr-1 size-3.5" />
-                {selectedMenus.length}
+                {selectedIds.size}
               </Badge>
             }
             search={selectedSearch}
@@ -178,7 +189,7 @@ const Step2 = ({
                   </span>{" "}
                   {selectionLimitItemLabel}.{" "}
                   <span className="font-semibold text-foreground">
-                    {selectedMenus.length} selected.
+                    {selectedIds.size} selected.
                   </span>
                 </>
               ) : (
@@ -205,4 +216,4 @@ const Step2 = ({
   );
 };
 
-export default Step2;
+export default Menus;

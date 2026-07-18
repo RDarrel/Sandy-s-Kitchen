@@ -12,14 +12,17 @@ const Step3 = ({
   const { collections } = useSelector(({ menus }) => menus);
   const availableSideMenus = useMemo(() => {
     return collections.filter(
-      ({ _id }) => !mainCourses.some((main) => main._id === _id),
+      ({ _id }) =>
+        !mainCourses.some(({ choices }) =>
+          choices.some(({ menu }) => menu?._id === _id),
+        ),
     );
   }, [collections, mainCourses]);
   return (
     <Menus
       menus={availableSideMenus}
-      selectedMenus={sideMenus}
-      setSelectedMenus={setSideMenus}
+      menuCategories={sideMenus}
+      setMenuCategories={setSideMenus}
       availableSubtitle="Choose your preferred side menus."
       selectedSubtitle="Review your selected side menus."
       selectionLimitLabel="Side menu limit"

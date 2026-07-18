@@ -12,14 +12,18 @@ const Step2 = ({
   const { collections } = useSelector(({ menus }) => menus);
   const availableMenus = useMemo(() => {
     return collections.filter(
-      ({ _id }) => !sideMenus.some((menu) => menu?._id === _id),
+      ({ _id }) =>
+        !sideMenus.some(({ choices }) =>
+          choices.some(({ menu }) => menu?._id === _id),
+        ),
     );
   }, [collections, sideMenus]);
+
   return (
     <Menus
       isMainCourse
-      selectedMenus={mainCourses}
-      setSelectedMenus={setMainCourses}
+      menuCategories={mainCourses}
+      setMenuCategories={setMainCourses}
       menus={availableMenus}
       availableSubtitle="Choose your preferred main courses."
       selectedSubtitle="Review your selected main courses."

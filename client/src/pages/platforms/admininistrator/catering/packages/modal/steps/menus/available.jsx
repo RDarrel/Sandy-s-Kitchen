@@ -8,7 +8,12 @@ const Available = ({
   selectedIds = [],
   clearFilters = () => {},
   toggleMenu = () => {},
+  removeSelectedMenu = () => {},
 }) => {
+  const toggle = (menu, isSelected) => {
+    if (!isSelected) return toggleMenu(menu);
+    return removeSelectedMenu(menu?.category?._id, menu?._id);
+  };
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <Table>
@@ -20,7 +25,7 @@ const Available = ({
                 <TableRow
                   key={menu?._id || menu?.name}
                   className={`cursor-pointer transition-colors  ${isSelected ? " hover:bg-primary/10 border-l-4 border-l-primary bg-[color:color-mix(in_srgb,var(--color-primary)_8%,white)]" : "hover:bg-muted/20"}`}
-                  onClick={() => toggleMenu(menu)}
+                  onClick={() => toggle(menu, isSelected)}
                 >
                   <TableCell>
                     <div className="min-w-0 flex items-center gap-2">
@@ -45,7 +50,7 @@ const Available = ({
                       aria-label={`Add ${menu?.name || "menu"}`}
                       onClick={(event) => {
                         event.stopPropagation();
-                        toggleMenu(menu);
+                        toggle(menu, isSelected);
                       }}
                     >
                       {isSelected ? (

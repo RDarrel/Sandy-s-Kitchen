@@ -4,7 +4,13 @@ import {
   InputGroupAddon,
 } from "@/components/ui/input-group";
 
-const LimitInput = ({ label }) => {
+const LimitInput = ({
+  label,
+  limit,
+  isMainCourse,
+  categoryId,
+  onUpdateCategoryLimit = () => {},
+}) => {
   return (
     <div className="flex min-w-0 items-center gap-2">
       <span className="shrink-0 text-xs font-medium text-muted-foreground">
@@ -16,6 +22,14 @@ const LimitInput = ({ label }) => {
           min="1"
           placeholder="0"
           type="number"
+          onChange={({ target }) =>
+            onUpdateCategoryLimit(
+              isMainCourse,
+              categoryId,
+              Number(target.value),
+            )
+          }
+          value={String(limit || "")}
         />
         <InputGroupAddon
           align="inline-end"

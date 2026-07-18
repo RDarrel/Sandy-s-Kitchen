@@ -26,11 +26,7 @@ import Step3 from "./steps/step3";
 import Step4 from "./steps/step4";
 const _form = {
   name: "",
-  contact: {
-    person: "",
-    mobile: "",
-  },
-  address: "",
+  minimumGuests: 0,
 };
 const steps = [
   { title: "Information" },
@@ -54,24 +50,8 @@ const CustomModal = ({
     [mainCourseLimit, setMainCourseLimit] = useState(3),
     [currentStep, setCurrentStep] = useState(1);
 
-  useEffect(() => {
-    if (willCreate) {
-      setForm(_form);
-    } else {
-      setForm({ ..._form, ...selected });
-    }
-  }, [willCreate, selected, isOpen]);
-
-  useEffect(() => {
-    if (!formSubmitted && isSuccess && isOpen) {
-      setIsOpen(false);
-    }
-  }, [formSubmitted, isSuccess, isOpen, setIsOpen]);
-
   if (!isOpen) return null;
-
-  console.log("currentStep", currentStep);
-
+  console.log("form", form);
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-4xl">

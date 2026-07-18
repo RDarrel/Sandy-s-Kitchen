@@ -16,8 +16,8 @@ const Selected = ({
       <Table className={"w-full"}>
         <TableBody>
           {menus.length > 0 ? (
-            menus.map((category) => (
-              <React.Fragment key={category._id || category.name}>
+            menus.map(({ category, choices }, idx) => (
+              <React.Fragment key={`${category._id}-${idx} `}>
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
                   <TableCell colSpan={2}>
                     <div className="flex items-center justify-between">
@@ -31,15 +31,15 @@ const Selected = ({
                       </div>
 
                       <Badge variant="secondary" className="rounded-full">
-                        {category.menus.length}
+                        {choices.length}
                       </Badge>
                     </div>
                   </TableCell>
                 </TableRow>
 
-                {category.menus.map((menu) => (
+                {choices.map(({ menu }, cIdx) => (
                   <TableRow
-                    key={menu._id}
+                    key={`${cIdx}-${menu?._id}-selected`}
                     className="transition-colors hover:bg-muted/20"
                   >
                     <TableCell>
@@ -64,7 +64,9 @@ const Selected = ({
                         variant="ghost"
                         className="size-8 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                         aria-label={`Remove ${menu.name}`}
-                        onClick={() => removeSelectedMenu(menu._id)}
+                        onClick={() =>
+                          removeSelectedMenu(menu?.category?._id, menu._id)
+                        }
                       >
                         <Trash2 className="size-4" />
                       </Button>

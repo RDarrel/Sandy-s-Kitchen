@@ -1,5 +1,56 @@
 const mongoose = require("mongoose");
 
+const packageMenuSchema = new mongoose.Schema(
+  {
+    menu: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Menu",
+      required: true,
+    },
+    prepQty: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+  },
+  { _id: false },
+);
+
+const menuCategorySchema = new mongoose.Schema(
+  {
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "MenuCategory",
+      required: true,
+    },
+
+    limit: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+
+    choices: [packageMenuSchema],
+  },
+  { _id: false },
+);
+
+const inclusionSchema = new mongoose.Schema(
+  {
+    equipment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Equipment",
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+  },
+  { _id: false },
+);
+
 const modelSchema = new mongoose.Schema(
   {
     imgId: {
@@ -33,45 +84,17 @@ const modelSchema = new mongoose.Schema(
     mainCourseLimit: {
       type: Number,
       required: true,
-      default: 3,
     },
+    mainCourseCategories: [menuCategorySchema],
+    sideMenuCategories: [menuCategorySchema],
+
     level: {
       //Package Tier
       type: String,
       enum: ["Bronze", "Silver", "Gold", "Platinum"],
     },
-    menuCategories: [
-      {
-        selectionLimit: {
-          type: Number,
-          default: 1,
-        },
-        category: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "MenuCategory",
-          required: true,
-        },
-        menus: [
-          {
-            menu: {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: "Menu",
-            },
-            prepQty: {
-              type: Number,
-              required: true,
-            },
-          },
-        ],
-      },
-    ],
 
-    inclusions: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
+    inclusions: [inclusionSchema],
 
     isActive: {
       type: Boolean,

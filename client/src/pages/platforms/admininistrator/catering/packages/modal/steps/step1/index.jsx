@@ -6,7 +6,7 @@ const Step1 = ({ form, setForm = () => {} }) => {
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-2 gap-5">
         <div className="grid w-full  items-center gap-1.5">
-          <Label htmlFor="company">Name</Label>
+          <Label htmlFor="name">Name</Label>
           <Input
             type="text"
             value={form?.name || ""}
@@ -17,23 +17,23 @@ const Step1 = ({ form, setForm = () => {} }) => {
               })
             }
             required
-            id="company"
+            id="name"
             placeholder="Enter package name"
           />
         </div>
         <div className="grid w-full  items-center gap-1.5">
-          <Label htmlFor="company">Price</Label>
+          <Label htmlFor="price">Price</Label>
           <Input
-            type="text"
-            value={form?.name || ""}
+            type="number"
+            value={String(form?.basePrice || "")}
             onChange={({ target }) =>
               setForm({
                 ...form,
-                name: target.value,
+                basePrice: Number(target.value),
               })
             }
             required
-            id="company"
+            id="price"
             placeholder="Enter package price"
           />
         </div>
@@ -41,36 +41,33 @@ const Step1 = ({ form, setForm = () => {} }) => {
 
       <div className="grid grid-cols-2 gap-5">
         <div className="grid w-full  items-center gap-1.5">
-          <Label htmlFor="person">Minimum Pax</Label>
+          <Label htmlFor="minGuests">Minimum Pax</Label>
           <Input
-            type="text"
-            value={form?.contact?.person || ""}
+            type="number"
+            value={String(form?.minimumGuests || "")}
             onChange={({ target }) =>
               setForm({
                 ...form,
-                contact: {
-                  ...form.contact,
-                  person: target.value,
-                },
+                minimumGuests: Number(target.value),
               })
             }
-            id="person"
-            placeholder="Enter contact person here.."
+            id="minGuests"
+            placeholder="Enter minimum pax"
           />
         </div>
         <div className="grid w-full  items-center gap-1.5">
-          <Label htmlFor="company">Additional Price Per Pax</Label>
+          <Label htmlFor="pricePerPax">Additional Price Per Pax</Label>
           <Input
-            type="text"
-            value={form?.name || ""}
+            type="number"
+            value={String(form?.addPricePerGuest || "")}
             onChange={({ target }) =>
               setForm({
                 ...form,
-                name: target.value,
+                addPricePerGuest: Number(target.value),
               })
             }
             required
-            id="company"
+            id="pricePerPax"
             placeholder="Enter additional price per pax"
           />
         </div>
@@ -88,7 +85,7 @@ const Step1 = ({ form, setForm = () => {} }) => {
               address: target.value,
             })
           }
-          id="address"
+          id="description"
           placeholder="Enter description here.."
         />
       </div>
