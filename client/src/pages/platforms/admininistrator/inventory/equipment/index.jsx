@@ -3,12 +3,11 @@ import { useCallback, useState } from "react";
 import Body from "./body";
 import Header from "./header";
 import CategoryModal from "./modal";
-import { useDispatch, useSelector } from "react-redux";
-import { DESTROY } from "@/services/redux/slices/menu/categories";
+import { useDispatch } from "react-redux";
+import { DESTROY } from "@/services/redux/slices/inventory/equipment";
 import { toast } from "sonner";
 
 const Equipment = () => {
-  const { token } = useSelector(({ auth }) => auth);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const dispatch = useDispatch();
@@ -21,7 +20,7 @@ const Equipment = () => {
   const handleDelete = () => {
     if (!selected?._id) return;
 
-    dispatch(DESTROY({ data: { _id: selected._id }, token }))
+    dispatch(DESTROY({ data: { _id: selected._id } }))
       .unwrap()
       .then(() => {
         setSelected(null);

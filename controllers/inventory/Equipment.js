@@ -2,7 +2,9 @@ const Equipment = require("../../models/inventory/Equipment");
 
 exports.browse = async (req, res) => {
   try {
-    const equipment = await Equipment.find().sort({ createdAt: -1 }).lean();
+    const equipment = await Equipment.find({ deletedAt: { $exists: false } })
+      .sort({ createdAt: -1 })
+      .lean();
     res
       .status(200)
       .json({ data: equipment, message: "Equipment fetched successfully." });
