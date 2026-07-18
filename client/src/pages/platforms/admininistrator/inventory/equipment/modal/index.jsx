@@ -119,7 +119,7 @@ const InventoryModal = () => {
       <DialogContent className="max-h-[92vh] overflow-y-auto border-border bg-card sm:max-w-1xl">
         <DialogHeader className="gap-2">
           <DialogTitle className="text-2xl text-foreground">
-            {willCreate ? "Create" : "Update"} Equipment
+            {willCreate ? "Add" : "Update"} Equipment
           </DialogTitle>
           <DialogDescription>
             Enter the equipment details to make it available for catering and
