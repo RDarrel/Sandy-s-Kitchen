@@ -27,7 +27,7 @@ const Step5 = () => {
   );
 
   return (
-    <div className="grid max-h-[64vh] gap-2 overflow-y-auto pr-1 md:max-h-none md:overflow-visible md:pr-0 lg:grid-cols-2">
+    <div className="grid max-h-[64vh] gap-2 overflow-y-auto pr-1 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-track]:bg-transparent md:max-h-none md:overflow-visible md:pr-0 lg:grid-cols-2">
       <InclusionSection
         title="Equipment"
         subtitle="Select equipment included in this package."
@@ -155,7 +155,7 @@ const InclusionSection = ({
             </span>
           </div>
 
-          <div className="max-h-24 overflow-y-auto">
+          <div className="max-h-24 overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-track]:bg-transparent">
             {filteredItems.length > 0 ? (
               <div className="divide-y">
                 {filteredItems.map((item) => {
@@ -213,7 +213,7 @@ const InclusionSection = ({
             </Badge>
           </div>
 
-          <div className="max-h-48 overflow-y-auto">
+          <div className="max-h-48 overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-track]:bg-transparent">
             {selectedItems.length > 0 ? (
               <div>
                 <div
