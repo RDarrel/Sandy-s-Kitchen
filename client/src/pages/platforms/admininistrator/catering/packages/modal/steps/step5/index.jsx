@@ -198,7 +198,7 @@ const InclusionSection = ({
           </div>
         </div>
 
-        <div className="flex h-60 min-h-0 flex-col overflow-hidden rounded-md border border-primary/25 bg-primary/5">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-primary/25 bg-primary/5">
           <div className="flex items-center justify-between gap-2 border-b border-primary/20 bg-[color:color-mix(in_srgb,var(--color-primary)_8%,white)] px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">
               <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -213,7 +213,7 @@ const InclusionSection = ({
             </Badge>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-track]:bg-transparent">
+          <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-track]:bg-transparent lg:max-h-48">
             {selectedItems.length > 0 ? (
               <div>
                 <div
@@ -312,7 +312,7 @@ const Field = ({
 
 const EmptyState = ({ title, className = "" }) => (
   <div
-    className={`flex min-h-20 flex-col items-center justify-center gap-2 px-3 py-4 text-center ${className}`}
+    className={`flex min-h-19 flex-col items-center justify-center gap-2 px-3 py-4 text-center ${className}`}
   >
     <Search className="size-5 text-muted-foreground" />
     <p className="text-xs font-medium text-muted-foreground">{title}</p>
