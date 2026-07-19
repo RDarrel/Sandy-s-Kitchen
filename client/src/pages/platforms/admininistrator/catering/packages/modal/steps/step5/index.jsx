@@ -198,7 +198,7 @@ const InclusionSection = ({
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-primary/25 bg-primary/5">
+        <div className="flex h-60 min-h-0 flex-col overflow-hidden rounded-md border border-primary/25 bg-primary/5">
           <div className="flex items-center justify-between gap-2 border-b border-primary/20 bg-[color:color-mix(in_srgb,var(--color-primary)_8%,white)] px-3 py-2">
             <div className="flex min-w-0 items-center gap-2">
               <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
