@@ -117,10 +117,10 @@ const InclusionSection = ({
   };
 
   return (
-    <section className="rounded-[7px] border border-border bg-card shadow-sm">
-      <div className="flex items-center justify-between gap-2 border-b bg-muted/20 px-2.5 py-2">
+    <section className="rounded-[7px] border border-border bg-card">
+      <div className="flex items-center justify-between gap-2 border-b px-3 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/5 text-primary">
             {icon}
           </div>
           <div className="min-w-0">
@@ -132,14 +132,14 @@ const InclusionSection = ({
             </p>
           </div>
         </div>
-        <Badge variant="secondary" className="shrink-0 rounded-full">
-          {selectedItems.length}
+        <Badge variant="outline" className="shrink-0 rounded-full">
+          {selectedItems.length} selected
         </Badge>
       </div>
 
       <div className="space-y-2 p-2">
-        <div className="rounded-md border border-border">
-          <div className="grid gap-2 border-b bg-muted/20 p-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+        <div className="overflow-hidden rounded-md border border-border bg-background">
+          <div className="grid gap-2 border-b p-2 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
             <p className="text-xs font-semibold text-foreground">{addTitle}</p>
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1.5 size-4 text-muted-foreground" />
@@ -150,9 +150,12 @@ const InclusionSection = ({
                 placeholder={searchPlaceholder}
               />
             </div>
+            <span className="hidden text-xs text-muted-foreground sm:block">
+              {filteredItems.length} items
+            </span>
           </div>
 
-          <div className="max-h-28 overflow-y-auto">
+          <div className="max-h-24 overflow-y-auto">
             {filteredItems.length > 0 ? (
               <div className="divide-y">
                 {filteredItems.map((item) => {
@@ -163,20 +166,28 @@ const InclusionSection = ({
                       key={item?._id || item?.name}
                       type="button"
                       onClick={() => toggleItem(item)}
-                      className={`flex w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left transition-colors ${
+                      className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left transition-colors ${
                         isSelected
-                          ? "bg-primary/10 text-primary"
-                          : "hover:bg-muted/30"
+                          ? "bg-primary/5 text-primary"
+                          : "hover:bg-muted/25"
                       }`}
                     >
                       <span className="min-w-0 truncate text-xs font-medium">
                         {capitalize(item?.name || "")}
                       </span>
-                      {isSelected ? (
-                        <Check className="size-3.5 shrink-0" />
-                      ) : (
-                        <Plus className="size-3.5 shrink-0 text-primary" />
-                      )}
+                      <span
+                        className={`flex size-6 shrink-0 items-center justify-center rounded-md border ${
+                          isSelected
+                            ? "border-primary/20 bg-primary/10"
+                            : "border-border bg-card"
+                        }`}
+                      >
+                        {isSelected ? (
+                          <Check className="size-3.5" />
+                        ) : (
+                          <Plus className="size-3.5 text-primary" />
+                        )}
+                      </span>
                     </button>
                   );
                 })}
@@ -187,9 +198,12 @@ const InclusionSection = ({
           </div>
         </div>
 
-        <div className="rounded-md border border-border bg-muted/10">
-          <div className="flex items-center justify-between gap-2 border-b px-2.5 py-2">
-            <div>
+        <div className="overflow-hidden rounded-md border border-primary/25 bg-primary/5">
+          <div className="flex items-center justify-between gap-2 border-b border-primary/20 bg-[color:color-mix(in_srgb,var(--color-primary)_8%,white)] px-3 py-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <Check className="size-3" />
+              </span>
               <p className="text-xs font-semibold text-foreground">
                 {detailsTitle}
               </p>
@@ -199,53 +213,61 @@ const InclusionSection = ({
             </Badge>
           </div>
 
-          <div className="max-h-52 overflow-y-auto p-2">
+          <div className="max-h-48 overflow-y-auto">
             {selectedItems.length > 0 ? (
-              <div className="space-y-1.5">
+              <div>
+                <div
+                  className={`sticky top-0 z-20 hidden border-b border-primary/15 bg-card px-3 py-1.5 text-[10px] font-medium uppercase text-muted-foreground shadow-sm sm:grid ${
+                    type === "service"
+                      ? "grid-cols-[minmax(0,1fr)_5.75rem_4.75rem_1.75rem]"
+                      : "grid-cols-[minmax(0,1fr)_5rem_1.75rem]"
+                  }`}
+                >
+                  <span>Name</span>
+                  {type === "service" && <span>Duration</span>}
+                  <span>{type === "service" ? "Qty" : "Quantity"}</span>
+                  <span />
+                </div>
                 {selectedItems.map((item) => (
                   <div
                     key={`${item?._id}-selected`}
-                    className="grid gap-2 rounded-md border border-border bg-background p-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"
+                    className={`grid gap-2 border-b border-primary/10 bg-card px-3 py-2.5 last:border-b-0 ${
+                      type === "service"
+                        ? "sm:grid-cols-[minmax(0,1fr)_5.75rem_4.75rem_auto] sm:items-center"
+                        : "grid-cols-[minmax(0,1fr)_5rem_auto] items-center"
+                    }`}
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-xs font-semibold text-foreground">
+                      <p className="truncate text-xs font-medium text-foreground">
                         {capitalize(item?.name || "")}
                       </p>
-
-                      <div
-                        className={`mt-1.5 grid gap-2 ${
-                          type === "service"
-                            ? "grid-cols-2"
-                            : "grid-cols-[minmax(0,9rem)]"
-                        }`}
-                      >
-                        {type === "service" && (
-                          <Field
-                            label="Duration"
-                            value={item.duration}
-                            placeholder="e.g. 4 hrs"
-                            onChange={(value) =>
-                              updateSelectedItem(item?._id, "duration", value)
-                            }
-                          />
-                        )}
-                        <Field
-                          label={type === "service" ? "Qty" : "Quantity"}
-                          value={item.qty}
-                          placeholder="0"
-                          type="number"
-                          onChange={(value) =>
-                            updateSelectedItem(item?._id, "qty", value)
-                          }
-                        />
-                      </div>
                     </div>
+
+                    {type === "service" && (
+                      <Field
+                        label="Duration"
+                        value={item.duration}
+                        placeholder="Duration"
+                        onChange={(value) =>
+                          updateSelectedItem(item?._id, "duration", value)
+                        }
+                      />
+                    )}
+                    <Field
+                      label={"Quantity"}
+                      value={item.qty}
+                      placeholder={"Qty"}
+                      type="number"
+                      onChange={(value) =>
+                        updateSelectedItem(item?._id, "qty", value)
+                      }
+                    />
 
                     <Button
                       type="button"
                       size="icon"
                       variant="ghost"
-                      className="size-7 justify-self-end text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      className="size-7 justify-self-end rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                       aria-label={`Remove ${item?.name || title}`}
                       onClick={() => toggleItem(item)}
                     >
@@ -272,11 +294,10 @@ const Field = ({
   onChange = () => {},
 }) => (
   <label className="min-w-0">
-    <span className="mb-1 block text-[11px] font-medium text-muted-foreground">
-      {label}
-    </span>
+    <span className="sr-only">{label}</span>
     <Input
-      className="h-7 text-xs"
+      aria-label={label}
+      className="h-7 rounded-md px-2 text-xs"
       min={type === "number" ? "0" : undefined}
       placeholder={placeholder}
       type={type}
