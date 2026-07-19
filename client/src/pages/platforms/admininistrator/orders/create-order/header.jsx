@@ -10,7 +10,7 @@ import {
 import {
   categoryOptions,
   typeOptions,
-} from "@/pages/platforms/admininistrator/inventory/stockItems/config";
+} from "@/pages/platforms/admininistrator/inventory/config";
 import { Search } from "lucide-react";
 import { useSelector } from "react-redux";
 

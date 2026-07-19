@@ -9,7 +9,7 @@ import RequestStock from "./request-stock/create-request";
 import MyRequests from "./request-stock/my-requests";
 import orderList from "./orders/order-list";
 import shortDeliveries from "./orders/short-deliveries";
-import Inventory from "../admininistrator/inventory/stockItems";
+import Inventory from "../admininistrator/inventory";
 
 const access = [
   {

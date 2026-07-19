@@ -1,8 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import auth from "./slices/persons/auth";
 import staffs from "./slices/persons/staffs";
-import fuels from "./slices/assets/fuels";
-import stocks from "./slices/assets/stocks";
 import pos from "./slices/pos";
 import deals from "./slices/commerce/deals";
 import transactions from "./slices/commerce/transactions";
@@ -29,10 +27,8 @@ const store = configureStore({
     inventoryItems,
     staffs,
     suppliers,
-    fuels,
     stockRequests,
     purchases,
-    stocks,
     pos,
     deals,
     transactions,

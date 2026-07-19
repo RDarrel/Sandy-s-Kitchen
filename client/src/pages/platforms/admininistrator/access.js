@@ -7,6 +7,7 @@ import {
   Users,
   UtensilsCrossed,
   ChefHat,
+  Boxes,
 } from "lucide-react";
 import Dashboard from "./dashboard";
 import Staffs from "./staffs";
@@ -20,8 +21,8 @@ import OrderList from "./orders/order-list";
 import ShortDeliveries from "./orders/short-deliveries";
 import StockRequests from "./orders/stock-requests";
 import Packages from "./catering/packages";
-
-import { StockItems, Equipment } from "./inventory";
+import StockItems from "./inventory";
+import { Equipment, Services } from "./resources";
 
 const access = [
   {
@@ -34,16 +35,22 @@ const access = [
     name: "Inventory",
     path: "/inventory",
     icon: Package,
+    component: StockItems,
+  },
+  {
+    name: "Resources",
+    path: "/resources",
+    icon: Boxes,
     children: [
-      {
-        name: "Stock Items",
-        path: "/stock-items",
-        component: StockItems,
-      },
       {
         name: "Equipment",
         path: "/equipment",
         component: Equipment,
+      },
+      {
+        name: "Services",
+        path: "/services",
+        component: Services,
       },
     ],
   },
