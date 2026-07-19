@@ -27,7 +27,8 @@ const Menu = ({
           <p className="truncate text-xs text-muted-foreground">
             Recipe yield:{" "}
             <span className="font-semibold text-foreground">
-              {recipeYield} serve/person
+              {/* {recipeYield} serve/person */}
+              Serves {recipeYield} guests per preparation
             </span>
           </p>
         </div>
@@ -35,7 +36,7 @@ const Menu = ({
 
       <label className="flex items-center justify-end gap-2">
         <span className="shrink-0 text-xs font-medium text-muted-foreground">
-          Preparation Quantity
+          Preparations
         </span>
         <Input
           className="h-8 w-20 text-center font-medium"

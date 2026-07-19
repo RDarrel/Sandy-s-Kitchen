@@ -109,7 +109,7 @@ const Category = memo(
           </div>
 
           <LimitInput
-            label="Customer can select"
+            label="Selection Limit"
             limit={limit}
             isMainCourse={isMainCourse}
             categoryId={category?._id}
