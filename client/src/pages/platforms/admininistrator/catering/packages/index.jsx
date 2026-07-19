@@ -10,12 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { BROWSE } from "@/services/redux/slices/menu/menus";
+import { BROWSE as BROWSE_EQUIPMENT } from "@/services/redux/slices/inventory/equipment";
 
 const Packages = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(BROWSE({ station: "catering" }));
+    dispatch(BROWSE_EQUIPMENT());
   }, [dispatch]);
 
   return (

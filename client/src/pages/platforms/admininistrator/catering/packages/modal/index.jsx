@@ -24,6 +24,7 @@ import Step1 from "./steps/step1";
 import Step2 from "./steps/step2";
 import Step3 from "./steps/step3";
 import Step4 from "./steps/step4";
+import Step5 from "./steps/step5";
 const _form = {
   name: "",
   minimumGuests: 0,
@@ -54,7 +55,7 @@ const CustomModal = ({
   if (!isOpen) return null;
   const handleSubmit = (e) => {
     e.preventDefault();
-    const action = e.nativeEvent.submitter.value;
+    const action = e.nativeEvent.submitter.dataset.action;
     console.log("action", action);
     setCurrentStep((prev) => prev + 1);
   };
@@ -96,7 +97,7 @@ const CustomModal = ({
               ))}
             </StepperNav>
             <StepperPanel className="text-sm">
-              {[Step1, Step2, Step3, Step4].map((Step, index) => (
+              {[Step1, Step2, Step3, Step4, Step5].map((Step, index) => (
                 <StepperContent key={index} value={index + 1}>
                   <Step
                     form={form}
@@ -127,14 +128,14 @@ const CustomModal = ({
                   disabled={currentStep === steps.length}
                   onClick={() => setIsDraft(true)}
                   type="submit"
-                  value="draft"
+                  data-action="draft"
                 >
                   Save as Draft
                 </Button>
                 <Button
                   disabled={currentStep === steps.length}
                   type="submit"
-                  value="next"
+                  data-action="next"
                   onClick={() => setIsDraft(false)}
                 >
                   Next
