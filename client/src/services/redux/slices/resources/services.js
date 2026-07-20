@@ -5,14 +5,10 @@ const url = "resources/services";
 
 const initialState = {
   collections: [],
-  search: "",
-  params: {
-    type: "",
-    category: "",
-    measurement: "",
-    status: "",
-  },
+  cluster: [],
   filtered: [],
+  filterBy: "all",
+  search: "",
   selected: {},
   willCreate: false,
   showModal: false,
@@ -86,13 +82,28 @@ export const reduxSlice = createSlice({
       state.showModal = true;
       state.willCreate = false;
     },
+    FILTER_BY: (state, { payload }) => {
+      const collections = [...state.collections];
+      console.log("payload", payload);
+      var cluster = [];
+      if (payload === "all") {
+        cluster = collections;
+      } else {
+        cluster = collections.filter(({ availableFor }) =>
+          availableFor.includes(payload),
+        );
+      }
+      state.cluster = cluster;
+      state.filtered = cluster;
+      state.filterBy = payload;
+    },
     SetFILTERED: (state, { payload }) => {
       state.filtered = payload;
     },
     SEARCH: (state, { payload }) => {
       const results = !payload
-        ? state.collections
-        : state.collections.filter((item) => {
+        ? state.cluster
+        : state.cluster.filter((item) => {
             return item.name.toLowerCase().includes(payload.toLowerCase());
           });
       state.filtered = results;
@@ -202,6 +213,7 @@ export const {
   SetCREATE,
   SetFILTERED,
   SEARCH,
+  FILTER_BY,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

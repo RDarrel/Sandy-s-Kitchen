@@ -6,7 +6,7 @@ const modelSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    descirption: {
+    description: {
       type: String,
     },
     availableFor: [{ type: String }],

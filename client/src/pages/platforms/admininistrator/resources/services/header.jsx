@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import {
   BROWSE,
+  FILTER_BY,
   SEARCH,
   SetCREATE,
 } from "@/services/redux/slices/resources/services";
@@ -20,12 +21,14 @@ import {
 } from "@/components/ui/select";
 
 const Header = () => {
-  const { search } = useSelector(({ services }) => services);
+  const { search, filterBy } = useSelector(({ services }) => services);
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(BROWSE({ module: "all" }));
   }, [dispatch]);
+
+  console.log("filterBy", filterBy);
 
   return (
     <CardHeader className="space-y-4">
@@ -49,14 +52,19 @@ const Header = () => {
             />
           </div>
           <div>
-            <Select className="w-25" value="all">
+            <Select
+              className="w-25"
+              value={filterBy}
+              onValueChange={(value) => dispatch(FILTER_BY(value))}
+            >
               <SelectTrigger className="w-37">
                 <ListFilter className="size-4 text-muted-foreground" />
                 <SelectValue value="catering" />
               </SelectTrigger>
+
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Category</SelectLabel>
+                  <SelectLabel>Filter by module</SelectLabel>
                   {[
                     { value: "all", label: "All Modules" },
                     { value: "catering", label: "Catering" },

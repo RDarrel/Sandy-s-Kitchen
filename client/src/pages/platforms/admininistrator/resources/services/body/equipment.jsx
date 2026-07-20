@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useDispatch } from "react-redux";
 import { Set_SELECTED } from "@/services/redux/slices/resources/services";
 import { capitalize } from "lodash";
-import { Building, Pencil, Trash2, Utensils, Venus } from "lucide-react";
+import { Building, Pencil, Trash2, Utensils } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 const Equipment = ({ item, onRequestDelete = () => {} }) => {
   const dispatch = useDispatch();
@@ -18,7 +18,9 @@ const Equipment = ({ item, onRequestDelete = () => {} }) => {
         </div>
       </TableCell>
 
-      <TableCell>{capitalize(item.description || "--")}</TableCell>
+      <TableCell className={"whitespace-nowrap truncate max-w-30"}>
+        {capitalize(item.description || "--")}
+      </TableCell>
       <TableCell>
         {
           <div className="flex flex-wrap gap-2">
@@ -74,12 +76,3 @@ const ActionButton = ({ title, icon: Icon, destructive = false, onClick }) => (
     <span className="sr-only">{title}</span>
   </Button>
 );
-
-const QuantityDisplay = ({ quantity = 0, unit = "" }) => {
-  return (
-    <p className="font-medium tabular-nums text-foreground">
-      {quantity}
-      <span className="text-xs text-muted-foreground ml-1">{unit}</span>
-    </p>
-  );
-};

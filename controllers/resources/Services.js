@@ -11,6 +11,7 @@ exports.browse = async (req, res) => {
 
     const services = await Service.find({
       ...(module !== "all" && { availableFor: req.query.module }),
+      deletedAt: { $exists: false },
     });
     res.status(200).json({ data: services });
   } catch (error) {

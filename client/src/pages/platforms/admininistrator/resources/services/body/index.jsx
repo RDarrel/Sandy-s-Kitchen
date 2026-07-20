@@ -93,7 +93,7 @@ const Body = ({
         setIsOpen={setDeleteOpen}
         showCancelButton
         className="border-border bg-card shadow-[0_28px_90px_rgba(59,36,24,0.18)]"
-        buttonTitle="Delete Equipment"
+        buttonTitle="Delete Service"
         buttonClassName="bg-red-600 hover:bg-red-700"
         index={0}
         message={
