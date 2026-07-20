@@ -10,31 +10,28 @@ import { useSelector, useDispatch } from "react-redux";
 import Sales from "./sales";
 import Menus from "./menus";
 const Cashier = () => {
-  const { token, auth } = useSelector(({ auth }) => auth);
+  const { auth } = useSelector(({ auth }) => auth);
   const { activeTab, categories = [] } = useSelector(({ cashier }) => cashier);
   const dispatch = useDispatch();
   const prevTabRef = useRef(activeTab);
   useEffect(() => {
-    if (token) {
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const date = new Intl.DateTimeFormat("en-CA", {
-        timeZone: timezone,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      })
-        .format(new Date())
-        .replace(/\//g, "-");
-      dispatch(BROWSE_MENUS({ token, params: { station: "cashier" } }));
-      dispatch(
-        BROWSE_SALES({
-          token,
-          params: { cashier: auth?._id, from: date, to: date },
-        }),
-      );
-      dispatch(BROWSE_CATEGORIES({ token }));
-    }
-  }, [token, auth, dispatch]);
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const date = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+      .format(new Date())
+      .replace(/\//g, "-");
+    dispatch(BROWSE_MENUS({ params: { station: "cashier" } }));
+    dispatch(
+      BROWSE_SALES({
+        params: { cashier: auth?._id, from: date, to: date },
+      }),
+    );
+    dispatch(BROWSE_CATEGORIES());
+  }, [auth, dispatch]);
 
   useEffect(() => {
     const prev = String(prevTabRef.current || "");
