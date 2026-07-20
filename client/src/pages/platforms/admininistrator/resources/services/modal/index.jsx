@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useDispatch, useSelector } from "react-redux";
 import {
   SAVE,
@@ -19,11 +33,13 @@ import {
 } from "@/services/redux/slices/resources/services";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { INITIAL_FORM } from "./constant";
+import { CATEGORIES, INITIAL_FORM, TYPES } from "./constant";
 import { getExistingCategory } from "./utils";
 import { NameWarning, FormField } from "./components";
 import { Checkbox } from "@/components/ui/checkbox";
 import Spinner from "@/components/shared/spinner";
+import { capitalize } from "lodash";
+import { CircleHelp } from "lucide-react";
 
 const InventoryModal = () => {
   const { showModal, willCreate, formSubmitted, selected, collections } =
@@ -120,7 +136,7 @@ const InventoryModal = () => {
 
   return (
     <Dialog open={showModal} onOpenChange={toggle}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto border-border bg-card sm:max-w-md">
+      <DialogContent className=" overflow-y-auto border-border bg-card sm:max-w-md">
         <DialogHeader className="gap-2">
           <DialogTitle className="text-2xl text-foreground">
             {willCreate ? "Add" : "Update"} Service
@@ -132,7 +148,7 @@ const InventoryModal = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-4 mb-5 gap-5">
-            <div className=" gap-5">
+            <div className="grid grid-cols-2 gap-5">
               <div>
                 <FormField
                   label="Name"
@@ -155,6 +171,27 @@ const InventoryModal = () => {
                   }
                 />
               </div>
+              <div>
+                <Label>Category</Label>
+                <Select
+                  value={form?.category}
+                  // onValueChange={(value) => handleChange("category", value)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Category</SelectLabel>
+                      {CATEGORIES.map((category, idx) => (
+                        <SelectItem value={category} key={idx}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-3 grid gap-1">
               <div>
@@ -164,27 +201,52 @@ const InventoryModal = () => {
                 </p>
               </div>
               <div className="flex gap-6 ">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="catering"
-                    required={!form?.availableFor?.length}
-                    checked={form?.availableFor?.includes("catering")}
-                    onCheckedChange={() => availableForChange("catering")}
-                  />
-                  <Label htmlFor="catering">Catering</Label>
-                </div>
-
-                <div className="flex items-center space-x-2 ">
-                  <Checkbox
-                    required={!form?.availableFor?.length}
-                    id="venue"
-                    checked={form?.availableFor?.includes("venue")}
-                    onCheckedChange={() => availableForChange("venue")}
-                  />
-                  <Label htmlFor="venue">Venue</Label>
-                </div>
+                {["catering", "venue"].map((option, idx) => (
+                  <div
+                    className="flex items-center space-x-2"
+                    key={`${idx}-${option}`}
+                  >
+                    <Checkbox
+                      id={option}
+                      required={!form?.availableFor?.length}
+                      checked={form?.availableFor?.includes(option)}
+                      onCheckedChange={() => availableForChange(option)}
+                    />
+                    <Label htmlFor={option}>{capitalize(option)}</Label>
+                  </div>
+                ))}
               </div>
             </div>
+            <div className="space-y-3 grid gap-1">
+              <div>
+                <Label>Service Type</Label>
+                <p className="text-xs text-forge">
+                  Choose how this service should be provided.
+                </p>
+              </div>
+              <RadioGroup
+                defaultValue="comfortable"
+                className="w-fit flex gap-7"
+              >
+                {TYPES.map(({ value, label, description }, idx) => (
+                  <div className="flex items-center gap-3" key={idx}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2 cursor-help">
+                          <RadioGroupItem value={value} id={value} />
+                          <Label htmlFor={value}>{label}</Label>
+                        </div>
+                      </TooltipTrigger>
+
+                      <TooltipContent>
+                        <p>{description}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
             <div>
               <FormField
                 label="Description"
