@@ -12,14 +12,15 @@ const Equipment = ({ item, onRequestDelete = () => {} }) => {
     <TableRow className="bg-card">
       <TableCell className="whitespace-normal">
         <div className="space-y-1">
-          <p className="font-semibold text-foreground">
-            {capitalize(item.name)}
-          </p>
+          <p className="font-semibold text-foreground">{item.name}</p>
         </div>
       </TableCell>
 
       <TableCell className={"whitespace-nowrap truncate max-w-30"}>
-        {capitalize(item.description || "--")}
+        {item.description || "--"}
+      </TableCell>
+      <TableCell className={"whitespace-nowrap truncate max-w-30"}>
+        {capitalize(item.category || "--")}
       </TableCell>
       <TableCell>
         {

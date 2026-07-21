@@ -9,6 +9,9 @@ const modelSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    category: {
+      type: String,
+    },
     availableFor: [{ type: String }],
 
     status: {
@@ -18,6 +21,15 @@ const modelSchema = new mongoose.Schema(
         message: "{VALUE} is not supported.",
       },
       default: "active",
+    },
+
+    requirement: {
+      type: String,
+      enum: {
+        values: ["none", "hours", "quantity"],
+        message: "{VALUE} is not supported.",
+      },
+      default: "none",
     },
 
     deletedAt: {

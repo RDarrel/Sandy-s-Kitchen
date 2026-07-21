@@ -33,13 +33,12 @@ import {
 } from "@/services/redux/slices/resources/services";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CATEGORIES, INITIAL_FORM, TYPES } from "./constant";
+import { CATEGORIES, INITIAL_FORM, REQUIREMENTS } from "./constant";
 import { getExistingCategory } from "./utils";
 import { NameWarning, FormField } from "./components";
 import { Checkbox } from "@/components/ui/checkbox";
 import Spinner from "@/components/shared/spinner";
 import { capitalize } from "lodash";
-import { CircleHelp } from "lucide-react";
 
 const InventoryModal = () => {
   const { showModal, willCreate, formSubmitted, selected, collections } =
@@ -175,7 +174,7 @@ const InventoryModal = () => {
                 <Label>Category</Label>
                 <Select
                   value={form?.category}
-                  // onValueChange={(value) => handleChange("category", value)}
+                  onValueChange={(value) => handleChange("category", value)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a category" />
@@ -219,16 +218,18 @@ const InventoryModal = () => {
             </div>
             <div className="space-y-3 grid gap-1">
               <div>
-                <Label>Service Type</Label>
-                <p className="text-xs text-forge">
-                  Choose how this service should be provided.
+                <Label>Service Requirement</Label>
+                <p className="text-xs ">
+                  Define how this service will be provided.
                 </p>
               </div>
               <RadioGroup
                 defaultValue="comfortable"
                 className="w-fit flex gap-7"
+                value={form.requirement}
+                onValueChange={(value) => handleChange("requirement", value)}
               >
-                {TYPES.map(({ value, label, description }, idx) => (
+                {REQUIREMENTS.map(({ value, label, description }, idx) => (
                   <div className="flex items-center gap-3" key={idx}>
                     <Tooltip>
                       <TooltipTrigger asChild>

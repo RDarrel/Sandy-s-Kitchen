@@ -42,7 +42,7 @@ exports.login = (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: 3600000,
+        maxAge: 1000 * 60 * 60 * 4,
       });
 
       res.json({

@@ -1,33 +1,36 @@
 export const INITIAL_FORM = {
   name: "",
   description: "",
+  requirement: "none",
+  category: "Decoration",
   availableFor: [],
 };
 
-export const TYPES = [
+export const REQUIREMENTS = [
   {
-    value: "fixed",
-    label: "One-Time",
-    description: "Included once. No additional details required.",
+    value: "none",
+    label: "None",
+    description: "No additional details are required for this service.",
   },
   {
-    value: "hourly",
-    label: "Hourly",
-    description: "Specify the number of hours for this service.",
+    value: "hours",
+    label: "Hours",
+    description: "Specify how long this service will be provided.",
   },
   {
     value: "quantity",
-    label: "By Quantity",
-    description: "Specify the required quantity for this service.",
+    label: "Quantity",
+    description: "Specify the number needed for this service.",
   },
 ];
 
 export const CATEGORIES = [
   "Food & Beverage",
-  "Setup",
+  "Setup & Logistics",
   "Decoration",
-  "Staff",
-  "Media",
+  "Staff Services",
+  "Audio & Visual",
   "Entertainment",
-  "Others",
+  // "Venue Services",
+  "Other",
 ];

@@ -39,6 +39,7 @@ const Body = ({
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Description</TableHead>
+                    <TableHead>Category</TableHead>
                     <TableHead>Available In</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>

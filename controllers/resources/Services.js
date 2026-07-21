@@ -12,7 +12,10 @@ exports.browse = async (req, res) => {
     const services = await Service.find({
       ...(module !== "all" && { availableFor: req.query.module }),
       deletedAt: { $exists: false },
-    });
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
     res.status(200).json({ data: services });
   } catch (error) {
     res.status(500).json({ error: error.message });
