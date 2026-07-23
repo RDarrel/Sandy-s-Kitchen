@@ -67,6 +67,7 @@ const Header = ({
           <Input
             className="h-9 pl-8"
             value={search}
+            type="search"
             onChange={({ target }) => setSearch(target.value)}
             placeholder={placeholder}
           />
