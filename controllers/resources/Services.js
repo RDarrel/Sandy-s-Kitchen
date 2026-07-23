@@ -36,7 +36,7 @@ exports.save = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const updated = await Service.findByIdAndUpdate(req.body._id, req.body, {
-      new: true,
+      returnDocument: "after",
     }).lean();
     res
       .status(200)

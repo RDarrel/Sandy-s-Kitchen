@@ -11,13 +11,14 @@ import { Plus } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { BROWSE } from "@/services/redux/slices/menu/menus";
 import { BROWSE as BROWSE_EQUIPMENT } from "@/services/redux/slices/inventory/equipment";
-
+import { BROWSE as BROWSE_SERVICES } from "@/services/redux/slices/resources/services";
 const Packages = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(BROWSE({ station: "catering" }));
     dispatch(BROWSE_EQUIPMENT());
+    dispatch(BROWSE_SERVICES({ module: "catering" }));
   }, [dispatch]);
 
   return (

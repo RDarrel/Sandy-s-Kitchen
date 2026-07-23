@@ -26,7 +26,7 @@ const modelSchema = new mongoose.Schema(
     requirement: {
       type: String,
       enum: {
-        values: ["none", "hours", "quantity"],
+        values: ["none", "hrs", "qty"],
         message: "{VALUE} is not supported.",
       },
       default: "none",

@@ -28,6 +28,10 @@ import Step5 from "./steps/step5";
 const _form = {
   name: "",
   minimumGuests: 0,
+  mainCourseLimit: 3,
+  inclusions: [],
+  mainCourses: [],
+  sideMenus: [],
 };
 const steps = [
   { title: "Information" },
@@ -47,9 +51,6 @@ const CustomModal = ({
     ),
     [form, setForm] = useState(_form),
     [isDraft, setIsDraft] = useState(false),
-    [mainCourses, setMainCourses] = useState([]),
-    [sideMenus, setSideMenus] = useState([]),
-    [mainCourseLimit, setMainCourseLimit] = useState(3),
     [currentStep, setCurrentStep] = useState(1);
 
   if (!isOpen) return null;
@@ -99,17 +100,7 @@ const CustomModal = ({
             <StepperPanel className="text-sm">
               {[Step1, Step2, Step3, Step4, Step5].map((Step, index) => (
                 <StepperContent key={index} value={index + 1}>
-                  <Step
-                    form={form}
-                    mainCourses={mainCourses}
-                    sideMenus={sideMenus}
-                    mainCourseLimit={mainCourseLimit}
-                    setSideMenus={setSideMenus}
-                    setMainCourses={setMainCourses}
-                    setMainCourseLimit={setMainCourseLimit}
-                    setForm={setForm}
-                    isDraft={isDraft}
-                  />
+                  <Step form={form} setForm={setForm} isDraft={isDraft} />
                 </StepperContent>
               ))}
             </StepperPanel>

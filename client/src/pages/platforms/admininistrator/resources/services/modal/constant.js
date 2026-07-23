@@ -13,12 +13,12 @@ export const REQUIREMENTS = [
     description: "No additional details are required for this service.",
   },
   {
-    value: "hours",
+    value: "hrs",
     label: "Hours",
     description: "Specify how long this service will be provided.",
   },
   {
-    value: "quantity",
+    value: "qty",
     label: "Quantity",
     description: "Specify the number needed for this service.",
   },

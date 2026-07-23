@@ -8,15 +8,14 @@ import Header from "./header";
 
 const Menus = ({
   menus,
-  menuCategories = [],
-  setMenuCategories = () => {},
   availableSubtitle = "",
   selectedSubtitle = "",
   selectionLimitLabel = "Selection limit",
   selectionLimitItemLabel = "menus",
   selectionLimitValue = "",
   isMainCourse = false,
-  setSelectionLimitValue = () => {},
+  menuCategories = [],
+  setForm = () => {},
 }) => {
   const [menuSearch, setMenuSearch] = useState("");
   const [selectedSearch, setSelectedSearch] = useState("");
@@ -25,7 +24,7 @@ const Menus = ({
 
   const selectedIds = useMemo(() => {
     return new Set(
-      menuCategories.flatMap((section) =>
+      menuCategories?.flatMap((section) =>
         section.choices.map((choice) => choice?.menu?._id),
       ),
     );
@@ -84,51 +83,62 @@ const Menus = ({
     return results.filter(({ choices }) => choices.length);
   }, [selectedMenusByCategory, selectedSearch]);
 
-  const toggleMenu = useCallback((menu) => {
-    setMenuCategories((prev) => {
-      const updated = [...prev];
-      const index = updated.findIndex(
-        ({ category }) => category?._id === menu?.category?._id,
-      );
-      if (index > -1) {
-        const existing = {
-          ...updated[index],
-          choices: [{ menu }, ...updated[index].choices],
-        };
-        updated.splice(index, 1);
-        updated.unshift(existing);
-      } else {
-        updated.unshift({ category: menu?.category, choices: [{ menu }] });
-      }
-      return updated;
-    });
-  }, []);
+  const clusterKey = isMainCourse ? "mainCourses" : "sideMenus";
 
-  const removeSelectedMenu = useCallback((cId, mId) => {
-    setMenuCategories((prev) => {
-      const updated = [...prev];
-      const pIdx = updated.findIndex(({ category }) => category?._id === cId);
+  const toggleMenu = useCallback(
+    (menu) => {
+      setForm((prev) => {
+        const updated = [...prev[clusterKey]];
+        const index = updated.findIndex(
+          ({ category }) => category?._id === menu?.category?._id,
+        );
+        if (index > -1) {
+          const existing = {
+            ...updated[index],
+            choices: [{ menu }, ...updated[index].choices],
+          };
+          updated.splice(index, 1);
+          updated.unshift(existing);
+        } else {
+          updated.unshift({ category: menu?.category, choices: [{ menu }] });
+        }
+        return { ...prev, [clusterKey]: updated };
+      });
+    },
+    [clusterKey],
+  );
 
-      if (pIdx < 0) return prev;
+  const removeSelectedMenu = useCallback(
+    (cId, mId) => {
+      setForm((prev) => {
+        const updated = [...prev[clusterKey]];
+        const pIdx = updated.findIndex(({ category }) => category?._id === cId);
 
-      const choices = [...updated[pIdx].choices];
-      const cIdx = choices.findIndex(({ menu }) => menu?._id === mId);
+        if (pIdx < 0) return prev;
 
-      if (cIdx < 0) return prev;
-      choices.splice(cIdx, 1);
+        const choices = [...updated[pIdx].choices];
+        const cIdx = choices.findIndex(({ menu }) => menu?._id === mId);
 
-      if (choices.length === 0) {
-        //if the choices is empty remove the parent category
-        updated.splice(pIdx, 1);
-      } else {
-        updated[pIdx] = {
-          ...updated[pIdx],
-          choices,
-        };
-      }
-      return updated;
-    });
-  }, []);
+        if (cIdx < 0) return prev;
+        choices.splice(cIdx, 1);
+
+        if (choices.length === 0) {
+          //if the choices is empty remove the parent category
+          updated.splice(pIdx, 1);
+        } else {
+          updated[pIdx] = {
+            ...updated[pIdx],
+            choices,
+          };
+        }
+        return { ...prev, [clusterKey]: updated };
+      });
+    },
+    [clusterKey],
+  );
+
+  const setSelectionLimitValue = (value) =>
+    setForm((prev) => ({ ...prev, mainCourseLimit: Number(value) }));
 
   return (
     <div className="max-h-[30rem] overflow-hidden rounded-[7px] border border-border bg-card">

@@ -2,13 +2,8 @@ import { useSelector } from "react-redux";
 import Menus from "../menus";
 import { useMemo } from "react";
 
-const Step3 = ({
-  mainCourses = [],
-  sideMenus,
-  sideMenuLimit = "",
-  setSideMenus = () => {},
-  setSideMenuLimit = () => {},
-}) => {
+const Step3 = ({ form = {}, setForm = () => {} }) => {
+  const { mainCourses, sideMenus } = form;
   const { collections } = useSelector(({ menus }) => menus);
   const availableSideMenus = useMemo(() => {
     return collections.filter(
@@ -18,17 +13,16 @@ const Step3 = ({
         ),
     );
   }, [collections, mainCourses]);
+
   return (
     <Menus
-      menus={availableSideMenus}
-      menuCategories={sideMenus}
-      setMenuCategories={setSideMenus}
       availableSubtitle="Choose your preferred side menus."
       selectedSubtitle="Review your selected side menus."
       selectionLimitLabel="Side menu limit"
       selectionLimitItemLabel="side menus"
-      selectionLimitValue={sideMenuLimit}
-      setSelectionLimitValue={setSideMenuLimit}
+      menus={availableSideMenus}
+      menuCategories={sideMenus}
+      setForm={setForm}
     />
   );
 };

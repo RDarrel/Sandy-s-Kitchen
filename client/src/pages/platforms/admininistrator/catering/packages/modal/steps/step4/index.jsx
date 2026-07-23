@@ -4,26 +4,25 @@ import { useCallback } from "react";
 
 const Step4 = ({
   form = {},
-  mainCourses = [],
-  sideMenus = [],
+  setForm = () => {},
   setMainCourses = () => {},
   setSideMenus = () => {},
 }) => {
-  const targetPax = form.minimumGuests;
+  const { mainCourses, sideMenus, minimumGuests } = form;
 
   const onUpdateCategoryLimit = useCallback(
     (isMainCourse = false, cId, limit) => {
-      const setSource = isMainCourse ? setMainCourses : setSideMenus;
-      setSource((prev) => {
-        const source = [...prev];
-        const pIdx = source.findIndex(({ category }) => category._id === cId);
+      const clusterKey = isMainCourse ? "mainCourses" : "sideMenus";
+      setForm((prev) => {
+        const menus = [...prev[clusterKey]];
+        const pIdx = menus.findIndex(({ category }) => category._id === cId);
         if (pIdx < 0) return;
 
-        source[pIdx] = {
-          ...source[pIdx],
+        menus[pIdx] = {
+          ...menus[pIdx],
           limit,
         };
-        return source;
+        return { ...prev, [clusterKey]: menus };
       });
     },
     [],
@@ -31,12 +30,13 @@ const Step4 = ({
 
   const onUpdateQtyServe = useCallback(
     (isMainCourse = false, cId, mId, qtyServe) => {
-      const setSource = isMainCourse ? setMainCourses : setSideMenus;
-      setSource((prev) => {
-        const source = [...prev];
-        const pIdx = source.findIndex(({ category }) => category._id === cId);
+      const clusterKey = isMainCourse ? "mainCourses" : "sideMenus";
+
+      setForm((prev) => {
+        const menus = [...prev[clusterKey]];
+        const pIdx = menus.findIndex(({ category }) => category._id === cId);
         if (pIdx < 0) return prev;
-        const choices = [...source[pIdx].choices];
+        const choices = [...menus[pIdx].choices];
         const cIdx = choices.findIndex(({ menu }) => menu?._id === mId);
 
         if (cIdx < 0) return prev;
@@ -45,11 +45,11 @@ const Step4 = ({
           prepQty: qtyServe,
         };
 
-        source[pIdx] = {
-          ...source[pIdx],
+        menus[pIdx] = {
+          ...menus[pIdx],
           choices,
         };
-        return source;
+        return { ...prev, [clusterKey]: menus };
       });
     },
     [],
@@ -62,7 +62,7 @@ const Step4 = ({
         subtitle="Review selected main courses and set the guests served."
         icon={<PackageCheck className="size-5" />}
         menuCategories={mainCourses}
-        targetPax={targetPax}
+        targetPax={minimumGuests}
         onUpdateQtyServe={onUpdateQtyServe}
         onUpdateCategoryLimit={onUpdateCategoryLimit}
         key={"cluster-1"}
@@ -74,7 +74,7 @@ const Step4 = ({
         subtitle="Review selected side menus and set the guests served."
         icon={<Salad className="size-5" />}
         menuCategories={sideMenus}
-        targetPax={targetPax}
+        targetPax={minimumGuests}
         key={"cluster-2"}
         onUpdateQtyServe={onUpdateQtyServe}
         onUpdateCategoryLimit={onUpdateCategoryLimit}

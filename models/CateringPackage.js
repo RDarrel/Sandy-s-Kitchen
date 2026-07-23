@@ -37,15 +37,25 @@ const menuCategorySchema = new mongoose.Schema(
 
 const inclusionSchema = new mongoose.Schema(
   {
-    equipment: {
+    item: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Equipment",
+      refPath: "model",
       required: true,
     },
-    quantity: {
+    model: {
+      type: String,
+      enum: ["Equipment", "Services"],
+      required: true,
+    },
+    amount: {
       type: Number,
       required: true,
       min: 1,
+    },
+    unit: {
+      type: String,
+      enum: ["qty", "hrs", null],
+      default: null,
     },
   },
   { _id: false },
