@@ -28,6 +28,7 @@ import Step5 from "./steps/step5";
 import { toast } from "sonner";
 const _form = {
   name: "",
+  img: "",
   minimumGuests: 0,
   mainCourseLimit: 3,
   inclusions: [],
