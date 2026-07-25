@@ -23,33 +23,6 @@ const Step4 = ({ form = {}, setForm = () => {} }) => {
     [],
   );
 
-  const onUpdateQtyServe = useCallback(
-    (isMainCourse = false, cId, mId, qtyServe) => {
-      const clusterKey = isMainCourse ? "mainCourses" : "sideMenus";
-
-      setForm((prev) => {
-        const menus = [...prev[clusterKey]];
-        const pIdx = menus.findIndex(({ category }) => category._id === cId);
-        if (pIdx < 0) return prev;
-        const choices = [...menus[pIdx].choices];
-        const cIdx = choices.findIndex(({ menu }) => menu?._id === mId);
-
-        if (cIdx < 0) return prev;
-        choices[cIdx] = {
-          ...choices[cIdx],
-          prepQty: qtyServe,
-        };
-
-        menus[pIdx] = {
-          ...menus[pIdx],
-          choices,
-        };
-        return { ...prev, [clusterKey]: menus };
-      });
-    },
-    [],
-  );
-
   return (
     <div className="space-y-5">
       <Cluster
@@ -58,7 +31,6 @@ const Step4 = ({ form = {}, setForm = () => {} }) => {
         icon={<PackageCheck className="size-5" />}
         menuCategories={mainCourses}
         targetPax={minimumGuests}
-        onUpdateQtyServe={onUpdateQtyServe}
         onUpdateCategoryLimit={onUpdateCategoryLimit}
         key={"cluster-1"}
         isMainCourse
@@ -72,7 +44,6 @@ const Step4 = ({ form = {}, setForm = () => {} }) => {
           menuCategories={sideMenus}
           targetPax={minimumGuests}
           key={"cluster-2"}
-          onUpdateQtyServe={onUpdateQtyServe}
           onUpdateCategoryLimit={onUpdateCategoryLimit}
           emptyTitle="No side menus selected yet"
         />

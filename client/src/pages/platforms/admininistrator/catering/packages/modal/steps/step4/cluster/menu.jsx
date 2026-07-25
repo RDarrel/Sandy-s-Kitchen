@@ -1,17 +1,8 @@
 import { memo } from "react";
-import { Input } from "@/components/ui/input";
 import { capitalize } from "lodash";
 import Cloudinary from "@/services/utilities/cloudinary";
 
-const Menu = ({
-  menu,
-  isMainCourse,
-  prepQty = 0,
-  targetPax,
-  onUpdateQtyServe = () => {},
-}) => {
-  const recipeYield = Math.max(menu.recipeYield || 1, 1);
-  const suggestedServeQty = targetPax / recipeYield;
+const Menu = ({ menu }) => {
   return (
     <div className="grid gap-3 px-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_13rem_0rem] lg:items-center">
       <div className="flex min-w-0 items-center gap-3">

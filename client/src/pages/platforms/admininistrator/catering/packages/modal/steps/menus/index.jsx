@@ -25,7 +25,7 @@ const Menus = ({
   const selectedIds = useMemo(() => {
     return new Set(
       menuCategories?.flatMap((section) =>
-        section.choices.map((choice) => choice?.menu?._id),
+        section.choices.map((choice) => choice?._id),
       ),
     );
   }, [menuCategories]);
@@ -95,12 +95,12 @@ const Menus = ({
         if (index > -1) {
           const existing = {
             ...updated[index],
-            choices: [{ menu }, ...updated[index].choices],
+            choices: [menu, ...updated[index].choices],
           };
           updated.splice(index, 1);
           updated.unshift(existing);
         } else {
-          updated.unshift({ category: menu?.category, choices: [{ menu }] });
+          updated.unshift({ category: menu?.category, choices: [menu] });
         }
         return { ...prev, [clusterKey]: updated };
       });
@@ -117,7 +117,7 @@ const Menus = ({
         if (pIdx < 0) return prev;
 
         const choices = [...updated[pIdx].choices];
-        const cIdx = choices.findIndex(({ menu }) => menu?._id === mId);
+        const cIdx = choices.findIndex(({ _id }) => _id === mId);
 
         if (cIdx < 0) return prev;
         choices.splice(cIdx, 1);

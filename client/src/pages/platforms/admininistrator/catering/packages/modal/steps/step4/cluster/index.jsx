@@ -12,7 +12,6 @@ const Cluster = ({
   targetPax = 0,
   icon,
   menuCategories = [],
-  onUpdateQtyServe = () => {},
   onUpdateCategoryLimit = () => {},
 }) => {
   const menusCount = useMemo(() => {
@@ -70,7 +69,6 @@ const Cluster = ({
                 key={category?._id}
                 targetPax={targetPax}
                 isMainCourse={isMainCourse}
-                onUpdateQtyServe={onUpdateQtyServe}
                 onUpdateCategoryLimit={onUpdateCategoryLimit}
               />
             ))}
@@ -84,15 +82,7 @@ const Cluster = ({
 export default memo(Cluster);
 
 const Category = memo(
-  ({
-    category,
-    choices,
-    limit,
-    targetPax,
-    isMainCourse,
-    onUpdateQtyServe,
-    onUpdateCategoryLimit,
-  }) => {
+  ({ category, choices, limit, isMainCourse, onUpdateCategoryLimit }) => {
     return (
       <div className=" rounded-md border border-border bg-background">
         <div className="sticky  top-16 z-20 grid gap-3 rounded-t-md border-b bg-muted/90 px-3 py-2 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center">
@@ -120,17 +110,8 @@ const Category = memo(
         </div>
 
         <div className="divide-y">
-          {choices.map(({ menu, prepQty = 0 }, idx) => {
-            return (
-              <Menu
-                menu={menu}
-                prepQty={prepQty}
-                key={idx}
-                targetPax={targetPax}
-                onUpdateQtyServe={onUpdateQtyServe}
-                isMainCourse={isMainCourse}
-              />
-            );
+          {choices.map((menu, idx) => {
+            return <Menu menu={menu} key={idx} />;
           })}
         </div>
       </div>

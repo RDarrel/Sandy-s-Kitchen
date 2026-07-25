@@ -74,6 +74,7 @@ const CustomModal = ({
 
     setCurrentStep((prev) => prev + 1);
   };
+  console.log("menu", form);
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-4xl">

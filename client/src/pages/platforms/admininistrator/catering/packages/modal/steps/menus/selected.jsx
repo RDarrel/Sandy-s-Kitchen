@@ -37,7 +37,7 @@ const Selected = ({
                   </TableCell>
                 </TableRow>
 
-                {choices.map(({ menu }, cIdx) => (
+                {choices.map((menu, cIdx) => (
                   <TableRow
                     key={`${cIdx}-${menu?._id}-selected`}
                     className="transition-colors hover:bg-muted/20"
