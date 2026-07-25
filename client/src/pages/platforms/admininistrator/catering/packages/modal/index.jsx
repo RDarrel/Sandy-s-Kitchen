@@ -20,7 +20,7 @@ import {
 
 import { CheckIcon, LoaderCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import Step1 from "./steps/step1";
 import Step2 from "./steps/step2";
 import Step3 from "./steps/step3";
@@ -31,6 +31,7 @@ import { SAVE } from "@/services/redux/slices/cateringPackages";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { UPLOAD } from "@/services/redux/slices/persons/auth";
 import Spinner from "@/components/shared/spinner";
+import { buildData } from "./utils";
 const _form = {
   name: "",
   img: "",
@@ -47,32 +48,35 @@ const steps = [
   { title: "Rules" },
   { title: "Inclusions" },
 ];
-const CustomModal = ({
-  isOpen,
-  setIsOpen,
-  willCreate = true,
-  selected = {},
-}) => {
+const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
   const [form, setForm] = useState(_form),
     [isDraft, setIsDraft] = useState(false),
     [currentStep, setCurrentStep] = useState(1),
     [isSubmitting, setIsSubmitting] = useState(false),
     dispatch = useDispatch();
 
+  useEffect(() => {
+    if (isOpen && selected?._id) {
+      setForm({
+        ...selected,
+        mainCourses: selected?.mainCourseCategories,
+        sideMenus: selected?.sideMenuCategories,
+        img: Cloudinary.getPackageImg(selected?.imgId || "", selected?._id),
+      });
+    } else {
+      setForm(_form);
+    }
+  }, [isOpen, selected]);
+
   if (!isOpen) return null;
 
   const getIncludedMenusLength = (menuCategories) =>
     menuCategories.reduce((acc, curr) => acc + curr.choices.length, 0);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const {
-      mainCourses = [],
-      sideMenus = [],
-      inclusions = [],
-      mainCourseLimit = 0,
-      ...rest
-    } = form;
-    const action = e.nativeEvent.submitter.dataset.action;
+    const { mainCourses = [], mainCourseLimit = 0 } = form;
+    // const action = e.nativeEvent.submitter.dataset.action;
     if (currentStep === 1 && !form?.img)
       return toast.warning("Please upload a package image.");
 
@@ -87,27 +91,8 @@ const CustomModal = ({
 
     if (currentStep !== 5) return setCurrentStep((prev) => prev + 1);
 
-    const menuCategoriesFormatted = (datas) =>
-      datas.map(({ choices, category, limit = 1 }) => {
-        const _choices = choices.map(({ _id }) => _id);
-        return { choices: _choices, limit, category: category._id };
-      });
-    const data = {
-      ...rest,
-      mainCourseLimit,
-      mainCourseCategories: menuCategoriesFormatted(mainCourses),
-      ...(sideMenus?.length > 0 && {
-        sideMenuCategories: menuCategoriesFormatted(sideMenus),
-      }),
-      ...(inclusions?.length > 0 && {
-        inclusions: inclusions.map((data) => ({
-          ...data,
-          item: data.item?._id,
-        })),
-      }),
-    };
     setIsSubmitting(true);
-    dispatch(SAVE(data))
+    dispatch(SAVE(buildData(form)))
       .unwrap()
       .then(({ data }) => {
         const imgBuild = Cloudinary.buildFileForm(
@@ -136,16 +121,17 @@ const CustomModal = ({
         toast.error(error?.message || error || "Failed to created package.");
       });
   };
-  console.log("form", form);
+
+  const willCreate = !Boolean(selected?._id);
+  const description = willCreate
+    ? "Update the package details. Review your changes before updating."
+    : "Enter the package details. Review everything before saving.";
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>{willCreate ? "Add" : "Update"} Package</DialogTitle>
-          <DialogDescription>
-            Enter the package details. Make sure everything is correct before
-            saving.
-          </DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <Stepper
@@ -164,7 +150,7 @@ const CustomModal = ({
                   step={index + 1}
                   className="relative flex-1 items-start"
                 >
-                  <StepperTrigger className="flex flex-col gap-2.5">
+                  <StepperTrigger className="flex flex-col gap-2.5 focus-visible:ring-0 focus-visible:outline-none">
                     <StepperIndicator>{index + 1}</StepperIndicator>
                     <StepperTitle>{step.title}</StepperTitle>
                   </StepperTrigger>
@@ -191,15 +177,6 @@ const CustomModal = ({
                 Previous
               </Button>
               <div className="flex gap-5">
-                {/* <Button
-                  variant={"outline"}
-                  disabled={currentStep === steps.length}
-                  onClick={() => setIsDraft(true)}
-                  type="submit"
-                  data-action="draft"
-                >
-                  Save as Draft
-                </Button> */}
                 <Button
                   disabled={isSubmitting}
                   type="submit"

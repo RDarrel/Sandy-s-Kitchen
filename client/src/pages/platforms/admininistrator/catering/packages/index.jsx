@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import CustomModal from "./modal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -17,6 +17,7 @@ import { BROWSE as BROWSE_SERVICES } from "@/services/redux/slices/resources/ser
 import Body from "./body";
 const Packages = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState({});
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(BROWSE_MENUS({ station: "catering" }));
@@ -24,6 +25,12 @@ const Packages = () => {
     dispatch(BROWSE_SERVICES({ module: "catering" }));
     dispatch(BROWSE_PACKAGES());
   }, [dispatch]);
+  const handleAction = useCallback((action, item) => {
+    if (action === "update") {
+      setSelected(item);
+      setIsOpen(true);
+    }
+  }, []);
 
   return (
     <>
@@ -47,12 +54,12 @@ const Packages = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <Body />
+              <Body handleAction={handleAction} />
             </CardContent>
           </Card>
         </div>
       </div>
-      <CustomModal isOpen={isOpen} setIsOpen={setIsOpen} />
+      <CustomModal isOpen={isOpen} setIsOpen={setIsOpen} selected={selected} />
     </>
   );
 };

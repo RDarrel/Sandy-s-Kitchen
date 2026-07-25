@@ -1,7 +1,16 @@
 const router = require("express").Router(),
-  { save, browse } = require("../controllers/CateringPackages"),
+  {
+    save,
+    browse,
+    update,
+    destroy,
+  } = require("../controllers/CateringPackages"),
   { validate } = require("../middleware/jwt");
 
-router.post("/save", validate, save).get("/browse", validate, browse);
+router
+  .post("/save", validate, save)
+  .get("/browse", validate, browse)
+  .put("/update", validate, update)
+  .delete("/destroy", validate, destroy);
 
 module.exports = router;
