@@ -1,5 +1,6 @@
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -9,16 +10,19 @@ import CustomModal from "./modal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { BROWSE } from "@/services/redux/slices/menu/menus";
+import { BROWSE as BROWSE_PACKAGES } from "@/services/redux/slices/cateringPackages";
+import { BROWSE as BROWSE_MENUS } from "@/services/redux/slices/menu/menus";
 import { BROWSE as BROWSE_EQUIPMENT } from "@/services/redux/slices/inventory/equipment";
 import { BROWSE as BROWSE_SERVICES } from "@/services/redux/slices/resources/services";
+import Body from "./body";
 const Packages = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
   useEffect(() => {
-    dispatch(BROWSE({ station: "catering" }));
+    dispatch(BROWSE_MENUS({ station: "catering" }));
     dispatch(BROWSE_EQUIPMENT());
     dispatch(BROWSE_SERVICES({ module: "catering" }));
+    dispatch(BROWSE_PACKAGES());
   }, [dispatch]);
 
   return (
@@ -38,10 +42,13 @@ const Packages = () => {
                 </div>
                 <Button onClick={() => setIsOpen(true)}>
                   <Plus className="h-4 w-4" />
-                  Add Supplier
+                  Add Package
                 </Button>
               </div>
             </CardHeader>
+            <CardContent>
+              <Body />
+            </CardContent>
           </Card>
         </div>
       </div>

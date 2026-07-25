@@ -1,7 +1,7 @@
 const router = require("express").Router(),
-  { save } = require("../controllers/CateringPackages"),
+  { save, browse } = require("../controllers/CateringPackages"),
   { validate } = require("../middleware/jwt");
 
-router.post("/save", validate, save);
+router.post("/save", validate, save).get("/browse", validate, browse);
 
 module.exports = router;

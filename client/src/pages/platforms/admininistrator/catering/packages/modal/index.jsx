@@ -190,7 +190,7 @@ const CustomModal = ({
                 Previous
               </Button>
               <div className="flex gap-5">
-                <Button
+                {/* <Button
                   variant={"outline"}
                   disabled={currentStep === steps.length}
                   onClick={() => setIsDraft(true)}
@@ -198,14 +198,15 @@ const CustomModal = ({
                   data-action="draft"
                 >
                   Save as Draft
-                </Button>
+                </Button> */}
                 <Button
                   disabled={isSubmitting}
                   type="submit"
                   data-action="next"
                   onClick={() => setIsDraft(false)}
                 >
-                  Next <Spinner formSubmitted={isSubmitting} />
+                  {currentStep === 5 ? "Submit" : "Next"}{" "}
+                  <Spinner formSubmitted={isSubmitting} />
                 </Button>
               </div>
             </div>

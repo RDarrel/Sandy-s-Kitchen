@@ -4,7 +4,9 @@ const Cloudinary = {
   getMenuImg: (version, fileName) => {
     return `${Cloudinary.getEndpoint()}/${version || ""}/menus/${fileName}`;
   },
-
+  getPackageImg: (version, fileName) => {
+    return `${Cloudinary.getEndpoint()}/${version || ""}/packages/${fileName}`;
+  },
   //if we have a userID it means upload profile image
   buildFileForm: (base64, folder, fileName, toUpdate) => {
     const mimeMatch = base64?.match(/^data:(.*);base64,/);

@@ -40,10 +40,8 @@ const CategoryHeader = () => {
   }, {});
 
   useEffect(() => {
-    if (token) {
-      dispatch(BROWSE({ token }));
-      dispatch(BROWSE_INGREDIENTS({ token }));
-    }
+    dispatch(BROWSE({ token }));
+    dispatch(BROWSE_INGREDIENTS({ token }));
   }, [dispatch, token]);
 
   return (
