@@ -54,8 +54,6 @@ const inclusionSchema = new mongoose.Schema(
     },
     amount: {
       type: Number,
-      required: true,
-      min: 1,
     },
     unit: {
       type: String,
@@ -71,7 +69,6 @@ const modelSchema = new mongoose.Schema(
     imgId: {
       //ImgId of Cloudinary
       type: String,
-      required: true,
     },
     name: {
       type: String,

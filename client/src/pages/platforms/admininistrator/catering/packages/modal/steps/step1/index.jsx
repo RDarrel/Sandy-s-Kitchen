@@ -6,7 +6,7 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
   return (
     <div className="grid grid-cols-[22rem_1fr] gap-5">
       <div className="h-[17rem] ">
-        <Image />
+        <Image setForm={setForm} form={form} />
       </div>
       <div className=" grid gap-5">
         <div className="grid grid-cols-2 gap-5">

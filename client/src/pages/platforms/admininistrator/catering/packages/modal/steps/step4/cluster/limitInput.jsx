@@ -9,6 +9,7 @@ const LimitInput = ({
   limit,
   isMainCourse,
   categoryId,
+  menuCount = 0,
   onUpdateCategoryLimit = () => {},
 }) => {
   return (
@@ -22,13 +23,14 @@ const LimitInput = ({
           min="1"
           placeholder="0"
           type="number"
-          onChange={({ target }) =>
-            onUpdateCategoryLimit(
-              isMainCourse,
-              categoryId,
-              Number(target.value),
-            )
-          }
+          required
+          onChange={({ target }) => {
+            let limit = Number(target.value);
+            if (limit > menuCount) {
+              limit = menuCount;
+            }
+            onUpdateCategoryLimit(isMainCourse, categoryId, Number(limit));
+          }}
           value={String(limit || "")}
         />
         <InputGroupAddon

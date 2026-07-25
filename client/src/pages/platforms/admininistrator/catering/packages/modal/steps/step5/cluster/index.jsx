@@ -38,6 +38,7 @@ const Cluster = ({
 
   const toggleItem = useCallback((inclusion, type) => {
     setForm((prev) => {
+      const { requirement = "" } = inclusion;
       const inclusions = [...prev.inclusions];
       const index = inclusions.findIndex(
         ({ item }) => inclusion?._id === item?._id,
@@ -48,7 +49,7 @@ const Cluster = ({
         inclusions.unshift({
           item: inclusion,
           amount: 0,
-          unit: inclusion?.requirement || "qty",
+          unit: requirement === "none" ? null : requirement || "qty",
           model: type,
         });
       }

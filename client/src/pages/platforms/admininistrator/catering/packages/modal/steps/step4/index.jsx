@@ -12,7 +12,6 @@ const Step4 = ({ form = {}, setForm = () => {} }) => {
         const menus = [...prev[clusterKey]];
         const pIdx = menus.findIndex(({ category }) => category._id === cId);
         if (pIdx < 0) return;
-
         menus[pIdx] = {
           ...menus[pIdx],
           limit,

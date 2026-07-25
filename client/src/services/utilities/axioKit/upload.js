@@ -7,12 +7,10 @@ import axios from "axios";
  * @param {string} token - Authorization Token.
  * @returns {{ success: boolean, payload: Array<any>|object }} - The result object containing success and payload.
  */
-const upload = async (data, token, onUploadProgress) =>
+const upload = async (data, onUploadProgress) =>
   await axios
     .post("persons/auth/upload", data, {
-      headers: {
-        Authorization: `QTracy ${token}`,
-      },
+      withCredentials: true,
       onUploadProgress,
     })
     .then(({ data }) => data)

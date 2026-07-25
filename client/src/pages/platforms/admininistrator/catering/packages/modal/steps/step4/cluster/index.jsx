@@ -101,6 +101,7 @@ const Category = memo(
           <LimitInput
             label="Selection Limit"
             limit={limit}
+            menuCount={choices.length}
             isMainCourse={isMainCourse}
             categoryId={category?._id}
             onUpdateCategoryLimit={onUpdateCategoryLimit}

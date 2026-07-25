@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { CloudUpload, ImageIcon, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -8,11 +8,10 @@ const ImageUpload = ({
   className = "h-full",
   accept = "image/*",
   maxSize = 5 * 1024 * 1024,
-  onImageChange = () => {},
+  setForm = () => {},
+  form = {},
 }) => {
   const inputRef = useRef(null);
-
-  const [preview, setPreview] = useState(null);
 
   const validateFile = (file) => {
     if (!file) return false;
@@ -33,14 +32,16 @@ const ImageUpload = ({
   const handleFile = (file) => {
     if (!validateFile(file)) return;
 
-    if (preview) {
-      URL.revokeObjectURL(preview);
-    }
+    const reader = new FileReader();
 
-    const url = URL.createObjectURL(file);
+    reader.onload = ({ target }) => {
+      setForm((current) => ({
+        ...current,
+        img: target.result,
+      }));
+    };
 
-    setPreview(url);
-    onImageChange(file);
+    reader.readAsDataURL(file);
   };
 
   const handleChange = (e) => {
@@ -57,19 +58,19 @@ const ImageUpload = ({
   };
 
   const removeImage = () => {
-    if (preview) {
-      URL.revokeObjectURL(preview);
+    if (form.img) {
+      URL.revokeObjectURL(form.img);
     }
-
-    setPreview(null);
 
     if (inputRef.current) {
       inputRef.current.value = "";
     }
 
-    onImageChange(null);
+    setForm((current) => ({
+      ...current,
+      img: null,
+    }));
   };
-
   return (
     <div className={cn("space-y-4", className)}>
       <div
@@ -88,10 +89,10 @@ const ImageUpload = ({
           onChange={handleChange}
         />
 
-        {preview ? (
+        {form.img ? (
           <div className="group h-full relative bg-red-200">
             <img
-              src={preview}
+              src={form.img}
               alt="Preview"
               className=" h-full w-full object-cover  "
             />
