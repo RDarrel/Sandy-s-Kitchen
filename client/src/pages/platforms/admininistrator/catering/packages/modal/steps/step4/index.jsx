@@ -69,17 +69,19 @@ const Step4 = ({
         isMainCourse
         emptyTitle="No main courses selected yet"
       />
-      <Cluster
-        title="Side Menus"
-        subtitle="Review selected side menus and set the guests served."
-        icon={<Salad className="size-5" />}
-        menuCategories={sideMenus}
-        targetPax={minimumGuests}
-        key={"cluster-2"}
-        onUpdateQtyServe={onUpdateQtyServe}
-        onUpdateCategoryLimit={onUpdateCategoryLimit}
-        emptyTitle="No side menus selected yet"
-      />
+      {sideMenus?.length > 0 && (
+        <Cluster
+          title="Side Menus"
+          subtitle="Review selected side menus and set the guests served."
+          icon={<Salad className="size-5" />}
+          menuCategories={sideMenus}
+          targetPax={minimumGuests}
+          key={"cluster-2"}
+          onUpdateQtyServe={onUpdateQtyServe}
+          onUpdateCategoryLimit={onUpdateCategoryLimit}
+          emptyTitle="No side menus selected yet"
+        />
+      )}
     </div>
   );
 };

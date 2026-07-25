@@ -25,6 +25,7 @@ import Step2 from "./steps/step2";
 import Step3 from "./steps/step3";
 import Step4 from "./steps/step4";
 import Step5 from "./steps/step5";
+import { toast } from "sonner";
 const _form = {
   name: "",
   minimumGuests: 0,
@@ -54,10 +55,22 @@ const CustomModal = ({
     [currentStep, setCurrentStep] = useState(1);
 
   if (!isOpen) return null;
+
+  const getIncludedMenusLength = (menuCategories) =>
+    menuCategories.reduce((acc, curr) => acc + curr.choices.length, 0);
   const handleSubmit = (e) => {
     e.preventDefault();
+    const { mainCourses = [], sideMenus = [], mainCourseLimit = 0 } = form;
     const action = e.nativeEvent.submitter.dataset.action;
-    console.log("action", action);
+    if (
+      currentStep === 2 &&
+      getIncludedMenusLength(mainCourses) < mainCourseLimit
+    ) {
+      return toast.warning(
+        `Select at least ${mainCourseLimit} main course menus to match the main course limit.`,
+      );
+    }
+
     setCurrentStep((prev) => prev + 1);
   };
   return (
