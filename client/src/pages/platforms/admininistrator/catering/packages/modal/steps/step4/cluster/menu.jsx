@@ -25,35 +25,10 @@ const Menu = ({
             {capitalize(menu?.name || "")}
           </p>
           <p className="truncate text-xs text-muted-foreground">
-            Recipe yield:{" "}
-            <span className="font-semibold text-foreground">
-              {/* {recipeYield} serve/person */}
-              Serves {recipeYield} guests per preparation
-            </span>
+            {menu?.description || ""}
           </p>
         </div>
       </div>
-
-      <label className="flex items-center justify-end gap-2">
-        <span className="shrink-0 text-xs font-medium text-muted-foreground">
-          Preparations
-        </span>
-        <Input
-          className="h-8 w-20 text-center font-medium"
-          min="1"
-          onChange={({ target }) =>
-            onUpdateQtyServe(
-              isMainCourse,
-              menu?.category?._id,
-              menu._id,
-              Number(target.value),
-            )
-          }
-          placeholder={"0"}
-          type="number"
-          value={String(prepQty || suggestedServeQty)}
-        />
-      </label>
     </div>
   );
 };

@@ -30,7 +30,12 @@ const menuCategorySchema = new mongoose.Schema(
       min: 1,
     },
 
-    choices: [packageMenuSchema],
+    choices: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Menu",
+      },
+    ],
   },
   { _id: false },
 );

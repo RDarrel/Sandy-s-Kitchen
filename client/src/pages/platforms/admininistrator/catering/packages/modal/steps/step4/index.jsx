@@ -2,12 +2,7 @@ import { PackageCheck, Salad } from "lucide-react";
 import Cluster from "./cluster";
 import { useCallback } from "react";
 
-const Step4 = ({
-  form = {},
-  setForm = () => {},
-  setMainCourses = () => {},
-  setSideMenus = () => {},
-}) => {
+const Step4 = ({ form = {}, setForm = () => {} }) => {
   const { mainCourses, sideMenus, minimumGuests } = form;
 
   const onUpdateCategoryLimit = useCallback(
@@ -59,7 +54,7 @@ const Step4 = ({
     <div className="space-y-5">
       <Cluster
         title="Main Courses"
-        subtitle="Review selected main courses and set the guests served."
+        subtitle="Review selected main courses and set selection limits."
         icon={<PackageCheck className="size-5" />}
         menuCategories={mainCourses}
         targetPax={minimumGuests}
@@ -72,7 +67,7 @@ const Step4 = ({
       {sideMenus?.length > 0 && (
         <Cluster
           title="Side Menus"
-          subtitle="Review selected side menus and set the guests served."
+          subtitle="Review selected side menus and set selection limits."
           icon={<Salad className="size-5" />}
           menuCategories={sideMenus}
           targetPax={minimumGuests}

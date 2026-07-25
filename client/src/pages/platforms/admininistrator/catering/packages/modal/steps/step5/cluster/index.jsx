@@ -100,6 +100,7 @@ const Cluster = ({
                 value={search}
                 onChange={({ target }) => setSearch(target.value)}
                 placeholder={searchPlaceholder}
+                type={"search"}
               />
             </div>
             <span className="hidden text-xs text-muted-foreground sm:block">
