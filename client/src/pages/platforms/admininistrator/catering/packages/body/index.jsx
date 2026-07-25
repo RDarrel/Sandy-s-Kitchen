@@ -5,9 +5,20 @@ import {
   Check,
   ListChecks,
   UsersRound,
+  Pen,
+  Trash,
+  MoreVertical,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+} from "@/components/ui/dropdown-menu";
 import "./style.css";
 import { useSelector } from "react-redux";
 import Cloudinary from "@/services/utilities/cloudinary";
@@ -113,10 +124,41 @@ const Body = () => {
                     </div>
 
                     <div className="admin-package__price">
-                      <strong>{`${Formatter.amount(item.basePrice)}`}</strong>
-                      <small>
-                        + {Formatter.amount(item.addPricePerGuest)} / guest
-                      </small>
+                      <div className="flex gap-2 align-items-center justify-end self-right ">
+                        <div>
+                          <strong>{`${Formatter.amount(item.basePrice)}`}</strong>
+                          <small>
+                            + {Formatter.amount(item.addPricePerGuest)} / guest
+                          </small>
+                        </div>
+                        <div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size={"icon"}
+                                className="h-7 w-4 p-0"
+                              >
+                                <MoreVertical />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-[9rem]">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem>
+                                  <Pen />
+                                  Update
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Trash />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
