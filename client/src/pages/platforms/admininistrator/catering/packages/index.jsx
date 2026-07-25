@@ -44,7 +44,8 @@ const Packages = () => {
                     Packages
                   </CardTitle>
                   <CardDescription>
-                    Manage supplier companies and their contact details.
+                    Manage catering packages with menus, inclusions, pricing,
+                    and guest requirements.
                   </CardDescription>
                 </div>
                 <Button onClick={() => setIsOpen(true)}>
