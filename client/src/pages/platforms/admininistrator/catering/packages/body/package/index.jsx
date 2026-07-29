@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import Cloudinary from "@/services/utilities/cloudinary";
 import Actions from "./actions";
 
-const MAX_VISIBLE_INCLUSIONS = 6;
-const MAX_VISIBLE_INCLUSIONS_WITH_MORE = 5;
+const MAX_VISIBLE_MENUS = 6;
+const MAX_VISIBLE_MENUS_WITH_MORE = 5;
 const isCashierVisible = true;
 
 const Package = ({ item, handleAction = () => {} }) => {
@@ -18,10 +18,10 @@ const Package = ({ item, handleAction = () => {} }) => {
     (acc, curr) => acc + curr?.choices?.length,
     0,
   );
-  const hasHiddenInclusions = mainCoursesLength > MAX_VISIBLE_INCLUSIONS;
+  const hasHiddenInclusions = mainCoursesLength > MAX_VISIBLE_MENUS;
   const visibleLimit = hasHiddenInclusions
-    ? MAX_VISIBLE_INCLUSIONS_WITH_MORE
-    : MAX_VISIBLE_INCLUSIONS;
+    ? MAX_VISIBLE_MENUS_WITH_MORE
+    : MAX_VISIBLE_MENUS;
   const visibleMenus = mainMenus.slice(0, visibleLimit);
   const hiddenInclusions = mainCoursesLength - visibleMenus.length;
 
@@ -108,7 +108,11 @@ const Package = ({ item, handleAction = () => {} }) => {
             <li className="admin-package__more">+{hiddenInclusions} more</li>
           )}
         </ul>
-        <Button className="catering-package__button" variant="outline">
+        <Button
+          className="catering-package__button"
+          variant="outline"
+          onClick={() => handleAction("view", item)}
+        >
           View Details
         </Button>
       </div>

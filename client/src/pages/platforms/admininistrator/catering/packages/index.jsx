@@ -15,10 +15,12 @@ import { BROWSE as BROWSE_MENUS } from "@/services/redux/slices/menu/menus";
 import { BROWSE as BROWSE_EQUIPMENT } from "@/services/redux/slices/inventory/equipment";
 import { BROWSE as BROWSE_SERVICES } from "@/services/redux/slices/resources/services";
 import Body from "./body";
+import ViewDetails from "./view";
 const Packages = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState({});
-  const dispatch = useDispatch();
+  const [selected, setSelected] = useState({}),
+    [isOpen, setIsOpen] = useState(false),
+    [isViewDetails, setIsViewDetails] = useState(false),
+    dispatch = useDispatch();
   useEffect(() => {
     dispatch(BROWSE_MENUS({ station: "catering" }));
     dispatch(BROWSE_EQUIPMENT());
@@ -26,9 +28,16 @@ const Packages = () => {
     dispatch(BROWSE_PACKAGES());
   }, [dispatch]);
   const handleAction = useCallback((action, item) => {
-    if (action === "update") {
-      setSelected(item);
-      setIsOpen(true);
+    switch (action) {
+      case "update":
+        setSelected(item);
+        setIsOpen(true);
+        break;
+
+      default:
+        setSelected(item);
+        setIsViewDetails(true);
+        break;
     }
   }, []);
 
@@ -66,6 +75,11 @@ const Packages = () => {
         </div>
       </div>
       <CustomModal isOpen={isOpen} setIsOpen={setIsOpen} selected={selected} />
+      <ViewDetails
+        selected={selected}
+        setIsOpen={setIsViewDetails}
+        isOpen={isViewDetails}
+      />
     </>
   );
 };
