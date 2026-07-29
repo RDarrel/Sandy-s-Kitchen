@@ -27,7 +27,11 @@ import Step3 from "./steps/step3";
 import Step4 from "./steps/step4";
 import Step5 from "./steps/step5";
 import { toast } from "sonner";
-import { SAVE, UPDATE } from "@/services/redux/slices/cateringPackages";
+import {
+  SAVE,
+  SET_NEW_PACKAGE,
+  UPDATE,
+} from "@/services/redux/slices/cateringPackages";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { UPLOAD } from "@/services/redux/slices/persons/auth";
 import Spinner from "@/components/shared/spinner";
@@ -81,11 +85,11 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
   const handleSave = () => {
     dispatch(SAVE(buildData(form)))
       .unwrap()
-      .then(({ data, success }) => {
+      .then(({ data: item, success }) => {
         const imgBuild = Cloudinary.buildFileForm(
           form.img,
           "packages",
-          data._id,
+          item._id,
         );
 
         dispatch(UPLOAD({ data: imgBuild }))
@@ -93,6 +97,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
             setIsOpen(false);
             setIsSubmitting(false);
             setForm(_form);
+            dispatch(SET_NEW_PACKAGE(item));
             toast.success(success);
           })
           .catch((error) => {

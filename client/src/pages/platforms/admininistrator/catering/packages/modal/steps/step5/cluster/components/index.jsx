@@ -21,9 +21,8 @@ export const Field = ({ item, type, value = "", onChange = () => {} }) => {
   const { requirement = "" } = item || {};
   const isVisible = !(requirement === "none" && type === "Services");
   const label = requirement || "qty";
-
   return (
-    <label className={`min-w-0  opacity-${isVisible ? "1" : "0"}`}>
+    <label className={`min-w-0  opacity-${isVisible ? "100" : "0"}`}>
       <span className="sr-only">{label}</span>
       <InputGroup>
         <InputGroupInput

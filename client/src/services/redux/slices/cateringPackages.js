@@ -63,7 +63,7 @@ export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
 
 export const DESTROY = createAsyncThunk(`${url}/destroy`, (form, thunkAPI) => {
   try {
-    return axioKit.destroy(url, form.data);
+    return axioKit.destroy(url, form);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -105,6 +105,10 @@ export const reduxSlice = createSlice({
     TOGGLE: (state) => {
       state.showModal = !state.showModal;
     },
+    SET_NEW_PACKAGE: (state, { payload }) => {
+      state.collections.unshift(payload);
+      state.filtered.unshift(payload);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -130,8 +134,7 @@ export const reduxSlice = createSlice({
       })
       .addCase(SAVE.fulfilled, (state, action) => {
         const { success } = action.payload;
-        state.collections.unshift(action.payload.data);
-        state.filtered.unshift(action.payload.data);
+
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
@@ -202,6 +205,7 @@ export const {
   SetCREATE,
   SetFILTERED,
   SEARCH,
+  SET_NEW_PACKAGE,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

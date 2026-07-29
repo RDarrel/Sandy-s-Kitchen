@@ -4,10 +4,10 @@ import { Check, ListChecks, UsersRound, Beef, Salad } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Cloudinary from "@/services/utilities/cloudinary";
 import Actions from "./actions";
+import Availability from "./availability";
 
 const MAX_VISIBLE_MENUS = 6;
 const MAX_VISIBLE_MENUS_WITH_MORE = 5;
-const isCashierVisible = true;
 
 const Package = ({ item, handleAction = () => {} }) => {
   const { mainCourseCategories } = item;
@@ -30,34 +30,12 @@ const Package = ({ item, handleAction = () => {} }) => {
       <div className="admin-package__media">
         <img
           alt={`${item.name} admin package`}
-          src={Cloudinary.getPackageImg(item.imgId, item?._id)}
+          src={Cloudinary.getPackageImg(item.imgId || "", item?._id)}
         />
-        <div className="flex items-center space-x-2 bg-red-500">
-          <button
-            type="button"
-            className={`inline-flex items-center mt-1 ml-1 gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold shadow-md backdrop-blur-sm transition disabled:cursor-not-allowed disabled:opacity-70 ${
-              isCashierVisible
-                ? "border-emerald-200 bg-emerald-50/95 text-emerald-700"
-                : "border-white/30 bg-black/55 text-white"
-            }`}
-          >
-            <span>{isCashierVisible ? "Available" : "Unavailable"}</span>
-            <span
-              className={`relative h-3.5 w-6 rounded-full transition ${
-                isCashierVisible ? "bg-emerald-500/90" : "bg-white/30"
-              }`}
-            >
-              <span
-                className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-white transition ${
-                  isCashierVisible ? "left-3" : "left-0.5"
-                }`}
-              />
-            </span>
-          </button>
-        </div>
+        <Availability item={item} handleAction={handleAction} />
       </div>
 
-      <div className="admin-package__body">
+      <div className="admin-package__body  ">
         <div className="admin-package__content">
           <div className="admin-package__heading">
             {item.tag && <span>{item.tag}</span>}

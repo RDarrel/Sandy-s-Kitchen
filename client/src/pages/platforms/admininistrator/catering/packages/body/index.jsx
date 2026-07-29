@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useSelector } from "react-redux";
 import Package from "./package";
 import "./style.css";
+import PackageSkeleton from "./skeleton";
 
 const ITEMS_PER_PAGE = 3;
 
@@ -71,6 +72,7 @@ const Body = ({ handleAction = () => {} }) => {
     <section className="admin-page">
       <div className="admin-page__inner">
         <div className="admin-packages">
+          <PackageSkeleton />
           {visiblePackages.map((item) => {
             return (
               <Package item={item} key={item._id} handleAction={handleAction} />

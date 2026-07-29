@@ -110,10 +110,11 @@ const modelSchema = new mongoose.Schema(
 
     inclusions: [inclusionSchema],
 
-    isActive: {
+    isAvailable: {
       type: Boolean,
       default: false,
     },
+    deletedAt: Date,
   },
   {
     timestamps: true,

@@ -9,38 +9,99 @@ import { useCallback, useEffect, useState } from "react";
 import CustomModal from "./modal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { BROWSE as BROWSE_PACKAGES } from "@/services/redux/slices/cateringPackages";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  BROWSE as BROWSE_PACKAGES,
+  DESTROY,
+  UPDATE,
+} from "@/services/redux/slices/cateringPackages";
 import { BROWSE as BROWSE_MENUS } from "@/services/redux/slices/menu/menus";
 import { BROWSE as BROWSE_EQUIPMENT } from "@/services/redux/slices/inventory/equipment";
 import { BROWSE as BROWSE_SERVICES } from "@/services/redux/slices/resources/services";
 import Body from "./body";
 import ViewDetails from "./view";
+import { CustomAlert } from "@/components/shared/alert";
+import { toast } from "sonner";
 const Packages = () => {
-  const [selected, setSelected] = useState({}),
+  const { formSubmitted } = useSelector(
+      ({ cateringPackages }) => cateringPackages,
+    ),
+    [selected, setSelected] = useState({}),
     [isOpen, setIsOpen] = useState(false),
+    [openConfirmation, setOpenConfirmation] = useState({
+      availability: false,
+      delete: false,
+    }),
     [isViewDetails, setIsViewDetails] = useState(false),
     dispatch = useDispatch();
   useEffect(() => {
-    dispatch(BROWSE_MENUS({ station: "catering" }));
-    dispatch(BROWSE_EQUIPMENT());
-    dispatch(BROWSE_SERVICES({ module: "catering" }));
     dispatch(BROWSE_PACKAGES());
+    dispatch(BROWSE_MENUS({ station: "catering" }));
+    dispatch(BROWSE_SERVICES({ module: "catering" }));
+    dispatch(BROWSE_EQUIPMENT());
   }, [dispatch]);
   const handleAction = useCallback((action, item) => {
+    console.log("action", action);
     switch (action) {
       case "update":
-        setSelected(item);
         setIsOpen(true);
         break;
 
-      default:
-        setSelected(item);
+      case "availability":
+        setOpenConfirmation((prev) => ({ ...prev, availability: true }));
+        break;
+      case "view":
         setIsViewDetails(true);
         break;
+
+      default:
+        setOpenConfirmation((prev) => ({ ...prev, [action]: true }));
+        break;
     }
+    setSelected(item);
   }, []);
 
+  const handleAvailability = () => {
+    const newStatus = !selected.isAvailable;
+
+    dispatch(
+      UPDATE({
+        _id: selected._id,
+        isAvailable: newStatus,
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        toast.success(
+          `Package has been marked as ${
+            newStatus ? "available" : "unavailable"
+          }.`,
+        );
+      })
+      .catch((error) => {
+        console.log("error:", error);
+        toast.error("Failed to update package availability.");
+      });
+
+    setOpenConfirmation((prev) => ({ ...prev, availability: false }));
+  };
+  const onConfirmDelete = () => {
+    dispatch(
+      DESTROY({
+        _id: selected._id,
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        toast.success(`Package successfully deleted.`);
+      })
+      .catch((error) => {
+        console.log("error:", error);
+        toast.error("Failed to delete package.");
+      });
+
+    setOpenConfirmation((prev) => ({ ...prev, delete: false }));
+  };
   return (
     <>
       <div className="bg-background p-4 md:p-6">
@@ -79,6 +140,54 @@ const Packages = () => {
         selected={selected}
         setIsOpen={setIsViewDetails}
         isOpen={isViewDetails}
+      />
+      <CustomAlert
+        isOpen={openConfirmation.availability}
+        formSubmitted={formSubmitted}
+        capture={handleAvailability}
+        setIsOpen={(value) =>
+          setOpenConfirmation((prev) => ({ ...prev, availability: value }))
+        }
+        showCancelButton
+        className="border-border bg-card shadow-[0_28px_90px_rgba(59,36,24,0.18)]"
+        buttonTitle="Change Availability"
+        buttonClassName="bg-red-600 hover:bg-red-700"
+        index={0}
+        message={
+          <>
+            Are you sure you want to change the availability of{" "}
+            <span className="font-semibold text-primary">
+              {selected?.name || "this package"}
+            </span>
+            ? Customers{" "}
+            {selected?.isAvailable
+              ? "will no longer be able to book this package."
+              : "will be able to book this package."}
+          </>
+        }
+      />
+
+      <CustomAlert
+        isOpen={openConfirmation.delete}
+        formSubmitted={formSubmitted}
+        capture={onConfirmDelete}
+        setIsOpen={(value) =>
+          setOpenConfirmation((prev) => ({ ...prev, delete: value }))
+        }
+        showCancelButton
+        className="border-border bg-card shadow-[0_28px_90px_rgba(59,36,24,0.18)]"
+        buttonTitle="Delete Package"
+        buttonClassName="bg-red-600 hover:bg-red-700"
+        index={0}
+        message={
+          <>
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-red-600">
+              {selected?.name || "this category"}
+            </span>
+            ?
+          </>
+        }
       />
     </>
   );

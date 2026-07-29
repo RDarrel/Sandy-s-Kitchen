@@ -117,6 +117,7 @@ export const reduxSlice = createSlice({
       state.auth = { ...state.auth, ...data.payload };
       state.information = { ...state.information, isFreshman: false };
     },
+
     PROGRESS: (state, data) => {
       state.progress = data.payload;
     },
