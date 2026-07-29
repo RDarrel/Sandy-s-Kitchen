@@ -10,16 +10,21 @@ const MAX_VISIBLE_INCLUSIONS_WITH_MORE = 5;
 const isCashierVisible = true;
 
 const Package = ({ item, handleAction = () => {} }) => {
-  const hasHiddenInclusions = item.inclusions.length > MAX_VISIBLE_INCLUSIONS;
-  const visibleLimit = hasHiddenInclusions
-    ? MAX_VISIBLE_INCLUSIONS_WITH_MORE
-    : MAX_VISIBLE_INCLUSIONS;
-  const visibleInclusions = item.inclusions.slice(0, visibleLimit);
-  const hiddenInclusions = item.inclusions.length - visibleInclusions.length;
   const { mainCourseCategories } = item;
   const mainMenus = mainCourseCategories.flatMap(({ choices }) =>
     choices.map((choice) => choice),
   );
+  const mainCoursesLength = mainCourseCategories.reduce(
+    (acc, curr) => acc + curr?.choices?.length,
+    0,
+  );
+  const hasHiddenInclusions = mainCoursesLength > MAX_VISIBLE_INCLUSIONS;
+  const visibleLimit = hasHiddenInclusions
+    ? MAX_VISIBLE_INCLUSIONS_WITH_MORE
+    : MAX_VISIBLE_INCLUSIONS;
+  const visibleMenus = mainMenus.slice(0, visibleLimit);
+  const hiddenInclusions = mainCoursesLength - visibleMenus.length;
+
   return (
     <article className="admin-package" key={item.name}>
       <div className="admin-package__media">
@@ -80,7 +85,7 @@ const Package = ({ item, handleAction = () => {} }) => {
           </span>
           <span>
             <Beef />
-            {item.inclusions.length} Main Courses
+            {mainCoursesLength} Main Courses
           </span>
           <span>
             <Salad />
@@ -93,7 +98,7 @@ const Package = ({ item, handleAction = () => {} }) => {
         </div>
 
         <ul className="admin-package__inclusions">
-          {mainMenus.map((menu, idx) => (
+          {visibleMenus.map((menu, idx) => (
             <li key={idx}>
               <Check />
               {menu?.name}

@@ -50,7 +50,7 @@ export const BROWSE = createAsyncThunk(`${url}`, (_, thunkAPI) => {
 
 export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   try {
-    return axioKit.update(url, form.data);
+    return axioKit.update(url, form);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||

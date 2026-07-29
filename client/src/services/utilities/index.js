@@ -17,11 +17,11 @@ import formattedTime from "./formattedTime";
 import formattedAmount from "./formattedAmount";
 import Formatter from "./formatter";
 import format from "./format";
-import mobile from "./mobile";
 import capitalize from "./capitalize";
 import Stock from "./stock";
 import Inventory from "./inventory";
 import isShortageResolved from "./isShortageResolved";
+import isImgURL from "./isImgURL";
 const ENDPOINT = "http://localhost:5000";
 const ENCRYPTION_KEY = "601b422c2548c7598feff2332a8e6eee9";
 //use this to if the system is deployed
@@ -45,7 +45,6 @@ export {
   socket,
   format,
   isShortageResolved,
-  mobile,
   formattedAmount,
   formattedTime,
   PresetImage,
@@ -60,4 +59,5 @@ export {
   bulkPayload,
   globalSearch,
   useCountdown,
+  isImgURL,
 };

@@ -48,7 +48,12 @@ const Packages = () => {
                     and guest requirements.
                   </CardDescription>
                 </div>
-                <Button onClick={() => setIsOpen(true)}>
+                <Button
+                  onClick={() => {
+                    setIsOpen(true);
+                    setSelected({});
+                  }}
+                >
                   <Plus className="h-4 w-4" />
                   Add Package
                 </Button>

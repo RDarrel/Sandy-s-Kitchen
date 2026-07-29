@@ -27,11 +27,12 @@ import Step3 from "./steps/step3";
 import Step4 from "./steps/step4";
 import Step5 from "./steps/step5";
 import { toast } from "sonner";
-import { SAVE } from "@/services/redux/slices/cateringPackages";
+import { SAVE, UPDATE } from "@/services/redux/slices/cateringPackages";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { UPLOAD } from "@/services/redux/slices/persons/auth";
 import Spinner from "@/components/shared/spinner";
 import { buildData } from "./utils";
+import { isImgURL } from "@/services/utilities";
 const _form = {
   name: "",
   img: "",
@@ -55,6 +56,8 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
     [isSubmitting, setIsSubmitting] = useState(false),
     dispatch = useDispatch();
 
+  const willCreate = !Boolean(selected?._id);
+
   useEffect(() => {
     if (isOpen && selected?._id) {
       setForm({
@@ -63,8 +66,10 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
         sideMenus: selected?.sideMenuCategories,
         img: Cloudinary.getPackageImg(selected?.imgId || "", selected?._id),
       });
+      setCurrentStep(5);
     } else {
       setForm(_form);
+      setCurrentStep(1);
     }
   }, [isOpen, selected]);
 
@@ -72,6 +77,70 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const getIncludedMenusLength = (menuCategories) =>
     menuCategories.reduce((acc, curr) => acc + curr.choices.length, 0);
+
+  const handleSave = () => {
+    dispatch(SAVE(buildData(form)))
+      .unwrap()
+      .then(({ data, success }) => {
+        const imgBuild = Cloudinary.buildFileForm(
+          form.img,
+          "packages",
+          data._id,
+        );
+
+        dispatch(UPLOAD({ data: imgBuild }))
+          .then(() => {
+            setIsOpen(false);
+            setIsSubmitting(false);
+            setForm(_form);
+            toast.success(success);
+          })
+          .catch((error) => {
+            setIsSubmitting(false);
+            toast.error(
+              error?.message ||
+                error ||
+                "Failed to upload the image. Please try again.",
+            );
+          });
+      })
+      .catch((error) => {
+        setIsSubmitting(false);
+        toast.error(error?.message || error || "Failed to created package.");
+      });
+  };
+
+  const handleUpdate = async () => {
+    let imgId = "";
+
+    if (!isImgURL(form.img)) {
+      const imgForm = Cloudinary.buildFileForm(
+        form.img,
+        "packages",
+        selected?._id,
+      );
+      const response = await dispatch(UPLOAD({ data: imgForm })).unwrap();
+      imgId = response.imgId;
+    }
+    dispatch(
+      UPDATE({
+        ...buildData(form),
+        _id: selected?._id,
+        ...(imgId && { imgId }),
+      }),
+    )
+      .unwrap()
+      .then((data) => {
+        setForm(_form);
+        toast.success(data.success);
+        setIsOpen(false);
+      })
+      .catch(() =>
+        toast.error(error?.message || error || "Failed to update package."),
+      );
+
+    setIsSubmitting(false);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -92,37 +161,10 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
     if (currentStep !== 5) return setCurrentStep((prev) => prev + 1);
 
     setIsSubmitting(true);
-    dispatch(SAVE(buildData(form)))
-      .unwrap()
-      .then(({ data }) => {
-        const imgBuild = Cloudinary.buildFileForm(
-          form.img,
-          "packages",
-          data._id,
-        );
-
-        dispatch(UPLOAD({ data: imgBuild }))
-          .then(() => {
-            setIsOpen(false);
-            setIsSubmitting(false);
-            setForm(_form);
-          })
-          .catch((error) => {
-            setIsSubmitting(false);
-            toast.error(
-              error?.message ||
-                error ||
-                "Failed to upload the image. Please try again.",
-            );
-          });
-      })
-      .catch((error) => {
-        setIsSubmitting(false);
-        toast.error(error?.message || error || "Failed to created package.");
-      });
+    if (willCreate) return handleSave();
+    return handleUpdate();
   };
 
-  const willCreate = !Boolean(selected?._id);
   const description = willCreate
     ? "Update the package details. Review your changes before updating."
     : "Enter the package details. Review everything before saving.";
@@ -150,7 +192,14 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
                   step={index + 1}
                   className="relative flex-1 items-start"
                 >
-                  <StepperTrigger className="flex flex-col gap-2.5 focus-visible:ring-0 focus-visible:outline-none">
+                  <StepperTrigger
+                    className="flex flex-col gap-2.5 focus-visible:ring-0 focus-visible:outline-none"
+                    type="button"
+                    onClick={() => {
+                      if (willCreate) return;
+                      setCurrentStep(index + 1);
+                    }}
+                  >
                     <StepperIndicator>{index + 1}</StepperIndicator>
                     <StepperTitle>{step.title}</StepperTitle>
                   </StepperTrigger>

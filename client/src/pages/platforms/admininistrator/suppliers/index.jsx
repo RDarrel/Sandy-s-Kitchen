@@ -21,7 +21,11 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BROWSE } from "@/services/redux/slices/procurement/suppliers";
 import TableLoading from "@/components/shared/loading/table";
-import { globalSearch, handlePagination, mobile } from "@/services/utilities";
+import {
+  Formatter,
+  globalSearch,
+  handlePagination,
+} from "@/services/utilities";
 import { capitalize, isEmpty } from "lodash";
 import { RESET, DESTROY } from "@/services/redux/slices/procurement/suppliers";
 import { toast } from "sonner";
@@ -148,8 +152,8 @@ const Suppliers = () => {
                                   </TableCell>
                                   <TableCell className="text-muted-foreground">
                                     {contact.person
-                                      ? `${contact.person} (${mobile(contact.mobile)})`
-                                      : mobile(contact.mobile)}
+                                      ? `${contact.person} (${Formatter.mobile(contact.mobile)})`
+                                      : Formatter.mobile(contact.mobile)}
                                   </TableCell>
                                   <TableCell className="text-muted-foreground">
                                     {capitalize(address)}
