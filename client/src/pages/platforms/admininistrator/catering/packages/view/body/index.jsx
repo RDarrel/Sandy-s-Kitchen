@@ -84,8 +84,8 @@ const Inclusions = ({ inclusions, title }) => {
         <div className="flex flex-col gap-2">
           {inclusions.map(({ item, unit = null, amount }, idx) => (
             <div className="flex gap-2" key={idx}>
-              <span className="inline-flex items-center justify-center bg-accent/10 p-1 rounded-sm">
-                <Check className="text-accent " size={17} />
+              <span className="inline-flex items-center justify-center bg-accent/15 p-1 rounded-sm">
+                <Check className="text-accent " size={10} />
               </span>
               <span>
                 {item?.name}{" "}
