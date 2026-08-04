@@ -9,7 +9,7 @@ import PackageSkeleton from "./skeleton";
 const ITEMS_PER_PAGE = 3;
 
 const Body = ({ handleAction = () => {} }) => {
-  const { collections: packages } = useSelector(
+  const { collections: packages, isLoading } = useSelector(
     ({ cateringPackages }) => cateringPackages,
   );
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,12 +72,19 @@ const Body = ({ handleAction = () => {} }) => {
     <section className="admin-page">
       <div className="admin-page__inner">
         <div className="admin-packages">
-          <PackageSkeleton />
-          {visiblePackages.map((item) => {
-            return (
-              <Package item={item} key={item._id} handleAction={handleAction} />
-            );
-          })}
+          {!isLoading
+            ? visiblePackages.map((item) => {
+                return (
+                  <Package
+                    item={item}
+                    key={item._id}
+                    handleAction={handleAction}
+                  />
+                );
+              })
+            : Array.from({ length: 4 }).map((_, idx) => (
+                <PackageSkeleton key={`package-skeleton-${idx}`} />
+              ))}
         </div>
 
         {renderPagination("bottom")}
