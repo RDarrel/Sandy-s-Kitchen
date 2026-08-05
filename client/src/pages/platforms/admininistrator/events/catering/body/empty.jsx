@@ -1,7 +1,7 @@
 import { SearchSlashIcon } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
-import { SEARCH } from "@/services/redux/slices/cateringPackages";
+import { SEARCH } from "@/services/redux/slices/events/cateringPackages";
 
 const Empty = () => {
   const { search } = useSelector(({ cateringPackages }) => cateringPackages),

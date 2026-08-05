@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { axioKit } from "../../utilities";
+import { axioKit } from "../../../utilities";
 
-const url = "cateringPackages";
+const url = "events/cateringPackages";
 
 const initialState = {
   collections: [],

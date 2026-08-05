@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { SEARCH } from "@/services/redux/slices/cateringPackages";
+import { SEARCH } from "@/services/redux/slices/events/cateringPackages";
 import { Plus, Search } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 const Header = ({ toggleCreate = () => {} }) => {

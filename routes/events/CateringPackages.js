@@ -4,8 +4,8 @@ const router = require("express").Router(),
     browse,
     update,
     destroy,
-  } = require("../controllers/CateringPackages"),
-  { validate } = require("../middleware/jwt");
+  } = require("../../controllers/events/CateringPackages"),
+  { validate } = require("../../middleware/jwt");
 
 router
   .post("/save", validate, save)

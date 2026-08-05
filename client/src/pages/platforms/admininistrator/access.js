@@ -6,8 +6,8 @@ import {
   Package,
   Users,
   UtensilsCrossed,
-  ChefHat,
   Boxes,
+  CalendarDays,
 } from "lucide-react";
 import Dashboard from "./dashboard";
 import Staffs from "./staffs";
@@ -20,9 +20,9 @@ import CreateOrder from "./orders/create-order";
 import OrderList from "./orders/order-list";
 import ShortDeliveries from "./orders/short-deliveries";
 import StockRequests from "./orders/stock-requests";
-import Packages from "./catering/packages";
 import StockItems from "./inventory";
 import { Equipment, Services } from "./resources";
+import { CateringPackages, Venues } from "./events";
 
 const access = [
   {
@@ -78,18 +78,28 @@ const access = [
     ],
   },
   {
-    name: "Catering",
-    path: "/catering",
-    icon: ChefHat,
+    name: "Events",
+    path: "/events",
+    icon: CalendarDays,
     children: [
       {
-        name: "Packages",
+        name: "Catering Packages",
         path: "/packages",
-        component: Packages,
+        component: CateringPackages,
       },
       {
-        name: "Add Ons",
-        path: "/add-ons",
+        name: "Venues",
+        path: "/venues",
+        component: Venues,
+      },
+      {
+        name: "Bookings",
+        path: "/bookings",
+        component: AddOns,
+      },
+      {
+        name: "Calendar",
+        path: "/bookings",
         component: AddOns,
       },
     ],

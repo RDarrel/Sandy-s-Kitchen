@@ -31,7 +31,7 @@ import {
   SAVE,
   SET_NEW_PACKAGE,
   UPDATE,
-} from "@/services/redux/slices/cateringPackages";
+} from "@/services/redux/slices/events/cateringPackages";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { UPLOAD } from "@/services/redux/slices/persons/auth";
 import Spinner from "@/components/shared/spinner";

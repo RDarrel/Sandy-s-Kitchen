@@ -1,4 +1,4 @@
-const CateringPackage = require("../models/CateringPackage");
+const CateringPackage = require("../../models/events/CateringPackage");
 
 const packagePopulate = [
   {

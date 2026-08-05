@@ -6,7 +6,7 @@ import {
   BROWSE as BROWSE_PACKAGES,
   DESTROY,
   UPDATE,
-} from "@/services/redux/slices/cateringPackages";
+} from "@/services/redux/slices/events/cateringPackages";
 import { BROWSE as BROWSE_MENUS } from "@/services/redux/slices/menu/menus";
 import { BROWSE as BROWSE_EQUIPMENT } from "@/services/redux/slices/inventory/equipment";
 import { BROWSE as BROWSE_SERVICES } from "@/services/redux/slices/resources/services";
@@ -15,7 +15,7 @@ import ViewDetails from "./view";
 import { CustomAlert } from "@/components/shared/alert";
 import { toast } from "sonner";
 import Header from "./header";
-const Packages = () => {
+const Venues = () => {
   const { formSubmitted } = useSelector(
       ({ cateringPackages }) => cateringPackages,
     ),
@@ -27,14 +27,15 @@ const Packages = () => {
     }),
     [isViewDetails, setIsViewDetails] = useState(false),
     dispatch = useDispatch();
+
   useEffect(() => {
     dispatch(BROWSE_PACKAGES());
     dispatch(BROWSE_MENUS({ station: "catering" }));
     dispatch(BROWSE_SERVICES({ module: "catering" }));
     dispatch(BROWSE_EQUIPMENT());
   }, [dispatch]);
+
   const handleAction = useCallback((action, item) => {
-    console.log("action", action);
     switch (action) {
       case "update":
         setIsOpen(true);
@@ -169,4 +170,4 @@ const Packages = () => {
   );
 };
 
-export default Packages;
+export default Venues;
