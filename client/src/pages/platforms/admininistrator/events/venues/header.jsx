@@ -11,7 +11,7 @@ const Header = ({ toggleCreate = () => {} }) => {
     <CardHeader>
       <div className="flex flex-row justify-between ">
         <div>
-          <CardTitle className="text-2xl text-foreground">Packages</CardTitle>
+          <CardTitle className="text-2xl text-foreground">Venues</CardTitle>
           <CardDescription>
             Manage catering packages with menus, inclusions, pricing, and guest
             requirements.
@@ -30,7 +30,7 @@ const Header = ({ toggleCreate = () => {} }) => {
           </div>
           <Button onClick={toggleCreate}>
             <Plus className="h-4 w-4" />
-            Add Package
+            Add Venue
           </Button>
         </div>
       </div>
