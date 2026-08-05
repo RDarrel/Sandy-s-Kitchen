@@ -5,11 +5,12 @@ import { useSelector } from "react-redux";
 import Package from "./package";
 import "./style.css";
 import PackageSkeleton from "./skeleton";
+import Empty from "./empty";
 
 const ITEMS_PER_PAGE = 3;
 
 const Body = ({ handleAction = () => {} }) => {
-  const { collections: packages, isLoading } = useSelector(
+  const { filtered: packages, isLoading } = useSelector(
     ({ cateringPackages }) => cateringPackages,
   );
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,6 +68,8 @@ const Body = ({ handleAction = () => {} }) => {
       </Button>
     </nav>
   );
+
+  if (visiblePackages.length === 0 && !isLoading) return <Empty />;
 
   return (
     <section className="admin-page">

@@ -1,14 +1,6 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useCallback, useEffect, useState } from "react";
 import CustomModal from "./modal";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   BROWSE as BROWSE_PACKAGES,
@@ -22,6 +14,7 @@ import Body from "./body";
 import ViewDetails from "./view";
 import { CustomAlert } from "@/components/shared/alert";
 import { toast } from "sonner";
+import Header from "./header";
 const Packages = () => {
   const { formSubmitted } = useSelector(
       ({ cateringPackages }) => cateringPackages,
@@ -61,6 +54,10 @@ const Packages = () => {
     setSelected(item);
   }, []);
 
+  const toggleCreate = () => {
+    setSelected({});
+    setIsOpen(true);
+  };
   const handleAvailability = () => {
     const newStatus = !selected.isAvailable;
 
@@ -107,28 +104,7 @@ const Packages = () => {
       <div className="bg-background p-4 md:p-6">
         <div className="mx-auto max-w-7xl">
           <Card>
-            <CardHeader>
-              <div className="flex flex-row justify-between ">
-                <div>
-                  <CardTitle className="text-2xl text-foreground">
-                    Packages
-                  </CardTitle>
-                  <CardDescription>
-                    Manage catering packages with menus, inclusions, pricing,
-                    and guest requirements.
-                  </CardDescription>
-                </div>
-                <Button
-                  onClick={() => {
-                    setIsOpen(true);
-                    setSelected({});
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Package
-                </Button>
-              </div>
-            </CardHeader>
+            <Header toggleCreate={toggleCreate} />
             <CardContent>
               <Body handleAction={handleAction} />
             </CardContent>
