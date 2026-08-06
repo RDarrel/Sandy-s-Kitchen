@@ -48,9 +48,7 @@ const _form = {
 };
 const steps = [
   { title: "Information" },
-  { title: "Main Course" },
-  { title: "Side Menus" },
-  { title: "Rules" },
+  { title: "Venue Images" },
   { title: "Inclusions" },
 ];
 const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
@@ -151,8 +149,6 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
     e.preventDefault();
     const { mainCourses = [], mainCourseLimit = 0 } = form;
     // const action = e.nativeEvent.submitter.dataset.action;
-    if (currentStep === 1 && !form?.img)
-      return toast.warning("Please upload a package image.");
 
     if (
       currentStep === 2 &&

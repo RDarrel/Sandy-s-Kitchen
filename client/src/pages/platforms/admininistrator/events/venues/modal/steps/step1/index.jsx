@@ -1,13 +1,9 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import Image from "./image";
 const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
   return (
-    <div className="grid grid-cols-[22rem_1fr] gap-5">
-      <div className="h-[17rem] ">
-        <Image setForm={setForm} form={form} />
-      </div>
+    <div className=" gap-5">
       <div className=" grid gap-5">
         <div className="grid grid-cols-2 gap-5">
           <div className="grid w-full  items-center gap-1.5">
