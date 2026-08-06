@@ -1,52 +1,58 @@
-import { PackageCheck, Salad } from "lucide-react";
-import Cluster from "./cluster";
-import { useCallback } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
-const Step4 = ({ form = {}, setForm = () => {} }) => {
-  const { mainCourses, sideMenus, minimumGuests } = form;
+const eventTypes = [
+  "Wedding",
+  "Birthday Party",
+  "Debut",
+  "Christening / Baptism",
+  "Corporate Event",
+  "Company Party",
+  "Seminar / Training",
+  "Conference",
+  "Team Building",
+  "Anniversary",
+  "Family Gathering",
+  "Reunion",
+  "Graduation Party",
+  "School Event",
+  "Christmas Party",
+  "Prom / Ball",
+  "Baby Shower",
+  "Gender Reveal",
+  "Engagement Party",
+  "Other",
+];
 
-  const onUpdateCategoryLimit = useCallback(
-    (isMainCourse = false, cId, limit) => {
-      const clusterKey = isMainCourse ? "mainCourses" : "sideMenus";
-      setForm((prev) => {
-        const menus = [...prev[clusterKey]];
-        const pIdx = menus.findIndex(({ category }) => category._id === cId);
-        if (pIdx < 0) return;
-        menus[pIdx] = {
-          ...menus[pIdx],
-          limit,
-        };
-        return { ...prev, [clusterKey]: menus };
-      });
-    },
-    [],
-  );
-
+const Step4 = () => {
   return (
-    <div className="space-y-5">
-      <Cluster
-        title="Main Courses"
-        subtitle="Review selected main courses and set selection limits."
-        icon={<PackageCheck className="size-5" />}
-        menuCategories={mainCourses}
-        targetPax={minimumGuests}
-        onUpdateCategoryLimit={onUpdateCategoryLimit}
-        key={"cluster-1"}
-        isMainCourse
-        emptyTitle="No main courses selected yet"
-      />
-      {sideMenus?.length > 0 && (
-        <Cluster
-          title="Side Menus"
-          subtitle="Review selected side menus and set selection limits."
-          icon={<Salad className="size-5" />}
-          menuCategories={sideMenus}
-          targetPax={minimumGuests}
-          key={"cluster-2"}
-          onUpdateCategoryLimit={onUpdateCategoryLimit}
-          emptyTitle="No side menus selected yet"
-        />
-      )}
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        {eventTypes.map((event) => (
+          <div
+            key={event}
+            className="
+              flex items-center gap-2
+              rounded-md border
+              px-3 py-2
+              hover:bg-muted
+            "
+          >
+            <Checkbox id={event} />
+
+            <Label
+              htmlFor={event}
+              className="
+                cursor-pointer
+                text-sm
+                font-normal
+              "
+            >
+              {event}
+            </Label>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

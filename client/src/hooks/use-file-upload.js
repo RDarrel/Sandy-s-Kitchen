@@ -13,11 +13,7 @@ export const useFileUpload = (options = {}) => {
   } = options;
 
   const [state, setState] = useState({
-    files: initialFiles.map((file) => ({
-      file,
-      id: file.id,
-      preview: file.url,
-    })),
+    files: initialFiles,
     isDragging: false,
     errors: [],
   });

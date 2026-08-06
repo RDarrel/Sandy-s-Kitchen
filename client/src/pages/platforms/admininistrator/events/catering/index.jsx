@@ -34,7 +34,6 @@ const Packages = () => {
     dispatch(BROWSE_EQUIPMENT());
   }, [dispatch]);
   const handleAction = useCallback((action, item) => {
-    console.log("action", action);
     switch (action) {
       case "update":
         setIsOpen(true);

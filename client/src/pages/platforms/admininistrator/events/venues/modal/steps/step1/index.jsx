@@ -39,7 +39,21 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
             />
           </div>
         </div>
-
+        <div className="grid w-full  items-center gap-1.5">
+          <Label htmlFor="price">Address</Label>
+          <Input
+            value={String(form?.basePrice || "")}
+            onChange={({ target }) =>
+              setForm({
+                ...form,
+                basePrice: Number(target.value),
+              })
+            }
+            required
+            id="price"
+            placeholder="Enter address"
+          />
+        </div>
         <div className="grid grid-cols-2 gap-5">
           <div className="grid w-full  items-center gap-1.5">
             <Label htmlFor="minGuests">Minimum Pax</Label>

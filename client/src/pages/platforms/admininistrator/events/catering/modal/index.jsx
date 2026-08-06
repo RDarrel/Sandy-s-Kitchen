@@ -47,7 +47,7 @@ const _form = {
   sideMenus: [],
 };
 const steps = [
-  { title: "Information" },
+  { title: "Basic Information" },
   { title: "Main Course" },
   { title: "Side Menus" },
   { title: "Rules" },

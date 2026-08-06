@@ -25,7 +25,6 @@ import Step1 from "./steps/step1";
 import Step2 from "./steps/step2";
 import Step3 from "./steps/step3";
 import Step4 from "./steps/step4";
-import Step5 from "./steps/step5";
 import { toast } from "sonner";
 import {
   SAVE,
@@ -47,9 +46,10 @@ const _form = {
   sideMenus: [],
 };
 const steps = [
-  { title: "Information" },
+  { title: "Basic Information" },
   { title: "Venue Images" },
-  { title: "Inclusions" },
+  { title: "Services & Equipment" },
+  { title: "Event Compatibility" },
 ];
 const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
   const [form, setForm] = useState(_form),
@@ -76,9 +76,6 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
   }, [isOpen, selected]);
 
   if (!isOpen) return null;
-
-  const getIncludedMenusLength = (menuCategories) =>
-    menuCategories.reduce((acc, curr) => acc + curr.choices.length, 0);
 
   const handleSave = () => {
     dispatch(SAVE(buildData(form)))
@@ -147,15 +144,12 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { mainCourses = [], mainCourseLimit = 0 } = form;
+    const { images = [] } = form;
     // const action = e.nativeEvent.submitter.dataset.action;
 
-    if (
-      currentStep === 2 &&
-      getIncludedMenusLength(mainCourses) < mainCourseLimit
-    ) {
+    if (images?.length === 0 && currentStep === 2) {
       return toast.warning(
-        `Select at least ${mainCourseLimit} main course menus to match the main course limit.`,
+        `Please upload at least one venue image to continue.`,
       );
     }
 
@@ -211,7 +205,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
               ))}
             </StepperNav>
             <StepperPanel className="text-sm">
-              {[Step1, Step2, Step3, Step4, Step5].map((Step, index) => (
+              {[Step1, Step2, Step3, Step4].map((Step, index) => (
                 <StepperContent key={index} value={index + 1}>
                   <Step form={form} setForm={setForm} isDraft={isDraft} />
                 </StepperContent>

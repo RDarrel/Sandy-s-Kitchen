@@ -1,4 +1,27 @@
 const mongoose = require("mongoose");
+const eventTypes = [
+  "Wedding",
+  "Birthday Party",
+  "Debut",
+  "Christening / Baptism",
+  "Corporate Event",
+  "Company Party",
+  "Seminar / Training",
+  "Conference",
+  "Team Building",
+  "Anniversary",
+  "Family Gathering",
+  "Reunion",
+  "Graduation Party",
+  "School Event",
+  "Christmas Party",
+  "Prom / Ball",
+  "Baby Shower",
+  "Gender Reveal",
+  "Engagement Party",
+  "Other",
+];
+
 const inclusionSchema = new mongoose.Schema(
   {
     item: {
@@ -61,6 +84,11 @@ const venueSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+    },
+    types: {
+      type: [String],
+      enum: eventTypes,
+      required: true,
     },
 
     amenities: [
