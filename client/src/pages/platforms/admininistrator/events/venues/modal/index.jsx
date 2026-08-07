@@ -41,9 +41,8 @@ const _form = {
   img: "",
   minimumGuests: 0,
   mainCourseLimit: 3,
-  inclusions: [],
-  mainCourses: [],
-  sideMenus: [],
+  capacity: 0,
+  types: [],
 };
 const steps = [
   { title: "Basic Information" },
@@ -144,7 +143,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { images = [] } = form;
+    const { images = [], ...rest } = form;
     // const action = e.nativeEvent.submitter.dataset.action;
 
     if (images?.length === 0 && currentStep === 2) {
@@ -153,21 +152,25 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
       );
     }
 
-    if (currentStep !== 5) return setCurrentStep((prev) => prev + 1);
+    if (currentStep === 4 && rest.types?.length === 0)
+      return toast.warning(
+        "Please select at least one event compatibility before saving the venue.",
+      );
 
-    setIsSubmitting(true);
-    if (willCreate) return handleSave();
-    return handleUpdate();
+    if (currentStep !== 4) return setCurrentStep((prev) => prev + 1);
+    // setIsSubmitting(true);
+    // if (willCreate) return handleSave();
+    // return handleUpdate();
   };
 
   const description = willCreate
-    ? "Update the package details. Review your changes before updating."
-    : "Enter the package details. Review everything before saving.";
+    ? "Enter the venue details. Review everything before saving."
+    : "Update the venue details. Review your changes before updating.";
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>{willCreate ? "Add" : "Update"} Package</DialogTitle>
+          <DialogTitle>{willCreate ? "Add" : "Update"} Venue</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -227,7 +230,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
                   data-action="next"
                   onClick={() => setIsDraft(false)}
                 >
-                  {currentStep === 5 ? "Submit" : "Next"}{" "}
+                  {currentStep === 4 ? "Submit" : "Next"}{" "}
                   <Spinner formSubmitted={isSubmitting} />
                 </Button>
               </div>

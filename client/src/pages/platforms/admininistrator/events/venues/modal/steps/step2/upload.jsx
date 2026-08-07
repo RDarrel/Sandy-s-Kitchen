@@ -17,7 +17,7 @@ const Upload = ({
   return (
     <div
       className={cn(
-        "rounded-lg relative border border-dashed p-8 text-center transition-colors",
+        "rounded-lg relative border border-dashed p-4 text-center transition-colors",
         isDragging
           ? "border-primary bg-primary/5"
           : "border-muted-foreground/25 hover:border-muted-foreground/50",
@@ -29,10 +29,10 @@ const Upload = ({
     >
       <input {...getInputProps()} className="sr-only" />
 
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-2">
         <div
           className={cn(
-            "flex h-16 w-16 items-center justify-center rounded-full",
+            "flex h-12 w-12 items-center justify-center rounded-full",
             isDragging ? "bg-primary/10" : "bg-muted",
           )}
         >

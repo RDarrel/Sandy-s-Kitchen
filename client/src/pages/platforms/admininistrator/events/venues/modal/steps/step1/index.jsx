@@ -1,12 +1,17 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
   return (
     <div className=" gap-5">
       <div className=" grid gap-5">
-        <div className="grid grid-cols-2 gap-5">
-          <div className="grid w-full  items-center gap-1.5">
+        <div className="grid grid-cols-4 gap-5">
+          <div className="grid w-full  items-center gap-1.5 col-span-2">
             <Label htmlFor="name">Name</Label>
             <Input
               type="text"
@@ -19,11 +24,11 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
               }
               required={true}
               id="name"
-              placeholder="Enter package name"
+              placeholder="Enter venue name"
             />
           </div>
           <div className="grid w-full  items-center gap-1.5">
-            <Label htmlFor="price">Price</Label>
+            <Label htmlFor="price">Base Price</Label>
             <Input
               type="number"
               value={String(form?.basePrice || "")}
@@ -35,60 +40,96 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
               }
               required
               id="price"
-              placeholder="Enter package price"
-            />
-          </div>
-        </div>
-        <div className="grid w-full  items-center gap-1.5">
-          <Label htmlFor="price">Address</Label>
-          <Input
-            value={String(form?.basePrice || "")}
-            onChange={({ target }) =>
-              setForm({
-                ...form,
-                basePrice: Number(target.value),
-              })
-            }
-            required
-            id="price"
-            placeholder="Enter address"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-5">
-          <div className="grid w-full  items-center gap-1.5">
-            <Label htmlFor="minGuests">Minimum Pax</Label>
-            <Input
-              type="number"
-              value={String(form?.minimumGuests || "")}
-              onChange={({ target }) =>
-                setForm({
-                  ...form,
-                  minimumGuests: Number(target.value),
-                })
-              }
-              required={!isDraft}
-              id="minGuests"
-              placeholder="Enter minimum pax"
+              min="1"
+              placeholder="e.g. 5,000"
             />
           </div>
           <div className="grid w-full  items-center gap-1.5">
-            <Label htmlFor="pricePerPax">Additional Price Per Pax</Label>
+            <Label htmlFor="capacity">Max Capacity</Label>
             <Input
               type="number"
-              value={String(form?.addPricePerGuest || "")}
+              value={String(form?.capacity || "")}
               onChange={({ target }) =>
                 setForm({
                   ...form,
-                  addPricePerGuest: Number(target.value),
+                  capacity: Number(target.value),
                 })
               }
               required={!isDraft}
-              id="pricePerPax"
-              placeholder="Enter additional price per pax"
+              id="capacity"
+              placeholder="e.g. 100 guests"
+              min="1"
             />
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-5">
+          <div className="grid w-full  items-center gap-1.5">
+            <Label htmlFor="duration">Duration Hours</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <InputGroup className="max-w-xs">
+                <InputGroupAddon align="inline-start">Min</InputGroupAddon>
+                <InputGroupInput
+                  required
+                  type="number"
+                  id="duration"
+                  min="1"
+                  placeholder="e.g 2 hrs"
+                />
+              </InputGroup>
+              <InputGroup className="max-w-xs">
+                <InputGroupAddon align="inline-start">Max</InputGroupAddon>
+                <InputGroupInput
+                  required
+                  min="1"
+                  type="number"
+                  placeholder="e.g 8 hrs"
+                  id="duration"
+                />
+              </InputGroup>
+            </div>
+          </div>
+          <div className="grid w-full  items-center gap-1.5">
+            <Label htmlFor="pricePerPax">Additional Charges</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <InputGroup className="max-w-xs">
+                <InputGroupAddon align="inline-start">Per Hour</InputGroupAddon>
+                <InputGroupInput
+                  required
+                  min="1"
+                  type="number"
+                  id="duration"
+                  placeholder="e.g. 100"
+                />
+              </InputGroup>
+              <InputGroup className="max-w-xs">
+                <InputGroupAddon align="inline-start">Per Pax</InputGroupAddon>
+                <InputGroupInput
+                  required
+                  min="1"
+                  type="number"
+                  placeholder="e.g. 300"
+                  id="duration"
+                />
+              </InputGroup>
+            </div>
+          </div>
+        </div>
+        <div className="grid w-full  items-center gap-1.5">
+          <Label htmlFor="address">Address</Label>
+          <Input
+            value={String(form?.address || "")}
+            onChange={({ target }) =>
+              setForm({
+                ...form,
+                address: target.value,
+              })
+            }
+            required
+            id="address"
+            placeholder="Enter address"
+          />
+        </div>
         <div className="grid w-full items-center gap-1.5">
           <Label htmlFor="description">Description</Label>
           <Textarea
