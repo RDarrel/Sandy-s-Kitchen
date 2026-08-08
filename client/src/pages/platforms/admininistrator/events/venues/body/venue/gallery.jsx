@@ -3,7 +3,7 @@ import Availability from "./availability";
 const Gallery = ({ venue, handleAction = () => {} }) => {
   const thumbnail = venue.images[0] || "";
 
-  const getImage = (image, id) => {
+  const getImage = (image) => {
     return Cloudinary.getVenueImg(
       image?.version,
       venue?._id,
@@ -31,7 +31,7 @@ const Gallery = ({ venue, handleAction = () => {} }) => {
           />
         ))}
       </div>
-      <Availability handleAction={handleAction} />
+      <Availability handleAction={handleAction} item={venue} />
     </div>
   );
 };

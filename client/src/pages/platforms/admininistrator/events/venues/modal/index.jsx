@@ -97,13 +97,13 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
       .then(async ({ data: item, success }) => {
         try {
           const uploaded = await Promise.all(
-            images.map((img, idx) =>
+            images.map(({ src, id }) =>
               dispatch(
                 UPLOAD({
                   data: Cloudinary.buildFileForm(
-                    img,
+                    src,
                     `venues/${item?._id}`,
-                    `image-${idx + 1}`,
+                    `image-${id}`,
                   ),
                 }),
               ).unwrap(),
@@ -117,7 +117,10 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
           dispatch(
             UPDATE({
               _id: item?._id,
-              images: uploaded.map(({ imgId }) => imgId),
+              images: uploaded.map(({ imgId }, idx) => ({
+                version: imgId,
+                id: images[idx]?.id || 1,
+              })),
             }),
           );
           toast.success(success);

@@ -27,15 +27,21 @@ const Venue = ({ venue = {}, handleAction = () => {} }) => {
     visibleItems: visibleTypes,
     hiddenItems: hiddenTypes,
   } = useMemo(() => {
-    return getVisibleItems(venue?.types, 7);
+    return getVisibleItems(venue?.types, 4);
   }, [venue, getVisibleItems]);
 
-  const { duration = {}, additionalCharges = {} } = venue || {};
+  const {
+    duration = {},
+    additionalCharges = {},
+    isAvailable = false,
+  } = venue || {};
   const { perPax = 0, perHour = 0 } = additionalCharges || {};
   return (
     <article className="admin-venue-card">
       <Gallery venue={venue} handleAction={handleAction} />
-      <div className="admin-venue-card__body">
+      <div
+        className={`admin-venue-card__body opacity-${isAvailable ? 100 : 50}`}
+      >
         <div className="admin-venue-card__top">
           <div>
             <h2>{venue?.name}</h2>
