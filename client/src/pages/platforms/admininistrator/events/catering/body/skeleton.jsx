@@ -34,7 +34,7 @@ const PackageSkeleton = () => {
           <hr />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {Array.from({ length: 4 }).map((_, idx) => {
+          {Array.from({ length: 6 }).map((_, idx) => {
             const width = 100 - ((idx * 17) % 40);
 
             return (

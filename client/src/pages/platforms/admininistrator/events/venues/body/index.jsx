@@ -73,7 +73,6 @@ const Venues = ({ handleAction = () => {} }) => {
       <div className="admin-venue-page__inner">
         <div className="admin-venue-reservation">
           <div className="admin-venue-reservation__grid">
-            <VenueSkeleton />
             {!isLoading
               ? visibleVenues.map((venue) => {
                   return (
