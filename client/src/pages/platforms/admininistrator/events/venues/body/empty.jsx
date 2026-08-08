@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { SEARCH } from "@/services/redux/slices/events/cateringPackages";
 
 const Empty = () => {
-  const { search } = useSelector(({ cateringPackages }) => cateringPackages),
+  const { search } = useSelector(({ venues }) => venues),
     dispatch = useDispatch();
 
   return (
@@ -15,7 +15,7 @@ const Empty = () => {
         </div>
 
         <h2 className="text-xl font-semibold tracking-tight">
-          No packages found
+          No venues found
         </h2>
 
         <p className="mt-2 text-sm text-muted-foreground">
@@ -25,7 +25,7 @@ const Empty = () => {
 
         <p className="mt-1 text-sm text-muted-foreground">
           Try searching with a different keyword or clear the search to view all
-          available packages.
+          available venues.
         </p>
 
         <Button

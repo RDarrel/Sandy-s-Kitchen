@@ -1,11 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-const Stats = ({
-  files,
-  maxFiles,
-  formatBytes = () => {},
-  clearFiles = () => {},
-}) => {
+const Stats = ({ files, maxFiles, clearFiles = () => {} }) => {
   return (
     <div className="mt-6 flex items-center justify-between">
       <div className="flex items-center gap-4">

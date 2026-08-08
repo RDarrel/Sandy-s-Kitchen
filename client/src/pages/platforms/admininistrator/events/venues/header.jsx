@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { SEARCH } from "@/services/redux/slices/events/cateringPackages";
+import { SEARCH } from "@/services/redux/slices/events/venues";
 import { Plus, Search } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 const Header = ({ toggleCreate = () => {} }) => {
-  const { search } = useSelector(({ cateringPackages }) => cateringPackages),
+  const { search } = useSelector(({ venues }) => venues),
     dispatch = useDispatch();
   return (
     <CardHeader>
@@ -13,8 +13,8 @@ const Header = ({ toggleCreate = () => {} }) => {
         <div>
           <CardTitle className="text-2xl text-foreground">Venues</CardTitle>
           <CardDescription>
-            Manage catering packages with menus, inclusions, pricing, and guest
-            requirements.
+            Manage venue details, pricing, capacity, event compatibility, and
+            available amenities.
           </CardDescription>
         </div>
         <div className="flex align-items-center gap-4">
@@ -23,7 +23,7 @@ const Header = ({ toggleCreate = () => {} }) => {
             <Input
               value={search}
               onChange={(event) => dispatch(SEARCH(event.target.value))}
-              placeholder="Search package..."
+              placeholder="Search venue..."
               className="pl-9"
               type="search"
             />

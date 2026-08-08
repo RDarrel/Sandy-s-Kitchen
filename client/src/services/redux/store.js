@@ -6,7 +6,7 @@ import deals from "./slices/commerce/deals";
 import transactions from "./slices/commerce/transactions";
 import audit from "./slices/audit";
 import dashboard from "./slices/dashboard";
-import { cateringPackages } from "./slices/events";
+import { cateringPackages, venues } from "./slices/events";
 import { addOns, menus, menuCategories } from "./slices/menu";
 import {
   inventoryItems,
@@ -39,6 +39,7 @@ const store = configureStore({
     equipment,
     services,
     cateringPackages,
+    venues,
   },
 });
 

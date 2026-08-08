@@ -1,8 +1,8 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-const PackageSkeleton = () => {
+const VenueSkeleton = () => {
   return (
-    <div className="min-h-[14.75rem]  grid grid-cols-1 sm:grid-cols-[2fr_3fr] border border-primary/22 shadow-sm border rounded-md relative ">
+    <div className="min-h-[14.75rem]  grid grid-cols-1 sm:grid-cols-[1.4fr_3fr] border border-primary/22 shadow-sm border rounded-md relative ">
       <div>
         <Skeleton className={"h-[10rem] sm:h-full w-full rounded-none "} />
       </div>
@@ -22,19 +22,18 @@ const PackageSkeleton = () => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1 ">
-          <hr />
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-5 ">
-            {Array.from({ length: 4 }).map((_, idx) => (
+        <div className="flex flex-col gap-2 ">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-2 md:gap-5 ">
+            {Array.from({ length: 2 }).map((_, idx) => (
               <div key={`package-skeleton-${idx}`}>
-                <Skeleton className={"h-5 w-full"} />
+                <Skeleton className={"h-12 w-full"} />
               </div>
             ))}
           </div>
           <hr />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {Array.from({ length: 4 }).map((_, idx) => {
+          {Array.from({ length: 6 }).map((_, idx) => {
             const width = 100 - ((idx * 17) % 40);
 
             return (
@@ -51,4 +50,4 @@ const PackageSkeleton = () => {
     </div>
   );
 };
-export default PackageSkeleton;
+export default VenueSkeleton;

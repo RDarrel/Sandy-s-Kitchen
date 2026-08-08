@@ -71,6 +71,13 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
                 <InputGroupAddon align="inline-start">Min</InputGroupAddon>
                 <InputGroupInput
                   required
+                  value={String(form?.duration?.min || "")}
+                  onChange={({ target }) =>
+                    setForm({
+                      ...form,
+                      duration: { ...form.duration, min: Number(target.value) },
+                    })
+                  }
                   type="number"
                   id="duration"
                   min="1"
@@ -80,6 +87,13 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
               <InputGroup className="max-w-xs">
                 <InputGroupAddon align="inline-start">Max</InputGroupAddon>
                 <InputGroupInput
+                  value={String(form?.duration?.max || "")}
+                  onChange={({ target }) =>
+                    setForm({
+                      ...form,
+                      duration: { ...form.duration, max: Number(target.value) },
+                    })
+                  }
                   required
                   min="1"
                   type="number"
@@ -95,6 +109,16 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
               <InputGroup className="max-w-xs">
                 <InputGroupAddon align="inline-start">Per Hour</InputGroupAddon>
                 <InputGroupInput
+                  value={String(form?.additionalCharges?.perHour || "")}
+                  onChange={({ target }) =>
+                    setForm({
+                      ...form,
+                      additionalCharges: {
+                        ...form.additionalCharges,
+                        perHour: Number(target.value),
+                      },
+                    })
+                  }
                   required
                   min="1"
                   type="number"
@@ -106,6 +130,16 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
                 <InputGroupAddon align="inline-start">Per Pax</InputGroupAddon>
                 <InputGroupInput
                   required
+                  value={String(form?.additionalCharges?.perPax || "")}
+                  onChange={({ target }) =>
+                    setForm({
+                      ...form,
+                      additionalCharges: {
+                        ...form.additionalCharges,
+                        perPax: Number(target.value),
+                      },
+                    })
+                  }
                   min="1"
                   type="number"
                   placeholder="e.g. 300"
@@ -134,11 +168,11 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
           <Label htmlFor="description">Description</Label>
           <Textarea
             type="text-area"
-            value={form?.address || ""}
+            value={form?.description || ""}
             onChange={({ target }) =>
               setForm({
                 ...form,
-                address: target.value,
+                description: target.value,
               })
             }
             className="min-h-25"

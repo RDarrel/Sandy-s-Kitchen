@@ -3,11 +3,10 @@ import { useCallback, useEffect, useState } from "react";
 import CustomModal from "./modal";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  BROWSE as BROWSE_PACKAGES,
+  BROWSE as BROWSE_VENUES,
   DESTROY,
   UPDATE,
-} from "@/services/redux/slices/events/cateringPackages";
-import { BROWSE as BROWSE_MENUS } from "@/services/redux/slices/menu/menus";
+} from "@/services/redux/slices/events/venues";
 import { BROWSE as BROWSE_EQUIPMENT } from "@/services/redux/slices/inventory/equipment";
 import { BROWSE as BROWSE_SERVICES } from "@/services/redux/slices/resources/services";
 import Body from "./body";
@@ -16,9 +15,7 @@ import { CustomAlert } from "@/components/shared/alert";
 import { toast } from "sonner";
 import Header from "./header";
 const Venues = () => {
-  const { formSubmitted } = useSelector(
-      ({ cateringPackages }) => cateringPackages,
-    ),
+  const { formSubmitted } = useSelector(({ venues }) => venues),
     [selected, setSelected] = useState({}),
     [isOpen, setIsOpen] = useState(false),
     [openConfirmation, setOpenConfirmation] = useState({
@@ -29,9 +26,8 @@ const Venues = () => {
     dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(BROWSE_PACKAGES());
-    dispatch(BROWSE_MENUS({ station: "catering" }));
-    dispatch(BROWSE_SERVICES({ module: "catering" }));
+    dispatch(BROWSE_VENUES());
+    dispatch(BROWSE_SERVICES({ module: "venue" }));
     dispatch(BROWSE_EQUIPMENT());
   }, [dispatch]);
 
@@ -134,12 +130,12 @@ const Venues = () => {
           <>
             Are you sure you want to change the availability of{" "}
             <span className="font-semibold text-primary">
-              {selected?.name || "this package"}
+              {selected?.name || "this venue"}
             </span>
             ? Customers{" "}
             {selected?.isAvailable
-              ? "will no longer be able to book this package."
-              : "will be able to book this package."}
+              ? "will no longer be able to book this venue."
+              : "will be able to book this venue."}
           </>
         }
       />

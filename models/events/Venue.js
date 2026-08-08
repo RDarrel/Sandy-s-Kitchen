@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const eventTypes = [
   "Wedding",
   "Birthday Party",
@@ -60,6 +61,11 @@ const venueSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    address: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
     capacity: {
       type: Number,
@@ -67,46 +73,53 @@ const venueSchema = new mongoose.Schema(
       min: 1,
     },
 
-    rentalFee: {
+    basePrice: {
       type: Number,
       required: true,
       min: 0,
     },
 
-    rentalDuration: {
-      type: Number,
-      required: true,
-      min: 1,
-      default: 8,
-    },
-
-    address: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    types: {
-      type: [String],
-      enum: eventTypes,
-      required: true,
-    },
-
-    amenities: [
-      {
-        type: String,
-        trim: true,
+    duration: {
+      min: {
+        type: Number,
+        required: true,
+        min: 1,
       },
-    ],
-
-    thumbnail: {
-      url: String,
-      publicId: String,
+      max: {
+        type: Number,
+        required: true,
+        min: 1,
+      },
+    },
+    additionalCharges: {
+      perHour: {
+        type: Number,
+        default: 0,
+      },
+      perPax: {
+        type: Number,
+        default: 0,
+      },
     },
 
-    gallery: [
+    types: {
+      type: [
+        {
+          type: String,
+          enum: eventTypes,
+        },
+      ],
+      required: true,
+      validate: {
+        validator: (value) => value.length > 0,
+        message: "At least one event compatibility is required.",
+      },
+    },
+
+    images: [
       {
-        url: String,
-        publicId: String,
+        id: Number,
+        version: String,
       },
     ],
 
@@ -121,4 +134,6 @@ const venueSchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model("Venue", venueSchema);
+const Entity = mongoose.model("Venue", venueSchema);
+
+module.exports = Entity;

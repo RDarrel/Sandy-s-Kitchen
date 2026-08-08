@@ -30,7 +30,7 @@ import {
   SAVE,
   SET_NEW_PACKAGE,
   UPDATE,
-} from "@/services/redux/slices/events/cateringPackages";
+} from "@/services/redux/slices/events/venues";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { UPLOAD } from "@/services/redux/slices/persons/auth";
 import Spinner from "@/components/shared/spinner";
@@ -38,11 +38,20 @@ import { buildData } from "./utils";
 import { isImgURL } from "@/services/utilities";
 const _form = {
   name: "",
-  img: "",
-  minimumGuests: 0,
-  mainCourseLimit: 3,
+  description: "",
+  address: "",
+  basePrice: 0,
+  duration: {
+    min: 0,
+    max: 0,
+  },
+  additionalCharges: {
+    perHour: 0,
+    perPax: 0,
+  },
   capacity: 0,
   types: [],
+  inclusions: [],
 };
 const steps = [
   { title: "Basic Information" },
@@ -63,11 +72,16 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
     if (isOpen && selected?._id) {
       setForm({
         ...selected,
-        mainCourses: selected?.mainCourseCategories,
-        sideMenus: selected?.sideMenuCategories,
-        img: Cloudinary.getPackageImg(selected?.imgId || "", selected?._id),
+        images: selected.images.map((img) => ({
+          ...img,
+          src: Cloudinary.getVenueImg(
+            img.version,
+            selected?._id,
+            `image-${img?.id}`,
+          ),
+        })),
       });
-      setCurrentStep(5);
+      setCurrentStep(4);
     } else {
       setForm(_form);
       setCurrentStep(1);
@@ -77,55 +91,79 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
   if (!isOpen) return null;
 
   const handleSave = () => {
+    const { images = [] } = form;
     dispatch(SAVE(buildData(form)))
       .unwrap()
-      .then(({ data: item, success }) => {
-        const imgBuild = Cloudinary.buildFileForm(
-          form.img,
-          "packages",
-          item._id,
-        );
+      .then(async ({ data: item, success }) => {
+        try {
+          const uploaded = await Promise.all(
+            images.map((img, idx) =>
+              dispatch(
+                UPLOAD({
+                  data: Cloudinary.buildFileForm(
+                    img,
+                    `venues/${item?._id}`,
+                    `image-${idx + 1}`,
+                  ),
+                }),
+              ).unwrap(),
+            ),
+          );
 
-        dispatch(UPLOAD({ data: imgBuild }))
-          .then(() => {
-            setIsOpen(false);
-            setIsSubmitting(false);
-            setForm(_form);
-            dispatch(SET_NEW_PACKAGE(item));
-            toast.success(success);
-          })
-          .catch((error) => {
-            setIsSubmitting(false);
-            toast.error(
-              error?.message ||
-                error ||
-                "Failed to upload the image. Please try again.",
-            );
-          });
+          setIsOpen(false);
+          setIsSubmitting(false);
+          setForm(_form);
+          dispatch(SET_NEW_PACKAGE(item));
+          dispatch(
+            UPDATE({
+              _id: item?._id,
+              images: uploaded.map(({ imgId }) => imgId),
+            }),
+          );
+          toast.success(success);
+        } catch (error) {
+          toast.error(
+            error?.message || error || "Failed to save venue images.",
+          );
+        }
       })
       .catch((error) => {
         setIsSubmitting(false);
-        toast.error(error?.message || error || "Failed to created package.");
+        toast.error(error?.message || error || "Failed to created venue.");
       });
   };
 
   const handleUpdate = async () => {
-    let imgId = "";
-
-    if (!isImgURL(form.img)) {
-      const imgForm = Cloudinary.buildFileForm(
-        form.img,
-        "packages",
-        selected?._id,
+    let images = [...form?.images];
+    const imagesToUpload = images.filter(({ src }) => isImgURL(src) === false);
+    if (imagesToUpload?.length > 0) {
+      const oldImages = form.images.filter(({ src }) => isImgURL(src));
+      const uploaded = await Promise.all(
+        imagesToUpload.map(({ src, id }) =>
+          dispatch(
+            UPLOAD({
+              data: Cloudinary.buildFileForm(
+                src,
+                `venues/${selected?._id}`,
+                `image-${id}`,
+              ),
+            }),
+          ).unwrap(),
+        ),
       );
-      const response = await dispatch(UPLOAD({ data: imgForm })).unwrap();
-      imgId = response.imgId;
+      const uploadedVersions = uploaded.map(({ imgId }, idx) => ({
+        version: imgId,
+        id: imagesToUpload[idx]?.id,
+      }));
+
+      images = [...(oldImages || []), ...uploadedVersions];
     }
+
     dispatch(
       UPDATE({
         ...buildData(form),
         _id: selected?._id,
-        ...(imgId && { imgId }),
+        images,
       }),
     )
       .unwrap()
@@ -158,9 +196,9 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
       );
 
     if (currentStep !== 4) return setCurrentStep((prev) => prev + 1);
-    // setIsSubmitting(true);
-    // if (willCreate) return handleSave();
-    // return handleUpdate();
+    setIsSubmitting(true);
+    if (willCreate) return handleSave();
+    return handleUpdate();
   };
 
   const description = willCreate

@@ -12,25 +12,25 @@ const Files = ({
 }) => {
   return (
     <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-      {files.map((src, idx) => (
+      {files.map(({ src, id }, idx) => (
         <div
           key={`venue-img${idx}`}
           className="group/item relative aspect-square"
         >
           {src ? (
             <>
-              {loadingImages[idx] !== false && (
+              {loadingImages[id] !== false && (
                 <div className="bg-muted/50 rounded-lg absolute inset-0 flex items-center justify-center border">
                   <Spinner className="text-muted-foreground size-6" />
                 </div>
               )}
               <img
                 src={src}
-                alt={`no-img-found${idx}`}
+                alt={`no-img-found${id}`}
                 onLoad={() =>
                   setLoadingImages((prev) => ({
                     ...prev,
-                    [idx]: false,
+                    [id]: false,
                   }))
                 }
                 className={cn(

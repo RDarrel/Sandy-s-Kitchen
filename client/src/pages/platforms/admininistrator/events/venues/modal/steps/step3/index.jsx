@@ -20,8 +20,12 @@ const Step3 = ({ form, setForm = () => {} }) => {
     };
   }, [form.inclusions]);
 
+  const hasServices = Boolean(services?.length);
+
   return (
-    <div className="grid max-h-[64vh] gap-2 overflow-y-auto pr-1 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-track]:bg-transparent md:max-h-none md:overflow-visible md:pr-0 lg:grid-cols-2">
+    <div
+      className={`grid max-h-[64vh] gap-2 overflow-y-auto pr-1 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/30 [&::-webkit-scrollbar-track]:bg-transparent md:max-h-none md:overflow-visible md:pr-0 lg:grid-cols-${hasServices ? 2 : 1}`}
+    >
       <Cluster
         title="Equipment"
         subtitle="Select equipment included in this package."
@@ -36,19 +40,21 @@ const Step3 = ({ form, setForm = () => {} }) => {
         emptyTitle="No equipment found"
       />
 
-      <Cluster
-        title="Services"
-        subtitle="Select services included in this package."
-        addTitle="Available services"
-        detailsTitle="Included services"
-        icon={<BriefcaseBusiness className="size-4" />}
-        items={services}
-        type="Services"
-        setForm={setForm}
-        included={includedServices}
-        searchPlaceholder="Search services"
-        emptyTitle="No services found"
-      />
+      {hasServices && (
+        <Cluster
+          title="Services"
+          subtitle="Select services included in this package."
+          addTitle="Available services"
+          detailsTitle="Included services"
+          icon={<BriefcaseBusiness className="size-4" />}
+          items={services}
+          type="Services"
+          setForm={setForm}
+          included={includedServices}
+          searchPlaceholder="Search services"
+          emptyTitle="No services found"
+        />
+      )}
     </div>
   );
 };

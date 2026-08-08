@@ -109,6 +109,12 @@ export const useFileUpload = (options = {}) => {
     });
   }, [onFilesChange]);
 
+  const getAvailableImageNumbers = useCallback((usedNumbers, max = 4) => {
+    return Array.from({ length: max }, (_, index) => index + 1).filter(
+      (number) => !usedNumbers.includes(number),
+    );
+  }, []);
+
   const addFiles = useCallback(
     async (newFiles) => {
       if (!newFiles || newFiles.length === 0) return;
@@ -135,6 +141,9 @@ export const useFileUpload = (options = {}) => {
         setState((prev) => ({ ...prev, errors }));
         return;
       }
+      const availableNumbers = getAvailableImageNumbers(
+        state.files.map(({ id }) => id),
+      );
 
       const validFiles = [];
       for (const file of newFilesArray) {
@@ -166,7 +175,11 @@ export const useFileUpload = (options = {}) => {
         if (error) {
           errors.push(error);
         } else {
-          validFiles.push(base64);
+          validFiles.push({
+            id: availableNumbers[0] || 1,
+            version: "",
+            src: base64,
+          });
         }
       }
 
@@ -208,6 +221,7 @@ export const useFileUpload = (options = {}) => {
       createPreview,
       generateUniqueId,
       clearFiles,
+      getAvailableImageNumbers,
       onFilesChange,
       onFilesAdded,
     ],

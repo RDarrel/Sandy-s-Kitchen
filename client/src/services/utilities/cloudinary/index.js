@@ -4,6 +4,9 @@ const Cloudinary = {
   getMenuImg: (version, fileName) => {
     return `${Cloudinary.getEndpoint()}/${version || ""}/menus/${fileName}`;
   },
+  getVenueImg: (version, itemId = "", fileName) => {
+    return `${Cloudinary.getEndpoint()}/${version || ""}/venues/${itemId}/${fileName}`;
+  },
   getPackageImg: (version, fileName) => {
     return `${Cloudinary.getEndpoint()}/${version || ""}/packages/${fileName}`;
   },

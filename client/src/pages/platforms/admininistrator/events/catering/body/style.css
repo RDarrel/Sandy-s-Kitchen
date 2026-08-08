@@ -1,6 +1,5 @@
 .admin-page {
   min-height: 100%;
-  /* padding: clamp(1.25rem, 2.5vw, 2rem) 1rem; */
   color: var(--foreground);
 }
 

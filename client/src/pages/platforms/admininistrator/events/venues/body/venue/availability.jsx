@@ -1,7 +1,7 @@
-const Availability = ({ item, handleAction = () => {} }) => {
+const Availability = ({ item = {}, handleAction = () => {} }) => {
   const { isAvailable = false } = item;
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-2 absolute">
       <button
         type="button"
         onClick={() => handleAction("availability", item)}
