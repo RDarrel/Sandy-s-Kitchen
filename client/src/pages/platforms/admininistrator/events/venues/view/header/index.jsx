@@ -1,63 +1,64 @@
 import { Formatter } from "@/services/utilities";
-import Cloudinary from "@/services/utilities/cloudinary";
 import { capitalize } from "lodash";
-import { Beef, Gift, Paperclip, Salad, UserPlus, Users } from "lucide-react";
+import { Clock, Gift, MapPin, Paperclip, UserPlus, Users } from "lucide-react";
+import Gallery from "./gallery";
 
 const Header = ({ selected }) => {
   return (
     <div className="grid grid-cols-[22rem_1fr] gap-5 ">
-      <div className="h-[17.6rem]">
-        <img
-          src={Cloudinary.getPackageImg(selected?.imgId || "", selected?._id)}
-          className="w-full h-full object-cover rounded-sm "
-          alt={`Image not found for ${selected?.name}`}
-        />
+      <div className="h-[18.2rem]">
+        <Gallery venue={selected} />
       </div>
       <div className="flex flex-col  gap-3 ">
         <h2 className="font-bold text-[2rem] m-0 ">
           {capitalize(selected?.name)}
         </h2>
+        <p className="-mt-4 flex items-start gap-2 text-sm text-muted-foreground">
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+          <span className="min-w-0">{selected?.address}</span>
+        </p>
         <h2 className="-mt-2">{selected?.description}</h2>
         <div className="grid grid-rows-2 gap-2">
           <div className="grid grid-cols-3  gap-2">
             {[
               {
-                title: "Minimum Guests",
-                value: 50,
-                subTitle: "Required",
+                title: "Max Capacity",
+                value: selected?.capacity,
+                subTitle: "Guests",
                 Icon: Users,
               },
               {
-                title: "Package Price",
+                title: "Venue Price",
                 value: Formatter.amount(selected?.basePrice),
                 subTitle: "Base Rate",
                 Icon: Paperclip,
               },
               {
-                title: "Additional Fee",
-                value: Formatter.amount(selected?.addPricePerGuest),
-
-                subTitle: "Per Guest",
-                Icon: UserPlus,
+                title: "Duration",
+                value: `${selected?.duration?.min}–${selected?.duration?.max} hrs`,
+                subTitle: "Allowed Hours",
+                Icon: Clock,
               },
             ].map((metric, idx) => (
               <Metric metric={metric} key={`main-metric-${idx}`} />
             ))}
           </div>
-          <div className="grid grid-cols-3  gap-2">
+          <div className="grid grid-cols-2  gap-2">
             {[
               {
-                title: "Main Courses",
-                value: 50,
-                subTitle: "Included",
-                Icon: Beef,
+                title: "Additional Charges",
+                value: (
+                  <>
+                    {Formatter.amount(selected?.additionalCharges?.perHour)}
+                    {" / hr"}
+                  </>
+                ),
+                subTitle: `+ ${Formatter.amount(
+                  selected?.additionalCharges?.perPax,
+                )} / guest`,
+                Icon: UserPlus,
               },
-              {
-                title: "Side Menus",
-                value: 50,
-                subTitle: "Included",
-                Icon: Salad,
-              },
+
               {
                 title: "Inclusions",
                 value: 50,

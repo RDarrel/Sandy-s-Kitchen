@@ -15,7 +15,8 @@ const ViewDetails = ({ selected = {}, isOpen, setIsOpen = () => {} }) => {
         <DialogHeader>
           <DialogTitle>Package Details</DialogTitle>
           <DialogDescription>
-            Explore the package information, menus, pricing, and inclusions.
+            Explore the venue details, capacity, pricing, duration, and
+            inclusions.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-5">

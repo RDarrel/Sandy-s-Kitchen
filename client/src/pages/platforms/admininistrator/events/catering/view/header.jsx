@@ -17,13 +17,14 @@ const Header = ({ selected }) => {
         <h2 className="font-bold text-[2rem] m-0 ">
           {capitalize(selected?.name)}
         </h2>
+
         <h2 className="-mt-2">{selected?.description}</h2>
         <div className="grid grid-rows-2 gap-2">
           <div className="grid grid-cols-3  gap-2">
             {[
               {
                 title: "Minimum Guests",
-                value: 50,
+                value: selected?.minimumGuests,
                 subTitle: "Required",
                 Icon: Users,
               },
@@ -48,19 +49,23 @@ const Header = ({ selected }) => {
             {[
               {
                 title: "Main Courses",
-                value: 50,
+                value: selected?.mainCourseCategories?.flatMap(
+                  ({ choices }) => choices,
+                )?.length,
                 subTitle: "Included",
                 Icon: Beef,
               },
               {
                 title: "Side Menus",
-                value: 50,
+                value: selected?.sideMenuCategories?.flatMap(
+                  ({ choices }) => choices,
+                )?.length,
                 subTitle: "Included",
                 Icon: Salad,
               },
               {
                 title: "Inclusions",
-                value: 50,
+                value: selected?.inclusions?.length,
                 subTitle: "Equipment & Service",
                 Icon: Gift,
               },

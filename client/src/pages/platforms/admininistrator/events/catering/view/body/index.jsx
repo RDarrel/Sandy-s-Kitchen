@@ -35,8 +35,9 @@ const Body = ({ selected }) => {
         <h2 className="font-bold text-xl mb-2 flex gap-2">
           <Gift color="gray" /> Inclusions
         </h2>
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-[1fr_auto_1fr] gap-5">
           <Inclusions inclusions={services} title={"Services"} />
+          <div className="border-primary/20 border-r" />
           <Inclusions inclusions={equipment} title={"Equipment"} />
         </div>
       </div>
@@ -48,7 +49,7 @@ export default Body;
 
 const FoodSelection = ({ categories, title, Icon }) => {
   return (
-    <div className="border border-primary/20 p-3 rounded-sm">
+    <div className="border-primary/20 border p-3 rounded-sm">
       <h2 className="font-bold text-xl mb-2 flex gap-2">
         <Icon color="gray" /> {title}
       </h2>
@@ -79,7 +80,7 @@ const FoodSelection = ({ categories, title, Icon }) => {
 const Inclusions = ({ inclusions, title }) => {
   return (
     <div className=" gap-5">
-      <div className="border-primary/20 border-r flex flex-col gap-2 ">
+      <div className="flex flex-col gap-2 ">
         <h2 className="font-bold">{title}</h2>
         <div className="flex flex-col gap-2">
           {inclusions.map(({ item, unit = null, amount }, idx) => (
