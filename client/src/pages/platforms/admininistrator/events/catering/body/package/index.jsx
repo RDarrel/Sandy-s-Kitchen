@@ -10,7 +10,7 @@ const MAX_VISIBLE_MENUS = 6;
 const MAX_VISIBLE_MENUS_WITH_MORE = 5;
 
 const Package = ({ item, handleAction = () => {} }) => {
-  const { mainCourseCategories } = item;
+  const { mainCourseCategories, isAvailable = false } = item;
   const mainMenus = mainCourseCategories.flatMap(({ choices }) =>
     choices.map((choice) => choice),
   );
@@ -35,7 +35,9 @@ const Package = ({ item, handleAction = () => {} }) => {
         <Availability item={item} handleAction={handleAction} />
       </div>
 
-      <div className="admin-package__body  ">
+      <div
+        className={`admin-package__body opacity-${isAvailable ? 100 : 50}  `}
+      >
         <div className="admin-package__content">
           <div className="admin-package__heading">
             {item.tag && <span>{item.tag}</span>}
