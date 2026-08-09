@@ -26,7 +26,7 @@ const Package = ({ item = {} }) => {
         id: item._id,
       }),
     );
-    navigate("/authentication/login");
+    navigate("/authentication/sign-in");
   };
 
   return (

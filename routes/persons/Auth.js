@@ -1,6 +1,7 @@
 const router = require("express").Router(),
   {
     login,
+    save,
     provideAuth,
     upload,
     // changePassword,
@@ -10,6 +11,7 @@ const router = require("express").Router(),
 
 router
   .get("/login", login)
+  .post("/save", save)
   //   .get("/changePassword", provideToken)
   .get("/validateRefresh", validate, provideAuth)
   .post("/upload", validate, uploadMiddleware.single("file"), upload);

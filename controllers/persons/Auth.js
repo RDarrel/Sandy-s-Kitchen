@@ -1,6 +1,7 @@
 const Entity = require("../../models/persons/Users"),
   Menu = require("../../models/menu/Menu"),
   generateToken = require("../../config/generateToken"),
+  handleDuplicate = require("../../config/duplicate"),
   { cloudinary } = require("../../config/cloudinary");
 
 exports.login = (req, res) => {
@@ -125,4 +126,15 @@ exports.upload = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Upload failed", details: err.message });
   }
+};
+
+exports.save = (req, res) => {
+  Entity.create(req.body)
+    .then((_payload) => {
+      res.status(201).json({
+        success:
+          "Successfully registered. Please wait for the approval of the admin.",
+      });
+    })
+    .catch((error) => res.status(400).json({ error: handleDuplicate(error) }));
 };

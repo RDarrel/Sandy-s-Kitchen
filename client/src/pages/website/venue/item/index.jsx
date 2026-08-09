@@ -40,7 +40,7 @@ const Item = ({ venue }) => {
         id: venue._id,
       }),
     );
-    navigate("/authentication/login");
+    navigate("/authentication/sign-in");
   };
 
   return (

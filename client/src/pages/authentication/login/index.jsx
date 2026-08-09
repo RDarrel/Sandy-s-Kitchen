@@ -5,13 +5,12 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useDispatch, useSelector } from "react-redux";
 import { LOGIN } from "@/services/redux/slices/persons/auth";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Loader } from "lucide-react";
 
 export default function LoginForm({ className }) {
@@ -39,7 +38,7 @@ export default function LoginForm({ className }) {
   };
   return (
     <form
-      className={cn("flex flex-col gap-6", className)}
+      className={cn("flex flex-col gap-6 w-full max-w-xs", className)}
       onSubmit={handleLogin}
     >
       <FieldGroup>
@@ -70,9 +69,9 @@ export default function LoginForm({ className }) {
             Login {isLoading && <Loader className="animate-spin" />}
           </Button>
         </Field>
-        <FieldSeparator>Or continue with</FieldSeparator>
+        {/* <FieldSeparator>Or continue with</FieldSeparator> */}
         <Field>
-          <Button variant="outline" type="button">
+          {/* <Button variant="outline" type="button">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
               <path
                 fill="#FFC107"
@@ -92,12 +91,15 @@ export default function LoginForm({ className }) {
               />
             </svg>
             Continue with Google
-          </Button>
+          </Button> */}
           <FieldDescription className="text-center">
             Don&apos;t have an account?{" "}
-            <a href="#" className="underline underline-offset-4">
+            <Link
+              to="/authentication/sign-up"
+              className="underline underline-offset-4"
+            >
               Sign up
-            </a>
+            </Link>
           </FieldDescription>
         </Field>
       </FieldGroup>

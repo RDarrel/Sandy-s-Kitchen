@@ -115,9 +115,7 @@ const Authentication = () => {
           onFocusCapture={() => setIsFormFocused(true)}
           onBlurCapture={() => setIsFormFocused(false)}
         >
-          <div className="w-full max-w-xs">
-            <Outlet />
-          </div>
+          <Outlet />
         </div>
       </div>
 

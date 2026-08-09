@@ -42,6 +42,19 @@ export const LOGIN = createAsyncThunk(`${name}/login`, (form, thunkAPI) => {
   }
 });
 
+export const SIGN_UP = createAsyncThunk(`${name}/sign-up`, (data, thunkAPI) => {
+  try {
+    return axioKit.save(name, data);
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
 export const CHANGE_PASSWORD = createAsyncThunk(
   `${name}/change_password`,
   ({ data }, thunkAPI) => {
@@ -160,6 +173,21 @@ export const reduxSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(LOGIN.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
+
+      .addCase(SIGN_UP.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(SIGN_UP.fulfilled, (state) => {
+        state.isSuccess = true;
+        state.isLoading = false;
+      })
+      .addCase(SIGN_UP.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.isLoading = false;

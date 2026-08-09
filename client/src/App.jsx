@@ -33,7 +33,7 @@ export default function App() {
         <Route path="/about" element={<About />} />
       </Route>
       <Route path="authentication" element={<Authentication />}>
-        <Route path="login" element={<Login />} />
+        <Route path="sign-in" element={<Login />} />
         <Route path="sign-up" element={<SignUp />} />
       </Route>
       {/* <Route path="/authentication/:action" element={<Authentication />} /> */}

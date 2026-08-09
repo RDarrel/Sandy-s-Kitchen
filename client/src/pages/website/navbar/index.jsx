@@ -84,13 +84,15 @@ const Navbar = () => {
         </div>
 
         <div className="navbar__actions">
-          <NavLink to={"/authentication/login"}>Login</NavLink>
-          <Button>Sign-up</Button>
+          <NavLink to={"/authentication/sign-in"}>Login</NavLink>
+          <Button onClick={() => navigate("/authentication/sign-up")}>
+            Sign-up
+          </Button>
         </div>
 
         <Button
           className="navbar__mobile-login"
-          onClick={() => navigate("/authentication/login")}
+          onClick={() => navigate("/authentication/sign-in")}
         >
           Login
         </Button>
@@ -116,7 +118,7 @@ const Navbar = () => {
           <div className="navbar__mobile-actions">
             <Button
               variant="outline"
-              onClick={() => navigate("/authentication/signup")}
+              onClick={() => navigate("/authentication/sign-up")}
             >
               Sign-up
             </Button>
