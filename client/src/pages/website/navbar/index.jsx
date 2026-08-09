@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../../assets/logos/kitchenette.jpg";
 import "./style.css";
 
@@ -16,6 +16,7 @@ const navItems = [
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
   const { pathname } = useLocation();
   const isHomePage = pathname === "/";
   const isInnerPage = !isHomePage;
@@ -87,7 +88,12 @@ const Navbar = () => {
           <Button>Sign-up</Button>
         </div>
 
-        <Button className="navbar__mobile-login">Login</Button>
+        <Button
+          className="navbar__mobile-login"
+          onClick={() => navigate("/authentication/login")}
+        >
+          Login
+        </Button>
 
         <div className="navbar__mobile-menu">
           <div className="navbar__mobile-links">
@@ -108,7 +114,12 @@ const Navbar = () => {
           </div>
 
           <div className="navbar__mobile-actions">
-            <Button variant="outline">Sign-up</Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/authentication/signup")}
+            >
+              Sign-up
+            </Button>
           </div>
         </div>
       </div>
