@@ -1,6 +1,6 @@
 import { memo, useCallback, useMemo } from "react";
 import { Formatter } from "@/services/utilities";
-import { Check, UsersRound, Clock, MapPin } from "lucide-react";
+import { Check, UsersRound, Clock, MapPin, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Actions from "./actions";
 import Gallery from "./gallery";
@@ -87,7 +87,7 @@ const Venue = ({ venue = {}, handleAction = () => {} }) => {
 </strong> */}
           </span>
           <span>
-            <UsersRound />
+            <Home />
             <small>Venue Setting</small>
             <strong>{venue?.setting || ""}</strong>
           </span>

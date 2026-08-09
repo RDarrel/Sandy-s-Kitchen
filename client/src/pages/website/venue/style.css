@@ -182,9 +182,6 @@
 }
 
 .venue-card__meta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
   margin-top: 0.72rem;
 }
 
