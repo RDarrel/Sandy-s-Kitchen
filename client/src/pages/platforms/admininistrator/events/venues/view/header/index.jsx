@@ -1,6 +1,6 @@
 import { Formatter } from "@/services/utilities";
 import { capitalize } from "lodash";
-import { Clock, Gift, MapPin, Paperclip, UserPlus, Users } from "lucide-react";
+import { Clock, Home, MapPin, Paperclip, UserPlus, Users } from "lucide-react";
 import Gallery from "./gallery";
 
 const Header = ({ selected }) => {
@@ -58,12 +58,11 @@ const Header = ({ selected }) => {
                 )} / guest`,
                 Icon: UserPlus,
               },
-
               {
-                title: "Inclusions",
-                value: 50,
-                subTitle: "Equipment & Service",
-                Icon: Gift,
+                title: "Venue Setting",
+                value: selected?.setting,
+                subTitle: "Environment",
+                Icon: Home,
               },
             ].map((metric, idx) => (
               <Metric metric={metric} key={`additional-${idx}`} />

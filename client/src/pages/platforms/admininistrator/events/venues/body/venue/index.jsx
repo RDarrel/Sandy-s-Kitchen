@@ -86,6 +86,11 @@ const Venue = ({ venue = {}, handleAction = () => {} }) => {
   {min === max ? `${min} hour${min !== 1 ? "s" : ""}` : `${min}–${max} hours`}
 </strong> */}
           </span>
+          <span>
+            <UsersRound />
+            <small>Venue Setting</small>
+            <strong>{venue?.setting || ""}</strong>
+          </span>
         </div>
 
         <div className="admin-venue-card__details">

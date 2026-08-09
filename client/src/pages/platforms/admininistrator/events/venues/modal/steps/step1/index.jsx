@@ -6,6 +6,15 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
   return (
     <div className=" gap-5">
@@ -149,20 +158,46 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
             </div>
           </div>
         </div>
-        <div className="grid w-full  items-center gap-1.5">
-          <Label htmlFor="address">Address</Label>
-          <Input
-            value={String(form?.address || "")}
-            onChange={({ target }) =>
-              setForm({
-                ...form,
-                address: target.value,
-              })
-            }
-            required
-            id="address"
-            placeholder="Enter address"
-          />
+        <div className="grid grid-cols-3 gap-5">
+          <div className="grid col-span-2 w-full  items-center gap-1.5">
+            <Label htmlFor="address">Address</Label>
+            <Input
+              value={String(form?.address || "")}
+              onChange={({ target }) =>
+                setForm({
+                  ...form,
+                  address: target.value,
+                })
+              }
+              required
+              id="address"
+              placeholder="Enter address"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="setting">Venue Setting</Label>
+            <Select
+              id="setting"
+              value={form.setting}
+              onValueChange={(value) =>
+                setForm((prev) => ({ ...prev, setting: value }))
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a venue setting" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Select Setting</SelectLabel>
+                  <SelectItem value="Indoor">Indoor</SelectItem>
+                  <SelectItem value="Outdoor">Outdoor</SelectItem>
+                  <SelectItem value="Indoor & Outdoor">
+                    Indoor & Outdoor
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="grid w-full items-center gap-1.5">
           <Label htmlFor="description">Description</Label>

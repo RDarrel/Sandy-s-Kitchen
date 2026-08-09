@@ -116,6 +116,12 @@ const venueSchema = new mongoose.Schema(
       },
     },
 
+    setting: {
+      type: String,
+      enum: ["Indoor", "Outdoor", "Indoor & Outdoor"],
+      required: true,
+    },
+
     images: [
       {
         id: Number,

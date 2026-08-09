@@ -40,6 +40,7 @@ const _form = {
   name: "",
   description: "",
   address: "",
+  setting: "Indoor",
   basePrice: 0,
   duration: {
     min: 0,

@@ -1,8 +1,9 @@
-import { Check, Gift } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Check, Gift, PartyPopper } from "lucide-react";
 import { useMemo } from "react";
 
 const Body = ({ selected }) => {
-  const { inclusions = [] } = selected;
+  const { inclusions = [], types } = selected;
   const { services = [], equipment = [] } = useMemo(() => {
     if (inclusions.length === 0) return {};
     const getByModule = (module) =>
@@ -15,6 +16,20 @@ const Body = ({ selected }) => {
 
   return (
     <div className="flex flex-col gap-2">
+      <div className="border border-primary/20 p-3 rounded-sm ">
+        <h2 className="font-bold text-xl mb-2 flex gap-2">
+          <PartyPopper color="gray" /> Best For
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          <div className="admin-venue-card__chips">
+            {types?.map((item) => (
+              <span key={item} className="mr-2">
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
       <div className="border border-primary/20 p-3 rounded-sm ">
         <h2 className="font-bold text-xl mb-2 flex gap-2">
           <Gift color="gray" /> Inclusions
