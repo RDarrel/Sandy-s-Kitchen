@@ -9,7 +9,7 @@ const router = require("express").Router(),
 
 router
   .post("/save", validate, save)
-  .get("/browse", validate, browse)
+  .get("/browse", browse)
   .put("/update", validate, update)
   .delete("/destroy", validate, destroy);
 
