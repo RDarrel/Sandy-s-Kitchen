@@ -3,5 +3,6 @@
   { "id": 2, "label": "Cashier" },
   { "id": 3, "label": "Kitchen Staff" },
   { "id": 4, "label": "Stockman" },
-  { "id": 5, "label": "Booking Coordinator" }
+  { "id": 5, "label": "Booking Coordinator" },
+  { "id": 6, "label": "Customer" }
 ]

@@ -129,7 +129,7 @@ exports.upload = async (req, res) => {
 };
 
 exports.save = (req, res) => {
-  Entity.create(req.body)
+  Entity.create({ ...req.body, role: 6 })
     .then((_payload) => {
       res.status(201).json({
         success:

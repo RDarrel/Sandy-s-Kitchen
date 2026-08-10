@@ -6,7 +6,7 @@ import Pagination from "./pagination";
 import "./style.css";
 import PackageSkeleton from "./package/skeleton";
 
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE = 4;
 
 const Catering = () => {
   const { collections: packages, isLoading = false } = useSelector(

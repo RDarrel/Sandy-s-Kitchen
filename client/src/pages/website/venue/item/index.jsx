@@ -13,7 +13,7 @@ const Item = ({ venue }) => {
     const visibleItems = items?.slice(0, maxVisible);
     const hiddenItems = items?.length - visibleItems?.length;
 
-    return { hasHidden, visibleItems, hiddenItems };
+    return { hasHidden: hasHidden && hiddenItems, visibleItems, hiddenItems };
   }, []);
 
   const {
@@ -91,8 +91,10 @@ const Item = ({ venue }) => {
               {visibleTypes.map((item) => (
                 <span key={item}>{item}</span>
               ))}
-              {hasHiddenTypes && (
+              {hasHiddenTypes ? (
                 <li className="venue-card__more">+{hiddenTypes} more</li>
+              ) : (
+                ""
               )}
             </div>
           </div>

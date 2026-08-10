@@ -8,7 +8,7 @@ import { BROWSE } from "@/services/redux/slices/events/venues";
 import Item from "./item";
 import VenueSkeleton from "./item/skeleton";
 
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE = 4;
 
 const Venue = () => {
   const { collections: venues, isLoading = false } = useSelector(

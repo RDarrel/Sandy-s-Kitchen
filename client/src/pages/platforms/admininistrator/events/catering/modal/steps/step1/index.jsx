@@ -83,11 +83,11 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
           <Label htmlFor="description">Description</Label>
           <Textarea
             type="text-area"
-            value={form?.address || ""}
+            value={form?.description || ""}
             onChange={({ target }) =>
               setForm({
                 ...form,
-                address: target.value,
+                description: target.value,
               })
             }
             className="min-h-25"

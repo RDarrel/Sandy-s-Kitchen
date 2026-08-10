@@ -100,8 +100,10 @@ const Venue = ({ venue = {}, handleAction = () => {} }) => {
               {visibleTypes?.map((item) => (
                 <span key={item}>{item}</span>
               ))}
-              {hasHiddenTypes && (
+              {hasHiddenTypes && hiddenTypes ? (
                 <li className="admin-venue-card__more">+{hiddenTypes} more</li>
+              ) : (
+                ""
               )}
             </div>
           </div>
