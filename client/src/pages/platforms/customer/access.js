@@ -1,7 +1,7 @@
 import { Building2, ClipboardList, Gauge, UtensilsIcon } from "lucide-react";
 import Dashboard from "./dashboard";
 import Catering from "./catering";
-import Venue from "@/pages/website/venue";
+import Venue from "./venueS";
 
 const access = [
   {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BROWSE } from "@/services/redux/slices/events/cateringPackages";
 import {
@@ -15,15 +15,18 @@ import PackageSkeleton from "./package/skeleton";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 4;
 
-const Catering = () => {
+const Catering = ({ isWebsite = true, onSelect = () => {} }) => {
   const { auth } = useSelector(({ auth }) => auth);
-  const { collections: packages, isLoading = false } = useSelector(
+  const { collections: packages, isLoading } = useSelector(
       ({ cateringPackages }) => cateringPackages,
     ),
     [currentPage, setCurrentPage] = useState(1),
+    navigate = useNavigate(),
     dispatch = useDispatch();
 
   useEffect(() => {
@@ -42,10 +45,24 @@ const Catering = () => {
     setCurrentPage(Math.min(Math.max(page, 1), totalPages));
   };
 
+  const handleInquire = useCallback((item) => {
+    if (!isWebsite) return onSelect(item);
+    sessionStorage.setItem(
+      "inquiry",
+      JSON.stringify({
+        type: "package",
+        id: item._id,
+      }),
+    );
+    navigate("/authentication/sign-in");
+  }, []);
   return (
     <section className="catering-page grid grid-cols-1 md:grid-cols-[auto_1fr] max-w-6xl mx-auto gap-5 items-start  ">
       <div
-        className={`sticky top-${auth?._id ? 4 : 22}  hidden md:block w-60 self-start rounded-md border bg-card p-4 shadow-sm `}
+        className={cn(
+          `sticky hidden md:block w-60 self-start rounded-md border bg-card p-4 shadow-sm z-10 `,
+          `top-${auth?._id ? 4 : 22}`,
+        )}
       >
         <div className="mb-5">
           <div className="flex items-center gap-2">
@@ -131,7 +148,13 @@ const Catering = () => {
         <div className="catering-packages">
           {!isLoading
             ? visiblePackages.map((item, idx) => {
-                return <Package item={item} key={idx} />;
+                return (
+                  <Package
+                    key={idx}
+                    item={item}
+                    handleInquire={handleInquire}
+                  />
+                );
               })
             : Array.from({ length: 3 }).map((_, idx) => (
                 <PackageSkeleton key={idx} />

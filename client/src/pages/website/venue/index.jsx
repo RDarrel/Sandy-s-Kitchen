@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -16,15 +16,18 @@ import Item from "./item";
 import VenueSkeleton from "./item/skeleton";
 import "./style.css";
 import DatePicker from "@/components/shared/datePicker";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 4;
 
-const Venue = () => {
+const Venue = ({ isWebsite = false, onSelect = () => {} }) => {
   const { auth } = useSelector(({ auth }) => auth),
     { collections: venues, isLoading = false } = useSelector(
       ({ venues }) => venues,
     ),
     [currentPage, setCurrentPage] = useState(1),
+    navigate = useNavigate(),
     dispatch = useDispatch();
 
   const totalPages = Math.ceil(venues.length / ITEMS_PER_PAGE);
@@ -83,10 +86,25 @@ const Venue = () => {
       </Button>
     </nav>
   );
+
+  const handleInquire = useCallback((item) => {
+    if (!isWebsite) return onSelect(item);
+    sessionStorage.setItem(
+      "inquiry",
+      JSON.stringify({
+        type: "venue",
+        id: item._id,
+      }),
+    );
+    navigate("/authentication/sign-in");
+  }, []);
   return (
     <section className="venue-page grid grid-cols-1 md:grid-cols-[auto_1fr] max-w-6xl mx-auto gap-5 items-start">
       <div
-        className={`sticky top-${auth?._id ? 4 : 22} hidden w-60 self-start rounded-md border bg-card p-4 shadow-sm md:block`}
+        className={cn(
+          `sticky hidden md:block w-60 self-start rounded-md border bg-card p-4 shadow-sm z-10 `,
+          `top-${auth?._id ? 4 : 22}`,
+        )}
       >
         <div className="mb-5">
           <div className="flex items-center gap-2">
@@ -205,7 +223,13 @@ const Venue = () => {
           <div className="venue-reservation__grid">
             {!isLoading
               ? visibleVenues.map((venue) => {
-                  return <Item key={venue?._id} venue={venue} />;
+                  return (
+                    <Item
+                      key={venue?._id}
+                      venue={venue}
+                      handleInquire={handleInquire}
+                    />
+                  );
                 })
               : Array.from({ length: 3 }).map((_, idx) => (
                   <VenueSkeleton key={idx} />

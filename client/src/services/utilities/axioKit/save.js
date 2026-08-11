@@ -7,9 +7,9 @@ import axios from "axios";
  * @param {string} token - Authorization Token.
  * @returns {{ success: boolean, payload: object }} - The result object containing success and payload.
  */
-const save = async (entity, data) =>
+const save = async (entity, data, endpoint = "save") =>
   await axios
-    .post(`${entity}/save`, data, {
+    .post(`${entity}/${endpoint}`, data, {
       withCredentials: true,
     })
 

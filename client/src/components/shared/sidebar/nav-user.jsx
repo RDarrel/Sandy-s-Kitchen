@@ -21,9 +21,10 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { PresetImage } from "@/services/utilities";
 import { LOGOUT } from "@/services/redux/slices/persons/auth";
+import Spinner from "../spinner";
 
 export function NavUser() {
-  const { auth = {} } = useSelector(({ auth }) => auth);
+  const { auth = {}, isLoading = false } = useSelector(({ auth }) => auth);
   const { isMobile } = useSidebar(),
     dispatch = useDispatch(),
     navigate = useNavigate();
@@ -31,9 +32,12 @@ export function NavUser() {
   // const { fname } = auth?.fullName;
   const { fname = "" } = auth?.fullName || "";
   const handleLogout = () => {
-    dispatch(LOGOUT());
-    localStorage.clear();
-    navigate("/");
+    dispatch(LOGOUT())
+      .unwrap()
+      .then(() => {
+        localStorage.clear();
+        navigate("/");
+      });
   };
 
   return (
@@ -89,9 +93,9 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem onClick={handleLogout} disabled={isLoading}>
               <LogOut />
-              Log out
+              Log out <Spinner formSubmitted={isLoading} />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

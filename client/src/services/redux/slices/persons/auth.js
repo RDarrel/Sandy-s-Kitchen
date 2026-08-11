@@ -42,6 +42,18 @@ export const LOGIN = createAsyncThunk(`${name}/login`, (form, thunkAPI) => {
   }
 });
 
+export const LOGOUT = createAsyncThunk(`${name}/logout`, (thunkAPI) => {
+  try {
+    return axioKit.save(name, {}, "logout");
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+
+    return thunkAPI.rejectWithValue(message);
+  }
+});
 export const SIGN_UP = createAsyncThunk(`${name}/sign-up`, (data, thunkAPI) => {
   try {
     return axioKit.save(name, data);
@@ -148,9 +160,6 @@ export const reduxSlice = createSlice({
     SETROUTE: (state, data) => {
       state.route = data.payload;
     },
-    LOGOUT: (state) => {
-      state.auth = {};
-    },
 
     RESET: (state, data) => {
       state.searchFound = null;
@@ -192,6 +201,21 @@ export const reduxSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(SIGN_UP.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
+      .addCase(LOGOUT.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.auth = {};
+        state.message = "";
+      })
+      .addCase(LOGOUT.fulfilled, (state) => {
+        state.isSuccess = true;
+        state.isLoading = false;
+      })
+      .addCase(LOGOUT.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.isLoading = false;
@@ -275,7 +299,6 @@ export const {
   IMAGE,
   SETROUTE,
   UPDATE_AUTH,
-  LOGOUT,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

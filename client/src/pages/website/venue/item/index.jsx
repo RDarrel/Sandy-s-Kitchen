@@ -5,7 +5,7 @@ import Gallery from "./gallery";
 import { Formatter } from "@/services/utilities";
 import { useNavigate } from "react-router-dom";
 
-const Item = ({ venue }) => {
+const Item = ({ venue, handleInquire = () => {} }) => {
   const navigate = useNavigate();
 
   const getVisibleItems = useCallback((items, maxVisible) => {
@@ -31,17 +31,6 @@ const Item = ({ venue }) => {
   } = useMemo(() => {
     return getVisibleItems(venue?.types, 4);
   }, [venue, getVisibleItems]);
-
-  const handleInquire = () => {
-    sessionStorage.setItem(
-      "inquiry",
-      JSON.stringify({
-        type: "venue",
-        id: venue._id,
-      }),
-    );
-    navigate("/authentication/sign-in");
-  };
 
   return (
     <article className="venue-card" key={venue.name}>

@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const PackageSkeleton = () => {
   return (
-    <div className="min-h-[14.75rem]  grid grid-cols-1 sm:grid-cols-[2fr_3fr] border border-primary/22 shadow-sm border rounded-md relative ">
+    <div className="min-h-[14.75rem] grid grid-cols-1 sm:grid-cols-[2fr_3fr] border border-primary/22 shadow-sm border rounded-md relative ">
       <div>
         <Skeleton className={"h-[10rem] sm:h-full w-full rounded-none "} />
       </div>

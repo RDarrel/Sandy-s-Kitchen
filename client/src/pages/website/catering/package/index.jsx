@@ -2,10 +2,8 @@ import { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { UsersRound, Check, ListChecks, Beef, Salad } from "lucide-react";
 import { Formatter } from "@/services/utilities";
-import { useNavigate } from "react-router-dom";
 import Cloudinary from "@/services/utilities/cloudinary";
-const Package = ({ item = {} }) => {
-  const navigate = useNavigate();
+const Package = ({ item = {}, handleInquire = () => {} }) => {
   const { hiddenInclusions, visibleMenus, hasHiddenInclusions } =
     useMemo(() => {
       return Formatter.packageIncluded(item);
@@ -17,17 +15,6 @@ const Package = ({ item = {} }) => {
       0,
     );
   }, [item]);
-
-  const handleInquire = () => {
-    sessionStorage.setItem(
-      "inquiry",
-      JSON.stringify({
-        type: "package",
-        id: item._id,
-      }),
-    );
-    navigate("/authentication/sign-in");
-  };
 
   return (
     <article className="catering-package">
@@ -86,7 +73,7 @@ const Package = ({ item = {} }) => {
         <Button
           className="catering-package__button"
           variant="outline"
-          onClick={handleInquire}
+          onClick={() => handleInquire(item)}
         >
           Inquire Package
         </Button>

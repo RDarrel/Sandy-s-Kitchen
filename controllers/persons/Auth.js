@@ -138,3 +138,15 @@ exports.save = (req, res) => {
     })
     .catch((error) => res.status(400).json({ error: handleDuplicate(error) }));
 };
+
+exports.logout = async (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+  });
+
+  return res.status(200).json({
+    message: "Logged out successfully",
+  });
+};

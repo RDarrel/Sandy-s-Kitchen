@@ -4,6 +4,7 @@ const router = require("express").Router(),
     save,
     provideAuth,
     upload,
+    logout,
     // changePassword,
   } = require("../../controllers/persons/Auth"),
   { upload: uploadMiddleware } = require("../../config/cloudinary"),
@@ -11,6 +12,7 @@ const router = require("express").Router(),
 
 router
   .get("/login", login)
+  .post("/logout", logout)
   .post("/save", save)
   //   .get("/changePassword", provideToken)
   .get("/validateRefresh", validate, provideAuth)
