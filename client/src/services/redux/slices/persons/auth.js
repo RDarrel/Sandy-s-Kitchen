@@ -148,6 +148,10 @@ export const reduxSlice = createSlice({
     SETROUTE: (state, data) => {
       state.route = data.payload;
     },
+    LOGOUT: (state) => {
+      state.auth = {};
+    },
+
     RESET: (state, data) => {
       state.searchFound = null;
       state.isSuccess = false;
@@ -271,6 +275,7 @@ export const {
   IMAGE,
   SETROUTE,
   UPDATE_AUTH,
+  LOGOUT,
 } = reduxSlice.actions;
 
 export default reduxSlice.reducer;

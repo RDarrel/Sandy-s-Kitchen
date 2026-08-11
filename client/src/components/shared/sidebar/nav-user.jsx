@@ -18,17 +18,20 @@ import {
 } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { PresetImage } from "@/services/utilities";
+import { LOGOUT } from "@/services/redux/slices/persons/auth";
 
 export function NavUser() {
   const { auth = {} } = useSelector(({ auth }) => auth);
   const { isMobile } = useSidebar(),
+    dispatch = useDispatch(),
     navigate = useNavigate();
 
   // const { fname } = auth?.fullName;
   const { fname = "" } = auth?.fullName || "";
   const handleLogout = () => {
+    dispatch(LOGOUT());
     localStorage.clear();
     navigate("/");
   };

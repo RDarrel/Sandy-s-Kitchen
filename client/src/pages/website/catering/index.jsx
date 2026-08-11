@@ -4,9 +4,7 @@ import { BROWSE } from "@/services/redux/slices/events/cateringPackages";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -16,7 +14,7 @@ import "./style.css";
 import PackageSkeleton from "./package/skeleton";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Filter, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 
 const ITEMS_PER_PAGE = 4;
 
@@ -98,7 +96,6 @@ const Catering = () => {
 
           <div className="grid gap-2">
             <Label>Sort By</Label>
-
             <Select defaultValue="default">
               <SelectTrigger className="w-full">
                 <SelectValue />
