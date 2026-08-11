@@ -53,7 +53,7 @@
 
 .navbar__content {
   position: relative;
-  width: min(70vw, 1120px);
+  width: min(75vw, 1200px);
   --navbar-pill-x: 1.15rem;
 
   display: flex;
@@ -82,7 +82,8 @@
 }
 
 .navbar--inner .navbar__content {
-  width: min(70vw, 1120px);
+  width: min(75vw, 1200px);
+
   padding: 0.1rem 0;
   margin-block: 0.5rem;
   border-color: transparent;
@@ -335,12 +336,11 @@
   padding: 0.45rem;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--card) 94%, white),
-      var(--background)
-    );
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--card) 94%, white),
+    var(--background)
+  );
   box-shadow: 0 1.1rem 2.4rem rgba(59, 36, 24, 0.18);
   max-height: 0;
   opacity: 0;
@@ -558,5 +558,4 @@
   .navbar--inner .navbar__content {
     gap: 0.5rem;
   }
-
 }
