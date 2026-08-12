@@ -6,7 +6,6 @@ const Footer = ({ selected = {} }) => {
   return (
     <div className="sticky bottom-0 -mx-3 md:-mx-5 border-t bg-background/95 px-4 py-4 -mb-3  backdrop-blur-md">
       <div className="mx-auto max-w-4xl md:flex items-center">
-        {/* Message */}
         <div className="mb-3 sm:mb-0 sm:flex-1">
           <p className="font-semibold">Ready to plan your event?</p>
 
@@ -15,7 +14,6 @@ const Footer = ({ selected = {} }) => {
           </p>
         </div>
 
-        {/* Price + CTA */}
         <div className="flex items-center justify-between gap-4 sm:justify-end">
           <div>
             <p className="text-xs text-muted-foreground">Package Price</p>
