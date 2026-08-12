@@ -8,7 +8,7 @@ const CateringParent = () => {
   return (
     <div>
       {selected?._id ? (
-        <Details selected={selected} />
+        <Details selected={selected} setSelected={setSelected} />
       ) : (
         <Catering isWebsite={false} onSelect={setSelected} />
       )}
