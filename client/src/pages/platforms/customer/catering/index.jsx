@@ -1,17 +1,20 @@
-import Catering from "@/pages/website/catering";
 import { useState } from "react";
-import Details from "./details";
-
+import ActionRenderer from "./handler";
 const CateringParent = () => {
   const [selected, setSelected] = useState({});
-  console.log("selected", selected);
+  const [actionType, setActionType] = useState("default");
+
+  const onSelect = (selected, actionType) => {
+    setSelected(selected);
+    setActionType(actionType);
+  };
   return (
     <div>
-      {selected?._id ? (
-        <Details selected={selected} setSelected={setSelected} />
-      ) : (
-        <Catering isWebsite={false} onSelect={setSelected} />
-      )}
+      <ActionRenderer
+        actionType={actionType}
+        selected={selected}
+        onSelect={onSelect}
+      />
     </div>
   );
 };

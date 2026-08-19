@@ -45,8 +45,8 @@ const Catering = ({ isWebsite = true, onSelect = () => {} }) => {
     setCurrentPage(Math.min(Math.max(page, 1), totalPages));
   };
 
-  const handleInquire = useCallback((item) => {
-    if (!isWebsite) return onSelect(item);
+  const handleInquire = useCallback((item, actionType) => {
+    if (!isWebsite) return onSelect(item, actionType);
     sessionStorage.setItem(
       "inquiry",
       JSON.stringify({
@@ -153,6 +153,7 @@ const Catering = ({ isWebsite = true, onSelect = () => {} }) => {
                     key={idx}
                     item={item}
                     handleInquire={handleInquire}
+                    isWebsite={isWebsite}
                   />
                 );
               })

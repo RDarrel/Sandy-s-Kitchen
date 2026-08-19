@@ -1,9 +1,20 @@
 import { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { UsersRound, Check, ListChecks, Beef, Salad } from "lucide-react";
+import {
+  UsersRound,
+  Check,
+  ListChecks,
+  Beef,
+  Salad,
+  ArrowRight,
+} from "lucide-react";
 import { Formatter } from "@/services/utilities";
 import Cloudinary from "@/services/utilities/cloudinary";
-const Package = ({ item = {}, handleInquire = () => {} }) => {
+const Package = ({
+  item = {},
+  isWebsite = false,
+  handleInquire = () => {},
+}) => {
   const { hiddenInclusions, visibleMenus, hasHiddenInclusions } =
     useMemo(() => {
       return Formatter.packageIncluded(item);
@@ -70,13 +81,31 @@ const Package = ({ item = {}, handleInquire = () => {} }) => {
           )}
         </ul>
 
-        <Button
-          className="catering-package__button"
-          variant="outline"
-          onClick={() => handleInquire(item)}
-        >
-          Inquire Package
-        </Button>
+        {isWebsite ? (
+          <Button
+            className="catering-package__button"
+            variant="outline"
+            onClick={() => handleInquire(item)}
+          >
+            Inquire Package
+          </Button>
+        ) : (
+          <div className="grid grid-cols-2 mx-3 gap-3 py-3 self-end">
+            <Button
+              variant={"outline"}
+              className={"rounded-lg"}
+              onClick={() => handleInquire(item, "details")}
+            >
+              View Details
+            </Button>
+            <Button
+              className={"rounded-lg"}
+              onClick={() => handleInquire(item, "inquire")}
+            >
+              Inquire Now <ArrowRight />
+            </Button>
+          </div>
+        )}
       </div>
     </article>
   );
