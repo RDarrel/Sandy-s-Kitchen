@@ -40,10 +40,10 @@ const Catering = ({ isWebsite = true, onSelect = () => {} }) => {
     () => packages.slice(startIndex, startIndex + ITEMS_PER_PAGE),
     [startIndex, packages],
   );
-
   const goToPage = (page) => {
     setCurrentPage(Math.min(Math.max(page, 1), totalPages));
   };
+  console.log("auth", auth);
 
   const handleInquire = useCallback((item, actionType) => {
     if (!isWebsite) return onSelect(item, actionType);
@@ -61,7 +61,7 @@ const Catering = ({ isWebsite = true, onSelect = () => {} }) => {
       <div
         className={cn(
           `sticky hidden md:block w-60 self-start rounded-md border bg-card p-4 shadow-sm z-10 `,
-          `top-${auth?._id ? 4 : 22}`,
+          auth?._id ? "top-4" : "top-[88px]",
         )}
       >
         <div className="mb-5">

@@ -103,7 +103,7 @@ const Venue = ({ isWebsite = false, onSelect = () => {} }) => {
       <div
         className={cn(
           `sticky hidden md:block w-60 self-start rounded-md border bg-card p-4 shadow-sm z-10 `,
-          `top-${auth?._id ? 4 : 22}`,
+          auth?._id ? "top-4" : "top-[88px]",
         )}
       >
         <div className="mb-5">
