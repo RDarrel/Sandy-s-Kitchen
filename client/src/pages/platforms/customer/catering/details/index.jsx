@@ -3,22 +3,24 @@ import { ArrowLeft } from "lucide-react";
 import Header from "./header";
 import Body from "./body";
 import Footer from "./footer";
+import { Button } from "@/components/ui/button";
 
-const Details = ({ selected, setSelected = () => {} }) => {
+const Details = ({ selected, onSelect = () => {} }) => {
   return (
     <div className="bg-background p-2 md:p-6">
       <div className="mx-auto max-w-4xl">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="mb-2 h-8 gap-1.5 px-2 text-xs"
+          onClick={() => onSelect({}, "default")}
+        >
+          <ArrowLeft className="size-3.5" />
+          Back to Packages
+        </Button>
+
         <Card className={"bg-card"}>
-          <CardHeader className="space-y-4">
-            <button
-              type="button"
-              onClick={() => setSelected({})}
-              className="flex w-fit items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <ArrowLeft className="size-4" />
-              <span>Back to Catering Packages</span>
-            </button>
-          </CardHeader>
           <CardContent className={"grid gap-5 relative px-3 md:px-5 "}>
             <Header selected={selected} />
             <Body selected={selected} />
