@@ -43,7 +43,6 @@ const Catering = ({ isWebsite = true, onSelect = () => {} }) => {
   const goToPage = (page) => {
     setCurrentPage(Math.min(Math.max(page, 1), totalPages));
   };
-  console.log("auth", auth);
 
   const handleInquire = useCallback((item, actionType) => {
     if (!isWebsite) return onSelect(item, actionType);

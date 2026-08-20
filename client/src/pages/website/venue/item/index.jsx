@@ -3,11 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Check, Clock, Home, MapPin, UsersRound } from "lucide-react";
 import Gallery from "./gallery";
 import { Formatter } from "@/services/utilities";
-import { useNavigate } from "react-router-dom";
 
 const Item = ({ venue, handleInquire = () => {} }) => {
-  const navigate = useNavigate();
-
   const getVisibleItems = useCallback((items, maxVisible) => {
     const hasHidden = venue?.inclusions?.length > maxVisible;
     const visibleItems = items?.slice(0, maxVisible);

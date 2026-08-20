@@ -1,10 +1,8 @@
 import { Input } from "@/components/ui/input";
-import { StepperContent } from "@/components/reui/stepper";
 import { Textarea } from "@/components/ui/textarea";
 
 import Field from "../field";
 import Header from "../header";
-import Actions from "../actions";
 const eventTypes = [
   "Wedding",
   "Birthday Party",
@@ -15,17 +13,9 @@ const eventTypes = [
   "Graduation Party",
   "Other",
 ];
-const Step1 = ({
-  packageInfo = {},
-  form = {},
-  steps = [],
-  currentStep,
-  updateField = () => {},
-  goBack = () => {},
-  goNext = () => {},
-}) => {
+const Step1 = ({ packageInfo = {}, form = {}, updateField = () => {} }) => {
   return (
-    <StepperContent value={1} className="p-3 sm:p-5">
+    <div>
       <Header
         title="Event Details"
         description="Give us the schedule, guest count, and place so we can check availability."
@@ -110,14 +100,7 @@ const Step1 = ({
           </Field>
         </div>
       </div>
-
-      <Actions
-        currentStep={currentStep}
-        totalSteps={steps.length}
-        onBack={goBack}
-        onNext={goNext}
-      />
-    </StepperContent>
+    </div>
   );
 };
 

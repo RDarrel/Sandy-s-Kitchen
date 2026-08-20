@@ -42,7 +42,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { BROWSE as BROWSE_VENUES } from "@/services/redux/slices/events/venues";
 import { Formatter } from "@/services/utilities";
 import { cn } from "@/lib/utils";
-import Step1 from "./steps/step1";
+import { Step1, Step2, Step3, Step4, Step5, Step6 } from "./steps";
+
 import Header from "./header";
 
 const steps = [
@@ -175,7 +176,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleMenuToggle = (type, category, menu) => {
-    const categoryId = getCategoryId(category);
+    const categoryId = category?._id;
     const menuId = getMenuId(menu);
     const categoryLimit = getCategoryLimit(category);
 
@@ -406,256 +407,27 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
             </div>
 
             <StepperPanel className="min-w-0">
-              <Step1 packageInfo={packageInfo} goNext={goNext} />
-
-              <StepperContent value={2} className="p-3 sm:p-5">
-                <StepHeader
-                  title="Menu Choices"
-                  description="Choose the food lineup included in this catering package."
-                  badge={`${selectedMainCount + selectedSideCount}/${
-                    packageInfo.mainCourseLimit + packageInfo.sideMenuLimit
-                  } selected`}
-                />
-
-                <div className="grid gap-4">
-                  <MenuSectionHeader
-                    icon={Utensils}
-                    title="Main Courses"
-                    count={selectedMainCount}
-                    limit={packageInfo.mainCourseLimit}
-                  />
-
-                  <MenuSelection
-                    type="main"
-                    categories={packageInfo.mainCourseCategories}
-                    selections={menuSelections.main}
-                    onToggle={handleMenuToggle}
-                  />
-
-                  <MenuSectionHeader
-                    icon={Salad}
-                    title="Side Menus"
-                    count={selectedSideCount}
-                    limit={packageInfo.sideMenuLimit}
-                  />
-
-                  <MenuSelection
-                    type="side"
-                    categories={packageInfo.sideMenuCategories}
-                    selections={menuSelections.side}
-                    onToggle={handleMenuToggle}
-                  />
-                </div>
-
-                <StepActions
-                  currentStep={currentStep}
-                  totalSteps={steps.length}
-                  onBack={goBack}
-                  onNext={goNext}
-                />
-              </StepperContent>
-
-              <StepperContent value={3} className="p-3 sm:p-5">
-                <StepHeader
-                  title="Venue"
-                  description="Use your own location or request one of Sandy's Kitchen venues."
-                />
-
-                <RadioGroup
-                  value={selectedVenueId}
-                  onValueChange={setSelectedVenueId}
-                  className="grid gap-2"
+              {[Step1, Step2, Step3, Step4, Step5, Step6].map((Step, idx) => (
+                <StepperContent
+                  value={idx + 1}
+                  className={"p-3 sm:p-5"}
+                  key={idx}
                 >
-                  {venues.map((venue) => (
-                    <VenueOption key={venue._id} venue={venue} />
-                  ))}
-                </RadioGroup>
-
-                <StepActions
-                  currentStep={currentStep}
-                  totalSteps={steps.length}
-                  onBack={goBack}
-                  onNext={goNext}
-                />
-              </StepperContent>
-
-              <StepperContent value={4} className="p-3 sm:p-5">
-                <StepHeader
-                  title="Contact Details"
-                  description="We will use these details to call back and finalize the quote."
-                />
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <Field label="Full Name" required>
-                      <Input
-                        value={form.fullName}
-                        onChange={(e) =>
-                          updateField("fullName", e.target.value)
-                        }
-                        placeholder="Juan Dela Cruz"
-                      />
-                    </Field>
-                  </div>
-
-                  <Field label="Email Address" required>
-                    <Input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => updateField("email", e.target.value)}
-                      placeholder="juan@email.com"
-                    />
-                  </Field>
-
-                  <Field label="Phone Number" required>
-                    <Input
-                      value={form.phone}
-                      onChange={(e) => updateField("phone", e.target.value)}
-                      placeholder="09XXXXXXXXX"
-                    />
-                  </Field>
-
-                  <Field label="Preferred Contact">
-                    <select
-                      value={form.preferredContact}
-                      onChange={(e) =>
-                        updateField("preferredContact", e.target.value)
-                      }
-                      className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-                    >
-                      <option>Phone call</option>
-                      <option>SMS</option>
-                      <option>Email</option>
-                    </select>
-                  </Field>
-
-                  <div className="sm:col-span-2">
-                    <Field label="Special Requests">
-                      <Textarea
-                        value={form.specialRequests}
-                        onChange={(e) =>
-                          updateField("specialRequests", e.target.value)
-                        }
-                        className="min-h-16 resize-none"
-                        placeholder="Allergies, dietary needs, delivery timing, payment questions..."
-                      />
-                    </Field>
-                  </div>
-                </div>
-
-                <StepActions
-                  currentStep={currentStep}
-                  totalSteps={steps.length}
-                  onBack={goBack}
-                  onNext={goNext}
-                />
-              </StepperContent>
-
-              <StepperContent value={5} className="p-3 sm:p-5">
-                <StepHeader
-                  title="Review Inquiry"
-                  description="Check the details before sending your catering request."
-                />
-
-                <div className="grid gap-3 lg:grid-cols-[1fr_18rem]">
-                  <div className="space-y-3">
-                    <ReviewCard
-                      title="Package"
-                      icon={Package}
-                      items={[
-                        ["Package", packageInfo.name],
-                        [
-                          "Inclusions",
-                          packageInfo.inclusions
-                            .map((inclusion) => formatInclusion(inclusion))
-                            .join(", "),
-                        ],
-                      ]}
-                    />
-
-                    <ReviewCard
-                      title="Event"
-                      icon={CalendarDays}
-                      items={[
-                        ["Type", form.eventType],
-                        ["Guests", form.guestCount],
-                        ["Date", formatDate(form.eventDate)],
-                        ["Time", formatTime(form.eventTime)],
-                        ["Location", form.location],
-                      ]}
-                    />
-
-                    <ReviewCard
-                      title="Menu"
-                      icon={Utensils}
-                      items={[
-                        ["Main Courses", joinMenuNames(selectedMenus.main)],
-                        ["Side Menus", joinMenuNames(selectedMenus.side)],
-                        ["Venue", selectedVenue?.name],
-                      ]}
-                    />
-
-                    <ReviewCard
-                      title="Contact"
-                      icon={Phone}
-                      items={[
-                        ["Name", form.fullName],
-                        ["Phone", form.phone],
-                        ["Email", form.email],
-                        ["Preferred", form.preferredContact],
-                      ]}
-                    />
-                  </div>
-
-                  <div className="h-fit rounded-lg border bg-muted/15 p-3">
-                    <div className="mb-3 flex items-center gap-2">
-                      <Package className="size-4 text-primary" />
-                      <h3 className="text-sm font-semibold">Estimate</h3>
-                    </div>
-
-                    <div className="space-y-2 text-xs">
-                      <AmountRow label="Package" value={estimate.base} />
-                      <AmountRow
-                        label="Extra guests"
-                        value={estimate.extraGuestFee}
-                      />
-                      <AmountRow label="Venue" value={estimate.venueFee} />
-                    </div>
-
-                    <div className="mt-3 border-t pt-3">
-                      <div className="flex items-end justify-between gap-3">
-                        <div>
-                          <p className="text-[11px] font-medium text-muted-foreground">
-                            Estimated Total
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            Subject to final confirmation.
-                          </p>
-                        </div>
-                        <p className="text-xl font-bold text-primary">
-                          {Formatter.amount(estimate.total)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Button
-                      type="button"
-                      className="mt-4 h-9 w-full gap-1.5 text-xs"
-                      onClick={handleSubmit}
-                    >
-                      Send Inquiry
-                      <Send className="size-3.5" />
-                    </Button>
-                  </div>
-                </div>
-
-                <StepActions
-                  currentStep={currentStep}
-                  totalSteps={steps.length}
-                  onBack={goBack}
-                  onNext={goNext}
-                />
-              </StepperContent>
+                  <Step
+                    packageInfo={packageInfo}
+                    selectedMainCount={selectedMainCount}
+                    selectedSideCount={selectedSideCount}
+                    menuSelections={menuSelections}
+                    handleMenuToggle={handleMenuToggle}
+                  />
+                  <StepActions
+                    currentStep={currentStep}
+                    totalSteps={steps.length}
+                    onBack={goBack}
+                    onNext={goNext}
+                  />
+                </StepperContent>
+              ))}
             </StepperPanel>
           </Stepper>
         </div>
