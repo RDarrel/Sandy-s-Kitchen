@@ -1,7 +1,7 @@
 import { Package, CalendarDays, Utensils, Phone, Send } from "lucide-react";
 import { Formatter } from "@/services/utilities";
+import { Button } from "@/components/ui/button";
 import Header from "../header";
-
 const formatDate = (value) => {
   if (!value) return "";
   return new Intl.DateTimeFormat("en", {
@@ -26,8 +26,29 @@ const joinMenuNames = (menus = []) => {
   if (menus.length === 0) return "";
   return menus.map(({ name }) => name).join(", ");
 };
+const getInclusionName = (inclusion = {}) => {
+  return inclusion?.item?.name || inclusion?.name || "Included item";
+};
+const formatInclusion = (inclusion = {}) => {
+  const name = getInclusionName(inclusion);
+  const amount = Number(inclusion?.amount) || 0;
+  const unit = inclusion?.unit;
 
-const Step6 = ({ estimate, form, packageInfo, handleSubmit = () => {} }) => {
+  if (!amount || !unit) return name;
+  if (unit === "hrs") return `${name} (${amount} hr${amount > 1 ? "s" : ""})`;
+  if (unit === "qty") return `${name} (${amount})`;
+
+  return name;
+};
+
+const Step6 = ({
+  estimate,
+  form,
+  packageInfo,
+  selectedMenus,
+  selectedVenue,
+  handleSubmit = () => {},
+}) => {
   return (
     <div>
       <Header

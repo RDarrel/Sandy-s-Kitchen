@@ -1,5 +1,5 @@
-import { MenuSectionHeader, MenuSelection } from "../menus";
-import { Beef, Utensils } from "lucide-react";
+import { MenuSelection } from "../menus";
+import { Salad } from "lucide-react";
 import Header from "../header";
 
 const Step3 = ({
@@ -9,30 +9,22 @@ const Step3 = ({
   menuSelections,
   handleMenuToggle = () => {},
 }) => {
-  console.log("running step3");
+  console.log("menuSelections", menuSelections);
+  console.log("packageInfo", packageInfo);
   return (
     <>
       <Header
-        title="Menu Choices"
-        Icon={Beef}
-        description="Choose the food lineup included in this catering package."
-        badge={`${selectedMainCount + selectedSideCount}/${
-          packageInfo.mainCourseLimit + packageInfo.sideMenuLimit
-        } selected`}
+        title="Side Menus"
+        Icon={Salad}
+        description="Select the side dishes to include in this catering package."
+        badge={`${selectedSideCount}/${packageInfo.sideMenuLimit} selected`}
       />
 
       <div className="grid gap-4">
-        <MenuSectionHeader
-          icon={Utensils}
-          title="Main Courses"
-          count={selectedMainCount}
-          limit={packageInfo.mainCourseLimit}
-        />
-
         <MenuSelection
-          type="main"
-          categories={packageInfo.mainCourseCategories}
-          selections={menuSelections.main}
+          type="side"
+          categories={packageInfo.sideMenuCategories}
+          selections={menuSelections.side}
           onToggle={handleMenuToggle}
         />
 
