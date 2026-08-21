@@ -7,6 +7,7 @@ import {
   Beef,
   Salad,
   ArrowRight,
+  Eye,
 } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 import Cloudinary from "@/services/utilities/cloudinary";
@@ -90,19 +91,22 @@ const Package = ({
             Inquire Package
           </Button>
         ) : (
-          <div className="grid grid-cols-2 mx-3 gap-3 py-3 self-end">
+          <div className="mx-3 grid grid-cols-2 gap-3 self-end py-3">
             <Button
-              variant={"outline"}
-              className={"rounded-lg"}
+              variant="outline"
+              className="gap-2 rounded-lg"
               onClick={() => handleInquire(item, "details")}
             >
               View Details
+              <Eye className="size-4" />
             </Button>
+
             <Button
-              className={"rounded-lg"}
+              className="gap-2 rounded-lg"
               onClick={() => handleInquire(item, "inquire")}
             >
-              Inquire Now <ArrowRight />
+              Inquire Now
+              <ArrowRight className="size-4" />
             </Button>
           </div>
         )}

@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 4;
 
-const Venue = ({ isWebsite = false, onSelect = () => {} }) => {
+const Venue = ({ isWebsite = true, onSelect = () => {} }) => {
   const { auth } = useSelector(({ auth }) => auth),
     { collections: venues, isLoading = false } = useSelector(
       ({ venues }) => venues,
@@ -87,8 +87,8 @@ const Venue = ({ isWebsite = false, onSelect = () => {} }) => {
     </nav>
   );
 
-  const handleInquire = useCallback((item) => {
-    if (!isWebsite) return onSelect(item);
+  const handleInquire = useCallback((item, actionType) => {
+    if (!isWebsite) return onSelect(item, actionType);
     sessionStorage.setItem(
       "inquiry",
       JSON.stringify({
@@ -228,6 +228,7 @@ const Venue = ({ isWebsite = false, onSelect = () => {} }) => {
                       key={venue?._id}
                       venue={venue}
                       handleInquire={handleInquire}
+                      isWebsite={isWebsite}
                     />
                   );
                 })

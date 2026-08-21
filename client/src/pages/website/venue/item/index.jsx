@@ -1,10 +1,18 @@
 import { memo, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, Home, MapPin, UsersRound } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Clock,
+  Eye,
+  Home,
+  MapPin,
+  UsersRound,
+} from "lucide-react";
 import Gallery from "./gallery";
 import { Formatter } from "@/services/utilities";
 
-const Item = ({ venue, handleInquire = () => {} }) => {
+const Item = ({ isWebsite = true, venue, handleInquire = () => {} }) => {
   const getVisibleItems = useCallback((items, maxVisible) => {
     const hasHidden = venue?.inclusions?.length > maxVisible;
     const visibleItems = items?.slice(0, maxVisible);
@@ -101,13 +109,34 @@ const Item = ({ venue, handleInquire = () => {} }) => {
           </div>
         </div>
 
-        <Button
-          className="venue-card__button"
-          variant="outline"
-          onClick={handleInquire}
-        >
-          Inquire Venue
-        </Button>
+        {isWebsite ? (
+          <Button
+            className="venue-card__button"
+            variant="outline"
+            onClick={() => handleInquire(venue)}
+          >
+            Inquire Package
+          </Button>
+        ) : (
+          <div className=" grid grid-cols-2 gap-3 self-end pt-3">
+            <Button
+              variant="outline"
+              className="gap-2 rounded-lg"
+              onClick={() => handleInquire(venue, "details")}
+            >
+              View Details
+              <Eye className="size-4" />
+            </Button>
+
+            <Button
+              className="gap-2 rounded-lg"
+              onClick={() => handleInquire(venue, "inquire")}
+            >
+              Inquire Now
+              <ArrowRight className="size-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </article>
   );
