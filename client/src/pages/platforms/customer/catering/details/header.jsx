@@ -9,7 +9,7 @@ const Header = ({ selected }) => {
       <div>
         <img
           src={Cloudinary.getPackageImg(selected?.imgId || "", selected?._id)}
-          className="w-full h-full max-h-[10rem] lg:max-h-[18.2rem] object-cover rounded-sm rounded-b-none md:rounded-r-none "
+          className="w-full h-full max-h-[10rem] lg:max-h-[18.2rem] object-cover rounded-sm rounded-b-none md:rounded-r-none md:rounded-l-sm "
           alt={`Image not found for ${selected?.name}`}
         />
       </div>
@@ -86,7 +86,7 @@ const Metric = ({ metric }) => {
         <Icon size={15} />
         <span className="text-[0.7rem] ml-2 text-start">{title}</span>
       </div>
-      <span className="font-bold text-[1.2rem]">{value}</span>
+      <span className="font-bold text-xl">{value}</span>
       <h1 className="text-[0.7rem] mt-auto">{subTitle}</h1>
     </div>
   );

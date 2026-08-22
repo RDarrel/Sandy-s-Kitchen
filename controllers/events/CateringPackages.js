@@ -19,7 +19,7 @@ const packagePopulate = [
   },
   {
     path: "inclusions.item",
-    select: "name requirement",
+    select: "name requirement category",
   },
 ];
 exports.save = async (req, res) => {

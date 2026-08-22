@@ -18,7 +18,7 @@ const ViewDetails = ({ selected = {}, isOpen, setIsOpen = () => {} }) => {
             Explore the package information, menus, pricing, and inclusions.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3">
           <Header selected={selected} />
           <Body selected={selected} />
         </div>

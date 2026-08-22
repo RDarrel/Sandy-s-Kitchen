@@ -16,7 +16,7 @@ const Footer = ({ selected = {} }) => {
 
         <div className="flex items-center justify-between gap-4 sm:justify-end">
           <div>
-            <p className="text-xs text-muted-foreground">Package Price</p>
+            <p className="text-xs text-muted-foreground">Venue Price</p>
 
             <p className="text-lg font-bold leading-tight">
               {Formatter.amount(selected?.basePrice)}

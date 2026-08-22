@@ -1,71 +1,25 @@
 import { Badge } from "@/components/ui/badge";
-import { Check, Gift, PartyPopper } from "lucide-react";
-import { useMemo } from "react";
+import { PartyPopper } from "lucide-react";
+import Inclusions from "./inclusions";
 
 const Body = ({ selected }) => {
-  const { inclusions = [], types } = selected;
-  const { services = [], equipment = [] } = useMemo(() => {
-    if (inclusions.length === 0) return {};
-    const getByModule = (module) =>
-      inclusions.filter(({ model }) => model === module);
-    return {
-      services: getByModule("Services"),
-      equipment: getByModule("Equipment"),
-    };
-  }, [inclusions]);
-
   return (
     <div className="flex flex-col gap-2">
       <div className="border border-primary/20 p-3 rounded-sm ">
-        <h2 className="font-bold text-xl mb-2 flex gap-2">
-          <PartyPopper color="gray" /> Best For
+        <h2 className="font-bold text-xl mb-2 flex gap-2 items-center">
+          <PartyPopper color="gray" className="" /> Best For
         </h2>
         <div className="flex flex-wrap gap-2">
-          <div className="admin-venue-card__chips">
-            {types?.map((item) => (
-              <span key={item} className="mr-2">
-                {item}
-              </span>
-            ))}
-          </div>
+          {selected?.types?.map((item) => (
+            <Badge key={item} className="mr-2 text-sm" variant={"outline"}>
+              {item}
+            </Badge>
+          ))}
         </div>
       </div>
-      <div className="border border-primary/20 p-3 rounded-sm ">
-        <h2 className="font-bold text-xl mb-2 flex gap-2">
-          <Gift color="gray" /> Inclusions
-        </h2>
-        <div className="grid grid-cols-[1fr_auto_1fr] gap-5">
-          <Inclusions inclusions={services} title={"Services"} />
-          <div className="border-primary/20 border-r" />
-          <Inclusions inclusions={equipment} title={"Equipment"} />
-        </div>
-      </div>
+      <Inclusions venue={selected} />
     </div>
   );
 };
 
 export default Body;
-
-const Inclusions = ({ inclusions, title }) => {
-  return (
-    <div className=" gap-5">
-      <div className=" flex flex-col gap-2 ">
-        <h2 className="font-bold">{title}</h2>
-        <div className="flex flex-col gap-2">
-          {inclusions.map(({ item, unit = null, amount }, idx) => (
-            <div className="flex gap-2" key={idx}>
-              <span className="inline-flex items-center justify-center bg-accent/15 p-1 rounded-sm">
-                <Check className="text-accent " size={10} />
-              </span>
-              <span>
-                {item?.name}{" "}
-                {unit &&
-                  `(${amount}${unit === "hrs" ? (amount > 2 ? " hrs" : " hr") : ""})`}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};

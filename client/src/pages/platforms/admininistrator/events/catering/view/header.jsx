@@ -5,73 +5,70 @@ import { Beef, Gift, Paperclip, Salad, UserPlus, Users } from "lucide-react";
 
 const Header = ({ selected }) => {
   return (
-    <div className="grid grid-cols-[22rem_1fr] gap-5 ">
-      <div className="h-[17.6rem]">
+    <div className="grid grid-cols-1 lg:grid-cols-[22rem_1fr] ">
+      <div>
         <img
           src={Cloudinary.getPackageImg(selected?.imgId || "", selected?._id)}
-          className="w-full h-full object-cover rounded-sm "
+          className="w-full h-full max-h-[10rem] lg:max-h-[18.2rem] object-cover rounded-sm rounded-b-none md:rounded-r-none md:rounded-l-sm "
           alt={`Image not found for ${selected?.name}`}
         />
       </div>
-      <div className="flex flex-col  gap-3 ">
-        <h2 className="font-bold text-[2rem] m-0 ">
-          {capitalize(selected?.name)}
-        </h2>
 
-        <h2 className="-mt-2">{selected?.description}</h2>
-        <div className="grid grid-rows-2 gap-2">
-          <div className="grid grid-cols-3  gap-2">
-            {[
-              {
-                title: "Minimum Guests",
-                value: selected?.minimumGuests,
-                subTitle: "Required",
-                Icon: Users,
-              },
-              {
-                title: "Package Price",
-                value: Formatter.amount(selected?.basePrice),
-                subTitle: "Base Rate",
-                Icon: Paperclip,
-              },
-              {
-                title: "Additional Fee",
-                value: Formatter.amount(selected?.addPricePerGuest),
+      <div className="p-3 border border-t-0 md:border-t md:border-l-0  rounded-sm rounded-t-none md:rounded-t md:rounded-l-none border-primary/20 ">
+        <div className="flex flex-col rounded-sm  gap-3 ml-1 ">
+          <h2 className="font-bold text-2xl md:text-3xl m-0 ">
+            {capitalize(selected?.name)}
+          </h2>
 
-                subTitle: "Per Guest",
-                Icon: UserPlus,
-              },
-            ].map((metric, idx) => (
-              <Metric metric={metric} key={`main-metric-${idx}`} />
-            ))}
-          </div>
-          <div className="grid grid-cols-3  gap-2">
-            {[
-              {
-                title: "Main Courses",
-                value: selected?.mainCourseCategories?.flatMap(
-                  ({ choices }) => choices,
-                )?.length,
-                subTitle: "Included",
-                Icon: Beef,
-              },
-              {
-                title: "Side Menus",
-                value: selected?.sideMenuCategories?.flatMap(
-                  ({ choices }) => choices,
-                )?.length,
-                subTitle: "Included",
-                Icon: Salad,
-              },
-              {
-                title: "Inclusions",
-                value: selected?.inclusions?.length,
-                subTitle: "Equipment & Service",
-                Icon: Gift,
-              },
-            ].map((metric, idx) => (
-              <Metric metric={metric} key={`additional-${idx}`} />
-            ))}
+          <h2 className="-mt-2">{selected?.description}</h2>
+          <div className="grid gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3  gap-2">
+              {[
+                {
+                  title: "Minimum Guests",
+                  value: selected?.minimumGuests,
+                  subTitle: "Required",
+                  Icon: Users,
+                },
+                {
+                  title: "Package Price",
+                  value: Formatter.amount(selected?.basePrice),
+                  subTitle: "Base Rate",
+                  Icon: Paperclip,
+                },
+                {
+                  title: "Additional Fee",
+                  value: Formatter.amount(selected?.addPricePerGuest),
+
+                  subTitle: "Per Guest",
+                  Icon: UserPlus,
+                },
+                {
+                  title: "Main Courses",
+                  value: selected?.mainCourseCategories?.flatMap(
+                    ({ choices }) => choices,
+                  )?.length,
+                  subTitle: "Options",
+                  Icon: Beef,
+                },
+                {
+                  title: "Side Menus",
+                  value: selected?.sideMenuCategories?.flatMap(
+                    ({ choices }) => choices,
+                  )?.length,
+                  subTitle: "Options",
+                  Icon: Salad,
+                },
+                {
+                  title: "Inclusions",
+                  value: selected?.inclusions?.length,
+                  subTitle: "Equipment & Service",
+                  Icon: Gift,
+                },
+              ].map((metric, idx) => (
+                <Metric metric={metric} key={`main-metric-${idx}`} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -84,13 +81,13 @@ export default Header;
 const Metric = ({ metric }) => {
   const { title, subTitle, value, Icon } = metric;
   return (
-    <div className="bg-primary/5 p-2   text-center rounded-sm ">
+    <div className="bg-primary/5 p-2   text-center rounded-sm flex flex-col ">
       <div className="flex">
         <Icon size={15} />
-        <span className="text-[0.7rem] ml-2">{title}</span>
+        <span className="text-[0.7rem] ml-2 text-start">{title}</span>
       </div>
-      <span className="font-bold text-[1.2rem]">{value}</span>
-      <h1 className="text-[0.7rem]">{subTitle}</h1>
+      <span className="font-bold text-xl">{value}</span>
+      <h1 className="text-[0.7rem] mt-auto">{subTitle}</h1>
     </div>
   );
 };

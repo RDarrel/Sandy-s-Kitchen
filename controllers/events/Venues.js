@@ -3,7 +3,7 @@ const Venue = require("../../models/events/Venue");
 const venuePopulates = [
   {
     path: "inclusions.item",
-    select: "name requirement",
+    select: "name requirement category",
   },
 ];
 exports.save = async (req, res) => {

@@ -1,23 +1,9 @@
 import { cn } from "@/lib/utils";
-import { Beef, Check, Gift, Salad } from "lucide-react";
-import { useMemo } from "react";
+import { Beef, Salad } from "lucide-react";
+import Inclusions from "./inclusions";
 
 const Body = ({ selected }) => {
-  const {
-    mainCourseCategories = [],
-    sideMenuCategories = [],
-    inclusions = [],
-  } = selected;
-
-  const { services = [], equipment = [] } = useMemo(() => {
-    if (inclusions.length === 0) return {};
-    const getByModule = (module) =>
-      inclusions.filter(({ model }) => model === module);
-    return {
-      services: getByModule("Services"),
-      equipment: getByModule("Equipment"),
-    };
-  }, [inclusions]);
+  const { mainCourseCategories = [], sideMenuCategories = [] } = selected;
 
   const sideMenuLimit = sideMenuCategories?.reduce(
     (acc, curr) => (acc += curr?.limit),
@@ -39,16 +25,7 @@ const Body = ({ selected }) => {
         Icon={Salad}
       />
 
-      <div className="border border-primary/20 p-3 rounded-sm ">
-        <h2 className="font-bold text-xl mb-2 flex gap-2">
-          <Gift color="gray" /> Inclusions
-        </h2>
-        <div className="grid grid-cols-[1fr_auto_1fr] gap-5">
-          <Inclusions inclusions={services} title={"Services"} />
-          <div className="border-primary/20 border-r" />
-          <Inclusions inclusions={equipment} title={"Equipment"} />
-        </div>
-      </div>
+      <Inclusions catering={selected} />
     </div>
   );
 };
@@ -88,29 +65,6 @@ const FoodSelection = ({ categories, title, max, Icon }) => {
             </ul>
           </div>
         ))}
-      </div>
-    </div>
-  );
-};
-
-const Inclusions = ({ inclusions, title }) => {
-  return (
-    <div className=" gap-5">
-      <div className="flex flex-col gap-2 ">
-        <h2 className="font-bold">{title}</h2>
-        <div className="flex flex-col gap-2">
-          {inclusions.map(({ item, unit = null, amount }, idx) => (
-            <div className="flex items-start gap-2" key={idx}>
-              <Check className="mt-1 size-4 shrink-0 text-accent" />
-
-              <span>
-                {item?.name}
-                {unit &&
-                  ` (${amount}${unit === "hrs" ? (amount > 1 ? " hrs" : " hr") : ""})`}
-              </span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
