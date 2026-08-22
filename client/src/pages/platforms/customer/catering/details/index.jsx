@@ -24,7 +24,7 @@ const Details = ({ selected, onSelect = () => {} }) => {
           <CardContent className={"grid gap-5 relative px-3 md:px-5 "}>
             <Header selected={selected} />
             <Body selected={selected} />
-            <Footer selected={selected} />
+            <Footer selected={selected} onSelect={onSelect} />
           </CardContent>
         </Card>
       </div>

@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Header from "./header";
 import Body from "./body";
@@ -17,14 +17,14 @@ const Details = ({ selected, onSelect = () => {} }) => {
           onClick={() => onSelect({}, "default")}
         >
           <ArrowLeft className="size-3.5" />
-          Back to Packages
+          Back to Venues
         </Button>
 
         <Card className={"bg-card"}>
           <CardContent className={"grid gap-5 relative px-3 md:px-5 "}>
             <Header selected={selected} />
             <Body selected={selected} />
-            <Footer selected={selected} />
+            <Footer selected={selected} onSelect={onSelect} />
           </CardContent>
         </Card>
       </div>

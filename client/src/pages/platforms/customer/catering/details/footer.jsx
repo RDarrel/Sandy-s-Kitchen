@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Formatter } from "@/services/utilities";
 import { ArrowRight } from "lucide-react";
 
-const Footer = ({ selected = {} }) => {
+const Footer = ({ selected = {}, onSelect = () => {} }) => {
   return (
     <div className="sticky bottom-0 -mx-3 md:-mx-5 border-t bg-background/95 px-4 py-4 -mb-3  backdrop-blur-md">
       <div className="mx-auto max-w-4xl md:flex items-center">
@@ -23,7 +23,11 @@ const Footer = ({ selected = {} }) => {
             </p>
           </div>
 
-          <Button size="lg" className="shrink-0 gap-2">
+          <Button
+            size="lg"
+            className="shrink-0 gap-2"
+            onClick={() => onSelect(selected, "inquire")}
+          >
             Inquire Now
             <ArrowRight className="size-4" />
           </Button>
