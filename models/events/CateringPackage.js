@@ -81,7 +81,7 @@ const modelSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    minimumGuests: {
+    includedGuests: {
       type: Number,
       required: true,
     },

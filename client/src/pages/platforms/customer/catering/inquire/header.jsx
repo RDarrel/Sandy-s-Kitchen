@@ -41,7 +41,7 @@ const Header = ({ packageInfo, estimate }) => {
         <HeaderMetric
           icon={Users}
           label="Guests"
-          value={`${packageInfo.minimumGuests}+`}
+          value={`${packageInfo.includedGuests}+`}
         />
         <HeaderMetric
           icon={Utensils}

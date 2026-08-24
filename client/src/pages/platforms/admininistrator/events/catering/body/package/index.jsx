@@ -61,7 +61,7 @@ const Package = ({ item, handleAction = () => {} }) => {
         <div className="admin-package__summary">
           <span>
             <UsersRound />
-            {item.minimumGuests} Minimum Guests
+            {item.includedGuests} Guests Included
           </span>
           <span>
             <Beef />

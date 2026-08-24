@@ -40,13 +40,13 @@ const Step1 = ({ packageInfo = {}, form = {}, updateField = () => {} }) => {
         <Field label="Number of Guests" required>
           <Input
             type="number"
-            min={packageInfo.minimumGuests}
+            min={packageInfo.includedGuests}
             value={form.guestCount}
             onChange={(e) => updateField("guestCount", e.target.value)}
-            placeholder={`${packageInfo.minimumGuests} or more`}
+            placeholder={`${packageInfo.includedGuests} or more`}
           />
           {/* <FieldHint>
-                      Minimum {packageInfo.minimumGuests}; extra guests add{" "}
+                      Minimum {packageInfo.includedGuests}; extra guests add{" "}
                       {Formatter.amount(packageInfo.addPricePerGuest)} each.
                     </FieldHint> */}
         </Field>

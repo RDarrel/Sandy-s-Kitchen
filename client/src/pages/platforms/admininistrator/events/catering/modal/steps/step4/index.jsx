@@ -3,7 +3,7 @@ import Cluster from "./cluster";
 import { useCallback } from "react";
 
 const Step4 = ({ form = {}, setForm = () => {} }) => {
-  const { mainCourses, sideMenus, minimumGuests } = form;
+  const { mainCourses, sideMenus, includedGuests } = form;
 
   const onUpdateCategoryLimit = useCallback(
     (isMainCourse = false, cId, limit) => {
@@ -29,7 +29,7 @@ const Step4 = ({ form = {}, setForm = () => {} }) => {
         subtitle="Review selected main courses and set selection limits."
         icon={<PackageCheck className="size-5" />}
         menuCategories={mainCourses}
-        targetPax={minimumGuests}
+        targetPax={includedGuests}
         onUpdateCategoryLimit={onUpdateCategoryLimit}
         key={"cluster-1"}
         isMainCourse
@@ -41,7 +41,7 @@ const Step4 = ({ form = {}, setForm = () => {} }) => {
           subtitle="Review selected side menus and set selection limits."
           icon={<Salad className="size-5" />}
           menuCategories={sideMenus}
-          targetPax={minimumGuests}
+          targetPax={includedGuests}
           key={"cluster-2"}
           onUpdateCategoryLimit={onUpdateCategoryLimit}
           emptyTitle="No side menus selected yet"

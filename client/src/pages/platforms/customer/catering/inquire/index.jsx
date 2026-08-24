@@ -130,7 +130,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
 
   const estimate = useMemo(() => {
     const guests = Number(form.guestCount) || 0;
-    const extraGuests = Math.max(0, guests - packageInfo.minimumGuests);
+    const extraGuests = Math.max(0, guests - packageInfo.includedGuests);
     const extraGuestFee = extraGuests * packageInfo.addPricePerGuest;
     const venueFee = Number(selectedVenue?.basePrice) || 0;
 
@@ -222,9 +222,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
       if (!form.eventType) return warn("Please select the event type.");
       if (!form.eventDate) return warn("Please choose your preferred date.");
       if (!form.eventTime) return warn("Please choose your preferred time.");
-      if (Number(form.guestCount) < packageInfo.minimumGuests) {
+      if (Number(form.guestCount) < packageInfo.includedGuests) {
         return warn(
-          `This package requires at least ${packageInfo.minimumGuests} guests.`,
+          `This package requires at least ${packageInfo.includedGuests} guests.`,
         );
       }
       if (!form.location.trim())
@@ -491,7 +491,7 @@ const buildPackageInfo = (item = {}) => {
     name: item?.name || "Selected Package",
     level: item?.level,
     description: item?.description,
-    minimumGuests: Number(item?.minimumGuests) || 1,
+    includedGuests: Number(item?.includedGuests) || 1,
     basePrice: Number(item?.basePrice) || 0,
     addPricePerGuest: Number(item?.addPricePerGuest) || 0,
     mainCourseLimit: Number(item?.mainCourseLimit) || 0,

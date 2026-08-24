@@ -8,7 +8,7 @@ const Step4 = ({
   setMainCourses = () => {},
   setSideMenus = () => {},
 }) => {
-  const { mainCourses, sideMenus, minimumGuests } = form;
+  const { mainCourses, sideMenus, includedGuests } = form;
 
   const onUpdateCategoryLimit = useCallback(
     (isMainCourse = false, cId, limit) => {
@@ -62,7 +62,7 @@ const Step4 = ({
         subtitle="Review selected main courses and set the guests served."
         icon={<PackageCheck className="size-5" />}
         menuCategories={mainCourses}
-        targetPax={minimumGuests}
+        targetPax={includedGuests}
         onUpdateQtyServe={onUpdateQtyServe}
         onUpdateCategoryLimit={onUpdateCategoryLimit}
         key={"cluster-1"}
@@ -75,7 +75,7 @@ const Step4 = ({
           subtitle="Review selected side menus and set the guests served."
           icon={<Salad className="size-5" />}
           menuCategories={sideMenus}
-          targetPax={minimumGuests}
+          targetPax={includedGuests}
           key={"cluster-2"}
           onUpdateQtyServe={onUpdateQtyServe}
           onUpdateCategoryLimit={onUpdateCategoryLimit}

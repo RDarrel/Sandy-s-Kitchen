@@ -25,8 +25,8 @@ const Header = ({ selected }) => {
             <div className="grid grid-cols-2 md:grid-cols-3  gap-2">
               {[
                 {
-                  title: "Minimum Guests",
-                  value: selected?.minimumGuests,
+                  title: "Guests Included",
+                  value: selected?.includedGuests,
                   subTitle: "Required",
                   Icon: Users,
                 },

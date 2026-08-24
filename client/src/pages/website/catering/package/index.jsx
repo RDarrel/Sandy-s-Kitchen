@@ -54,7 +54,7 @@ const Package = ({
         <div className="catering-package__summary">
           <span>
             <UsersRound />
-            {item.minimumGuests} Minimum Guests
+            {item.includedGuests} Guests Included
           </span>
           <span>
             <Beef />

@@ -46,14 +46,14 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
 
         <div className="grid grid-cols-2 gap-5">
           <div className="grid w-full  items-center gap-1.5">
-            <Label htmlFor="minGuests">Minimum Pax</Label>
+            <Label htmlFor="minGuests">Guests Included</Label>
             <Input
               type="number"
-              value={String(form?.minimumGuests || "")}
+              value={String(form?.includedGuests || "")}
               onChange={({ target }) =>
                 setForm({
                   ...form,
-                  minimumGuests: Number(target.value),
+                  includedGuests: Number(target.value),
                 })
               }
               required={!isDraft}

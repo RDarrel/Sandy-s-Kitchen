@@ -40,7 +40,7 @@ import { isImgURL } from "@/services/utilities";
 const _form = {
   name: "",
   img: "",
-  minimumGuests: 0,
+  includedGuests: 0,
   mainCourseLimit: 3,
   inclusions: [],
   mainCourses: [],
