@@ -136,6 +136,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
 
     return {
       base: packageInfo.basePrice,
+      addPricePerGuest: packageInfo?.addPricePerGuest,
       extraGuestFee,
       venueFee,
       total: packageInfo.basePrice + extraGuestFee + venueFee,
@@ -324,6 +325,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
     );
   }
 
+  console.log("packageInfor", packageInfo);
   return (
     <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">

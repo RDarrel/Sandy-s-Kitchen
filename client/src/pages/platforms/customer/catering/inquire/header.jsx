@@ -33,15 +33,19 @@ const Header = ({ packageInfo, estimate }) => {
         <div>
           <div className="catering-package__price">
             <strong>{Formatter.amount(estimate.base)}</strong>
-            <small>Starting Rate</small>
+            <span className="text-muted-foreground text-xs">Starting Rate</span>
+            <small className="!text-[12px] !font-">
+              + {Formatter.amount(estimate?.addPricePerGuest)} / additional
+              guest
+            </small>
           </div>
         </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-1 mt-3">
         <HeaderMetric
           icon={Users}
-          label="Guests"
-          value={`${packageInfo.includedGuests}+`}
+          label="Guests Included"
+          value={`${packageInfo.includedGuests}`}
         />
         <HeaderMetric
           icon={Utensils}
