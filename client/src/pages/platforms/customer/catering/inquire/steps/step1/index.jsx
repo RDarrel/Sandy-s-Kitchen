@@ -64,8 +64,15 @@ const Step1 = ({ packageInfo = {}, form = {}, updateField = () => {} }) => {
         </Field>
 
         {/* Time & Hours */}
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Time" required>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Start Time" required>
+            <Input
+              type="time"
+              value={form.eventTime || ""}
+              onChange={(e) => updateField("eventTime", e.target.value)}
+            />
+          </Field>
+          <Field label="End Time" required>
             <Input
               type="time"
               value={form.eventTime || ""}
@@ -73,10 +80,11 @@ const Step1 = ({ packageInfo = {}, form = {}, updateField = () => {} }) => {
             />
           </Field>
 
-          <Field label="Hours">
+          <Field label="Service Duration">
             <Input
               type="number"
               min="1"
+              disabled
               value={form.duration || ""}
               onChange={(e) => updateField("duration", e.target.value)}
               placeholder="4"

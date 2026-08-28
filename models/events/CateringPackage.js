@@ -81,11 +81,11 @@ const modelSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    includedGuests: {
+    basePrice: {
       type: Number,
       required: true,
     },
-    basePrice: {
+    includedGuests: {
       type: Number,
       required: true,
     },
@@ -95,6 +95,18 @@ const modelSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
+    includedHours: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    addPricePerHour: {
+      // Additional Price Per Hour
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
     mainCourseLimit: {
       type: Number,
       required: true,

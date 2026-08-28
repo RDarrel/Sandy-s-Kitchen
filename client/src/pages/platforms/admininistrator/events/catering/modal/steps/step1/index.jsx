@@ -5,7 +5,7 @@ import Image from "./image";
 const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
   return (
     <div className="grid grid-cols-[22rem_1fr] gap-5">
-      <div className="h-[17rem] ">
+      <div className="h-[17rem] self-center ">
         <Image setForm={setForm} form={form} />
       </div>
       <div className=" grid gap-5">
@@ -23,7 +23,7 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
               }
               required={true}
               id="name"
-              placeholder="Enter package name"
+              placeholder="e.g. Premium Catering Package"
             />
           </div>
           <div className="grid w-full  items-center gap-1.5">
@@ -39,7 +39,7 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
               }
               required
               id="price"
-              placeholder="Enter package price"
+              placeholder="e.g. 35000"
             />
           </div>
         </div>
@@ -58,7 +58,7 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
               }
               required={!isDraft}
               id="minGuests"
-              placeholder="Enter minimum pax"
+              placeholder="e.g. 50"
             />
           </div>
           <div className="grid w-full  items-center gap-1.5">
@@ -74,11 +74,44 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
               }
               required={!isDraft}
               id="pricePerPax"
-              placeholder="Enter additional price per pax"
+              placeholder="e.g. 500"
             />
           </div>
         </div>
-
+        <div className="grid grid-cols-2 gap-5">
+          <div className="grid w-full  items-center gap-1.5">
+            <Label htmlFor="s-hours">Service Hours</Label>
+            <Input
+              type="number"
+              value={String(form?.includedHours || "")}
+              onChange={({ target }) =>
+                setForm({
+                  ...form,
+                  includedHours: Number(target.value),
+                })
+              }
+              required={!isDraft}
+              id="s-hours"
+              placeholder="e.g. 4"
+            />
+          </div>
+          <div className="grid w-full  items-center gap-1.5">
+            <Label htmlFor="add-hour">Additional Price Per Hour</Label>
+            <Input
+              type="number"
+              value={String(form?.addPricePerHour || "")}
+              onChange={({ target }) =>
+                setForm({
+                  ...form,
+                  addPricePerHour: Number(target.value),
+                })
+              }
+              required={!isDraft}
+              id="add-hour"
+              placeholder="e.g. 2000"
+            />
+          </div>
+        </div>
         <div className="grid w-full items-center gap-1.5">
           <Label htmlFor="description">Description</Label>
           <Textarea

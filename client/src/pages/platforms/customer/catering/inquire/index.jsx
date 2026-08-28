@@ -34,7 +34,7 @@ import { Step1, Step2, Step3, Step4, Step5, Step6 } from "./steps";
 
 import Header from "./header";
 
-const steps = [
+const DEFAULT_STEPS = [
   {
     title: "Event",
     description: "Date and guests",
@@ -100,6 +100,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   );
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [steps, setSteps] = useState(DEFAULT_STEPS);
   const [form, setForm] = useState(emptyForm);
   const [menuSelections, setMenuSelections] = useState({
     main: {},
@@ -112,6 +113,14 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   useEffect(() => {
     dispatch(BROWSE_VENUES());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (form?.venueOption === "existing") {
+      setSteps(DEFAULT_STEPS.filter(({ title }) => title !== "Venue"));
+    } else {
+      setSteps(DEFAULT_STEPS);
+    }
+  }, [form?.venueOption]);
 
   const packageInfo = useMemo(() => buildPackageInfo(selected), [selected]);
   const venues = useMemo(() => {
@@ -325,7 +334,6 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
     );
   }
 
-  console.log("packageInfor", packageInfo);
   return (
     <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">
@@ -397,35 +405,44 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
             </div>
 
             <StepperPanel className="min-w-0">
-              {[Step1, Step2, Step3, Step4, Step5, Step6].map((Step, idx) => (
-                <StepperContent
-                  value={idx + 1}
-                  className={"p-3 sm:p-5"}
-                  key={idx}
-                >
-                  <Step
-                    form={form}
-                    packageInfo={packageInfo}
-                    selectedMainCount={selectedMainCount}
-                    selectedSideCount={selectedSideCount}
-                    menuSelections={menuSelections}
-                    venues={venues}
-                    estimate={estimate}
-                    selectedMenus={selectedMenus}
-                    selectedVenue={selectedVenue}
-                    selectedVenueId={selectedVenueId}
-                    setSelectedVenueId={setSelectedVenueId}
-                    handleMenuToggle={handleMenuToggle}
-                    updateField={updateField}
-                  />
-                  <StepActions
-                    currentStep={currentStep}
-                    totalSteps={steps.length}
-                    onBack={goBack}
-                    onNext={goNext}
-                  />
-                </StepperContent>
-              ))}
+              {[
+                Step1,
+                Step2,
+                Step3,
+                form?.venueOption !== "existing" ? Step4 : undefined,
+                Step5,
+                Step6,
+              ]
+                .filter(Boolean)
+                .map((Step, idx) => (
+                  <StepperContent
+                    value={idx + 1}
+                    className={"p-3 sm:p-5"}
+                    key={idx}
+                  >
+                    <Step
+                      form={form}
+                      packageInfo={packageInfo}
+                      selectedMainCount={selectedMainCount}
+                      selectedSideCount={selectedSideCount}
+                      menuSelections={menuSelections}
+                      venues={venues}
+                      estimate={estimate}
+                      selectedMenus={selectedMenus}
+                      selectedVenue={selectedVenue}
+                      selectedVenueId={selectedVenueId}
+                      setSelectedVenueId={setSelectedVenueId}
+                      handleMenuToggle={handleMenuToggle}
+                      updateField={updateField}
+                    />
+                    <StepActions
+                      currentStep={currentStep}
+                      totalSteps={steps.length}
+                      onBack={goBack}
+                      onNext={goNext}
+                    />
+                  </StepperContent>
+                ))}
             </StepperPanel>
           </Stepper>
         </div>
