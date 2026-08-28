@@ -25,11 +25,11 @@ const Step4 = ({ form = {}, setForm = () => {} }) => {
   return (
     <div className="space-y-5">
       <Cluster
-        title="Main Courses"
-        subtitle="Review selected main courses and set selection limits."
+        title="Main Course"
+        subtitle="Review selected main course and set selection limits."
         icon={<PackageCheck className="size-5" />}
         menuCategories={mainCourses}
-        targetPax={includedGuests}
+        targetPax={3}
         onUpdateCategoryLimit={onUpdateCategoryLimit}
         key={"cluster-1"}
         isMainCourse

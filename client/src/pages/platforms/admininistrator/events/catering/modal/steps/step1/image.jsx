@@ -104,7 +104,7 @@ const ImageUpload = ({
                 size={"sm"}
               >
                 <Upload />
-                Change Cover
+                Change Image
               </Button>
 
               <Button
@@ -128,7 +128,7 @@ const ImageUpload = ({
             </div>
 
             <div className="text-center grid gap-2">
-              <h3 className="text-md font-semibold">Upload Cover Image</h3>
+              <h3 className="text-md font-semibold">Upload Package Image</h3>
 
               <p className="text-xs text-muted-foreground">
                 Drag & drop an image here or click to browse.
