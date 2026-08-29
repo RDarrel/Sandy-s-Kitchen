@@ -237,3 +237,88 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* =========================
+   Sonner Toast
+   ========================= */
+
+[data-sonner-toaster] {
+  --normal-bg: #fffdf8 !important;
+  --normal-text: #3b2418 !important;
+  --normal-border: #efd7bc !important;
+}
+
+[data-sonner-toast] {
+  background: #fffdf8 !important;
+  color: #3b2418 !important;
+
+  border: 1px solid #efd7bc !important;
+  border-radius: 12px !important;
+
+  box-shadow: 0 6px 18px rgba(59, 36, 24, 0.08) !important;
+}
+
+/* Warning */
+[data-sonner-toast][data-type="warning"] {
+  background: #fffdf8 !important;
+  color: #3b2418 !important;
+  border-color: #ead59a !important;
+}
+
+/* Success */
+[data-sonner-toast][data-type="success"] {
+  background: #fffdf8 !important;
+  color: #3b2418 !important;
+  border-color: #bbdec8 !important;
+}
+
+/* Error */
+[data-sonner-toast][data-type="error"] {
+  background: #fffdf8 !important;
+  color: #3b2418 !important;
+  border-color: #e7b8b8 !important;
+}
+
+/* Info */
+[data-sonner-toast][data-type="info"] {
+  background: #fffdf8 !important;
+  color: #3b2418 !important;
+  border-color: #cfc5e8 !important;
+}
+
+/* Title */
+[data-sonner-toast] [data-title] {
+  color: #3b2418 !important;
+  font-weight: 600 !important;
+}
+
+/* Description */
+[data-sonner-toast] [data-description] {
+  color: #7b5b46 !important;
+}
+
+/* Close button */
+[data-sonner-toast] [data-close-button] {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  left: auto !important;
+
+  width: 24px !important;
+  height: 24px !important;
+
+  border-radius: 6px !important;
+
+  background: transparent !important;
+  border: 1px solid transparent !important;
+
+  color: #7b5b46 !important;
+
+  transform: none !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+  background: #f6eadb !important;
+  border-color: #efd7bc !important;
+  color: #3b2418 !important;
+}

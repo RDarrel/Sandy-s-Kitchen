@@ -170,9 +170,12 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
       currentStep === 2 &&
       getIncludedMenusLength(mainCourses) < mainCourseLimit
     ) {
-      return toast.warning(
-        `Select at least ${mainCourseLimit} main course menus to match the main course limit.`,
-      );
+      return toast.warning("Main Course Limit Not Met", {
+        description: `Select at least ${mainCourseLimit} main course ${
+          mainCourseLimit === 1 ? "menu" : "menus"
+        } to match the package limit.`,
+        duration: 5000,
+      });
     }
 
     if (action === "override" && !willCreate) {
@@ -180,14 +183,12 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
       return handleUpdate();
     }
     if (currentStep === 4 && mainCourseTotalLimit < mainCourseLimit)
-      return toast.warning(
-        `Main Course selection limits are too low. Please increase one or more category selection limits by ${remainingCapacity} ${
+      return toast.warning("Selection Limit Too Low", {
+        description: `Please increase one or more Main Course category limits by ${remainingCapacity} ${
           remainingCapacity === 1 ? "menu" : "menus"
         }.`,
-        {
-          duration: 5000,
-        },
-      );
+        duration: 5000,
+      });
     if (currentStep !== 5) return setCurrentStep((prev) => prev + 1);
 
     setIsSubmitting(true);

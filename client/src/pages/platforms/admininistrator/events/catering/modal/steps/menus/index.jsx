@@ -111,9 +111,9 @@ const Menus = ({
   const removeSelectedMenu = useCallback(
     (cId, mId) => {
       setForm((prev) => {
+        console.log(cId, mId);
         const updated = [...prev[clusterKey]];
         const pIdx = updated.findIndex(({ category }) => category?._id === cId);
-
         if (pIdx < 0) return prev;
 
         const choices = [...updated[pIdx].choices];
@@ -154,7 +154,7 @@ const Menus = ({
             search={menuSearch}
             title="Available menus"
             subTitle={availableSubtitle}
-            placeholder="Search menus..."
+            placeholder="Search..."
             categories={availCategories}
             setSearch={setMenuSearch}
             setActiveCategory={setAvailCategory}

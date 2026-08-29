@@ -64,9 +64,9 @@ const Selected = ({
                         variant="ghost"
                         className="size-8 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                         aria-label={`Remove ${menu.name}`}
-                        onClick={() =>
-                          removeSelectedMenu(menu?.category?._id, menu._id)
-                        }
+                        onClick={() => {
+                          removeSelectedMenu(category?._id, menu._id);
+                        }}
                       >
                         <Trash2 className="size-4" />
                       </Button>
