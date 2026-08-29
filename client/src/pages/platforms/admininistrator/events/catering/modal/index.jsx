@@ -37,6 +37,7 @@ import { UPLOAD } from "@/services/redux/slices/persons/auth";
 import Spinner from "@/components/shared/spinner";
 import { buildData } from "./utils";
 import { isImgURL } from "@/services/utilities";
+import { isNumber } from "lodash";
 const _form = {
   name: "",
   img: "",
@@ -152,6 +153,15 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
 
     const action = e.nativeEvent.submitter?.dataset.action;
     const { mainCourses = [], mainCourseLimit = 0 } = form;
+    const mainCourseTotalLimit = mainCourses?.reduce(
+      (acc, { limit }) => (isNumber(limit) ? limit : 1) + acc,
+      0,
+    );
+
+    const remainingCapacity = Math.max(
+      mainCourseLimit - mainCourseTotalLimit,
+      0,
+    );
     // const action = e.nativeEvent.submitter.dataset.action;
     if (currentStep === 1 && !form?.img)
       return toast.warning("Please upload a package image.");
@@ -169,7 +179,15 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
       setIsSubmitting(true);
       return handleUpdate();
     }
-
+    if (currentStep === 4 && mainCourseTotalLimit < mainCourseLimit)
+      return toast.warning(
+        `Main Course selection limits are too low. Please increase one or more category selection limits by ${remainingCapacity} ${
+          remainingCapacity === 1 ? "menu" : "menus"
+        }.`,
+        {
+          duration: 5000,
+        },
+      );
     if (currentStep !== 5) return setCurrentStep((prev) => prev + 1);
 
     setIsSubmitting(true);
@@ -249,7 +267,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
                   {currentStep === 5 ? "Submit" : "Next"}{" "}
                   <Spinner formSubmitted={isSubmitting} />
                 </Button>
-                {currentStep !== 5 && (
+                {currentStep !== 5 && !willCreate && (
                   <Button
                     disabled={isSubmitting}
                     type="submit"

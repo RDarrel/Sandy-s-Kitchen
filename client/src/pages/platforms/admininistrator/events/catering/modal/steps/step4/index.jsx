@@ -29,7 +29,7 @@ const Step4 = ({ form = {}, setForm = () => {} }) => {
         subtitle="Review selected main course and set selection limits."
         icon={<PackageCheck className="size-5" />}
         menuCategories={mainCourses}
-        targetPax={3}
+        targetPax={form?.mainCourseLimit}
         onUpdateCategoryLimit={onUpdateCategoryLimit}
         key={"cluster-1"}
         isMainCourse

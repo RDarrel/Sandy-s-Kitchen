@@ -1,4 +1,4 @@
-import { capitalize } from "lodash";
+import { capitalize, isNumber } from "lodash";
 import { memo, useMemo } from "react";
 import Menu from "./menu";
 
@@ -29,7 +29,7 @@ const Cluster = ({
   // Total selection capacity configured across all categories.
   const categoryCapacity = useMemo(() => {
     return menuCategories.reduce(
-      (acc, curr) => acc + (Number(curr?.limit) || 0),
+      (acc, curr) => acc + (isNumber(curr?.limit) ? curr.limit : 1),
       0,
     );
   }, [menuCategories]);
@@ -161,7 +161,7 @@ const Cluster = ({
                   </p>
 
                   <p className="mt-0.5 text-sm font-semibold leading-4 text-foreground">
-                    {categoryCapacity} / 5
+                    {categoryCapacity} / {targetPax}
                   </p>
                 </div>
               </div>
