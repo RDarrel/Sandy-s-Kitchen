@@ -1,7 +1,17 @@
 import { Formatter } from "@/services/utilities";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { capitalize } from "lodash";
-import { Beef, Gift, Paperclip, Salad, UserPlus, Users } from "lucide-react";
+import {
+  Beef,
+  Clock,
+  Gift,
+  Paperclip,
+  PartyPopper,
+  Salad,
+  Timer,
+  UserPlus,
+  Users,
+} from "lucide-react";
 
 const Header = ({ selected }) => {
   return (
@@ -37,27 +47,23 @@ const Header = ({ selected }) => {
                   Icon: Paperclip,
                 },
                 {
-                  title: "Additional Fee",
+                  title: "Additional Guest  Fee",
                   value: Formatter.amount(selected?.addPricePerGuest),
 
-                  subTitle: "Per Guest",
+                  subTitle: "Per Additional  Guest",
                   Icon: UserPlus,
                 },
                 {
-                  title: "Main Courses",
-                  value: selected?.mainCourseCategories?.flatMap(
-                    ({ choices }) => choices,
-                  )?.length,
-                  subTitle: "Options",
-                  Icon: Beef,
+                  title: "Included Hours",
+                  value: selected?.includedHours,
+                  subTitle: "Catering Service",
+                  Icon: Clock,
                 },
                 {
-                  title: "Side Menus",
-                  value: selected?.sideMenuCategories?.flatMap(
-                    ({ choices }) => choices,
-                  )?.length,
-                  subTitle: "Options",
-                  Icon: Salad,
+                  title: "Additional Hour Fee",
+                  value: Formatter.amount(selected?.addPricePerHour),
+                  subTitle: "Per Additional Hour",
+                  Icon: Timer,
                 },
                 {
                   title: "Inclusions",

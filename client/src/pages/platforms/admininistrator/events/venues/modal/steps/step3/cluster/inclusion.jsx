@@ -21,12 +21,12 @@ const Inclusion = ({
         </p>
       </div>
 
-      <Field
+      {/* <Field
         value={value}
         item={item}
         type={type}
         onChange={(value) => updateSelectedItem(item?._id, value)}
-      />
+      /> */}
 
       <Button
         type="button"

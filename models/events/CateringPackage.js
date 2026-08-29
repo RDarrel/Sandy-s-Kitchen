@@ -1,21 +1,5 @@
 const mongoose = require("mongoose");
 
-const packageMenuSchema = new mongoose.Schema(
-  {
-    menu: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Menu",
-      required: true,
-    },
-    prepQty: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-  },
-  { _id: false },
-);
-
 const menuCategorySchema = new mongoose.Schema(
   {
     category: {
