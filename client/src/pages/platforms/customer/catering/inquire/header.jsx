@@ -1,4 +1,4 @@
-import { Gift, Salad, Utensils, Users } from "lucide-react";
+import { Gift, Salad, Utensils, Users, Clock, Banknote } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 import { cn } from "@/lib/utils";
 import Cloudinary from "@/services/utilities/cloudinary";
@@ -41,7 +41,7 @@ const Header = ({ packageInfo, estimate }) => {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-1 mt-3">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-1 mt-3">
         <HeaderMetric
           icon={Users}
           label="Guests Included"
@@ -56,6 +56,17 @@ const Header = ({ packageInfo, estimate }) => {
           icon={Salad}
           label="Side Menus"
           value={packageInfo.sideMenuLimit}
+        />
+        <HeaderMetric
+          icon={Clock}
+          label="Service Duration"
+          value={`${packageInfo.includedHours} hrs`}
+        />
+
+        <HeaderMetric
+          icon={Banknote}
+          label="Additional Hour Fee"
+          value={Formatter.amount(packageInfo.addPricePerHour)}
         />
         <HeaderMetric
           icon={Gift}
@@ -75,24 +86,28 @@ const HeaderMetric = ({ icon, value, label, accent = false }) => {
   return (
     <div
       className={cn(
-        "flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-2 text-[10px] sm:h-9 sm:px-2.5 sm:text-[11px]",
+        "grid h-10 shrink-0 content-center gap-1 rounded-md border px-2 text-[10px] sm:px-2.5 sm:text-[11px]",
         accent
           ? "border-primary/20 bg-primary/5 text-primary"
           : "bg-muted/15 text-foreground",
       )}
     >
-      {IconComponent && (
-        <IconComponent className="size-3.5 shrink-0 text-primary" />
-      )}
-      <span className="font-bold leading-none text-[15px]">{value}</span>
-      <span
-        className={cn(
-          "whitespace-nowrap leading-none",
-          accent ? "font-medium text-primary" : "text-muted-foreground",
+      <div className="flex items-center gap-1">
+        {IconComponent && (
+          <IconComponent className="size-3.5 shrink-0 text-primary" />
         )}
-      >
-        {label}
-      </span>
+
+        <span
+          className={cn(
+            "whitespace-nowrap leading-none",
+            accent ? "font-medium text-primary" : "text-muted-foreground",
+          )}
+        >
+          {label}
+        </span>
+      </div>
+
+      <span className="font-bold text-[15px] leading-none">{value}</span>
     </div>
   );
 };

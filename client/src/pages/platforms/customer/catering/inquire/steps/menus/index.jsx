@@ -66,7 +66,9 @@ export const MenuSelection = ({
                     <input
                       type="checkbox"
                       checked={checked}
-                      onChange={() => onToggle(type, category, menu)}
+                      onChange={() =>
+                        onToggle(type, category, menu, option.limit)
+                      }
                       className="size-3.5 shrink-0 accent-primary"
                     />
                     <span className="leading-4">{menu?.name}</span>

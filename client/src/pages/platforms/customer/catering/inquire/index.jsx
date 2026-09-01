@@ -173,10 +173,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleMenuToggle = (type, category, menu) => {
+  const handleMenuToggle = (type, category, menu, limit) => {
     const categoryId = category?._id;
     const menuId = getMenuId(menu);
-    const categoryLimit = getCategoryLimit(category);
 
     setMenuSelections((prev) => {
       const group = prev[type] || {};
@@ -186,10 +185,10 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
         ? current.filter((id) => id !== menuId)
         : [...current, menuId];
 
-      if (!isSelected && nextCategorySelections.length > categoryLimit) {
+      if (!isSelected && nextCategorySelections.length > limit) {
         toast.warning(
-          `${getCategoryName(category)} allows ${categoryLimit} selection${
-            categoryLimit > 1 ? "s" : ""
+          `${getCategoryName(category)} allows ${limit} selection${
+            limit > 1 ? "s" : ""
           }.`,
         );
         return prev;
@@ -513,6 +512,8 @@ const buildPackageInfo = (item = {}) => {
     includedGuests: Number(item?.includedGuests) || 1,
     basePrice: Number(item?.basePrice) || 0,
     addPricePerGuest: Number(item?.addPricePerGuest) || 0,
+    addPricePerHour: Number(item?.addPricePerHour) || 0,
+    includedHours: Number(item?.includedHours) || 0,
     mainCourseLimit: Number(item?.mainCourseLimit) || 0,
     sideMenuLimit,
     inclusions: item?.inclusions || [],

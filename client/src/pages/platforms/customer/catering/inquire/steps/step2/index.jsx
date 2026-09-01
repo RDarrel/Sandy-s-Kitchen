@@ -16,7 +16,7 @@ const Step2 = ({
         Icon={Beef}
         description="Choose the main courses you want to include in your package."
         badge={`${selectedMainCount + selectedSideCount}/${
-          packageInfo.mainCourseLimit + packageInfo.sideMenuLimit
+          packageInfo.mainCourseLimit
         } selected`}
       />
 

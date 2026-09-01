@@ -143,9 +143,9 @@ const Step1 = ({ packageInfo = {}, form = {}, updateField = () => {} }) => {
           </Field>
         </div>
 
-        {/* Existing Venue Details */}
-        {form.venueOption === "existing" && (
+        {form.venueOption === "existing" ? (
           <>
+            {/* Existing Venue Details */}
             <Field label="Venue Name" required>
               <Input
                 value={form.venueName || ""}
@@ -162,7 +162,39 @@ const Step1 = ({ packageInfo = {}, form = {}, updateField = () => {} }) => {
               />
             </Field>
           </>
-        )}
+        ) : form.venueOption === "book" ? (
+          <div className="md:col-span-2">
+            <p className="mb-2 text-sm font-medium">Venue Schedule</p>
+
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Start Time" required>
+                <Input
+                  type="time"
+                  value={form.venueStartTime || ""}
+                  onChange={(e) =>
+                    updateField("venueStartTime", e.target.value)
+                  }
+                />
+              </Field>
+
+              <Field label="End Time" required>
+                <Input
+                  type="time"
+                  value={form.venueEndTime || ""}
+                  onChange={(e) => updateField("venueEndTime", e.target.value)}
+                />
+              </Field>
+
+              <Field label="Duration">
+                <Input
+                  value={form.venueDuration || ""}
+                  disabled
+                  placeholder="0 hrs"
+                />
+              </Field>
+            </div>
+          </div>
+        ) : null}
 
         {/* Setup Notes */}
         <div className="sm:col-span-2">

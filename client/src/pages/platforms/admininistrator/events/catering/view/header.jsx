@@ -1,17 +1,7 @@
 import { Formatter } from "@/services/utilities";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { capitalize } from "lodash";
-import {
-  Beef,
-  Clock,
-  Gift,
-  Paperclip,
-  PartyPopper,
-  Salad,
-  Timer,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { Clock, Gift, Paperclip, Timer, UserPlus, Users } from "lucide-react";
 
 const Header = ({ selected }) => {
   return (
