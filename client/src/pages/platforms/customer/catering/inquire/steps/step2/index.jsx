@@ -27,20 +27,6 @@ const Step2 = ({
           selections={menuSelections.main}
           onToggle={handleMenuToggle}
         />
-
-        {/* <MenuSectionHeader
-          icon={Salad}
-          title="Side Menus"
-          count={selectedSideCount}
-          limit={packageInfo.sideMenuLimit}
-        />
-
-        <MenuSelection
-          type="side"
-          categories={packageInfo.sideMenuCategories}
-          selections={menuSelections.side}
-          onToggle={handleMenuToggle}
-        /> */}
       </div>
     </>
   );

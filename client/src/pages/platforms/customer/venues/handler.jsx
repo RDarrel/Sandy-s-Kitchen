@@ -2,7 +2,13 @@ import Details from "./details";
 import Inquire from "./inquire";
 import Venue from "@/pages/website/venue";
 
-const ActionRenderer = ({ selected, actionType, onSelect = () => {} }) => {
+const ActionRenderer = ({
+  selected,
+  actionType,
+  isReview = false,
+  handleBackToCateringPackage = () => {},
+  onSelect = () => {},
+}) => {
   const handleMap = {
     default: Venue,
     details: Details,
@@ -20,6 +26,8 @@ const ActionRenderer = ({ selected, actionType, onSelect = () => {} }) => {
       actionType={actionType}
       onSelect={onSelect}
       isWebsite={false}
+      isReview={isReview}
+      handleBackToCateringPackage={handleBackToCateringPackage}
     />
   );
 };

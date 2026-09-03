@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-
 import {
   Stepper,
   StepperContent,
@@ -14,84 +13,13 @@ import {
   StepperTitle,
   StepperTrigger,
 } from "@/components/reui/stepper";
-
-import {
-  ArrowLeft,
-  CalendarDays,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardCheck,
-  MapPin,
-  Salad,
-  Utensils,
-  UserRound,
-} from "lucide-react";
-
+import { ArrowLeft, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BROWSE as BROWSE_VENUES } from "@/services/redux/slices/events/venues";
 import { Step1, Step2, Step3, Step4, Step5, Step6 } from "./steps";
-
+import { DEFAULT_FORM, DEFAULT_STEPS, FALLBACK_VENUES } from "./constant";
 import Header from "./header";
-
-const DEFAULT_STEPS = [
-  {
-    title: "Event",
-    description: "Date and guests",
-    icon: CalendarDays,
-  },
-  {
-    title: "Menu",
-    description: "Food choices",
-    icon: Utensils,
-  },
-  {
-    title: "Side Menus",
-    description: "Food choices",
-    icon: Salad,
-  },
-  {
-    title: "Venue",
-    description: "Place setup",
-    icon: MapPin,
-  },
-  {
-    title: "Contact",
-    description: "Your details",
-    icon: UserRound,
-  },
-  {
-    title: "Review",
-    description: "Send inquiry",
-    icon: ClipboardCheck,
-  },
-];
-
-const emptyForm = {
-  guestCount: "",
-  eventType: "",
-  eventDate: "",
-  eventTime: "",
-  duration: "",
-  location: "",
-  setupNotes: "",
-  fullName: "",
-  email: "",
-  phone: "",
-  preferredContact: "Phone call",
-  specialRequests: "",
-};
-
-const fallbackVenues = [
-  {
-    _id: "own-venue",
-    name: "Use my own venue",
-    address: "Customer provided location",
-    capacity: 0,
-    basePrice: 0,
-    setting: "External",
-  },
-];
+import useVenueInitialization from "./customHooks";
 
 const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   const dispatch = useDispatch();
@@ -101,7 +29,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState(DEFAULT_STEPS);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(DEFAULT_FORM);
   const [menuSelections, setMenuSelections] = useState({
     main: {},
     side: {},
@@ -122,18 +50,20 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
     }
   }, [form?.venueOption]);
 
+  useVenueInitialization({ form, setForm });
+
   const packageInfo = useMemo(() => buildPackageInfo(selected), [selected]);
   const venues = useMemo(() => {
     const availableVenues = venueCollections.filter(
       (venue) => venue?.isAvailable,
     );
 
-    return [...fallbackVenues, ...availableVenues];
+    return [...availableVenues];
   }, [venueCollections]);
 
   const selectedVenue = useMemo(
     () =>
-      venues.find(({ _id }) => _id === selectedVenueId) || fallbackVenues[0],
+      venues.find(({ _id }) => _id === selectedVenueId) || FALLBACK_VENUES[0],
     [selectedVenueId, venues],
   );
 
@@ -266,7 +196,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const goNext = () => {
-    if (!validateStep()) return;
+    // if (!validateStep()) return;
     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
   };
 
@@ -332,7 +262,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
       </div>
     );
   }
-
+  console.log("form", menuSelections);
   return (
     <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">
@@ -430,6 +360,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
                       selectedMenus={selectedMenus}
                       selectedVenue={selectedVenue}
                       selectedVenueId={selectedVenueId}
+                      setForm={setForm}
                       setSelectedVenueId={setSelectedVenueId}
                       handleMenuToggle={handleMenuToggle}
                       updateField={updateField}
@@ -528,10 +459,6 @@ const getCategoryId = (category = {}) => {
 
 const getCategoryName = (category = {}) => {
   return category?.category?.name || category?.name || "Menu Group";
-};
-
-const getCategoryLimit = (category = {}) => {
-  return Number(category?.limit) || 1;
 };
 
 const getMenuId = (menu = {}) => {

@@ -27,28 +27,6 @@ const contactSchema = new mongoose.Schema(
   { _id: false },
 );
 
-const eventDetailsSchema = new mongoose.Schema(
-  {
-    date: {
-      type: Date,
-      required: true,
-    },
-    time: {
-      start: {
-        type: String,
-      },
-      end: {
-        type: String,
-      },
-    },
-    notes: {
-      type: String,
-      trim: true,
-    },
-  },
-  { _id: false },
-);
-
 const selectedMenuSchema = new mongoose.Schema(
   {
     category: {
@@ -80,7 +58,14 @@ const cateringDetailsSchema = new mongoose.Schema(
       min: 1,
     },
 
-    event: eventDetailsSchema,
+    time: {
+      start: {
+        type: String,
+      },
+      end: {
+        type: String,
+      },
+    },
 
     venueOption: {
       type: String,
@@ -88,24 +73,21 @@ const cateringDetailsSchema = new mongoose.Schema(
       required: true,
     },
 
-    address: {
-      type: String,
-      trim: true,
+    //for own_venue only
+    venue: {
+      address: {
+        type: String,
+        trim: true,
+      },
+
+      location: {
+        type: String,
+        trim: true,
+      },
     },
 
-    location: {
-      type: String,
-      trim: true,
-    },
-
-    notes: {
-      type: String,
-      trim: true,
-    },
-
-    mainCourses: [selectedMenuSchema],
-
-    sideMenus: [selectedMenuSchema],
+    mainDishes: [selectedMenuSchema],
+    sideDishes: [selectedMenuSchema],
   },
   { _id: false },
 );
@@ -124,7 +106,14 @@ const venueDetailsSchema = new mongoose.Schema(
       min: 1,
     },
 
-    event: eventDetailsSchema,
+    time: {
+      start: {
+        type: String,
+      },
+      end: {
+        type: String,
+      },
+    },
   },
   { _id: false },
 );
@@ -173,12 +162,21 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
-    type: {
+    bookingType: {
       type: String,
       enum: ["catering", "venue", "both"],
       required: true,
     },
 
+    eventType: {
+      type: String,
+      required: true,
+    },
+
+    date: {
+      type: Date,
+      required: true,
+    },
     catering: {
       type: cateringDetailsSchema,
     },
@@ -229,6 +227,11 @@ const bookingSchema = new mongoose.Schema(
         },
       },
     ],
+
+    notes: {
+      type: String,
+      trim: true,
+    },
 
     deletedAt: {
       type: Date,
