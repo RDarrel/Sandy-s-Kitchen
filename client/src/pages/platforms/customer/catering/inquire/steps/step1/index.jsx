@@ -54,6 +54,7 @@ const Step1 = ({
                   eventType: e.target.value,
                 }))
               }
+              required
               className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
             >
               <option value="">Select event type</option>
@@ -71,6 +72,7 @@ const Step1 = ({
               type="number"
               min={packageInfo.includedGuests}
               value={form.catering?.pax || ""}
+              required
               onChange={(e) =>
                 setForm((prev) => ({
                   ...prev,
@@ -84,6 +86,7 @@ const Step1 = ({
           <Field label="Date" required>
             <Input
               type="date"
+              required
               value={form?.date || ""}
               onChange={(e) =>
                 setForm((prev) => ({
@@ -98,6 +101,7 @@ const Step1 = ({
             <Field label="Catering Start" required>
               <Input
                 type="time"
+                required
                 value={form?.catering?.time?.start || ""}
                 onChange={(e) =>
                   setForm((prev) => ({
@@ -117,6 +121,7 @@ const Step1 = ({
             <Field label="Catering End" required>
               <Input
                 type="time"
+                required
                 value={form?.catering?.time?.end || ""}
                 onChange={(e) =>
                   setForm((prev) => ({
@@ -143,22 +148,22 @@ const Step1 = ({
       <Section title="Venue">
         <Field label="Venue Option" required>
           <RadioGroup
-            value={form.venueOption || ""}
-            onValueChange={(value) => updateField("venueOption", value)}
+            value={form.bookingType || ""}
+            onValueChange={(value) => updateField("bookingType", value)}
             className="grid gap-2 sm:grid-cols-2"
           >
             <VenueOption
               id="existing"
-              value="existing"
-              selected={form.venueOption === "existing"}
+              value="catering"
+              selected={form.bookingType === "catering"}
               title="I have a venue"
               description="Provide its name and address."
             />
 
             <VenueOption
               id="book"
-              value="book"
-              selected={form.venueOption === "book"}
+              value="both"
+              selected={form.bookingType === "both"}
               title="Book a venue"
               description="Choose from available venues."
             />
@@ -170,7 +175,7 @@ const Step1 = ({
       {/* Book Venue                       */}
       {/* -------------------------------- */}
 
-      {form.venueOption === "book" && (
+      {form.bookingType === "both" && (
         <Section title="Venue Details">
           <div className="mb-3 rounded-md bg-muted/40 px-3 py-2">
             <p className="text-[11px] text-muted-foreground">
@@ -243,12 +248,13 @@ const Step1 = ({
       {/* Existing Venue                   */}
       {/* -------------------------------- */}
 
-      {form.venueOption === "existing" && (
+      {form.bookingType === "catering" && (
         <Section title="Venue Information">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Venue Name" required>
               <Input
                 value={form?.catering?.venue?.location || ""}
+                required
                 onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
@@ -267,6 +273,7 @@ const Step1 = ({
 
             <Field label="Address" required>
               <Input
+                required
                 value={form?.catering?.venue?.address || ""}
                 onChange={(e) =>
                   setForm((prev) => ({

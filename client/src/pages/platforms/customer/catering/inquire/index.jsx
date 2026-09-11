@@ -13,15 +13,27 @@ import {
   StepperTitle,
   StepperTrigger,
 } from "@/components/reui/stepper";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BROWSE as BROWSE_VENUES } from "@/services/redux/slices/events/venues";
 import { Step1, Step2, Step3, Step4, Step5, Step6 } from "./steps";
-import { DEFAULT_FORM, DEFAULT_STEPS, FALLBACK_VENUES } from "./constant";
+import {
+  DEFAULT_FORM,
+  DEFAULT_MENU_SELECTIONS,
+  DEFAULT_STEPS,
+  FALLBACK_VENUES,
+} from "./constant";
+import isValid from "./validation";
 import Header from "./header";
 import useVenueInitialization from "./customHooks";
+import Actions from "./actions";
+import { Formatter } from "@/services/utilities";
 
-const Inquire = ({ selected = {}, onSelect = () => {} }) => {
+const Inquire = ({
+  isContinuingInquiry = false,
+  selected = {},
+  onSelect = () => {},
+}) => {
   const dispatch = useDispatch();
   const { collections: venueCollections = [] } = useSelector(
     ({ venues }) => venues,
@@ -30,25 +42,36 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState(DEFAULT_STEPS);
   const [form, setForm] = useState(DEFAULT_FORM);
-  const [menuSelections, setMenuSelections] = useState({
-    main: {},
-    side: {},
-  });
-  const [selectedVenueId, setSelectedVenueId] = useState("own-venue");
-
+  const [menuSelections, setMenuSelections] = useState(DEFAULT_MENU_SELECTIONS);
   const packageSelected = Boolean(selected?._id);
+
+  useEffect(() => {
+    if (isContinuingInquiry) {
+      const savedDraft = sessionStorage.getItem("cateringDraft");
+      const venueReview = sessionStorage.getItem("venue-review");
+      const venueID = venueReview ? JSON.parse(venueReview)?._id : "own-venue";
+      const { form, menuSelections } = savedDraft ? JSON.parse(savedDraft) : {};
+      setMenuSelections(menuSelections);
+      setForm({ ...form, venue: { ...form.venue, item: venueID } });
+      setCurrentStep(4);
+    } else {
+      setMenuSelections(DEFAULT_MENU_SELECTIONS);
+      setForm(DEFAULT_FORM);
+      setSteps(DEFAULT_STEPS);
+    }
+  }, [isContinuingInquiry]);
 
   useEffect(() => {
     dispatch(BROWSE_VENUES());
   }, [dispatch]);
 
   useEffect(() => {
-    if (form?.venueOption === "existing") {
+    if (form?.bookingType === "catering") {
       setSteps(DEFAULT_STEPS.filter(({ title }) => title !== "Venue"));
     } else {
       setSteps(DEFAULT_STEPS);
     }
-  }, [form?.venueOption]);
+  }, [form?.bookingType]);
 
   useVenueInitialization({ form, setForm });
 
@@ -63,12 +86,12 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
 
   const selectedVenue = useMemo(
     () =>
-      venues.find(({ _id }) => _id === selectedVenueId) || FALLBACK_VENUES[0],
-    [selectedVenueId, venues],
+      venues.find(({ _id }) => _id === form?.venue?.item) || FALLBACK_VENUES[0],
+    [form?.venue?.item, venues],
   );
-
-  const estimate = useMemo(() => {
-    const guests = Number(form.guestCount) || 0;
+  const estimate = {};
+  const cateringEstimate = useMemo(() => {
+    const guests = Number(form.catering?.pax) || 0;
     const extraGuests = Math.max(0, guests - packageInfo.includedGuests);
     const extraGuestFee = extraGuests * packageInfo.addPricePerGuest;
     const venueFee = Number(selectedVenue?.basePrice) || 0;
@@ -80,8 +103,34 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
       venueFee,
       total: packageInfo.basePrice + extraGuestFee + venueFee,
     };
-  }, [form.guestCount, packageInfo, selectedVenue]);
+  }, [form.catering?.pax, form?.venue?.pax, packageInfo, selectedVenue]);
 
+  const venueEstimate = useMemo(() => {
+    const { additionalCharges, basePrice, duration = {} } = selectedVenue;
+    const guests = Number(form.catering?.pax) || 0;
+    const addPerPax = additionalCharges?.perPax;
+    const addPerHour = additionalCharges?.perHour;
+    const extraGuests = Math.max(0, guests - selectedVenue.capacity);
+    const extraGuestFee = extraGuests * addPerPax;
+    const extraHours = Math.max(
+      0,
+      Formatter.duration(
+        form?.venue?.time?.start,
+        form?.venue?.time?.end,
+        true,
+      ) - duration?.max,
+    );
+    const extraHourFee = extraHours * addPerHour;
+    return {
+      base: basePrice,
+      addPricePerGuest: addPerPax,
+      addPricePerHour: addPerHour,
+      extraHours,
+      extraHourFee,
+      extraGuestFee,
+      total: basePrice + extraGuestFee,
+    };
+  }, [form?.venue, selectedVenue]);
   const selectedMenus = useMemo(
     () => ({
       main: getSelectedMenus(
@@ -155,7 +204,6 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
       };
     });
   };
-
   const validateStep = (step = currentStep) => {
     if (step === 2) {
       if (!form.eventType) return warn("Please select the event type.");
@@ -195,8 +243,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
     return true;
   };
 
-  const goNext = () => {
-    // if (!validateStep()) return;
+  const goNext = (e) => {
+    e.preventDefault();
+    if (!isValid(currentStep, form, menuSelections, selected)) return;
     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
   };
 
@@ -223,7 +272,6 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
         mainCourses: selectedMenus.main.map(({ _id, name }) => ({ _id, name })),
         sideMenus: selectedMenus.side.map(({ _id, name }) => ({ _id, name })),
       },
-      venue: selectedVenueId === "own-venue" ? null : selectedVenueId,
       customer: {
         fullName: form.fullName,
         email: form.email,
@@ -262,7 +310,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
       </div>
     );
   }
-  console.log("form", menuSelections);
+  console.log("form", form);
   return (
     <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">
@@ -333,47 +381,50 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
               </StepperNav>
             </div>
 
-            <StepperPanel className="min-w-0">
-              {[
-                Step1,
-                Step2,
-                Step3,
-                form?.venueOption !== "existing" ? Step4 : undefined,
-                Step5,
-                Step6,
-              ]
-                .filter(Boolean)
-                .map((Step, idx) => (
-                  <StepperContent
-                    value={idx + 1}
-                    className={"p-3 sm:p-5"}
-                    key={idx}
-                  >
-                    <Step
-                      form={form}
-                      packageInfo={packageInfo}
-                      selectedMainCount={selectedMainCount}
-                      selectedSideCount={selectedSideCount}
-                      menuSelections={menuSelections}
-                      venues={venues}
-                      estimate={estimate}
-                      selectedMenus={selectedMenus}
-                      selectedVenue={selectedVenue}
-                      selectedVenueId={selectedVenueId}
-                      setForm={setForm}
-                      setSelectedVenueId={setSelectedVenueId}
-                      handleMenuToggle={handleMenuToggle}
-                      updateField={updateField}
-                    />
-                    <StepActions
-                      currentStep={currentStep}
-                      totalSteps={steps.length}
-                      onBack={goBack}
-                      onNext={goNext}
-                    />
-                  </StepperContent>
-                ))}
-            </StepperPanel>
+            <form onSubmit={goNext}>
+              <StepperPanel className="min-w-0">
+                {[
+                  Step1,
+                  Step2,
+                  Step3,
+                  form?.venueOption !== "existing" ? Step4 : undefined,
+                  Step5,
+                  Step6,
+                ]
+                  .filter(Boolean)
+                  .map((Step, idx) => (
+                    <StepperContent
+                      value={idx + 1}
+                      className={"p-3 sm:p-5"}
+                      key={idx}
+                    >
+                      <Step
+                        form={form}
+                        selected={selected}
+                        packageInfo={packageInfo}
+                        selectedMainCount={selectedMainCount}
+                        selectedSideCount={selectedSideCount}
+                        menuSelections={menuSelections}
+                        venues={venues}
+                        estimate={{
+                          venue: venueEstimate,
+                          catering: cateringEstimate,
+                        }}
+                        selectedMenus={selectedMenus}
+                        selectedVenue={selectedVenue}
+                        setForm={setForm}
+                        handleMenuToggle={handleMenuToggle}
+                        updateField={updateField}
+                      />
+                      <Actions
+                        currentStep={currentStep}
+                        totalSteps={steps.length}
+                        onBack={goBack}
+                      />
+                    </StepperContent>
+                  ))}
+              </StepperPanel>
+            </form>
           </Stepper>
         </div>
       </div>
@@ -382,51 +433,6 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
 };
 
 export default Inquire;
-
-const StepActions = ({ currentStep, totalSteps, onBack, onNext }) => {
-  if (currentStep === totalSteps) {
-    return (
-      <div className="mt-4 flex items-center justify-start border-t pt-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-1 px-2 text-xs"
-          onClick={onBack}
-        >
-          <ChevronLeft className="size-3.5" />
-          Back
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-4 flex items-center justify-between border-t pt-3">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-8 gap-1 px-2 text-xs"
-        onClick={onBack}
-        disabled={currentStep === 1}
-      >
-        <ChevronLeft className="size-3.5" />
-        Back
-      </Button>
-
-      <Button
-        type="button"
-        size="sm"
-        className="h-8 gap-1.5 px-3 text-xs"
-        onClick={onNext}
-      >
-        Continue
-        <ChevronRight className="size-3.5" />
-      </Button>
-    </div>
-  );
-};
 
 const buildPackageInfo = (item = {}) => {
   const sideMenuLimit = (item?.sideMenuCategories || []).reduce(

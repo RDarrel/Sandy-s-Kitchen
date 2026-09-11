@@ -23,6 +23,9 @@ const contactSchema = new mongoose.Schema(
       enum: ["email", "phone"],
       required: true,
     },
+    specialRequests: {
+      type: String,
+    },
   },
   { _id: false },
 );
@@ -94,7 +97,7 @@ const cateringDetailsSchema = new mongoose.Schema(
 
 const venueDetailsSchema = new mongoose.Schema(
   {
-    venue: {
+    item: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Venue",
       required: true,

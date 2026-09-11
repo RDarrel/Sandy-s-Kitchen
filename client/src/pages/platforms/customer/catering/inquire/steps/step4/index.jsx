@@ -6,10 +6,20 @@ import Cloudinary from "@/services/utilities/cloudinary";
 import { useNavigate } from "react-router-dom";
 import { useCallback } from "react";
 
-const Step4 = ({ venues, selectedVenueId, setSelectedVenueId }) => {
+const Step4 = ({
+  venues,
+  selected,
+  form,
+  menuSelections,
+  setForm = () => {},
+}) => {
   const navigate = useNavigate();
   const handleView = useCallback((venue) => {
     sessionStorage.setItem("venue-review", JSON.stringify(venue));
+    sessionStorage.setItem(
+      "cateringDraft",
+      JSON.stringify({ selected, form, menuSelections }),
+    );
     navigate("/platforms/venues?from=catering");
   }, []);
   return (
@@ -24,8 +34,13 @@ const Step4 = ({ venues, selectedVenueId, setSelectedVenueId }) => {
           <VenueOption
             key={venue._id}
             venue={venue}
-            selected={selectedVenueId === venue._id}
-            onSelect={() => setSelectedVenueId(venue._id)}
+            selected={form?.venue?.item === venue._id}
+            onSelect={() =>
+              setForm((prev) => ({
+                ...prev,
+                venue: { ...prev?.venue, item: venue._id },
+              }))
+            }
             handleView={handleView}
           />
         ))}

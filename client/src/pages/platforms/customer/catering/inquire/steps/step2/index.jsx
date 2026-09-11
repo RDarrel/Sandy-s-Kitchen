@@ -4,7 +4,6 @@ import Header from "../header";
 
 const Step2 = ({
   selectedMainCount,
-  selectedSideCount,
   packageInfo,
   menuSelections,
   handleMenuToggle = () => {},
@@ -12,12 +11,10 @@ const Step2 = ({
   return (
     <>
       <Header
-        title="Main Courses"
+        title="Main Dishes"
         Icon={Beef}
         description="Choose the main courses you want to include in your package."
-        badge={`${selectedMainCount + selectedSideCount}/${
-          packageInfo.mainCourseLimit
-        } selected`}
+        badge={`${selectedMainCount}/${packageInfo.mainCourseLimit} selected`}
       />
 
       <div className="grid gap-4">

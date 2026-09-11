@@ -13,12 +13,12 @@ export const DEFAULT_STEPS = [
     icon: CalendarDays,
   },
   {
-    title: "Menu",
+    title: "Main Dishes",
     description: "Food choices",
     icon: Utensils,
   },
   {
-    title: "Side Menus",
+    title: "Side Dishes",
     description: "Food choices",
     icon: Salad,
   },
@@ -38,14 +38,11 @@ export const DEFAULT_STEPS = [
     icon: ClipboardCheck,
   },
 ];
-
-const DEFAULT_EVENT = {
-  time: {
-    start: null,
-    end: null,
-  },
-  notes: null,
+export const DEFAULT_MENU_SELECTIONS = {
+  main: {},
+  side: {},
 };
+
 export const DEFAULT_FORM = {
   contact: {
     name: "",
@@ -57,7 +54,6 @@ export const DEFAULT_FORM = {
   bookingType: "",
   catering: {
     pax: null,
-    venueOption: null,
     //for own_venue only
     venue: {
       address: null,

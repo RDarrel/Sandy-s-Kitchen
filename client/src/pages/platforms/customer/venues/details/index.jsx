@@ -13,6 +13,9 @@ const Details = ({
 }) => {
   const onSelect = (data, actionType) => {
     if (isReview) {
+      if (actionType === "default") {
+        sessionStorage.removeItem("venue-review");
+      }
       handleBackToCateringPackage();
     } else {
       handleSelect(data, actionType);

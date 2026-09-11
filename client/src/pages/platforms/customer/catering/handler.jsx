@@ -2,7 +2,12 @@ import Catering from "@/pages/website/catering";
 import Details from "./details";
 import Inquire from "./inquire";
 
-const ActionRenderer = ({ selected, actionType, onSelect = () => {} }) => {
+const ActionRenderer = ({
+  selected,
+  actionType,
+  isContinuingInquiry,
+  onSelect = () => {},
+}) => {
   const handleMap = {
     default: Catering,
     details: Details,
@@ -20,6 +25,7 @@ const ActionRenderer = ({ selected, actionType, onSelect = () => {} }) => {
       actionType={actionType}
       onSelect={onSelect}
       isWebsite={false}
+      isContinuingInquiry={isContinuingInquiry}
     />
   );
 };

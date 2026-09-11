@@ -25,7 +25,7 @@ const CateringParent = () => {
     setActionType(actionType);
   };
   const handleBackToCateringPackage = () => {
-    navigate("/platforms/catering?from=venue");
+    navigate("/platforms/catering?returnTo=catering&from=venue");
     setSelected({});
     setActionType("default");
     setIsReview(false);
