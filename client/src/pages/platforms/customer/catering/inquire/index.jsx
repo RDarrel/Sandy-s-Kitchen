@@ -27,7 +27,7 @@ import isValid from "./validation";
 import Header from "./header";
 import useVenueInitialization from "./customHooks";
 import Actions from "./actions";
-import { Formatter } from "@/services/utilities";
+import { buildPackageInfo, computeEstimated } from "./utils";
 
 const Inquire = ({
   isContinuingInquiry = false,
@@ -90,47 +90,39 @@ const Inquire = ({
     [form?.venue?.item, venues],
   );
   const estimate = {};
-  const cateringEstimate = useMemo(() => {
-    const guests = Number(form.catering?.pax) || 0;
-    const extraGuests = Math.max(0, guests - packageInfo.includedGuests);
-    const extraGuestFee = extraGuests * packageInfo.addPricePerGuest;
-    const venueFee = Number(selectedVenue?.basePrice) || 0;
 
-    return {
-      base: packageInfo.basePrice,
-      addPricePerGuest: packageInfo?.addPricePerGuest,
-      extraGuestFee,
-      venueFee,
-      total: packageInfo.basePrice + extraGuestFee + venueFee,
-    };
+  const cateringEstimate = useMemo(() => {
+    return computeEstimated({
+      basePrice: packageInfo.basePrice,
+      maxHours: packageInfo?.includedHours,
+      time: form?.catering?.time,
+      addFee: {
+        hour: packageInfo?.addPricePerHour,
+        pax: packageInfo?.addPricePerGuest,
+      },
+      pax: {
+        avail: form?.catering?.pax,
+        max: packageInfo?.includedGuests,
+      },
+    });
   }, [form.catering?.pax, form?.venue?.pax, packageInfo, selectedVenue]);
 
   const venueEstimate = useMemo(() => {
-    const { additionalCharges, basePrice, duration = {} } = selectedVenue;
-    const guests = Number(form.catering?.pax) || 0;
-    const addPerPax = additionalCharges?.perPax;
-    const addPerHour = additionalCharges?.perHour;
-    const extraGuests = Math.max(0, guests - selectedVenue.capacity);
-    const extraGuestFee = extraGuests * addPerPax;
-    const extraHours = Math.max(
-      0,
-      Formatter.duration(
-        form?.venue?.time?.start,
-        form?.venue?.time?.end,
-        true,
-      ) - duration?.max,
-    );
-    const extraHourFee = extraHours * addPerHour;
-    return {
-      base: basePrice,
-      addPricePerGuest: addPerPax,
-      addPricePerHour: addPerHour,
-      extraHours,
-      extraHourFee,
-      extraGuestFee,
-      total: basePrice + extraGuestFee,
-    };
+    return computeEstimated({
+      basePrice: selectedVenue.basePrice,
+      maxHours: selectedVenue?.duration?.max,
+      time: form?.venue?.time,
+      addFee: {
+        hour: selectedVenue?.additionalCharges?.perHour,
+        pax: selectedVenue?.additionalCharges?.perPax,
+      },
+      pax: {
+        avail: form?.venue?.pax,
+        max: selectedVenue?.capacity,
+      },
+    });
   }, [form?.venue, selectedVenue]);
+
   const selectedMenus = useMemo(
     () => ({
       main: getSelectedMenus(
@@ -433,31 +425,6 @@ const Inquire = ({
 };
 
 export default Inquire;
-
-const buildPackageInfo = (item = {}) => {
-  const sideMenuLimit = (item?.sideMenuCategories || []).reduce(
-    (acc, category) => acc + (Number(category?.limit) || 0),
-    0,
-  );
-
-  return {
-    _id: item?._id,
-    imgId: item?.imgId,
-    name: item?.name || "Selected Package",
-    level: item?.level,
-    description: item?.description,
-    includedGuests: Number(item?.includedGuests) || 1,
-    basePrice: Number(item?.basePrice) || 0,
-    addPricePerGuest: Number(item?.addPricePerGuest) || 0,
-    addPricePerHour: Number(item?.addPricePerHour) || 0,
-    includedHours: Number(item?.includedHours) || 0,
-    mainCourseLimit: Number(item?.mainCourseLimit) || 0,
-    sideMenuLimit,
-    inclusions: item?.inclusions || [],
-    mainCourseCategories: item?.mainCourseCategories || [],
-    sideMenuCategories: item?.sideMenuCategories || [],
-  };
-};
 
 const getCategoryId = (category = {}) => {
   return category?.category?._id || category?.category?.name || category?.name;

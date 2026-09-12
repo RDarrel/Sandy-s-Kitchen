@@ -46,6 +46,25 @@ const formatInclusion = (inclusion = {}) => {
   return name;
 };
 
+const duration = (start, end, isNumber = false) => {
+  if (!start || !end) return isNumber ? 0 : "";
+
+  const [startHour, startMinute] = start.split(":").map(Number);
+  const [endHour, endMinute] = end.split(":").map(Number);
+
+  const startMinutes = startHour * 60 + startMinute;
+  const endMinutes = endHour * 60 + endMinute;
+
+  const durationMinutes = endMinutes - startMinutes;
+  const hours = durationMinutes / 60;
+
+  if (isNumber) {
+    return hours;
+  }
+
+  return `${hours} hour${hours !== 1 ? "s" : ""}`;
+};
+
 const Step6 = ({
   estimate,
   form,
@@ -56,7 +75,15 @@ const Step6 = ({
 }) => {
   const cateringTime = form?.catering?.time;
   const venueTime = form?.venue?.time;
+
   const { catering: Ecatering, venue: Evenue } = estimate;
+
+  const bookedCateringHours = duration(
+    cateringTime?.start,
+    cateringTime?.end,
+    true,
+  );
+
   return (
     <div>
       <Header
@@ -165,20 +192,41 @@ const Step6 = ({
             <AmountRow label="Package" value={Ecatering?.base} />
 
             {/* Extra Guests */}
-            {estimate?.addPricePerGuest > 0 && (
-              <AmountRow
-                label="Extra Guests"
-                quantity={estimate?.extraGuestCount}
-                rate={estimate?.extraGuestRate}
-                unit="guest"
-                value={estimate?.extraGuestFee}
-              />
+            {estimate?.extraGuestFee > 0 && (
+              <>
+                <UsageBreakdown
+                  label="Guest Count"
+                  included={estimate?.includedGuests}
+                  booked={form?.catering?.pax}
+                  extra={estimate?.extraGuestCount}
+                  unit="guest"
+                />
+
+                <AmountRow
+                  label="Extra Guests"
+                  quantity={estimate?.extraGuestCount}
+                  rate={estimate?.extraGuestRate}
+                  unit="guest"
+                  value={estimate?.extraGuestFee}
+                />
+              </>
             )}
 
             {/* Venue */}
             {Evenue?.base > 0 && (
               <AmountRow label="Venue" value={Evenue?.base} />
             )}
+
+            {/* Venue Duration */}
+            {/* {Evenue?.includedHours > 0 && ( */}
+            <UsageBreakdown
+              label="Venue Duration"
+              included={Evenue?.includedHours}
+              booked={Evenue?.duration}
+              extra={Evenue?.extraHours}
+              unit="hour"
+            />
+            {/* )} */}
 
             {/* Extra Venue Hours */}
             {Evenue?.extraHourFee > 0 && (
@@ -188,6 +236,17 @@ const Step6 = ({
                 rate={Evenue?.addPricePerHour}
                 unit="hour"
                 value={Evenue?.extraHourFee}
+              />
+            )}
+
+            {/* Catering Duration */}
+            {estimate?.includedCateringHours > 0 && (
+              <UsageBreakdown
+                label="Catering Service Duration"
+                included={estimate?.includedCateringHours}
+                booked={bookedCateringHours}
+                extra={estimate?.extraCateringHours}
+                unit="hour"
               />
             )}
 
@@ -203,6 +262,7 @@ const Step6 = ({
             )}
           </div>
 
+          {/* Total */}
           <div className="mt-3 border-t pt-3">
             <div className="flex items-end justify-between gap-3">
               <div>
@@ -221,6 +281,7 @@ const Step6 = ({
             </div>
           </div>
 
+          {/* Submit */}
           <Button
             type="button"
             className="mt-4 h-9 w-full gap-1.5 text-xs"
@@ -236,6 +297,10 @@ const Step6 = ({
 };
 
 export default Step6;
+
+/* -------------------------------- */
+/* Review Card                      */
+/* -------------------------------- */
 
 const ReviewCard = ({ title, icon, items }) => {
   const IconComponent = icon;
@@ -264,20 +329,70 @@ const ReviewCard = ({ title, icon, items }) => {
   );
 };
 
+/* -------------------------------- */
+/* Usage Breakdown                  */
+/* -------------------------------- */
+
+const UsageBreakdown = ({ label, included, booked, extra, unit }) => {
+  const formatUnit = (value) => {
+    return `${unit}${value !== 1 ? "s" : ""}`;
+  };
+
+  return (
+    <div className="rounded-md bg-muted/30 px-2.5 py-2">
+      <p className="text-[11px] font-medium">{label}</p>
+
+      <div className="mt-1 space-y-0.5 text-[10px] text-muted-foreground">
+        <div className="flex justify-between gap-3">
+          <span>Included</span>
+
+          <span>
+            {included} {formatUnit(included)}
+          </span>
+        </div>
+
+        <div className="flex justify-between gap-3">
+          <span>Booked</span>
+
+          <span>
+            {booked} {formatUnit(booked)}
+          </span>
+        </div>
+
+        {extra > 0 && (
+          <div className="flex justify-between gap-3 font-medium text-foreground">
+            <span>Extra</span>
+
+            <span>
+              {extra} {formatUnit(extra)}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* -------------------------------- */
+/* Amount Row                       */
+/* -------------------------------- */
+
 const AmountRow = ({ label, quantity, rate, unit, value }) => {
   return (
     <div className="flex items-start justify-between gap-3">
-      <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
 
         {quantity > 0 && rate > 0 && (
-          <p className="text-[10px] text-muted-foreground">
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
             {quantity} × {Formatter.amount(rate)} / {unit}
           </p>
         )}
       </div>
 
-      <span className="text-xs font-semibold">{Formatter.amount(value)}</span>
+      <span className="shrink-0 text-xs font-semibold">
+        {Formatter.amount(value)}
+      </span>
     </div>
   );
 };
