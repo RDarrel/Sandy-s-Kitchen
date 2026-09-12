@@ -70,9 +70,9 @@ const Step6 = ({
   const venueTime = form?.venue?.time;
 
   const { catering: Ecatering, venue: Evenue } = estimate || {};
-
+  const isBoth = form?.bookingType === "both"; //Catering & Venue
   const total = (Ecatering?.total || 0) + (Evenue?.total || 0);
-
+  console.log("form", form);
   return (
     <div>
       <Header
@@ -95,14 +95,18 @@ const Step6 = ({
               ],
             ]}
           />
-
           <ReviewCard
             title="Event"
             icon={CalendarDays}
             items={[
               ["Type", form?.eventType],
               ["Date", Formatter.date(form?.date)],
-              ["Location", form?.location],
+              ...(isBoth
+                ? [["Address", selectedVenue?.address]]
+                : [
+                    ["Location", form?.catering?.venue?.location],
+                    ["Address", form?.catering?.venue?.address],
+                  ]),
             ]}
           />
 
@@ -127,18 +131,20 @@ const Step6 = ({
             ]}
           />
 
-          <ReviewCard
-            title="Venue"
-            icon={MapPin}
-            items={[
-              ["Venue", selectedVenue?.name],
-              ["Pax", form?.venue?.pax],
-              [
-                "Venue Usage Time",
-                formatTimeRange(venueTime?.start, venueTime?.end),
-              ],
-            ]}
-          />
+          {isBoth && (
+            <ReviewCard
+              title="Venue"
+              icon={MapPin}
+              items={[
+                ["Venue", selectedVenue?.name],
+                ["Pax", form?.venue?.pax],
+                [
+                  "Venue Usage Time",
+                  formatTimeRange(venueTime?.start, venueTime?.end),
+                ],
+              ]}
+            />
+          )}
 
           <ReviewCard
             title="Contact"
@@ -173,7 +179,9 @@ const Step6 = ({
               <EstimateItem label="Catering Package" data={Ecatering} />
             )}
 
-            {Evenue?.base > 0 && <EstimateItem label="Venue" data={Evenue} />}
+            {Evenue?.base > 0 && isBoth && (
+              <EstimateItem label="Venue" data={Evenue} />
+            )}
           </div>
 
           <div className="mt-4 border-t pt-3">
@@ -231,9 +239,7 @@ const ReviewCard = ({ title, icon: Icon, items = [] }) => {
           >
             <span className="text-muted-foreground">{label}</span>
 
-            <span className="break-words font-medium">
-              {value || "Not provided"}
-            </span>
+            <span className="break-words font-medium">{value || "-"}</span>
           </div>
         ))}
       </div>

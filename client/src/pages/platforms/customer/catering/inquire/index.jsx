@@ -23,11 +23,11 @@ import {
   DEFAULT_STEPS,
   FALLBACK_VENUES,
 } from "./constant";
+import { buildPackageInfo, computeEstimated } from "./utils";
+
 import isValid from "./validation";
 import Header from "./header";
-import useVenueInitialization from "./customHooks";
 import Actions from "./actions";
-import { buildPackageInfo, computeEstimated } from "./utils";
 
 const Inquire = ({
   isContinuingInquiry = false,
@@ -73,8 +73,6 @@ const Inquire = ({
     }
   }, [form?.bookingType]);
 
-  useVenueInitialization({ form, setForm });
-
   const packageInfo = useMemo(() => buildPackageInfo(selected), [selected]);
   const venues = useMemo(() => {
     const availableVenues = venueCollections.filter(
@@ -89,7 +87,6 @@ const Inquire = ({
       venues.find(({ _id }) => _id === form?.venue?.item) || FALLBACK_VENUES[0],
     [form?.venue?.item, venues],
   );
-  const estimate = {};
 
   const cateringEstimate = useMemo(() => {
     return computeEstimated({
@@ -196,44 +193,6 @@ const Inquire = ({
       };
     });
   };
-  const validateStep = (step = currentStep) => {
-    if (step === 2) {
-      if (!form.eventType) return warn("Please select the event type.");
-      if (!form.eventDate) return warn("Please choose your preferred date.");
-      if (!form.eventTime) return warn("Please choose your preferred time.");
-      if (Number(form.guestCount) < packageInfo.includedGuests) {
-        return warn(
-          `This package requires at least ${packageInfo.includedGuests} guests.`,
-        );
-      }
-      if (!form.location.trim())
-        return warn("Please enter the event location.");
-    }
-
-    if (step === 3 && selectedMainCount !== packageInfo.mainCourseLimit) {
-      return warn(
-        `Please choose ${packageInfo.mainCourseLimit} main course${
-          packageInfo.mainCourseLimit > 1 ? "s" : ""
-        }.`,
-      );
-    }
-
-    if (step === 3 && selectedSideCount !== packageInfo.sideMenuLimit) {
-      return warn(
-        `Please choose ${packageInfo.sideMenuLimit} side menu${
-          packageInfo.sideMenuLimit > 1 ? "s" : ""
-        }.`,
-      );
-    }
-
-    if (step === 5) {
-      if (!form.fullName.trim()) return warn("Please enter your full name.");
-      if (!form.phone.trim()) return warn("Please enter your phone number.");
-      if (!form.email.trim()) return warn("Please enter your email address.");
-    }
-
-    return true;
-  };
 
   const goNext = (e) => {
     e.preventDefault();
@@ -246,9 +205,6 @@ const Inquire = ({
   };
 
   const handleSubmit = () => {
-    const stepsValid = [2, 3, 5].every((step) => validateStep(step));
-    if (!stepsValid) return;
-
     const payload = {
       package: selected?._id,
       event: {
@@ -318,7 +274,7 @@ const Inquire = ({
         </Button>
 
         <div className="rounded-lg border bg-card shadow-sm">
-          <Header packageInfo={packageInfo} estimate={estimate} />
+          <Header packageInfo={packageInfo} estimate={cateringEstimate} />
 
           <Stepper
             value={currentStep}
@@ -379,7 +335,7 @@ const Inquire = ({
                   Step1,
                   Step2,
                   Step3,
-                  form?.venueOption !== "existing" ? Step4 : undefined,
+                  form?.bookingType !== "catering" ? Step4 : undefined,
                   Step5,
                   Step6,
                 ]
@@ -445,9 +401,4 @@ const getSelectedMenus = (categories = [], selections = {}) => {
       selectedIds.includes(getMenuId(menu)),
     );
   });
-};
-
-const warn = (message) => {
-  toast.warning(message);
-  return false;
 };

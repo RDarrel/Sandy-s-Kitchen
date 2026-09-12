@@ -12,9 +12,9 @@ const Step2 = ({
   return (
     <>
       <Header
-        title="Main Courses"
+        title="Main Dishes"
         Icon={Beef}
-        description="Choose the main courses you want to include in your package."
+        description="Choose the main dishes you want to include in your package."
         badge={`${selectedMainCount + selectedSideCount}/${
           packageInfo.mainCourseLimit + packageInfo.sideMenuLimit
         } selected`}

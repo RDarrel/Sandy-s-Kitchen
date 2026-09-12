@@ -15,12 +15,12 @@ const Body = ({ selected }) => {
       <FoodSelection
         categories={mainCourseCategories}
         max={selected?.mainCourseLimit}
-        title={"Main Courses"}
+        title={"Main Dishes"}
         Icon={Beef}
       />
       <FoodSelection
         categories={sideMenuCategories}
-        title={"Side Menus"}
+        title={"Side Dishes"}
         max={sideMenuLimit}
         Icon={Salad}
       />

@@ -65,11 +65,11 @@ const Package = ({ item, handleAction = () => {} }) => {
           </span>
           <span>
             <Beef />
-            {mainCoursesLength} Main Courses
+            {mainCoursesLength} Main Dishes
           </span>
           <span>
             <Salad />
-            {item.sideMenuCategories.length} Side Menus
+            {item.sideMenuCategories.length} Side Dishes
           </span>
           <span>
             <ListChecks />

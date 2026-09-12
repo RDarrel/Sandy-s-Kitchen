@@ -67,6 +67,20 @@ const Step1 = ({
             </select>
           </Field>
 
+          <Field label="Date" required>
+            <Input
+              type="date"
+              required
+              value={form?.date || ""}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  date: e.target.value,
+                }))
+              }
+            />
+          </Field>
+
           <Field label="Guests" required>
             <Input
               type="number"
@@ -79,21 +93,7 @@ const Step1 = ({
                   catering: { ...prev?.catering, pax: Number(e.target.value) },
                 }))
               }
-              placeholder={`${packageInfo.includedGuests}+`}
-            />
-          </Field>
-
-          <Field label="Date" required>
-            <Input
-              type="date"
-              required
-              value={form?.date || ""}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  date: e.target.value,
-                }))
-              }
+              placeholder={`Up to ${packageInfo.includedGuests} guests`}
             />
           </Field>
 
@@ -115,6 +115,26 @@ const Step1 = ({
                     },
                   }))
                 }
+                onBlur={(e) => {
+                  const value = e.target.value;
+
+                  if (!value || form?.catering?.time?.end) return;
+
+                  const [hour, minute] = value.split(":");
+                  const endHour =
+                    (Number(hour) + packageInfo?.includedHours) % 24;
+
+                  setForm((prev) => ({
+                    ...prev,
+                    catering: {
+                      ...prev.catering,
+                      time: {
+                        ...prev?.catering?.time,
+                        end: `${String(endHour).padStart(2, "0")}:${minute}`,
+                      },
+                    },
+                  }));
+                }}
               />
             </Field>
 
@@ -149,7 +169,23 @@ const Step1 = ({
         <Field label="Venue Option" required>
           <RadioGroup
             value={form.bookingType || ""}
-            onValueChange={(value) => updateField("bookingType", value)}
+            onValueChange={(value) => {
+              if (value === "both") {
+                setForm((prev) => ({
+                  ...prev,
+                  venue: {
+                    ...prev.venue,
+                    pax: prev?.venue?.pax || prev?.catering?.pax,
+                    time: {
+                      start:
+                        prev?.venue?.time?.start || prev?.catering?.time?.start,
+                      end: prev?.venue?.time?.end || prev?.catering?.time?.end,
+                    },
+                  },
+                }));
+              }
+              updateField("bookingType", value);
+            }}
             className="grid gap-2 sm:grid-cols-2"
           >
             <VenueOption

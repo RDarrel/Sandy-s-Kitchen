@@ -58,11 +58,11 @@ const Package = ({
           </span>
           <span>
             <Beef />
-            {item.mainCourseLimit} Main Courses
+            {item.mainCourseLimit} Main Dishes
           </span>
           <span>
             <Salad />
-            {sideMenusTotalLimit} Side Menus
+            {sideMenusTotalLimit} Side Dishes
           </span>
           <span>
             <ListChecks />

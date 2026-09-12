@@ -88,8 +88,8 @@ const Step6 = ({
             title="Menu"
             icon={Utensils}
             items={[
-              ["Main Courses", joinMenuNames(selectedMenus.main)],
-              ["Side Menus", joinMenuNames(selectedMenus.side)],
+              ["Main Dishes", joinMenuNames(selectedMenus.main)],
+              ["Side Dishes", joinMenuNames(selectedMenus.side)],
               ["Venue", selectedVenue?.name],
             ]}
           />

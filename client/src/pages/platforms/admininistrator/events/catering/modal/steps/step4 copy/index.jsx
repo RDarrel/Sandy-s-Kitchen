@@ -58,8 +58,8 @@ const Step4 = ({
   return (
     <div className="space-y-5">
       <Cluster
-        title="Main Courses"
-        subtitle="Review selected main courses and set the guests served."
+        title="Main Dishes"
+        subtitle="Review selected main dishes and set the guests served."
         icon={<PackageCheck className="size-5" />}
         menuCategories={mainCourses}
         targetPax={includedGuests}
@@ -67,19 +67,19 @@ const Step4 = ({
         onUpdateCategoryLimit={onUpdateCategoryLimit}
         key={"cluster-1"}
         isMainCourse
-        emptyTitle="No main courses selected yet"
+        emptyTitle="No main dishes selected yet"
       />
       {sideMenus?.length > 0 && (
         <Cluster
-          title="Side Menus"
-          subtitle="Review selected side menus and set the guests served."
+          title="Side Dishes"
+          subtitle="Review selected side dishes and set the guests served."
           icon={<Salad className="size-5" />}
           menuCategories={sideMenus}
           targetPax={includedGuests}
           key={"cluster-2"}
           onUpdateQtyServe={onUpdateQtyServe}
           onUpdateCategoryLimit={onUpdateCategoryLimit}
-          emptyTitle="No side menus selected yet"
+          emptyTitle="No side dishes selected yet"
         />
       )}
     </div>

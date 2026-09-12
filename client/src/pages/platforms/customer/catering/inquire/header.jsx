@@ -49,12 +49,12 @@ const Header = ({ packageInfo, estimate }) => {
         />
         <HeaderMetric
           icon={Utensils}
-          label="Main Courses"
+          label="Main Dishes"
           value={packageInfo.mainCourseLimit}
         />
         <HeaderMetric
           icon={Salad}
-          label="Side Menus"
+          label="Side Dishes"
           value={packageInfo.sideMenuLimit}
         />
         <HeaderMetric

@@ -15,7 +15,7 @@ export const computeEstimated = ({
     0,
     Formatter.duration(time?.start, time?.end, true) - maxHours,
   );
-  const extraHourFee = extraHours * addPerHour;
+  const extraHourFee = Math.round(extraHours * addPerHour);
   return {
     base: basePrice,
     addPricePerGuest: addPerPax,
@@ -27,7 +27,7 @@ export const computeEstimated = ({
     extraHours: Math.round(extraHours),
     extraHourFee,
     extraGuestFee,
-    total: basePrice + extraGuestFee + extraHourFee,
+    total: Math.round(basePrice + extraGuestFee + extraHourFee),
   };
 };
 
