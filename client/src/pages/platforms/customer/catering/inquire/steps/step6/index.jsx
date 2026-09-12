@@ -14,13 +14,11 @@ import Header from "../header";
 
 const formatTimeRange = (start, end) => {
   if (!start || !end) return "";
-
   return `${Formatter.time(start)} - ${Formatter.time(end)}`;
 };
 
 const joinMenuNames = (menus = []) => {
-  if (menus.length === 0) return "";
-
+  if (!menus?.length) return "";
   return menus.map(({ name }) => name).join(", ");
 };
 
@@ -46,23 +44,16 @@ const formatInclusion = (inclusion = {}) => {
   return name;
 };
 
-const duration = (start, end, isNumber = false) => {
-  if (!start || !end) return isNumber ? 0 : "";
-
-  const [startHour, startMinute] = start.split(":").map(Number);
-  const [endHour, endMinute] = end.split(":").map(Number);
-
-  const startMinutes = startHour * 60 + startMinute;
-  const endMinutes = endHour * 60 + endMinute;
-
-  const durationMinutes = endMinutes - startMinutes;
-  const hours = durationMinutes / 60;
-
-  if (isNumber) {
-    return hours;
+const formatUnit = (value, unit) => {
+  if (unit === "guest") {
+    return value === 1 ? "guest" : "guests";
   }
 
-  return `${hours} hour${hours !== 1 ? "s" : ""}`;
+  if (unit === "hour") {
+    return value === 1 ? "hour" : "hours";
+  }
+
+  return unit;
 };
 
 const Step6 = ({
@@ -76,14 +67,8 @@ const Step6 = ({
   const cateringTime = form?.catering?.time;
   const venueTime = form?.venue?.time;
 
-  const { catering: Ecatering, venue: Evenue } = estimate;
-
-  const bookedCateringHours = duration(
-    cateringTime?.start,
-    cateringTime?.end,
-    true,
-  );
-
+  const { catering: Ecatering, venue: Evenue } = estimate || {};
+  const total = Ecatering?.total || 0 + Evenue?.total || 0;
   return (
     <div>
       <Header
@@ -93,7 +78,6 @@ const Step6 = ({
 
       <div className="grid gap-3 lg:grid-cols-[1fr_18rem]">
         <div className="space-y-3">
-          {/* Package */}
           <ReviewCard
             title="Package"
             icon={Package}
@@ -108,18 +92,16 @@ const Step6 = ({
             ]}
           />
 
-          {/* Event */}
           <ReviewCard
             title="Event"
             icon={CalendarDays}
             items={[
               ["Type", form?.eventType],
               ["Date", Formatter.date(form?.date)],
-              ["Location", selectedVenue?.address],
+              ["Location", form?.location],
             ]}
           />
 
-          {/* Catering */}
           <ReviewCard
             title="Catering"
             icon={ChefHat}
@@ -132,7 +114,6 @@ const Step6 = ({
             ]}
           />
 
-          {/* Menu */}
           <ReviewCard
             title="Menu"
             icon={Utensils}
@@ -142,7 +123,6 @@ const Step6 = ({
             ]}
           />
 
-          {/* Venue */}
           <ReviewCard
             title="Venue"
             icon={MapPin}
@@ -156,7 +136,6 @@ const Step6 = ({
             ]}
           />
 
-          {/* Contact */}
           <ReviewCard
             title="Contact"
             icon={Phone}
@@ -168,102 +147,38 @@ const Step6 = ({
             ]}
           />
 
-          {/* Notes & Special Requests */}
           <ReviewCard
             title="Notes & Special Requests"
             icon={MessageSquare}
             items={[
               ["Notes", form?.notes],
-              ["Special Requests", form?.contact?.specialRequests],
+              ["Special Requests", form?.specialRequests],
             ]}
           />
         </div>
 
-        {/* Estimate */}
         <div className="sticky top-5 h-fit rounded-lg border bg-muted/15 p-3">
           <div className="mb-3 flex items-center gap-2">
             <Package className="size-4 text-primary" />
-
             <h3 className="text-sm font-semibold">Estimate</h3>
           </div>
 
-          <div className="space-y-3 text-xs">
-            {/* Package */}
-            <AmountRow label="Package" value={Ecatering?.base} />
-
-            {/* Extra Guests */}
-            {estimate?.extraGuestFee > 0 && (
-              <>
-                <UsageBreakdown
-                  label="Guest Count"
-                  included={estimate?.includedGuests}
-                  booked={form?.catering?.pax}
-                  extra={estimate?.extraGuestCount}
-                  unit="guest"
-                />
-
-                <AmountRow
-                  label="Extra Guests"
-                  quantity={estimate?.extraGuestCount}
-                  rate={estimate?.extraGuestRate}
-                  unit="guest"
-                  value={estimate?.extraGuestFee}
-                />
-              </>
+          <div className="space-y-4 text-xs">
+            {Ecatering && (
+              <EstimateItem
+                label="Package"
+                data={Ecatering}
+                showGuests
+                showHours
+              />
             )}
 
-            {/* Venue */}
             {Evenue?.base > 0 && (
-              <AmountRow label="Venue" value={Evenue?.base} />
-            )}
-
-            {/* Venue Duration */}
-            {/* {Evenue?.includedHours > 0 && ( */}
-            <UsageBreakdown
-              label="Venue Duration"
-              included={Evenue?.includedHours}
-              booked={Evenue?.duration}
-              extra={Evenue?.extraHours}
-              unit="hour"
-            />
-            {/* )} */}
-
-            {/* Extra Venue Hours */}
-            {Evenue?.extraHourFee > 0 && (
-              <AmountRow
-                label="Extra Venue Hours"
-                quantity={Evenue?.extraHours}
-                rate={Evenue?.addPricePerHour}
-                unit="hour"
-                value={Evenue?.extraHourFee}
-              />
-            )}
-
-            {/* Catering Duration */}
-            {estimate?.includedCateringHours > 0 && (
-              <UsageBreakdown
-                label="Catering Service Duration"
-                included={estimate?.includedCateringHours}
-                booked={bookedCateringHours}
-                extra={estimate?.extraCateringHours}
-                unit="hour"
-              />
-            )}
-
-            {/* Extra Catering Hours */}
-            {estimate?.extraCateringHourFee > 0 && (
-              <AmountRow
-                label="Extra Catering Hours"
-                quantity={estimate?.extraCateringHours}
-                rate={estimate?.extraCateringHourRate}
-                unit="hour"
-                value={estimate?.extraCateringHourFee}
-              />
+              <EstimateItem label="Venue" data={Evenue} showGuests showHours />
             )}
           </div>
 
-          {/* Total */}
-          <div className="mt-3 border-t pt-3">
+          <div className="mt-4 border-t pt-3">
             <div className="flex items-end justify-between gap-3">
               <div>
                 <p className="text-[11px] font-medium text-muted-foreground">
@@ -276,12 +191,11 @@ const Step6 = ({
               </div>
 
               <p className="text-xl font-bold text-primary">
-                {Formatter.amount(estimate?.total)}
+                {Formatter.amount(total)}
               </p>
             </div>
           </div>
 
-          {/* Submit */}
           <Button
             type="button"
             className="mt-4 h-9 w-full gap-1.5 text-xs"
@@ -298,17 +212,11 @@ const Step6 = ({
 
 export default Step6;
 
-/* -------------------------------- */
-/* Review Card                      */
-/* -------------------------------- */
-
-const ReviewCard = ({ title, icon, items }) => {
-  const IconComponent = icon;
-
+const ReviewCard = ({ title, icon: Icon, items = [] }) => {
   return (
     <div className="overflow-hidden rounded-lg border">
       <div className="flex items-center gap-2 border-b bg-muted/20 px-3 py-2">
-        <IconComponent className="size-3.5 text-primary" />
+        <Icon className="size-3.5 text-primary" />
 
         <h3 className="text-xs font-semibold">{title}</h3>
       </div>
@@ -321,7 +229,9 @@ const ReviewCard = ({ title, icon, items }) => {
           >
             <span className="text-muted-foreground">{label}</span>
 
-            <span className="font-medium">{value || "Not provided"}</span>
+            <span className="break-words font-medium">
+              {value || "Not provided"}
+            </span>
           </div>
         ))}
       </div>
@@ -329,70 +239,151 @@ const ReviewCard = ({ title, icon, items }) => {
   );
 };
 
-/* -------------------------------- */
-/* Usage Breakdown                  */
-/* -------------------------------- */
+const EstimateItem = ({ label, data }) => {
+  if (!data) return null;
 
-const UsageBreakdown = ({ label, included, booked, extra, unit }) => {
-  const formatUnit = (value) => {
-    return `${unit}${value !== 1 ? "s" : ""}`;
-  };
+  const extraGuests = Math.max(
+    0,
+    Number(data?.pax || 0) - Number(data?.includedGuests || 0),
+  );
+
+  const extraHours = Number(data?.extraHours || 0);
+
+  const hasExtraGuests =
+    extraGuests > 0 && Number(data?.extraGuestFee || 0) > 0;
+
+  const hasExtraHours = extraHours > 0 && Number(data?.extraHourFee || 0) > 0;
+
+  const hasConflict = hasExtraGuests || hasExtraHours;
 
   return (
-    <div className="rounded-md bg-muted/30 px-2.5 py-2">
-      <p className="text-[11px] font-medium">{label}</p>
+    <div>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-semibold">{label}</span>
 
-      <div className="mt-1 space-y-0.5 text-[10px] text-muted-foreground">
-        <div className="flex justify-between gap-3">
-          <span>Included</span>
+        <span className="text-xs font-bold">
+          {Formatter.amount(data?.base)}
+        </span>
+      </div>
 
-          <span>
-            {included} {formatUnit(included)}
-          </span>
+      {hasConflict && (
+        <div className="relative ml-2 mt-1.5 border-l border-border pl-3">
+          {hasExtraGuests && (
+            <>
+              <BreakdownGroup
+                label="Guests"
+                rows={[
+                  {
+                    label: "Included",
+                    value: Number(data?.includedGuests || 0),
+                    unit: "guest",
+                  },
+                  {
+                    label: "Booked",
+                    value: Number(data?.pax || 0),
+                    unit: "guest",
+                  },
+                  {
+                    label: "Extra",
+                    value: extraGuests,
+                    unit: "guest",
+                  },
+                ]}
+              />
+
+              <FeeBreakdown
+                label="Extra guests"
+                quantity={extraGuests}
+                rate={data?.addPricePerGuest}
+                unit="guest"
+                value={data?.extraGuestFee}
+              />
+            </>
+          )}
+
+          {hasExtraHours && (
+            <>
+              <BreakdownGroup
+                label="Duration"
+                rows={[
+                  {
+                    label: "Included",
+                    value: Number(data?.includedHours || 0),
+                    unit: "hour",
+                  },
+                  {
+                    label: "Booked",
+                    value: Number(data?.duration || 0),
+                    unit: "hour",
+                  },
+                  {
+                    label: "Extra",
+                    value: extraHours,
+                    unit: "hour",
+                  },
+                ]}
+              />
+
+              <FeeBreakdown
+                label="Extra hours"
+                quantity={extraHours}
+                rate={data?.addPricePerHour}
+                unit="hour"
+                value={data?.extraHourFee}
+              />
+            </>
+          )}
         </div>
+      )}
+    </div>
+  );
+};
 
-        <div className="flex justify-between gap-3">
-          <span>Booked</span>
+const BreakdownGroup = ({ label, rows = [] }) => {
+  return (
+    <div className="relative py-1">
+      <span className="absolute -left-[13px] top-3 h-px w-2 bg-border" />
 
-          <span>
-            {booked} {formatUnit(booked)}
-          </span>
-        </div>
+      <p className="text-[10px] font-medium text-muted-foreground">{label}</p>
 
-        {extra > 0 && (
-          <div className="flex justify-between gap-3 font-medium text-foreground">
-            <span>Extra</span>
+      <div className="mt-1 space-y-0.5">
+        {rows.map((row) => (
+          <div
+            key={row.label}
+            className="flex items-center justify-between gap-3 text-[10px]"
+          >
+            <span className="text-muted-foreground">{row.label}</span>
 
-            <span>
-              {extra} {formatUnit(extra)}
+            <span className="font-medium">
+              {row.value} {formatUnit(row.value, row.unit)}
             </span>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
 };
 
-/* -------------------------------- */
-/* Amount Row                       */
-/* -------------------------------- */
-
-const AmountRow = ({ label, quantity, rate, unit, value }) => {
+const FeeBreakdown = ({ label, quantity, rate, unit, value }) => {
   return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+    <div className="relative mt-2 py-1">
+      <span className="absolute -left-[13px] top-3 h-px w-2 bg-border" />
 
-        {quantity > 0 && rate > 0 && (
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-medium text-muted-foreground">
+            {label}
+          </p>
+
           <p className="mt-0.5 text-[10px] text-muted-foreground">
             {quantity} × {Formatter.amount(rate)} / {unit}
           </p>
-        )}
-      </div>
+        </div>
 
-      <span className="shrink-0 text-xs font-semibold">
-        {Formatter.amount(value)}
-      </span>
+        <span className="shrink-0 text-[10px] font-semibold">
+          {Formatter.amount(value)}
+        </span>
+      </div>
     </div>
   );
 };
