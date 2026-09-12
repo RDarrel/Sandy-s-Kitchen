@@ -1,16 +1,21 @@
 import {
   CalendarDays,
   ClipboardCheck,
-  MapPin,
   Salad,
   Utensils,
   UserRound,
+  ChefHat,
 } from "lucide-react";
 export const DEFAULT_STEPS = [
   {
     title: "Event",
     description: "Date and guests",
     icon: CalendarDays,
+  },
+  {
+    title: " Packages",
+    description: "Choose your package",
+    icon: ChefHat,
   },
   {
     title: "Main Dishes",
@@ -22,11 +27,7 @@ export const DEFAULT_STEPS = [
     description: "Food choices",
     icon: Salad,
   },
-  {
-    title: "Venue",
-    description: "Place setup",
-    icon: MapPin,
-  },
+
   {
     title: "Contact",
     description: "Your details",

@@ -10,7 +10,7 @@ const Header = ({ packageInfo, estimate }) => {
         <div className="grid min-w-0 grid-cols-[3.5rem_minmax(0,1fr)] gap-2.5 sm:grid-cols-[5rem_minmax(0,1fr)] sm:gap-3">
           <div className="relative size-14 shrink-0 overflow-hidden rounded-md border bg-muted sm:size-20">
             <img
-              src={Cloudinary.getPackageImg(packageInfo.imgId, packageInfo._id)}
+              src={Cloudinary.getVenueImg(packageInfo.imgId, packageInfo._id)}
               alt={`${packageInfo.name} catering package`}
               className="h-full w-full object-cover"
             />

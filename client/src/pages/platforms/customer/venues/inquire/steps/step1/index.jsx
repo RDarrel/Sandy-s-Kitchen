@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup } from "@/components/ui/radio-group";
+
 import Section from "./section";
 import VenueOption from "./venueOption";
 import Field from "./field";
@@ -21,12 +22,12 @@ const eventTypes = [
 /* ---------------------------------- */
 
 const Step1 = ({
-  packageInfo = {},
+  cateringPackages = [],
   form = {},
   updateField = () => {},
   setForm = () => {},
 }) => {
-  const cateringGuests = Number(form.guestCount) || 0;
+  const selectedVenue = form?.venue || {};
 
   return (
     <div className="space-y-5">
@@ -35,25 +36,23 @@ const Step1 = ({
         <h2 className="text-base font-semibold">Event Details</h2>
 
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Set your event and catering schedule.
+          Provide the details for your event and venue booking.
         </p>
       </div>
 
       {/* -------------------------------- */}
-      {/* Event & Catering                 */}
+      {/* Event Details                    */}
       {/* -------------------------------- */}
 
-      <Section title="Event & Catering">
+      <Section
+        title="Event & Venue"
+        description="Provide the basic details for your event."
+      >
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Event Type" required>
             <select
-              value={form.eventType || ""}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  eventType: e.target.value,
-                }))
-              }
+              value={form?.eventType || ""}
+              onChange={(e) => updateField("eventType", e.target.value)}
               required
               className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
             >
@@ -72,84 +71,75 @@ const Step1 = ({
               type="date"
               required
               value={form?.date || ""}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  date: e.target.value,
-                }))
-              }
+              onChange={(e) => updateField("date", e.target.value)}
             />
           </Field>
 
-          <Field label="Guests" required>
+          <Field
+            label="Guests"
+            required
+            description={
+              selectedVenue?.capacity
+                ? `Maximum capacity: ${selectedVenue.capacity} guests`
+                : undefined
+            }
+          >
             <Input
               type="number"
-              min={packageInfo.includedGuests}
-              value={form.catering?.pax || ""}
+              min={1}
+              max={selectedVenue?.capacity}
+              value={form?.venue?.pax || ""}
               required
               onChange={(e) =>
                 setForm((prev) => ({
                   ...prev,
-                  catering: { ...prev?.catering, pax: Number(e.target.value) },
+                  venue: {
+                    ...prev?.venue,
+                    pax: Number(e.target.value),
+                  },
                 }))
               }
-              placeholder={`Up to ${packageInfo.includedGuests} guests`}
+              placeholder={
+                selectedVenue?.capacity
+                  ? `Up to ${selectedVenue.capacity} guests`
+                  : "Guests"
+              }
             />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Catering Start" required>
+            <Field label="Venue Start Time" required>
               <Input
                 type="time"
                 required
-                value={form?.catering?.time?.start || ""}
+                value={form?.venue?.time?.start || ""}
                 onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
-                    catering: {
-                      ...prev.catering,
+                    venue: {
+                      ...prev?.venue,
                       time: {
-                        ...prev?.catering?.time,
+                        ...prev?.venue?.time,
                         start: e.target.value,
                       },
                     },
                   }))
                 }
-                onBlur={(e) => {
-                  const value = e.target.value;
-
-                  if (!value || form?.catering?.time?.end) return;
-
-                  const [hour, minute] = value.split(":");
-                  const endHour =
-                    (Number(hour) + packageInfo?.includedHours) % 24;
-
-                  setForm((prev) => ({
-                    ...prev,
-                    catering: {
-                      ...prev.catering,
-                      time: {
-                        ...prev?.catering?.time,
-                        end: `${String(endHour).padStart(2, "0")}:${minute}`,
-                      },
-                    },
-                  }));
-                }}
               />
             </Field>
 
-            <Field label="Catering End" required>
+            <Field label="Venue End Time" required>
               <Input
                 type="time"
                 required
-                value={form?.catering?.time?.end || ""}
+                value={form?.venue?.time?.end || ""}
                 onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
-                    catering: {
-                      ...prev.catering,
+                    venue: {
+                      ...prev?.venue,
                       time: {
-                        ...prev?.catering?.time,
+                        ...prev?.venue?.time,
                         end: e.target.value,
                       },
                     },
@@ -162,172 +152,115 @@ const Step1 = ({
       </Section>
 
       {/* -------------------------------- */}
-      {/* Venue                            */}
+      {/* Catering Option                  */}
       {/* -------------------------------- */}
 
-      <Section title="Venue">
-        <Field label="Venue Option" required>
-          <RadioGroup
-            value={form.bookingType || ""}
-            onValueChange={(value) => {
-              if (value === "both") {
-                setForm((prev) => ({
-                  ...prev,
-                  venue: {
-                    ...prev.venue,
-                    pax: prev?.venue?.pax || prev?.catering?.pax,
-                    time: {
-                      start:
-                        prev?.venue?.time?.start || prev?.catering?.time?.start,
-                      end: prev?.venue?.time?.end || prev?.catering?.time?.end,
-                    },
-                  },
-                }));
-              }
-              updateField("bookingType", value);
-            }}
-            className="grid gap-2 sm:grid-cols-2"
-          >
-            <VenueOption
-              id="existing"
-              value="catering"
-              selected={form.bookingType === "catering"}
-              title="I have a venue"
-              description="Provide its name and address."
-            />
+      <Section
+        title="Catering"
+        description="Would you also like to add catering to your event?"
+      >
+        <RadioGroup
+          value={form?.bookingType || "venue"}
+          onValueChange={(value) => {
+            setForm((prev) => ({
+              ...prev,
+              bookingType: value,
+            }));
+          }}
+          className="grid gap-2 sm:grid-cols-2"
+        >
+          <VenueOption
+            id="venue-only"
+            value="venue"
+            selected={form?.bookingType === "venue"}
+            title="Venue only"
+            description="I only need the venue for my event."
+          />
 
-            <VenueOption
-              id="book"
-              value="both"
-              selected={form.bookingType === "both"}
-              title="Book a venue"
-              description="Choose from available venues."
-            />
-          </RadioGroup>
-        </Field>
+          <VenueOption
+            id="add-catering"
+            value="both"
+            selected={form?.bookingType === "both"}
+            title="Add Catering"
+            description="I would also like catering for my event."
+          />
+        </RadioGroup>
       </Section>
 
       {/* -------------------------------- */}
-      {/* Book Venue                       */}
+      {/* Catering Details                 */}
       {/* -------------------------------- */}
 
-      {form.bookingType === "both" && (
-        <Section title="Venue Details">
-          <div className="mb-3 rounded-md bg-muted/40 px-3 py-2">
-            <p className="text-[11px] text-muted-foreground">
-              These details will be used for your venue reservation.
-            </p>
-          </div>
-
-          <div className="grid gap-3 grid grid-cols-1 md:grid-cols-2">
-            <Field label="Guests" required>
-              <Input
-                type="number"
-                min={cateringGuests || 1}
-                value={form?.venue?.pax || ""}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    venue: {
-                      ...prev?.venue,
-                      pax: Number(e.target.value),
-                    },
-                  }))
-                }
-                placeholder={cateringGuests ? `${cateringGuests}+` : "Guests"}
-              />
-            </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Start Time" required>
+      {form?.bookingType === "both" && (
+        <>
+          <Section
+            title="Catering Details"
+            description="Provide the guest count and schedule for your catering service."
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Guests" required>
                 <Input
-                  type="time"
-                  value={form.venue?.time?.start || ""}
+                  type="number"
+                  min={1}
+                  value={form?.catering?.pax || ""}
+                  required
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
-                      venue: {
-                        ...prev?.venue,
-                        time: {
-                          ...prev?.venue?.time,
-                          start: e.target.value,
-                        },
+                      catering: {
+                        ...prev?.catering,
+                        pax: Number(e.target.value),
                       },
                     }))
                   }
+                  placeholder="Number of catering guests"
                 />
               </Field>
 
-              <Field label="End Time" required>
-                <Input
-                  type="time"
-                  value={form.venue?.time?.end || ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      venue: {
-                        ...prev?.venue,
-                        time: {
-                          ...prev?.venue?.time,
-                          end: e.target.value,
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Catering Start Time" required>
+                  <Input
+                    type="time"
+                    required
+                    value={form?.catering?.time?.start || ""}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        catering: {
+                          ...prev?.catering,
+                          time: {
+                            ...prev?.catering?.time,
+                            start: e.target.value,
+                          },
                         },
-                      },
-                    }))
-                  }
-                />
-              </Field>
+                      }))
+                    }
+                  />
+                </Field>
+
+                <Field label="Catering End Time" required>
+                  <Input
+                    type="time"
+                    required
+                    value={form?.catering?.time?.end || ""}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        catering: {
+                          ...prev?.catering,
+                          time: {
+                            ...prev?.catering?.time,
+                            end: e.target.value,
+                          },
+                        },
+                      }))
+                    }
+                  />
+                </Field>
+              </div>
             </div>
-          </div>
-        </Section>
-      )}
-
-      {/* -------------------------------- */}
-      {/* Existing Venue                   */}
-      {/* -------------------------------- */}
-
-      {form.bookingType === "catering" && (
-        <Section title="Venue Information">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Venue Name" required>
-              <Input
-                value={form?.catering?.venue?.location || ""}
-                required
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    catering: {
-                      ...prev.catering,
-                      venue: {
-                        ...prev?.catering?.venue,
-                        location: e.target.value,
-                      },
-                    },
-                  }))
-                }
-                placeholder="e.g. Covered Court"
-              />
-            </Field>
-
-            <Field label="Address" required>
-              <Input
-                required
-                value={form?.catering?.venue?.address || ""}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    catering: {
-                      ...prev.catering,
-                      venue: {
-                        ...prev?.catering?.venue,
-                        address: e.target.value,
-                      },
-                    },
-                  }))
-                }
-                placeholder="Barangay, City, Province"
-              />
-            </Field>
-          </div>
-        </Section>
+          </Section>
+        </>
       )}
 
       {/* -------------------------------- */}
@@ -337,7 +270,7 @@ const Step1 = ({
       <Section title="Setup Notes">
         <Field label="Notes">
           <Textarea
-            value={form.notes || ""}
+            value={form?.notes || ""}
             onChange={(e) => updateField("notes", e.target.value)}
             className="min-h-16 resize-none"
             placeholder="Any special setup instructions?"
