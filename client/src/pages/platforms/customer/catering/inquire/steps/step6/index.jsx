@@ -14,11 +14,13 @@ import Header from "../header";
 
 const formatTimeRange = (start, end) => {
   if (!start || !end) return "";
+
   return `${Formatter.time(start)} - ${Formatter.time(end)}`;
 };
 
 const joinMenuNames = (menus = []) => {
   if (!menus?.length) return "";
+
   return menus.map(({ name }) => name).join(", ");
 };
 
@@ -68,7 +70,9 @@ const Step6 = ({
   const venueTime = form?.venue?.time;
 
   const { catering: Ecatering, venue: Evenue } = estimate || {};
-  const total = Ecatering?.total || 0 + Evenue?.total || 0;
+
+  const total = (Ecatering?.total || 0) + (Evenue?.total || 0);
+
   return (
     <div>
       <Header
@@ -157,25 +161,19 @@ const Step6 = ({
           />
         </div>
 
-        <div className="sticky top-5 h-fit rounded-lg border bg-muted/15 p-3">
+        <div className="sticky top-4 h-fit rounded-lg border bg-muted/15 p-3">
           <div className="mb-3 flex items-center gap-2">
             <Package className="size-4 text-primary" />
+
             <h3 className="text-sm font-semibold">Estimate</h3>
           </div>
 
-          <div className="space-y-4 text-xs">
+          <div className="space-y-4">
             {Ecatering && (
-              <EstimateItem
-                label="Package"
-                data={Ecatering}
-                showGuests
-                showHours
-              />
+              <EstimateItem label="Catering Package" data={Ecatering} />
             )}
 
-            {Evenue?.base > 0 && (
-              <EstimateItem label="Venue" data={Evenue} showGuests showHours />
-            )}
+            {Evenue?.base > 0 && <EstimateItem label="Venue" data={Evenue} />}
           </div>
 
           <div className="mt-4 border-t pt-3">
@@ -212,6 +210,10 @@ const Step6 = ({
 
 export default Step6;
 
+/* -------------------------------- */
+/* Review Card                      */
+/* -------------------------------- */
+
 const ReviewCard = ({ title, icon: Icon, items = [] }) => {
   return (
     <div className="overflow-hidden rounded-lg border">
@@ -239,6 +241,10 @@ const ReviewCard = ({ title, icon: Icon, items = [] }) => {
   );
 };
 
+/* -------------------------------- */
+/* Estimate Item                    */
+/* -------------------------------- */
+
 const EstimateItem = ({ label, data }) => {
   if (!data) return null;
 
@@ -261,7 +267,7 @@ const EstimateItem = ({ label, data }) => {
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs font-semibold">{label}</span>
 
-        <span className="text-xs font-bold">
+        <span className="text-xs font-bold text-foreground">
           {Formatter.amount(data?.base)}
         </span>
       </div>
@@ -339,22 +345,26 @@ const EstimateItem = ({ label, data }) => {
   );
 };
 
+/* -------------------------------- */
+/* Breakdown Group                  */
+/* -------------------------------- */
+
 const BreakdownGroup = ({ label, rows = [] }) => {
   return (
     <div className="relative py-1">
       <span className="absolute -left-[13px] top-3 h-px w-2 bg-border" />
 
-      <p className="text-[10px] font-medium text-muted-foreground">{label}</p>
+      <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
 
       <div className="mt-1 space-y-0.5">
         {rows.map((row) => (
           <div
             key={row.label}
-            className="flex items-center justify-between gap-3 text-[10px]"
+            className="flex items-center justify-between gap-3 text-[11px]"
           >
-            <span className="text-muted-foreground">{row.label}</span>
+            <span className="ml-2 text-muted-foreground">{row.label}</span>
 
-            <span className="font-medium">
+            <span className="text-foreground">
               {row.value} {formatUnit(row.value, row.unit)}
             </span>
           </div>
@@ -364,23 +374,27 @@ const BreakdownGroup = ({ label, rows = [] }) => {
   );
 };
 
+/* -------------------------------- */
+/* Fee Breakdown                    */
+/* -------------------------------- */
+
 const FeeBreakdown = ({ label, quantity, rate, unit, value }) => {
   return (
-    <div className="relative mt-2 py-1">
+    <div className="relative py-1">
       <span className="absolute -left-[13px] top-3 h-px w-2 bg-border" />
 
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-medium text-muted-foreground">
+          <p className="text-[11px] font-medium text-muted-foreground">
             {label}
           </p>
 
-          <p className="mt-0.5 text-[10px] text-muted-foreground">
+          <p className="mt-0.5 ml-2 text-[11px] text-muted-foreground">
             {quantity} × {Formatter.amount(rate)} / {unit}
           </p>
         </div>
 
-        <span className="shrink-0 text-[10px] font-semibold">
+        <span className="shrink-0 text-[11px] md:text-[12px] font-semibold text-foreground">
           {Formatter.amount(value)}
         </span>
       </div>
