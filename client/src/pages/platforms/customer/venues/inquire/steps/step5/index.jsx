@@ -2,8 +2,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Field from "../field";
 import Header from "../header";
-import { fullName } from "@/services/utilities";
-const Step5 = ({ updateField, form }) => {
+const Step5 = ({ setForm = () => {}, form }) => {
+  const updateField = (key, value) =>
+    setForm((prev) => ({
+      ...prev,
+      contact: { ...prev?.contact, [key]: value },
+    }));
   return (
     <div>
       <Header
@@ -15,9 +19,10 @@ const Step5 = ({ updateField, form }) => {
         <div className="sm:col-span-2">
           <Field label="Full Name" required>
             <Input
-              value={form.fullName}
-              onChange={(e) => updateField("fullName", e.target.value)}
+              value={form.contact?.name}
+              onChange={(e) => updateField("name", e.target.value)}
               placeholder="Juan Dela Cruz"
+              required
             />
           </Field>
         </div>
@@ -25,7 +30,7 @@ const Step5 = ({ updateField, form }) => {
         <Field label="Email Address" required>
           <Input
             type="email"
-            value={form.email}
+            value={form.contact?.email}
             onChange={(e) => updateField("email", e.target.value)}
             placeholder="juan@email.com"
           />
@@ -33,7 +38,7 @@ const Step5 = ({ updateField, form }) => {
 
         <Field label="Phone Number" required>
           <Input
-            value={form.phone}
+            value={form.contact?.phone}
             onChange={(e) => updateField("phone", e.target.value)}
             placeholder="09XXXXXXXXX"
           />
@@ -41,7 +46,7 @@ const Step5 = ({ updateField, form }) => {
 
         <Field label="Preferred Contact">
           <select
-            value={form.preferredContact}
+            value={form.contact?.preferredContact}
             onChange={(e) => updateField("preferredContact", e.target.value)}
             className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
           >
@@ -54,7 +59,7 @@ const Step5 = ({ updateField, form }) => {
         <div className="sm:col-span-2">
           <Field label="Special Requests">
             <Textarea
-              value={form.specialRequests}
+              value={form.contact?.specialRequests}
               onChange={(e) => updateField("specialRequests", e.target.value)}
               className="min-h-16 resize-none"
               placeholder="Allergies, dietary needs, delivery timing, payment questions..."

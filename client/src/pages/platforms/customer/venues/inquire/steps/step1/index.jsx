@@ -1,8 +1,10 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup } from "@/components/ui/radio-group";
+import Section from "./section";
+import VenueOption from "./venueOption";
+import Field from "./field";
 
-import Field from "../field";
-import Header from "../header";
 const eventTypes = [
   "Wedding",
   "Birthday Party",
@@ -13,93 +15,335 @@ const eventTypes = [
   "Graduation Party",
   "Other",
 ];
-const Step1 = ({ packageInfo = {}, form = {}, updateField = () => {} }) => {
+
+/* ---------------------------------- */
+/* Step 1                             */
+/* ---------------------------------- */
+
+const Step1 = ({
+  packageInfo = {},
+  form = {},
+  updateField = () => {},
+  setForm = () => {},
+}) => {
+  const cateringGuests = Number(form.guestCount) || 0;
+
   return (
-    <div>
-      <Header
-        title="Event Details"
-        description="Give us the schedule, guest count, and place so we can check availability."
-      />
+    <div className="space-y-5">
+      {/* Header */}
+      <div>
+        <h2 className="text-base font-semibold">Event Details</h2>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Event Type" required>
-          <select
-            value={form.eventType}
-            onChange={(e) => updateField("eventType", e.target.value)}
-            className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-          >
-            <option value="">Select event type</option>
-            {eventTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Set your event and catering schedule.
+        </p>
+      </div>
 
-        <Field label="Number of Guests" required>
-          <Input
-            type="number"
-            min={packageInfo.includedGuests}
-            value={form.guestCount}
-            onChange={(e) => updateField("guestCount", e.target.value)}
-            placeholder={`${packageInfo.includedGuests} or more`}
-          />
-          {/* <FieldHint>
-                      Minimum {packageInfo.includedGuests}; extra guests add{" "}
-                      {Formatter.amount(packageInfo.addPricePerGuest)} each.
-                    </FieldHint> */}
-        </Field>
+      {/* -------------------------------- */}
+      {/* Event & Catering                 */}
+      {/* -------------------------------- */}
 
-        <Field label="Preferred Date" required>
-          <Input
-            type="date"
-            value={form.eventDate}
-            onChange={(e) => updateField("eventDate", e.target.value)}
-          />
-        </Field>
+      <Section title="Event & Catering">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Event Type" required>
+            <select
+              value={form.eventType || ""}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  eventType: e.target.value,
+                }))
+              }
+              required
+              className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+            >
+              <option value="">Select event type</option>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Time" required>
+              {eventTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          <Field label="Date" required>
             <Input
-              type="time"
-              value={form.eventTime}
-              onChange={(e) => updateField("eventTime", e.target.value)}
+              type="date"
+              required
+              value={form?.date || ""}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  date: e.target.value,
+                }))
+              }
             />
           </Field>
 
-          <Field label="Hours">
+          <Field label="Guests" required>
             <Input
               type="number"
-              min="1"
-              value={form.duration}
-              onChange={(e) => updateField("duration", e.target.value)}
-              placeholder="4"
+              min={packageInfo.includedGuests}
+              value={form.catering?.pax || ""}
+              required
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  catering: { ...prev?.catering, pax: Number(e.target.value) },
+                }))
+              }
+              placeholder={`Up to ${packageInfo.includedGuests} guests`}
             />
           </Field>
-        </div>
 
-        <div className="sm:col-span-2">
-          <Field label="Event Location" required>
-            <Input
-              value={form.location}
-              onChange={(e) => updateField("location", e.target.value)}
-              placeholder="Barangay, city, province"
-            />
-          </Field>
-        </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Catering Start" required>
+              <Input
+                type="time"
+                required
+                value={form?.catering?.time?.start || ""}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    catering: {
+                      ...prev.catering,
+                      time: {
+                        ...prev?.catering?.time,
+                        start: e.target.value,
+                      },
+                    },
+                  }))
+                }
+                onBlur={(e) => {
+                  const value = e.target.value;
 
-        <div className="sm:col-span-2">
-          <Field label="Setup Notes">
-            <Textarea
-              value={form.setupNotes}
-              onChange={(e) => updateField("setupNotes", e.target.value)}
-              className="min-h-16 resize-none"
-              placeholder="Buffet, plated, food trays, theme, access notes..."
-            />
-          </Field>
+                  if (!value || form?.catering?.time?.end) return;
+
+                  const [hour, minute] = value.split(":");
+                  const endHour =
+                    (Number(hour) + packageInfo?.includedHours) % 24;
+
+                  setForm((prev) => ({
+                    ...prev,
+                    catering: {
+                      ...prev.catering,
+                      time: {
+                        ...prev?.catering?.time,
+                        end: `${String(endHour).padStart(2, "0")}:${minute}`,
+                      },
+                    },
+                  }));
+                }}
+              />
+            </Field>
+
+            <Field label="Catering End" required>
+              <Input
+                type="time"
+                required
+                value={form?.catering?.time?.end || ""}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    catering: {
+                      ...prev.catering,
+                      time: {
+                        ...prev?.catering?.time,
+                        end: e.target.value,
+                      },
+                    },
+                  }))
+                }
+              />
+            </Field>
+          </div>
         </div>
-      </div>
+      </Section>
+
+      {/* -------------------------------- */}
+      {/* Venue                            */}
+      {/* -------------------------------- */}
+
+      <Section title="Venue">
+        <Field label="Venue Option" required>
+          <RadioGroup
+            value={form.bookingType || ""}
+            onValueChange={(value) => {
+              if (value === "both") {
+                setForm((prev) => ({
+                  ...prev,
+                  venue: {
+                    ...prev.venue,
+                    pax: prev?.venue?.pax || prev?.catering?.pax,
+                    time: {
+                      start:
+                        prev?.venue?.time?.start || prev?.catering?.time?.start,
+                      end: prev?.venue?.time?.end || prev?.catering?.time?.end,
+                    },
+                  },
+                }));
+              }
+              updateField("bookingType", value);
+            }}
+            className="grid gap-2 sm:grid-cols-2"
+          >
+            <VenueOption
+              id="existing"
+              value="catering"
+              selected={form.bookingType === "catering"}
+              title="I have a venue"
+              description="Provide its name and address."
+            />
+
+            <VenueOption
+              id="book"
+              value="both"
+              selected={form.bookingType === "both"}
+              title="Book a venue"
+              description="Choose from available venues."
+            />
+          </RadioGroup>
+        </Field>
+      </Section>
+
+      {/* -------------------------------- */}
+      {/* Book Venue                       */}
+      {/* -------------------------------- */}
+
+      {form.bookingType === "both" && (
+        <Section title="Venue Details">
+          <div className="mb-3 rounded-md bg-muted/40 px-3 py-2">
+            <p className="text-[11px] text-muted-foreground">
+              These details will be used for your venue reservation.
+            </p>
+          </div>
+
+          <div className="grid gap-3 grid grid-cols-1 md:grid-cols-2">
+            <Field label="Guests" required>
+              <Input
+                type="number"
+                min={cateringGuests || 1}
+                value={form?.venue?.pax || ""}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    venue: {
+                      ...prev?.venue,
+                      pax: Number(e.target.value),
+                    },
+                  }))
+                }
+                placeholder={cateringGuests ? `${cateringGuests}+` : "Guests"}
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Start Time" required>
+                <Input
+                  type="time"
+                  value={form.venue?.time?.start || ""}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      venue: {
+                        ...prev?.venue,
+                        time: {
+                          ...prev?.venue?.time,
+                          start: e.target.value,
+                        },
+                      },
+                    }))
+                  }
+                />
+              </Field>
+
+              <Field label="End Time" required>
+                <Input
+                  type="time"
+                  value={form.venue?.time?.end || ""}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      venue: {
+                        ...prev?.venue,
+                        time: {
+                          ...prev?.venue?.time,
+                          end: e.target.value,
+                        },
+                      },
+                    }))
+                  }
+                />
+              </Field>
+            </div>
+          </div>
+        </Section>
+      )}
+
+      {/* -------------------------------- */}
+      {/* Existing Venue                   */}
+      {/* -------------------------------- */}
+
+      {form.bookingType === "catering" && (
+        <Section title="Venue Information">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Venue Name" required>
+              <Input
+                value={form?.catering?.venue?.location || ""}
+                required
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    catering: {
+                      ...prev.catering,
+                      venue: {
+                        ...prev?.catering?.venue,
+                        location: e.target.value,
+                      },
+                    },
+                  }))
+                }
+                placeholder="e.g. Covered Court"
+              />
+            </Field>
+
+            <Field label="Address" required>
+              <Input
+                required
+                value={form?.catering?.venue?.address || ""}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    catering: {
+                      ...prev.catering,
+                      venue: {
+                        ...prev?.catering?.venue,
+                        address: e.target.value,
+                      },
+                    },
+                  }))
+                }
+                placeholder="Barangay, City, Province"
+              />
+            </Field>
+          </div>
+        </Section>
+      )}
+
+      {/* -------------------------------- */}
+      {/* Notes                            */}
+      {/* -------------------------------- */}
+
+      <Section title="Setup Notes">
+        <Field label="Notes">
+          <Textarea
+            value={form.notes || ""}
+            onChange={(e) => updateField("notes", e.target.value)}
+            className="min-h-16 resize-none"
+            placeholder="Any special setup instructions?"
+          />
+        </Field>
+      </Section>
     </div>
   );
 };

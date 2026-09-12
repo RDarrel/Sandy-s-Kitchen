@@ -3,8 +3,25 @@ import { Home, Users, Eye, MapPin, Check } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
 import Cloudinary from "@/services/utilities/cloudinary";
+import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
 
-const Step4 = ({ venues, selectedVenueId, setSelectedVenueId }) => {
+const Step4 = ({
+  venues,
+  selected,
+  form,
+  menuSelections,
+  setForm = () => {},
+}) => {
+  const navigate = useNavigate();
+  const handleView = useCallback((venue) => {
+    sessionStorage.setItem("venue-review", JSON.stringify(venue));
+    sessionStorage.setItem(
+      "cateringDraft",
+      JSON.stringify({ selected, form, menuSelections }),
+    );
+    navigate("/platforms/venues?from=catering");
+  }, []);
   return (
     <div className="w-full min-w-0">
       <Header
@@ -17,8 +34,14 @@ const Step4 = ({ venues, selectedVenueId, setSelectedVenueId }) => {
           <VenueOption
             key={venue._id}
             venue={venue}
-            selected={selectedVenueId === venue._id}
-            onSelect={() => setSelectedVenueId(venue._id)}
+            selected={form?.venue?.item === venue._id}
+            onSelect={() =>
+              setForm((prev) => ({
+                ...prev,
+                venue: { ...prev?.venue, item: venue._id },
+              }))
+            }
+            handleView={handleView}
           />
         ))}
       </div>
@@ -32,7 +55,12 @@ export default Step4;
 /* VENUE OPTION                                                               */
 /* -------------------------------------------------------------------------- */
 
-const VenueOption = ({ venue, selected, onSelect }) => {
+const VenueOption = ({
+  venue,
+  selected,
+  onSelect = () => {},
+  handleView = () => {},
+}) => {
   const isOwnVenue = venue._id === "own-venue";
   const image = venue?.images?.[0];
 
@@ -234,7 +262,9 @@ const VenueOption = ({ venue, selected, onSelect }) => {
               {isOwnVenue ? "Free" : Formatter.amount(venue.basePrice)}
             </span>
 
-            {!isOwnVenue && <DetailsButton />}
+            {!isOwnVenue && (
+              <DetailsButton venue={venue} handleView={handleView} />
+            )}
           </div>
         </div>
 
@@ -261,7 +291,9 @@ const VenueOption = ({ venue, selected, onSelect }) => {
             {isOwnVenue ? "Free" : Formatter.amount(venue.basePrice)}
           </span>
 
-          {!isOwnVenue && <DetailsButton />}
+          {!isOwnVenue && (
+            <DetailsButton venue={venue} handleView={handleView} />
+          )}
         </div>
       </div>
     </div>
@@ -272,7 +304,7 @@ const VenueOption = ({ venue, selected, onSelect }) => {
 /* STATIC DETAILS BUTTON                                                      */
 /* -------------------------------------------------------------------------- */
 
-const DetailsButton = () => {
+const DetailsButton = ({ venue, handleView = () => {} }) => {
   return (
     <Button
       type="button"
@@ -290,6 +322,7 @@ const DetailsButton = () => {
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
+        handleView(venue);
       }}
     >
       <Eye className="size-3.5" />

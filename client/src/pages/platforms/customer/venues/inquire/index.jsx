@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-
 import {
   Stepper,
   StepperContent,
@@ -14,104 +13,65 @@ import {
   StepperTitle,
   StepperTrigger,
 } from "@/components/reui/stepper";
-
-import {
-  ArrowLeft,
-  CalendarDays,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardCheck,
-  MapPin,
-  Salad,
-  Utensils,
-  UserRound,
-} from "lucide-react";
-
+import { ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BROWSE as BROWSE_VENUES } from "@/services/redux/slices/events/venues";
 import { Step1, Step2, Step3, Step4, Step5, Step6 } from "./steps";
+import {
+  DEFAULT_FORM,
+  DEFAULT_MENU_SELECTIONS,
+  DEFAULT_STEPS,
+  FALLBACK_VENUES,
+} from "./constant";
+import { buildPackageInfo, computeEstimated } from "./utils";
 
+import isValid from "./validation";
 import Header from "./header";
+import Actions from "./actions";
 
-const steps = [
-  {
-    title: "Event",
-    description: "Date and guests",
-    icon: CalendarDays,
-  },
-  {
-    title: "Menu",
-    description: "Food choices",
-    icon: Utensils,
-  },
-  {
-    title: "Side Menus",
-    description: "Food choices",
-    icon: Salad,
-  },
-  {
-    title: "Venue",
-    description: "Place setup",
-    icon: MapPin,
-  },
-  {
-    title: "Contact",
-    description: "Your details",
-    icon: UserRound,
-  },
-  {
-    title: "Review",
-    description: "Send inquiry",
-    icon: ClipboardCheck,
-  },
-];
-
-const emptyForm = {
-  guestCount: "",
-  eventType: "",
-  eventDate: "",
-  eventTime: "",
-  duration: "",
-  location: "",
-  setupNotes: "",
-  fullName: "",
-  email: "",
-  phone: "",
-  preferredContact: "Phone call",
-  specialRequests: "",
-};
-
-const fallbackVenues = [
-  {
-    _id: "own-venue",
-    name: "Use my own venue",
-    address: "Customer provided location",
-    capacity: 0,
-    basePrice: 0,
-    setting: "External",
-  },
-];
-
-const Inquire = ({ selected = {}, onSelect = () => {} }) => {
+const Inquire = ({
+  isContinuingInquiry = false,
+  selected = {},
+  onSelect = () => {},
+}) => {
   const dispatch = useDispatch();
   const { collections: venueCollections = [] } = useSelector(
     ({ venues }) => venues,
   );
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [form, setForm] = useState(emptyForm);
-  const [menuSelections, setMenuSelections] = useState({
-    main: {},
-    side: {},
-  });
-  const [selectedVenueId, setSelectedVenueId] = useState("own-venue");
-
+  const [steps, setSteps] = useState(DEFAULT_STEPS);
+  const [form, setForm] = useState(DEFAULT_FORM);
+  const [menuSelections, setMenuSelections] = useState(DEFAULT_MENU_SELECTIONS);
   const packageSelected = Boolean(selected?._id);
+
+  useEffect(() => {
+    if (isContinuingInquiry) {
+      const savedDraft = sessionStorage.getItem("cateringDraft");
+      const venueReview = sessionStorage.getItem("venue-review");
+      const venueID = venueReview ? JSON.parse(venueReview)?._id : "own-venue";
+      const { form, menuSelections } = savedDraft ? JSON.parse(savedDraft) : {};
+      setMenuSelections(menuSelections);
+      setForm({ ...form, venue: { ...form.venue, item: venueID } });
+      setCurrentStep(4);
+    } else {
+      setMenuSelections(DEFAULT_MENU_SELECTIONS);
+      setForm(DEFAULT_FORM);
+      setSteps(DEFAULT_STEPS);
+    }
+  }, [isContinuingInquiry]);
 
   useEffect(() => {
     dispatch(BROWSE_VENUES());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (form?.bookingType === "catering") {
+      setSteps(DEFAULT_STEPS.filter(({ title }) => title !== "Venue"));
+    } else {
+      setSteps(DEFAULT_STEPS);
+    }
+  }, [form?.bookingType]);
 
   const packageInfo = useMemo(() => buildPackageInfo(selected), [selected]);
   const venues = useMemo(() => {
@@ -119,28 +79,46 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
       (venue) => venue?.isAvailable,
     );
 
-    return [...fallbackVenues, ...availableVenues];
+    return [...availableVenues];
   }, [venueCollections]);
 
   const selectedVenue = useMemo(
     () =>
-      venues.find(({ _id }) => _id === selectedVenueId) || fallbackVenues[0],
-    [selectedVenueId, venues],
+      venues.find(({ _id }) => _id === form?.venue?.item) || FALLBACK_VENUES[0],
+    [form?.venue?.item, venues],
   );
 
-  const estimate = useMemo(() => {
-    const guests = Number(form.guestCount) || 0;
-    const extraGuests = Math.max(0, guests - packageInfo.includedGuests);
-    const extraGuestFee = extraGuests * packageInfo.addPricePerGuest;
-    const venueFee = Number(selectedVenue?.basePrice) || 0;
+  const cateringEstimate = useMemo(() => {
+    return computeEstimated({
+      basePrice: packageInfo.basePrice,
+      maxHours: packageInfo?.includedHours,
+      time: form?.catering?.time,
+      addFee: {
+        hour: packageInfo?.addPricePerHour,
+        pax: packageInfo?.addPricePerGuest,
+      },
+      pax: {
+        avail: form?.catering?.pax,
+        max: packageInfo?.includedGuests,
+      },
+    });
+  }, [form.catering?.pax, form?.venue?.pax, packageInfo, selectedVenue]);
 
-    return {
-      base: packageInfo.basePrice,
-      extraGuestFee,
-      venueFee,
-      total: packageInfo.basePrice + extraGuestFee + venueFee,
-    };
-  }, [form.guestCount, packageInfo, selectedVenue]);
+  const venueEstimate = useMemo(() => {
+    return computeEstimated({
+      basePrice: selectedVenue.basePrice,
+      maxHours: selectedVenue?.duration?.max,
+      time: form?.venue?.time,
+      addFee: {
+        hour: selectedVenue?.additionalCharges?.perHour,
+        pax: selectedVenue?.additionalCharges?.perPax,
+      },
+      pax: {
+        avail: form?.venue?.pax,
+        max: selectedVenue?.capacity,
+      },
+    });
+  }, [form?.venue, selectedVenue]);
 
   const selectedMenus = useMemo(
     () => ({
@@ -163,10 +141,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleMenuToggle = (type, category, menu) => {
+  const handleMenuToggle = (type, category, menu, limit) => {
     const categoryId = category?._id;
     const menuId = getMenuId(menu);
-    const categoryLimit = getCategoryLimit(category);
 
     setMenuSelections((prev) => {
       const group = prev[type] || {};
@@ -176,10 +153,10 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
         ? current.filter((id) => id !== menuId)
         : [...current, menuId];
 
-      if (!isSelected && nextCategorySelections.length > categoryLimit) {
+      if (!isSelected && nextCategorySelections.length > limit) {
         toast.warning(
-          `${getCategoryName(category)} allows ${categoryLimit} selection${
-            categoryLimit > 1 ? "s" : ""
+          `${getCategoryName(category)} allows ${limit} selection${
+            limit > 1 ? "s" : ""
           }.`,
         );
         return prev;
@@ -217,47 +194,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
     });
   };
 
-  const validateStep = (step = currentStep) => {
-    if (step === 2) {
-      if (!form.eventType) return warn("Please select the event type.");
-      if (!form.eventDate) return warn("Please choose your preferred date.");
-      if (!form.eventTime) return warn("Please choose your preferred time.");
-      if (Number(form.guestCount) < packageInfo.includedGuests) {
-        return warn(
-          `This package requires at least ${packageInfo.includedGuests} guests.`,
-        );
-      }
-      if (!form.location.trim())
-        return warn("Please enter the event location.");
-    }
-
-    if (step === 3 && selectedMainCount !== packageInfo.mainCourseLimit) {
-      return warn(
-        `Please choose ${packageInfo.mainCourseLimit} main course${
-          packageInfo.mainCourseLimit > 1 ? "s" : ""
-        }.`,
-      );
-    }
-
-    if (step === 3 && selectedSideCount !== packageInfo.sideMenuLimit) {
-      return warn(
-        `Please choose ${packageInfo.sideMenuLimit} side menu${
-          packageInfo.sideMenuLimit > 1 ? "s" : ""
-        }.`,
-      );
-    }
-
-    if (step === 5) {
-      if (!form.fullName.trim()) return warn("Please enter your full name.");
-      if (!form.phone.trim()) return warn("Please enter your phone number.");
-      if (!form.email.trim()) return warn("Please enter your email address.");
-    }
-
-    return true;
-  };
-
-  const goNext = () => {
-    if (!validateStep()) return;
+  const goNext = (e) => {
+    e.preventDefault();
+    if (!isValid(currentStep, form, menuSelections, selected)) return;
     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
   };
 
@@ -266,9 +205,6 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleSubmit = () => {
-    const stepsValid = [2, 3, 5].every((step) => validateStep(step));
-    if (!stepsValid) return;
-
     const payload = {
       package: selected?._id,
       event: {
@@ -284,7 +220,6 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
         mainCourses: selectedMenus.main.map(({ _id, name }) => ({ _id, name })),
         sideMenus: selectedMenus.side.map(({ _id, name }) => ({ _id, name })),
       },
-      venue: selectedVenueId === "own-venue" ? null : selectedVenueId,
       customer: {
         fullName: form.fullName,
         email: form.email,
@@ -323,7 +258,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
       </div>
     );
   }
-
+  console.log("form", form);
   return (
     <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">
@@ -339,7 +274,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
         </Button>
 
         <div className="rounded-lg border bg-card shadow-sm">
-          <Header packageInfo={packageInfo} estimate={estimate} />
+          <Header packageInfo={packageInfo} estimate={cateringEstimate} />
 
           <Stepper
             value={currentStep}
@@ -394,37 +329,50 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
               </StepperNav>
             </div>
 
-            <StepperPanel className="min-w-0">
-              {[Step1, Step2, Step3, Step4, Step5, Step6].map((Step, idx) => (
-                <StepperContent
-                  value={idx + 1}
-                  className={"p-3 sm:p-5"}
-                  key={idx}
-                >
-                  <Step
-                    form={form}
-                    packageInfo={packageInfo}
-                    selectedMainCount={selectedMainCount}
-                    selectedSideCount={selectedSideCount}
-                    menuSelections={menuSelections}
-                    venues={venues}
-                    estimate={estimate}
-                    selectedMenus={selectedMenus}
-                    selectedVenue={selectedVenue}
-                    selectedVenueId={selectedVenueId}
-                    setSelectedVenueId={setSelectedVenueId}
-                    handleMenuToggle={handleMenuToggle}
-                    updateField={updateField}
-                  />
-                  <StepActions
-                    currentStep={currentStep}
-                    totalSteps={steps.length}
-                    onBack={goBack}
-                    onNext={goNext}
-                  />
-                </StepperContent>
-              ))}
-            </StepperPanel>
+            <form onSubmit={goNext}>
+              <StepperPanel className="min-w-0">
+                {[
+                  Step1,
+                  Step2,
+                  Step3,
+                  form?.bookingType !== "catering" ? Step4 : undefined,
+                  Step5,
+                  Step6,
+                ]
+                  .filter(Boolean)
+                  .map((Step, idx) => (
+                    <StepperContent
+                      value={idx + 1}
+                      className={"p-3 sm:p-5"}
+                      key={idx}
+                    >
+                      <Step
+                        form={form}
+                        selected={selected}
+                        packageInfo={packageInfo}
+                        selectedMainCount={selectedMainCount}
+                        selectedSideCount={selectedSideCount}
+                        menuSelections={menuSelections}
+                        venues={venues}
+                        estimate={{
+                          venue: venueEstimate,
+                          catering: cateringEstimate,
+                        }}
+                        selectedMenus={selectedMenus}
+                        selectedVenue={selectedVenue}
+                        setForm={setForm}
+                        handleMenuToggle={handleMenuToggle}
+                        updateField={updateField}
+                      />
+                      <Actions
+                        currentStep={currentStep}
+                        totalSteps={steps.length}
+                        onBack={goBack}
+                      />
+                    </StepperContent>
+                  ))}
+              </StepperPanel>
+            </form>
           </Stepper>
         </div>
       </div>
@@ -434,84 +382,12 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
 
 export default Inquire;
 
-const StepActions = ({ currentStep, totalSteps, onBack, onNext }) => {
-  if (currentStep === totalSteps) {
-    return (
-      <div className="mt-4 flex items-center justify-start border-t pt-3">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-1 px-2 text-xs"
-          onClick={onBack}
-        >
-          <ChevronLeft className="size-3.5" />
-          Back
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-4 flex items-center justify-between border-t pt-3">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-8 gap-1 px-2 text-xs"
-        onClick={onBack}
-        disabled={currentStep === 1}
-      >
-        <ChevronLeft className="size-3.5" />
-        Back
-      </Button>
-
-      <Button
-        type="button"
-        size="sm"
-        className="h-8 gap-1.5 px-3 text-xs"
-        onClick={onNext}
-      >
-        Continue
-        <ChevronRight className="size-3.5" />
-      </Button>
-    </div>
-  );
-};
-
-const buildPackageInfo = (item = {}) => {
-  const sideMenuLimit = (item?.sideMenuCategories || []).reduce(
-    (acc, category) => acc + (Number(category?.limit) || 0),
-    0,
-  );
-
-  return {
-    _id: item?._id,
-    imgId: item?.imgId,
-    name: item?.name || "Selected Package",
-    level: item?.level,
-    description: item?.description,
-    includedGuests: Number(item?.includedGuests) || 1,
-    basePrice: Number(item?.basePrice) || 0,
-    addPricePerGuest: Number(item?.addPricePerGuest) || 0,
-    mainCourseLimit: Number(item?.mainCourseLimit) || 0,
-    sideMenuLimit,
-    inclusions: item?.inclusions || [],
-    mainCourseCategories: item?.mainCourseCategories || [],
-    sideMenuCategories: item?.sideMenuCategories || [],
-  };
-};
-
 const getCategoryId = (category = {}) => {
   return category?.category?._id || category?.category?.name || category?.name;
 };
 
 const getCategoryName = (category = {}) => {
   return category?.category?.name || category?.name || "Menu Group";
-};
-
-const getCategoryLimit = (category = {}) => {
-  return Number(category?.limit) || 1;
 };
 
 const getMenuId = (menu = {}) => {
@@ -525,9 +401,4 @@ const getSelectedMenus = (categories = [], selections = {}) => {
       selectedIds.includes(getMenuId(menu)),
     );
   });
-};
-
-const warn = (message) => {
-  toast.warning(message);
-  return false;
 };
