@@ -84,7 +84,6 @@ const Step1 = ({
           <Field label="Guests" required>
             <Input
               type="number"
-              min={packageInfo.includedGuests}
               value={form.catering?.pax || ""}
               required
               onChange={(e) =>
