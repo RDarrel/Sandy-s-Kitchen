@@ -14,11 +14,7 @@ const Footer = () => {
     <footer className="footer">
       <div className="footer__inner">
         <div className="footer__company">
-          <img
-            src={logo}
-            alt="Sandy's Kitchenette"
-            className="footer__logo"
-          />
+          <img src={logo} alt="Sandy's Kitchenette" className="footer__logo" />
 
           <div className="footer__group">
             <h3>Company</h3>
@@ -51,7 +47,7 @@ const Footer = () => {
         <div className="footer__map" aria-label="Sandy's Kitchenette map">
           <iframe
             title="Sandy's Kitchenette location"
-            src="https://www.google.com/maps?q=Sandy%27s%20Kitchenette&output=embed"
+            src="https://www.google.com/maps?q=15.3529211,121.0649348&output=embed"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           />

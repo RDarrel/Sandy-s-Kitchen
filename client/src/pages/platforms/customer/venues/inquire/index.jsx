@@ -28,6 +28,7 @@ import { buildPackageInfo, computeEstimated } from "./utils";
 import isValid from "./validation";
 import Header from "./header";
 import Actions from "./actions";
+import useVenueDraft from "./useVenueDraft";
 
 const Inquire = ({
   isContinuingInquiry = false,
@@ -45,21 +46,14 @@ const Inquire = ({
   const [menuSelections, setMenuSelections] = useState(DEFAULT_MENU_SELECTIONS);
   const packageSelected = Boolean(selected?._id);
 
-  useEffect(() => {
-    if (isContinuingInquiry) {
-      const savedDraft = sessionStorage.getItem("cateringDraft");
-      const venueReview = sessionStorage.getItem("venue-review");
-      const venueID = venueReview ? JSON.parse(venueReview)?._id : "own-venue";
-      const { form, menuSelections } = savedDraft ? JSON.parse(savedDraft) : {};
-      setMenuSelections(menuSelections);
-      setForm({ ...form, venue: { ...form.venue, item: venueID } });
-      setCurrentStep(4);
-    } else {
-      setMenuSelections(DEFAULT_MENU_SELECTIONS);
-      setForm(DEFAULT_FORM);
-      setSteps(DEFAULT_STEPS);
-    }
-  }, [isContinuingInquiry]);
+  const { clearVenueDraft } = useVenueDraft({
+    form,
+    setForm,
+    menuSelections,
+    setMenuSelections,
+    currentStep,
+    setCurrentStep,
+  });
 
   useEffect(() => {
     dispatch(BROWSE_CATERING_PACKAGES());
