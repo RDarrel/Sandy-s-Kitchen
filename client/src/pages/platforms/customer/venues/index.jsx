@@ -8,10 +8,13 @@ const CateringParent = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const from = searchParams.get("from");
+  const returnTo = searchParams.get("returnTo");
 
   useEffect(() => {
-    const venueToReview = sessionStorage.getItem("venue-review");
+    const getDraft = (sessionKey) => sessionStorage.getItem(sessionKey);
     if (from && venueToReview) {
+    } else if (from === "catering" && !returnTo) {
+      const venueToReview = getDraft("venue-review");
       setIsReview(true);
       setSelected(JSON.parse(venueToReview));
       setActionType("details");

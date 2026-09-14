@@ -1,21 +1,36 @@
 import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+
 import ActionRenderer from "./handler";
-import { useSearchParams } from "react-router-dom";
+
 const CateringParent = () => {
   const [selected, setSelected] = useState({});
   const [actionType, setActionType] = useState("default");
   const [isContinuingInquiry, setIsContinuingInquiry] = useState(false);
+  const [isReview, setIsReview] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const from = searchParams.get("from");
   const returnTo = searchParams.get("returnTo");
   useEffect(() => {
+    const getDraft = (sessionKey) => sessionStorage.getItem(sessionKey);
+
     if (returnTo === "catering" && from === "venue") {
-      const savedDraft = sessionStorage.getItem("cateringDraft");
+      const savedDraft = getDraft("cateringDraft");
       const { selected } = savedDraft ? JSON.parse(savedDraft) : {};
       setSelected(selected);
       setActionType("inquire");
       setIsContinuingInquiry(true);
       // setSearchParams({}, { replace: true });
+    } else if (from === "venue" && !returnTo) {
+      const sessionKey = "catering-review";
+      const saveDraft = getDraft(sessionKey)
+        ? JSON.parse(getDraft(sessionKey))
+        : {};
+
+      setSelected(saveDraft);
+      setActionType("details");
+      setIsReview(true);
     } else {
       setIsContinuingInquiry(false);
     }
@@ -24,6 +39,12 @@ const CateringParent = () => {
     setSelected(selected);
     setActionType(actionType);
   };
+  const handleBackToVenue = () => {
+    navigate("/platforms/venues?returnTo=venue&from=catering");
+    setSelected({});
+    setActionType("default");
+    setIsReview(false);
+  };
   return (
     <div>
       <ActionRenderer
@@ -31,6 +52,8 @@ const CateringParent = () => {
         selected={selected}
         onSelect={onSelect}
         isContinuingInquiry={isContinuingInquiry}
+        handleBackToVenue={handleBackToVenue}
+        isReview={isReview}
       />
     </div>
   );

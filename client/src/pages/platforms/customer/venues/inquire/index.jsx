@@ -66,7 +66,7 @@ const Inquire = ({
   }, [dispatch]);
 
   useEffect(() => {
-    if (form?.bookingType === "venue") {
+    if (form?.bookingType === "venue" || !form?.bookingType) {
       setSteps([DEFAULT_STEPS[0], DEFAULT_STEPS[5], DEFAULT_STEPS[6]]);
     } else {
       setSteps(DEFAULT_STEPS);

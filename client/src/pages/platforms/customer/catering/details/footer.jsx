@@ -2,15 +2,21 @@ import { Button } from "@/components/ui/button";
 import { Formatter } from "@/services/utilities";
 import { ArrowRight } from "lucide-react";
 
-const Footer = ({ selected = {}, onSelect = () => {} }) => {
+const Footer = ({ isReview = false, selected = {}, onSelect = () => {} }) => {
   return (
     <div className="sticky bottom-0 -mx-3 md:-mx-5 border-t bg-background/95 px-4 py-4 -mb-3  backdrop-blur-md">
       <div className="mx-auto max-w-4xl md:flex items-center">
         <div className="mb-3 sm:mb-0 sm:flex-1">
-          <p className="font-semibold">Ready to plan your event?</p>
+          <p className="font-semibold">
+            {isReview
+              ? "Found the right catering package?"
+              : "Ready to plan your event?"}
+          </p>
 
           <p className="text-sm text-muted-foreground">
-            Send us an inquiry to get started.
+            {isReview
+              ? "Select this catering package to continue with your booking."
+              : "Send us an inquiry to get started."}
           </p>
         </div>
 
@@ -26,9 +32,10 @@ const Footer = ({ selected = {}, onSelect = () => {} }) => {
           <Button
             size="lg"
             className="shrink-0 gap-2"
-            onClick={() => onSelect(selected, "inquire")}
+            onClick={() => onSelect(selected, isReview ? "select" : "inquire")}
           >
-            Inquire Now
+            {isReview ? "Select Catering Package" : "Inquire Now"}
+
             <ArrowRight className="size-4" />
           </Button>
         </div>

@@ -5,8 +5,10 @@ import Inquire from "./inquire";
 const ActionRenderer = ({
   selected,
   actionType,
+  isReview,
   isContinuingInquiry,
   onSelect = () => {},
+  handleBackToVenue = () => {},
 }) => {
   const handleMap = {
     default: Catering,
@@ -26,6 +28,8 @@ const ActionRenderer = ({
       onSelect={onSelect}
       isWebsite={false}
       isContinuingInquiry={isContinuingInquiry}
+      handleBackToVenue={handleBackToVenue}
+      isReview={isReview}
     />
   );
 };

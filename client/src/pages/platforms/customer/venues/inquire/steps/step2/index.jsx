@@ -17,21 +17,8 @@ const Step4 = ({
 
   const handleView = useCallback(
     (caterPackage) => {
-      sessionStorage.setItem(
-        "cateringDraft",
-        JSON.stringify({
-          selected,
-          form,
-          menuSelections,
-        }),
-      );
-
-      sessionStorage.setItem(
-        "catering-package-review",
-        JSON.stringify(caterPackage),
-      );
-
-      navigate("/platforms/catering/package-review");
+      sessionStorage.setItem("catering-review", JSON.stringify(caterPackage));
+      navigate("/platforms/catering?from=venue");
     },
     [selected, form, menuSelections, navigate],
   );
