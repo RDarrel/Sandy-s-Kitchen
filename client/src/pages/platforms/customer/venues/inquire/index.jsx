@@ -66,8 +66,8 @@ const Inquire = ({
   }, [dispatch]);
 
   useEffect(() => {
-    if (form?.bookingType === "catering") {
-      setSteps(DEFAULT_STEPS.filter(({ title }) => title !== "Venue"));
+    if (form?.bookingType === "venue") {
+      setSteps([DEFAULT_STEPS[0], DEFAULT_STEPS[5], DEFAULT_STEPS[6]]);
     } else {
       setSteps(DEFAULT_STEPS);
     }
@@ -329,12 +329,9 @@ const Inquire = ({
               <StepperPanel className="min-w-0 flex flex-col  h-full">
                 {[
                   Step1,
-                  // form?.bookingType !== "catering" ? Step4 : undefined,
-                  Step2,
-                  Step3,
-
-                  Step4,
-                  Step5,
+                  ...(form?.bookingType === "both"
+                    ? [Step2, Step3, Step4, Step5]
+                    : []),
                   Step6,
                   Step7,
                 ]

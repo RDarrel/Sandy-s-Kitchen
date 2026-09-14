@@ -148,10 +148,12 @@ const step5 = (selected, menuSelections) => {
 
 const isValid = (currentStep, form, menuSelections, selected) => {
   if (currentStep === 1) return step1(form);
-  if (currentStep === 2) return step2(form);
-  if (currentStep === 3) return step3(form);
-  if (currentStep === 4) return step4(selected, menuSelections);
-  if (currentStep === 5) return step5(selected, menuSelections);
+  if (form?.bookingType === "both") {
+    if (currentStep === 2) return step2(form);
+    if (currentStep === 3) return step3(form);
+    if (currentStep === 4) return step4(selected, menuSelections);
+    if (currentStep === 5) return step5(selected, menuSelections);
+  }
   // if (form?.bookingType === "both" && currentStep === 4) return step4(form);
   return true;
 };
