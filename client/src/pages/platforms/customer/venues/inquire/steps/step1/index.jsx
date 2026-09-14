@@ -22,8 +22,8 @@ const eventTypes = [
 /* ---------------------------------- */
 
 const Step1 = ({
-  cateringPackages = [],
   form = {},
+  selected,
   updateField = () => {},
   setForm = () => {},
 }) => {
@@ -125,6 +125,23 @@ const Step1 = ({
                     },
                   }))
                 }
+                onBlur={(e) => {
+                  const value = e.target.value;
+                  if (!value || form?.venue?.time?.end) return;
+                  const [hour, minute] = value.split(":");
+                  const endHour = (Number(hour) + selected?.duration?.max) % 24;
+
+                  setForm((prev) => ({
+                    ...prev,
+                    venue: {
+                      ...prev.venue,
+                      time: {
+                        ...prev?.venue?.time,
+                        end: `${String(endHour).padStart(2, "0")}:${minute}`,
+                      },
+                    },
+                  }));
+                }}
               />
             </Field>
 
@@ -160,7 +177,7 @@ const Step1 = ({
         description="Would you also like to add catering to your event?"
       >
         <RadioGroup
-          value={form?.bookingType || "venue"}
+          value={form?.bookingType}
           onValueChange={(value) => {
             setForm((prev) => ({
               ...prev,
@@ -186,82 +203,6 @@ const Step1 = ({
           />
         </RadioGroup>
       </Section>
-
-      {/* -------------------------------- */}
-      {/* Catering Details                 */}
-      {/* -------------------------------- */}
-
-      {form?.bookingType === "both" && (
-        <>
-          <Section
-            title="Catering Details"
-            description="Provide the guest count and schedule for your catering service."
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Guests" required>
-                <Input
-                  type="number"
-                  min={1}
-                  value={form?.catering?.pax || ""}
-                  required
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      catering: {
-                        ...prev?.catering,
-                        pax: Number(e.target.value),
-                      },
-                    }))
-                  }
-                  placeholder="Number of catering guests"
-                />
-              </Field>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Catering Start Time" required>
-                  <Input
-                    type="time"
-                    required
-                    value={form?.catering?.time?.start || ""}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        catering: {
-                          ...prev?.catering,
-                          time: {
-                            ...prev?.catering?.time,
-                            start: e.target.value,
-                          },
-                        },
-                      }))
-                    }
-                  />
-                </Field>
-
-                <Field label="Catering End Time" required>
-                  <Input
-                    type="time"
-                    required
-                    value={form?.catering?.time?.end || ""}
-                    onChange={(e) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        catering: {
-                          ...prev?.catering,
-                          time: {
-                            ...prev?.catering?.time,
-                            end: e.target.value,
-                          },
-                        },
-                      }))
-                    }
-                  />
-                </Field>
-              </div>
-            </div>
-          </Section>
-        </>
-      )}
 
       {/* -------------------------------- */}
       {/* Notes                            */}

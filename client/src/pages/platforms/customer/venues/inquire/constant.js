@@ -13,9 +13,14 @@ export const DEFAULT_STEPS = [
     icon: CalendarDays,
   },
   {
-    title: " Packages",
+    title: "Catering",
     description: "Choose your package",
     icon: ChefHat,
+  },
+  {
+    title: "Catering Details",
+    description: "Guests and schedule",
+    icon: UserRound,
   },
   {
     title: "Main Dishes",

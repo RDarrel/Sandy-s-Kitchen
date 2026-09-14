@@ -49,7 +49,7 @@ const selectedMenuSchema = new mongoose.Schema(
 
 const cateringDetailsSchema = new mongoose.Schema(
   {
-    package: {
+    item: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "CateringPackage",
       required: true,

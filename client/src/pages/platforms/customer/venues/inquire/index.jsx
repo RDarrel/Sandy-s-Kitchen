@@ -15,8 +15,8 @@ import {
 } from "@/components/reui/stepper";
 import { ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BROWSE as BROWSE_VENUES } from "@/services/redux/slices/events/venues";
-import { Step1, Step2, Step3, Step4, Step5, Step6 } from "./steps";
+import { BROWSE as BROWSE_CATERING_PACKAGES } from "@/services/redux/slices/events/cateringPackages";
+import { Step1, Step2, Step3, Step4, Step5, Step6, Step7 } from "./steps";
 import {
   DEFAULT_FORM,
   DEFAULT_MENU_SELECTIONS,
@@ -35,8 +35,8 @@ const Inquire = ({
   onSelect = () => {},
 }) => {
   const dispatch = useDispatch();
-  const { collections: venueCollections = [] } = useSelector(
-    ({ venues }) => venues,
+  const { collections: packages = [] } = useSelector(
+    ({ cateringPackages }) => cateringPackages,
   );
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -62,7 +62,7 @@ const Inquire = ({
   }, [isContinuingInquiry]);
 
   useEffect(() => {
-    dispatch(BROWSE_VENUES());
+    dispatch(BROWSE_CATERING_PACKAGES());
   }, [dispatch]);
 
   useEffect(() => {
@@ -73,19 +73,15 @@ const Inquire = ({
     }
   }, [form?.bookingType]);
 
-  const packageInfo = useMemo(() => buildPackageInfo(selected), [selected]);
-  const venues = useMemo(() => {
-    const availableVenues = venueCollections.filter(
-      (venue) => venue?.isAvailable,
-    );
-
-    return [...availableVenues];
-  }, [venueCollections]);
-
-  const selectedVenue = useMemo(
+  const selectedCatering = useMemo(
     () =>
-      venues.find(({ _id }) => _id === form?.venue?.item) || FALLBACK_VENUES[0],
-    [form?.venue?.item, venues],
+      packages.find(({ _id }) => _id === form?.catering?.item) ||
+      FALLBACK_VENUES[0],
+    [form?.catering?.item, packages],
+  );
+  const packageInfo = useMemo(
+    () => buildPackageInfo(selectedCatering),
+    [selectedCatering],
   );
 
   const cateringEstimate = useMemo(() => {
@@ -102,23 +98,23 @@ const Inquire = ({
         max: packageInfo?.includedGuests,
       },
     });
-  }, [form.catering?.pax, form?.venue?.pax, packageInfo, selectedVenue]);
+  }, [form.catering?.pax, form?.venue?.pax, packageInfo, selectedCatering]);
 
   const venueEstimate = useMemo(() => {
     return computeEstimated({
-      basePrice: selectedVenue.basePrice,
-      maxHours: selectedVenue?.duration?.max,
+      basePrice: selected.basePrice,
+      maxHours: selected?.duration?.max,
       time: form?.venue?.time,
       addFee: {
-        hour: selectedVenue?.additionalCharges?.perHour,
-        pax: selectedVenue?.additionalCharges?.perPax,
+        hour: selected?.additionalCharges?.perHour,
+        pax: selected?.additionalCharges?.perPax,
       },
       pax: {
         avail: form?.venue?.pax,
-        max: selectedVenue?.capacity,
+        max: selected?.capacity,
       },
     });
-  }, [form?.venue, selectedVenue]);
+  }, [form?.venue, selected]);
 
   const selectedMenus = useMemo(
     () => ({
@@ -196,9 +192,10 @@ const Inquire = ({
 
   const goNext = (e) => {
     e.preventDefault();
-    if (!isValid(currentStep, form, menuSelections, selected)) return;
+    if (!isValid(currentStep, form, menuSelections, selectedCatering)) return;
     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
   };
+  console.log("form", form);
 
   const goBack = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
@@ -235,8 +232,7 @@ const Inquire = ({
       "Inquiry prepared. Sandy's Kitchen will confirm availability.",
     );
   };
-
-  if (!packageSelected) {
+  if (!selected?._id) {
     return (
       <div className="min-h-screen bg-muted/30 p-3 sm:p-5">
         <div className="mx-auto max-w-3xl rounded-lg border bg-card p-5 shadow-sm">
@@ -247,18 +243,18 @@ const Inquire = ({
             onClick={() => onSelect({}, "default")}
           >
             <ArrowLeft className="size-3.5" />
-            Back to Packages
+            Back to Venues
           </Button>
 
-          <h1 className="text-lg font-bold">Select a package first</h1>
+          <h1 className="text-lg font-bold">Select a venue first</h1>
+
           <p className="mt-1 text-sm text-muted-foreground">
-            Choose a catering package before sending an inquiry.
+            Choose a venue before sending an inquiry.
           </p>
         </div>
       </div>
     );
   }
-  console.log("form", form);
   return (
     <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">
@@ -270,11 +266,11 @@ const Inquire = ({
           onClick={() => onSelect({}, "default")}
         >
           <ArrowLeft className="size-3.5" />
-          Back to Packages
+          Back to Venues
         </Button>
 
         <div className="rounded-lg border bg-card shadow-sm">
-          <Header packageInfo={packageInfo} estimate={cateringEstimate} />
+          <Header venue={selected} estimate={venueEstimate} />
 
           <Stepper
             value={currentStep}
@@ -330,20 +326,23 @@ const Inquire = ({
             </div>
 
             <form onSubmit={goNext}>
-              <StepperPanel className="min-w-0">
+              <StepperPanel className="min-w-0 flex flex-col  h-full">
                 {[
                   Step1,
+                  // form?.bookingType !== "catering" ? Step4 : undefined,
                   Step2,
                   Step3,
-                  form?.bookingType !== "catering" ? Step4 : undefined,
+
+                  Step4,
                   Step5,
                   Step6,
+                  Step7,
                 ]
                   .filter(Boolean)
                   .map((Step, idx) => (
                     <StepperContent
                       value={idx + 1}
-                      className={"p-3 sm:p-5"}
+                      className={"flex flex-col h-full p-3 sm:p-5 gap-5"}
                       key={idx}
                     >
                       <Step
@@ -353,13 +352,13 @@ const Inquire = ({
                         selectedMainCount={selectedMainCount}
                         selectedSideCount={selectedSideCount}
                         menuSelections={menuSelections}
-                        venues={venues}
+                        packages={packages}
                         estimate={{
                           venue: venueEstimate,
                           catering: cateringEstimate,
                         }}
                         selectedMenus={selectedMenus}
-                        selectedVenue={selectedVenue}
+                        selectedVenue={selected}
                         setForm={setForm}
                         handleMenuToggle={handleMenuToggle}
                         updateField={updateField}
