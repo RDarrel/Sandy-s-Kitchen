@@ -49,7 +49,7 @@ const CateringList = ({ isWebsite = true, onSelect = () => {} }) => {
     sessionStorage.setItem(
       "inquiry",
       JSON.stringify({
-        type: "package",
+        type: "catering",
         id: item._id,
       }),
     );

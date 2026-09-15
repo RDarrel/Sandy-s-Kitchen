@@ -38,7 +38,7 @@ const Header = ({ selected }) => {
                 {
                   title: "Duration",
                   value: `${selected?.duration?.min}–${selected?.duration?.max} hrs`,
-                  subTitle: "Allowed Hours",
+                  subTitle: "Included Hours",
                   Icon: Clock,
                 },
               ].map((metric, idx) => (
