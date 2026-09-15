@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ActionRenderer from "./handler";
+
 const CateringParent = () => {
   const [selected, setSelected] = useState({});
   const [actionType, setActionType] = useState("default");
@@ -12,7 +13,12 @@ const CateringParent = () => {
 
   useEffect(() => {
     const getDraft = (sessionKey) => sessionStorage.getItem(sessionKey);
-    if (from && venueToReview) {
+    const draft = getDraft("venueDraft");
+
+    if (draft) {
+      setSelected(JSON.parse(draft)?.selected);
+      setActionType("inquire");
+      setIsReview(false);
     } else if (from === "catering" && !returnTo) {
       const venueToReview = getDraft("venue-review");
       setIsReview(true);
@@ -21,7 +27,7 @@ const CateringParent = () => {
     } else {
       setIsReview(false);
     }
-  }, [from]);
+  }, [from, returnTo]);
 
   const onSelect = (selected, actionType) => {
     setSelected(selected);

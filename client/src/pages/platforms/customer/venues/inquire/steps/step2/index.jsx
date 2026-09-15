@@ -74,7 +74,6 @@ const PackageOption = ({
   const mainLimit = caterPackage?.mainCourseLimit;
   const inclusion = caterPackage?.inclusions?.length;
 
-  console.log("caterPackage", caterPackage);
   return (
     <div
       role="button"

@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-const VENUE_DRAFT_KEY = "venueDraft";
+const CATERING_DRAFT_KEY = "cateringDraft";
 
-const useVenueDraft = ({
+const useCateringDraft = ({
   selected,
   form,
   setForm,
@@ -18,18 +18,18 @@ const useVenueDraft = ({
   // RESTORE VENUE DRAFT
   useEffect(() => {
     try {
-      const venueDraft = sessionStorage.getItem(VENUE_DRAFT_KEY);
-      const cateringReview = sessionStorage.getItem("catering-review");
+      const cateringDraft = sessionStorage.getItem(CATERING_DRAFT_KEY);
+      const venueReview = sessionStorage.getItem("venue-review");
 
-      if (venueDraft) {
-        const draft = JSON.parse(venueDraft);
+      if (cateringDraft) {
+        const draft = JSON.parse(cateringDraft);
 
         if (draft?.form) {
           setForm({
             ...draft.form,
-            catering: {
-              ...draft.form.catering,
-              ...(cateringReview && { item: JSON.parse(cateringReview)?._id }),
+            venue: {
+              ...draft.form.venue,
+              ...(venueReview && { item: JSON.parse(venueReview)?._id }),
             },
           });
         }
@@ -43,9 +43,9 @@ const useVenueDraft = ({
         }
       }
     } catch (error) {
-      console.error("Failed to restore venue draft:", error);
+      console.error("Failed to restore catering draft:", error);
 
-      sessionStorage.removeItem(VENUE_DRAFT_KEY);
+      sessionStorage.removeItem(CATERING_DRAFT_KEY);
     } finally {
       setIsDraftLoaded(true);
     }
@@ -57,7 +57,7 @@ const useVenueDraft = ({
 
     try {
       sessionStorage.setItem(
-        VENUE_DRAFT_KEY,
+        CATERING_DRAFT_KEY,
         JSON.stringify({
           form,
           menuSelections,
@@ -66,18 +66,18 @@ const useVenueDraft = ({
         }),
       );
     } catch (error) {
-      console.error("Failed to save venue draft:", error);
+      console.error("Failed to save catering draft:", error);
     }
   }, [form, menuSelections, currentStep, isDraftLoaded, selected]);
 
-  const clearVenueDraft = () => {
-    sessionStorage.removeItem(VENUE_DRAFT_KEY);
+  const clearCateringDraft = () => {
+    sessionStorage.removeItem(CATERING_DRAFT_KEY);
   };
 
   return {
     isDraftLoaded,
-    clearVenueDraft,
+    clearCateringDraft,
   };
 };
 
-export default useVenueDraft;
+export default useCateringDraft;

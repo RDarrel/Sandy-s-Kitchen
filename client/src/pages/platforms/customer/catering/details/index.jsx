@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Header from "./header";
 import Body from "./body";
@@ -12,7 +12,6 @@ const Details = ({
   handleBackToVenue = () => {},
 }) => {
   const onSelect = (data, actionType) => {
-    console.log("isReview", isReview);
     if (isReview) {
       if (actionType === "default") {
         sessionStorage.removeItem("catering-review");

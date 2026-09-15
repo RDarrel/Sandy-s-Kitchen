@@ -28,38 +28,28 @@ import { buildPackageInfo, computeEstimated } from "./utils";
 import isValid from "./validation";
 import Header from "./header";
 import Actions from "./actions";
+import useCateringDraft from "./useCateringDraft";
 
-const Inquire = ({
-  isContinuingInquiry = false,
-  selected = {},
-  onSelect = () => {},
-}) => {
+const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   const dispatch = useDispatch();
   const { collections: venueCollections = [] } = useSelector(
     ({ venues }) => venues,
   );
-
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState(DEFAULT_STEPS);
   const [form, setForm] = useState(DEFAULT_FORM);
   const [menuSelections, setMenuSelections] = useState(DEFAULT_MENU_SELECTIONS);
   const packageSelected = Boolean(selected?._id);
 
-  useEffect(() => {
-    if (isContinuingInquiry) {
-      const savedDraft = sessionStorage.getItem("cateringDraft");
-      const venueReview = sessionStorage.getItem("venue-review");
-      const venueID = venueReview ? JSON.parse(venueReview)?._id : "own-venue";
-      const { form, menuSelections } = savedDraft ? JSON.parse(savedDraft) : {};
-      setMenuSelections(menuSelections);
-      setForm({ ...form, venue: { ...form.venue, item: venueID } });
-      setCurrentStep(4);
-    } else {
-      setMenuSelections(DEFAULT_MENU_SELECTIONS);
-      setForm(DEFAULT_FORM);
-      setSteps(DEFAULT_STEPS);
-    }
-  }, [isContinuingInquiry]);
+  const { clearCateringDraft } = useCateringDraft({
+    selected,
+    form,
+    setForm,
+    menuSelections,
+    setMenuSelections,
+    currentStep,
+    setCurrentStep,
+  });
 
   useEffect(() => {
     dispatch(BROWSE_VENUES());
@@ -258,7 +248,11 @@ const Inquire = ({
       </div>
     );
   }
-  console.log("form", form);
+
+  const handleBack = () => {
+    onSelect({}, "default");
+    clearCateringDraft();
+  };
   return (
     <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">
@@ -267,7 +261,7 @@ const Inquire = ({
           variant="ghost"
           size="sm"
           className="mb-2 h-8 gap-1.5 px-2 text-xs"
-          onClick={() => onSelect({}, "default")}
+          onClick={handleBack}
         >
           <ArrowLeft className="size-3.5" />
           Back to Packages

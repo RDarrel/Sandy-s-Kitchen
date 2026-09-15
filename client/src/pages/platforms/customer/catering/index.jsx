@@ -14,14 +14,13 @@ const CateringParent = () => {
   const returnTo = searchParams.get("returnTo");
   useEffect(() => {
     const getDraft = (sessionKey) => sessionStorage.getItem(sessionKey);
+    const cateringDraft = getDraft("cateringDraft");
 
-    if (returnTo === "catering" && from === "venue") {
-      const savedDraft = getDraft("cateringDraft");
-      const { selected } = savedDraft ? JSON.parse(savedDraft) : {};
+    if (cateringDraft) {
+      const { selected } = JSON.parse(cateringDraft);
       setSelected(selected);
       setActionType("inquire");
       setIsContinuingInquiry(true);
-      // setSearchParams({}, { replace: true });
     } else if (from === "venue" && !returnTo) {
       const sessionKey = "catering-review";
       const saveDraft = getDraft(sessionKey)

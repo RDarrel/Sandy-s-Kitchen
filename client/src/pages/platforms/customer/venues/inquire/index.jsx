@@ -30,11 +30,7 @@ import Header from "./header";
 import Actions from "./actions";
 import useVenueDraft from "./useVenueDraft";
 
-const Inquire = ({
-  isContinuingInquiry = false,
-  selected = {},
-  onSelect = () => {},
-}) => {
+const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   const dispatch = useDispatch();
   const { collections: packages = [] } = useSelector(
     ({ cateringPackages }) => cateringPackages,
@@ -44,9 +40,9 @@ const Inquire = ({
   const [steps, setSteps] = useState(DEFAULT_STEPS);
   const [form, setForm] = useState(DEFAULT_FORM);
   const [menuSelections, setMenuSelections] = useState(DEFAULT_MENU_SELECTIONS);
-  const packageSelected = Boolean(selected?._id);
 
   const { clearVenueDraft } = useVenueDraft({
+    selected,
     form,
     setForm,
     menuSelections,
@@ -189,7 +185,6 @@ const Inquire = ({
     if (!isValid(currentStep, form, menuSelections, selectedCatering)) return;
     setCurrentStep((prev) => Math.min(prev + 1, steps.length));
   };
-  console.log("form", form);
 
   const goBack = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
@@ -249,6 +244,11 @@ const Inquire = ({
       </div>
     );
   }
+
+  const handleBack = () => {
+    onSelect({}, "default");
+    clearVenueDraft();
+  };
   return (
     <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">
@@ -257,7 +257,7 @@ const Inquire = ({
           variant="ghost"
           size="sm"
           className="mb-2 h-8 gap-1.5 px-2 text-xs"
-          onClick={() => onSelect({}, "default")}
+          onClick={handleBack}
         >
           <ArrowLeft className="size-3.5" />
           Back to Venues
