@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ActionRenderer from "./handler";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { BROWSE } from "@/services/redux/slices/events/venues";
 
 const CateringParent = () => {
+  const { isLoading, collections } = useSelector(({ venues }) => venues);
   const [selected, setSelected] = useState({});
   const [actionType, setActionType] = useState("default");
   const [isReview, setIsReview] = useState(false);
+  const [inquiryId, setInquiryId] = useState("");
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -19,8 +21,17 @@ const CateringParent = () => {
   }, [dispatch]);
 
   useEffect(() => {
+    if (!isLoading && inquiryId && collections?.length) {
+      const found = collections.find(({ _id }) => _id === inquiryId);
+      setSelected(found);
+      setActionType("details");
+    }
+  }, [inquiryId, isLoading, collections]);
+
+  useEffect(() => {
     const getDraft = (sessionKey) => sessionStorage.getItem(sessionKey);
     const draft = getDraft("venueDraft");
+    const inquiry = getDraft("inquiry");
 
     if (draft) {
       setSelected(JSON.parse(draft)?.selected);
@@ -31,6 +42,9 @@ const CateringParent = () => {
       setIsReview(true);
       setSelected(JSON.parse(venueToReview));
       setActionType("details");
+    } else if (inquiry) {
+      setInquiryId(JSON.parse(inquiry)?.id);
+      sessionStorage.removeItem("inquiry");
     } else {
       setIsReview(false);
     }

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { SlidersHorizontal } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import Item from "./item";
 import VenueSkeleton from "./item/skeleton";
 import "./style.css";
@@ -88,7 +88,7 @@ const VenueList = ({ isWebsite = true, onSelect = () => {} }) => {
     sessionStorage.setItem(
       "inquiry",
       JSON.stringify({
-        type: "venue",
+        type: "venues",
         id: item._id,
       }),
     );

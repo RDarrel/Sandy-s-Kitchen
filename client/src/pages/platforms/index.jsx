@@ -14,12 +14,13 @@ import {
 } from "@/components/ui/sidebar";
 import { capitalize } from "lodash";
 import { useSelector } from "react-redux";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Role } from "@/services/fakeDB";
 import { useEffect } from "react";
 
 export default function Platforms() {
   const { auth } = useSelector(({ auth }) => auth);
+  const navigate = useNavigate();
   const location = useLocation();
   const pathSegments = location.pathname.split("/").filter(Boolean); // ["platforms", "students", "list"]
   const lastSegment = pathSegments[pathSegments.length - 1]; //
@@ -27,7 +28,8 @@ export default function Platforms() {
   useEffect(() => {
     const inquiry = sessionStorage.getItem("inquiry");
     if (auth?._id && inquiry) {
-      console.log("have inquiry");
+      const { type } = JSON.parse(inquiry);
+      navigate(`/platforms/${type}`);
     }
   }, [auth]);
 
