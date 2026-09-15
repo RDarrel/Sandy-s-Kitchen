@@ -23,7 +23,12 @@ import {
   DEFAULT_STEPS,
   FALLBACK_VENUES,
 } from "./constant";
-import { buildPackageInfo, computeEstimated } from "./utils";
+import {
+  buildPackageInfo,
+  computeEstimated,
+  getSelectedMenus,
+  onMenuToggle,
+} from "../../utils";
 
 import isValid from "./validation";
 import Header from "./header";
@@ -128,56 +133,16 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleMenuToggle = (type, category, menu, limit) => {
-    const categoryId = category?._id;
-    const menuId = getMenuId(menu);
-
-    setMenuSelections((prev) => {
-      const group = prev[type] || {};
-      const current = group[categoryId] || [];
-      const isSelected = current.includes(menuId);
-      const nextCategorySelections = isSelected
-        ? current.filter((id) => id !== menuId)
-        : [...current, menuId];
-
-      if (!isSelected && nextCategorySelections.length > limit) {
-        toast.warning(
-          `${getCategoryName(category)} allows ${limit} selection${
-            limit > 1 ? "s" : ""
-          }.`,
-        );
-        return prev;
-      }
-
-      if (
-        !isSelected &&
-        type === "main" &&
-        selectedMainCount >= packageInfo.mainCourseLimit
-      ) {
-        toast.warning(
-          `This package allows up to ${packageInfo.mainCourseLimit} main courses.`,
-        );
-        return prev;
-      }
-
-      if (
-        !isSelected &&
-        type === "side" &&
-        selectedSideCount >= packageInfo.sideMenuLimit
-      ) {
-        toast.warning(
-          `This package allows up to ${packageInfo.sideMenuLimit} side menus.`,
-        );
-        return prev;
-      }
-
-      return {
-        ...prev,
-        [type]: {
-          ...group,
-          [categoryId]: nextCategorySelections,
-        },
-      };
-    });
+    onMenuToggle(
+      type,
+      category,
+      menu,
+      limit,
+      setMenuSelections,
+      selectedMainCount,
+      selectedSideCount,
+      packageInfo,
+    );
   };
 
   const goNext = (e) => {
@@ -371,24 +336,3 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
 };
 
 export default Inquire;
-
-const getCategoryId = (category = {}) => {
-  return category?.category?._id || category?.category?.name || category?.name;
-};
-
-const getCategoryName = (category = {}) => {
-  return category?.category?.name || category?.name || "Menu Group";
-};
-
-const getMenuId = (menu = {}) => {
-  return menu?._id || menu?.name;
-};
-
-const getSelectedMenus = (categories = [], selections = {}) => {
-  return categories.flatMap((category) => {
-    const selectedIds = selections[getCategoryId(category)] || [];
-    return (category?.choices || []).filter((menu) =>
-      selectedIds.includes(getMenuId(menu)),
-    );
-  });
-};

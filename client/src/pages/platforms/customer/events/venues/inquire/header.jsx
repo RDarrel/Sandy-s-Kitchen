@@ -37,11 +37,10 @@ const Header = ({ venue, estimate }) => {
         </div>
         <div>
           <div className="catering-package__price">
-            <strong>{Formatter.amount(estimate.base)}</strong>
+            <strong>{Formatter.amount(estimate.basePrice)}</strong>
             <span className="text-muted-foreground text-xs">Starting Rate</span>
             <small className="!text-[12px] !font-">
-              + {Formatter.amount(estimate?.addPricePerGuest)} / additional
-              guest
+              + {Formatter.amount(estimate?.guests?.rate)} / additional guest
             </small>
           </div>
         </div>
@@ -61,7 +60,7 @@ const Header = ({ venue, estimate }) => {
         <HeaderMetric
           icon={Banknote}
           label="Additional Hour Fee"
-          value={Formatter.amount(estimate.addPricePerHour)}
+          value={Formatter.amount(estimate.duration?.rate)}
         />
         <HeaderMetric
           icon={Home}
