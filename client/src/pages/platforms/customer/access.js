@@ -1,7 +1,6 @@
 import { Building2, ClipboardList, Gauge, UtensilsIcon } from "lucide-react";
 import Dashboard from "./dashboard";
-import Catering from "./catering";
-import Venue from "./venueS";
+import { Catering, Venues } from "./events";
 
 const access = [
   {
@@ -20,13 +19,13 @@ const access = [
     name: "Venues",
     path: "/venues",
     icon: Building2,
-    component: Venue,
+    component: Venues,
   },
   {
     name: "My Inquiries",
     path: "/my-inquiries",
     icon: ClipboardList,
-    component: Venue,
+    component: Venues,
   },
 ];
 

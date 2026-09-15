@@ -72,6 +72,7 @@ const Step6 = ({
   const { catering: Ecatering, venue: Evenue } = estimate || {};
   const isBoth = form?.bookingType === "both"; //Catering & Venue
   const total = (Ecatering?.total || 0) + (Evenue?.total || 0);
+
   return (
     <div>
       <Header
@@ -178,7 +179,7 @@ const Step6 = ({
               <EstimateItem label="Catering Package" data={Ecatering} />
             )}
 
-            {Evenue?.base > 0 && isBoth && (
+            {Evenue?.basePrice > 0 && isBoth && (
               <EstimateItem label="Venue" data={Evenue} />
             )}
           </div>

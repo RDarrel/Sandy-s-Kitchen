@@ -1,4 +1,5 @@
 import { Formatter } from "@/services/utilities";
+import { toast } from "sonner";
 
 export const computeEstimated = ({
   basePrice,
@@ -60,4 +61,71 @@ export const buildPackageInfo = (item = {}) => {
     mainCourseCategories: item?.mainCourseCategories || [],
     sideMenuCategories: item?.sideMenuCategories || [],
   };
+};
+
+export const onMenuToggle = (
+  type,
+  category,
+  menu,
+  limit,
+  setMenuSelections,
+  selectedMainCount,
+  selectedSideCount,
+  packageInfo,
+) => {
+  const categoryId = category?._id;
+  const menuId = menu?._id;
+
+  setMenuSelections((prev) => {
+    const group = prev[type] || {};
+    const current = group[categoryId] || [];
+    const isSelected = current.includes(menuId);
+    const nextCategorySelections = isSelected
+      ? current.filter((id) => id !== menuId)
+      : [...current, menuId];
+
+    if (!isSelected && nextCategorySelections.length > limit) {
+      toast.warning(
+        `${category?.name} allows ${limit} selection${limit > 1 ? "s" : ""}.`,
+      );
+      return prev;
+    }
+
+    if (
+      !isSelected &&
+      type === "main" &&
+      selectedMainCount >= packageInfo.mainCourseLimit
+    ) {
+      toast.warning(
+        `This package allows up to ${packageInfo.mainCourseLimit} main courses.`,
+      );
+      return prev;
+    }
+
+    if (
+      !isSelected &&
+      type === "side" &&
+      selectedSideCount >= packageInfo.sideMenuLimit
+    ) {
+      toast.warning(
+        `This package allows up to ${packageInfo.sideMenuLimit} side menus.`,
+      );
+      return prev;
+    }
+
+    return {
+      ...prev,
+      [type]: {
+        ...group,
+        [categoryId]: nextCategorySelections,
+      },
+    };
+  });
+};
+
+export const getSelectedMenus = (categories = [], selections = {}) => {
+  return categories.flatMap((c) => {
+    const selectedIds = selections[c?.category?._id] || [];
+    return (c?.choices || []).filter((menu) => selectedIds.includes(menu?._id));
+  });
 };
