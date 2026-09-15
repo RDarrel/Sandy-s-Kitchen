@@ -72,7 +72,6 @@ const Step6 = ({
   const { catering: Ecatering, venue: Evenue } = estimate || {};
   const isBoth = form?.bookingType === "both"; //Catering & Venue
   const total = (Ecatering?.total || 0) + (Evenue?.total || 0);
-  console.log("form", form);
   return (
     <div>
       <Header
@@ -162,7 +161,7 @@ const Step6 = ({
             icon={MessageSquare}
             items={[
               ["Notes", form?.notes],
-              ["Special Requests", form?.specialRequests],
+              ["Special Requests", form?.contact?.specialRequests],
             ]}
           />
         </div>
@@ -256,15 +255,16 @@ const EstimateItem = ({ label, data }) => {
 
   const extraGuests = Math.max(
     0,
-    Number(data?.pax || 0) - Number(data?.includedGuests || 0),
+    Number(data?.guests?.booked || 0) - Number(data?.guests?.included || 0),
   );
 
-  const extraHours = Number(data?.extraHours || 0);
+  const extraHours = Number(data?.duration?.extra || 0);
 
   const hasExtraGuests =
-    extraGuests > 0 && Number(data?.extraGuestFee || 0) > 0;
+    extraGuests > 0 && Number(data?.guests?.charge || 0) > 0;
 
-  const hasExtraHours = extraHours > 0 && Number(data?.extraHourFee || 0) > 0;
+  const hasExtraHours =
+    extraHours > 0 && Number(data?.duration?.charge || 0) > 0;
 
   const hasConflict = hasExtraGuests || hasExtraHours;
 
@@ -274,7 +274,7 @@ const EstimateItem = ({ label, data }) => {
         <span className="text-xs font-semibold">{label}</span>
 
         <span className="text-xs font-bold text-foreground">
-          {Formatter.amount(data?.base)}
+          {Formatter.amount(data?.basePrice)}
         </span>
       </div>
 
@@ -287,12 +287,12 @@ const EstimateItem = ({ label, data }) => {
                 rows={[
                   {
                     label: "Included",
-                    value: Number(data?.includedGuests || 0),
+                    value: Number(data?.guests?.included || 0),
                     unit: "guest",
                   },
                   {
                     label: "Booked",
-                    value: Number(data?.pax || 0),
+                    value: Number(data?.guests?.booked || 0),
                     unit: "guest",
                   },
                   {
@@ -306,9 +306,9 @@ const EstimateItem = ({ label, data }) => {
               <FeeBreakdown
                 label="Extra guests"
                 quantity={extraGuests}
-                rate={data?.addPricePerGuest}
+                rate={data?.guests?.rate}
                 unit="guest"
-                value={data?.extraGuestFee}
+                value={data?.guests?.charge}
               />
             </>
           )}
@@ -320,12 +320,12 @@ const EstimateItem = ({ label, data }) => {
                 rows={[
                   {
                     label: "Included",
-                    value: Number(data?.includedHours || 0),
+                    value: Number(data?.duration?.included || 0),
                     unit: "hour",
                   },
                   {
                     label: "Booked",
-                    value: Number(data?.duration || 0),
+                    value: Number(data?.duration?.booked || 0),
                     unit: "hour",
                   },
                   {
@@ -339,9 +339,9 @@ const EstimateItem = ({ label, data }) => {
               <FeeBreakdown
                 label="Extra hours"
                 quantity={extraHours}
-                rate={data?.addPricePerHour}
+                rate={data?.duration?.rate}
                 unit="hour"
-                value={data?.extraHourFee}
+                value={data?.duration?.charge}
               />
             </>
           )}

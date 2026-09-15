@@ -7,26 +7,32 @@ export const computeEstimated = ({
   addFee = {},
   pax = {},
 }) => {
-  const addPerPax = addFee?.pax;
-  const addPerHour = addFee?.hour;
+  const paxRate = addFee?.pax;
+  const hourRate = addFee?.hour;
   const extraGuests = Math.max(0, pax.avail - pax.max);
-  const extraGuestFee = extraGuests * addPerPax;
+  const extraGuestFee = extraGuests * paxRate;
   const extraHours = Math.max(
     0,
     Formatter.duration(time?.start, time?.end, true) - maxHours,
   );
-  const extraHourFee = Math.round(extraHours * addPerHour);
+  const extraHourFee = Math.round(extraHours * hourRate);
+
   return {
-    base: basePrice,
-    addPricePerGuest: addPerPax,
-    addPricePerHour: addPerHour,
-    duration: Math.round(Formatter.duration(time?.start, time?.end, true)),
-    pax: pax?.avail,
-    includedHours: maxHours,
-    includedGuests: pax?.max,
-    extraHours: Math.round(extraHours),
-    extraHourFee,
-    extraGuestFee,
+    basePrice,
+    guests: {
+      included: pax?.max,
+      booked: pax?.avail,
+      extra: Math.max(0, pax?.avail - pax?.max),
+      rate: paxRate,
+      charge: extraGuestFee,
+    },
+    duration: {
+      included: maxHours,
+      booked: Math.round(Formatter.duration(time?.start, time?.end, true)),
+      extra: Math.round(extraHours),
+      rate: hourRate,
+      charge: extraHourFee,
+    },
     total: Math.round(basePrice + extraGuestFee + extraHourFee),
   };
 };

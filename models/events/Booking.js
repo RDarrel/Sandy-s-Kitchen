@@ -7,42 +7,29 @@ const contactSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
     email: {
       type: String,
       required: true,
       trim: true,
       lowercase: true,
     },
+
     phone: {
       type: String,
       required: true,
       trim: true,
     },
+
     preferredContact: {
       type: String,
       enum: ["email", "phone"],
       required: true,
     },
+
     specialRequests: {
       type: String,
     },
-  },
-  { _id: false },
-);
-
-const selectedMenuSchema = new mongoose.Schema(
-  {
-    category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "MenuCategory",
-      required: true,
-    },
-    chosen: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Menu",
-      },
-    ],
   },
   { _id: false },
 );
@@ -65,18 +52,13 @@ const cateringDetailsSchema = new mongoose.Schema(
       start: {
         type: String,
       },
+
       end: {
         type: String,
       },
     },
 
-    venueOption: {
-      type: String,
-      enum: ["own_venue", "book_venue"],
-      required: true,
-    },
-
-    //for own_venue only
+    // For own venue only
     venue: {
       address: {
         type: String,
@@ -89,8 +71,19 @@ const cateringDetailsSchema = new mongoose.Schema(
       },
     },
 
-    mainDishes: [selectedMenuSchema],
-    sideDishes: [selectedMenuSchema],
+    mainDishes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Menu",
+      },
+    ],
+
+    sideDishes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Menu",
+      },
+    ],
   },
   { _id: false },
 );
@@ -113,6 +106,7 @@ const venueDetailsSchema = new mongoose.Schema(
       start: {
         type: String,
       },
+
       end: {
         type: String,
       },
@@ -120,6 +114,106 @@ const venueDetailsSchema = new mongoose.Schema(
   },
   { _id: false },
 );
+
+/*
+|--------------------------------------------------------------------------
+| Pricing Snapshot
+|--------------------------------------------------------------------------
+*/
+
+const pricingBreakdownSchema = new mongoose.Schema(
+  {
+    included: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    booked: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    extra: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    rate: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    charge: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+  },
+  { _id: false },
+);
+
+const eventPricingSchema = new mongoose.Schema(
+  {
+    basePrice: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    guests: {
+      type: pricingBreakdownSchema,
+      required: true,
+    },
+
+    duration: {
+      type: pricingBreakdownSchema,
+      required: true,
+    },
+
+    total: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+  },
+  { _id: false },
+);
+
+const pricingSchema = new mongoose.Schema(
+  {
+    catering: {
+      type: eventPricingSchema,
+      default: undefined,
+    },
+
+    venue: {
+      type: eventPricingSchema,
+      default: undefined,
+    },
+
+    total: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    calculatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false },
+);
+
+/*
+|--------------------------------------------------------------------------
+| Payment
+|--------------------------------------------------------------------------
+*/
 
 const paymentSchema = new mongoose.Schema(
   {
@@ -146,15 +240,14 @@ const paymentSchema = new mongoose.Schema(
   { _id: false },
 );
 
+/*
+|--------------------------------------------------------------------------
+| Booking
+|--------------------------------------------------------------------------
+*/
+
 const bookingSchema = new mongoose.Schema(
   {
-    referenceNumber: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-    },
-
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -180,6 +273,7 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+
     catering: {
       type: cateringDetailsSchema,
     },
@@ -188,10 +282,9 @@ const bookingSchema = new mongoose.Schema(
       type: venueDetailsSchema,
     },
 
-    total: {
-      type: Number,
+    pricing: {
+      type: pricingSchema,
       required: true,
-      min: 0,
     },
 
     payment: {

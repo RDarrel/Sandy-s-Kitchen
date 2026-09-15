@@ -195,35 +195,57 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleSubmit = () => {
+    const isBoth = form?.bookingType === "both";
     const payload = {
-      package: selected?._id,
-      event: {
-        type: form.eventType,
-        date: form.eventDate,
-        time: form.eventTime,
-        duration: form.duration,
-        guests: Number(form.guestCount),
-        location: form.location,
-        setupNotes: form.setupNotes,
+      catering: {
+        ...form?.catering,
+        item: selected?._id,
+        mainDishes: Object.values(menuSelections?.main).flat(),
+        sideDishes: Object.values(menuSelections?.side).flat(),
       },
-      menus: {
-        mainCourses: selectedMenus.main.map(({ _id, name }) => ({ _id, name })),
-        sideMenus: selectedMenus.side.map(({ _id, name }) => ({ _id, name })),
+      ...(isBoth && { venue: form?.venue }),
+      contact: form?.contact,
+      date: form?.date,
+      eventType: form?.eventType,
+      notes: form?.notes,
+      bookingType: form?.bookingType,
+      pricing: {
+        catering: cateringEstimate,
+        venue: venueEstimate,
+        total: (cateringEstimate?.total || 0) + (venueEstimate?.total || 0),
       },
-      customer: {
-        fullName: form.fullName,
-        email: form.email,
-        phone: form.phone,
-        preferredContact: form.preferredContact,
-      },
-      specialRequests: form.specialRequests,
-      estimate,
     };
 
-    console.info("Catering inquiry payload", payload);
-    toast.success(
-      "Inquiry prepared. Sandy's Kitchen will confirm availability.",
-    );
+    console.log("payload", payload);
+    // const payload = {
+    //   package: selected?._id,
+    //   event: {
+    //     type: form.eventType,
+    //     date: form.eventDate,
+    //     time: form.eventTime,
+    //     duration: form.duration,
+    //     guests: Number(form.guestCount),
+    //     location: form.location,
+    //     setupNotes: form.setupNotes,
+    //   },
+    //   menus: {
+    //     mainCourses: selectedMenus.main.map(({ _id, name }) => ({ _id, name })),
+    //     sideMenus: selectedMenus.side.map(({ _id, name }) => ({ _id, name })),
+    //   },
+    //   customer: {
+    //     fullName: form.fullName,
+    //     email: form.email,
+    //     phone: form.phone,
+    //     preferredContact: form.preferredContact,
+    //   },
+    //   specialRequests: form.specialRequests,
+    //   estimate,
+    // };
+
+    // console.info("Catering inquiry payload", payload);
+    // toast.success(
+    //   "Inquiry prepared. Sandy's Kitchen will confirm availability.",
+    // );
   };
 
   if (!packageSelected) {
@@ -356,6 +378,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
                         selectedVenue={selectedVenue}
                         setForm={setForm}
                         handleMenuToggle={handleMenuToggle}
+                        handleSubmit={handleSubmit}
                         updateField={updateField}
                       />
                       <Actions
