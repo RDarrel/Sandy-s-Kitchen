@@ -1,6 +1,6 @@
-import Catering from "@/pages/website/catering";
 import Details from "./details";
 import Inquire from "./inquire";
+import { CateringList } from "@/components/shared/event";
 
 const ActionRenderer = ({
   selected,
@@ -11,7 +11,7 @@ const ActionRenderer = ({
   handleBackToVenue = () => {},
 }) => {
   const handleMap = {
-    default: Catering,
+    default: CateringList,
     details: Details,
     inquire: Inquire,
   };

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import ActionRenderer from "./handler";
+import { useDispatch } from "react-redux";
+import { BROWSE } from "@/services/redux/slices/events/venues";
 
 const CateringParent = () => {
   const [selected, setSelected] = useState({});
@@ -8,8 +10,13 @@ const CateringParent = () => {
   const [isReview, setIsReview] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const from = searchParams.get("from");
   const returnTo = searchParams.get("returnTo");
+
+  useEffect(() => {
+    dispatch(BROWSE());
+  }, [dispatch]);
 
   useEffect(() => {
     const getDraft = (sessionKey) => sessionStorage.getItem(sessionKey);

@@ -1,6 +1,6 @@
+import { VenueList } from "@/components/shared/event";
 import Details from "./details";
 import Inquire from "./inquire";
-import Venue from "@/pages/website/venue";
 
 const ActionRenderer = ({
   selected,
@@ -10,7 +10,7 @@ const ActionRenderer = ({
   onSelect = () => {},
 }) => {
   const handleMap = {
-    default: Venue,
+    default: VenueList,
     details: Details,
     inquire: Inquire,
   };
