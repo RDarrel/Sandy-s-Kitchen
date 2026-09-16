@@ -356,20 +356,17 @@ function renderBookingMonthCell({ day, segments, isToday, isOutside }) {
     ? [
         priorityStatus,
         ...visibleStatuses.filter((status) => status !== priorityStatus),
-      ].slice(0, 3)
+      ]
     : [];
-  const hiddenStatusTotal = visibleStatuses
-    .filter((status) => !displayStatuses.includes(status))
-    .reduce((sum, status) => sum + statusCounts[status], 0);
 
   return (
-    <div className="flex h-full min-h-0 flex-col px-2 py-1.5">
+    <div className="relative flex h-full min-h-0 flex-col px-2 py-1.5 pb-6">
       {bookings.length > 0 && (
-        <div className="mt-auto min-w-0 space-y-1">
+        <div className="min-w-0 space-y-0.5">
           {displayStatuses.map((status) => (
             <div
               key={status}
-              className={`flex min-w-0 items-center gap-1.5 border-l-2 pl-1.5 text-[10px] leading-4 ${statusBorders[status]}`}
+              className={`flex min-w-0 items-center gap-1.5 border-l-2 pl-1.5 text-[11px] leading-4 ${statusBorders[status]}`}
             >
               <span className="min-w-0 flex-1 truncate font-medium capitalize text-foreground">
                 {statusLabels[status]}
@@ -379,19 +376,14 @@ function renderBookingMonthCell({ day, segments, isToday, isOutside }) {
               </span>
             </div>
           ))}
-          {hiddenStatusTotal > 0 && (
-            <div className="pl-2 text-[10px] font-medium leading-4 text-muted-foreground">
-              +{hiddenStatusTotal} other
-            </div>
-          )}
         </div>
       )}
-      <div className="mt-auto flex items-center justify-between gap-2">
-        <span className="truncate text-[9px] font-medium text-muted-foreground">
+      <div className="pointer-events-none absolute bottom-1.5 left-2 right-2 flex items-center justify-between gap-2">
+        <span className="truncate text-[10px] font-medium text-muted-foreground">
           {bookings.length > 0 ? `${bookings.length} total` : ""}
         </span>
         <span
-          className={`flex size-5 shrink-0 items-center justify-center rounded-full text-xs ${
+          className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[13px] ${
             isToday
               ? "bg-primary text-primary-foreground"
               : isOutside
