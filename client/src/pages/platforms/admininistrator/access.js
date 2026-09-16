@@ -22,7 +22,7 @@ import ShortDeliveries from "./orders/short-deliveries";
 import StockRequests from "./orders/stock-requests";
 import StockItems from "./inventory";
 import { Equipment, Services } from "./resources";
-import { CateringPackages, Venues } from "./events";
+import { Bookings, CateringPackages, Venues } from "./events";
 
 const access = [
   {
@@ -95,12 +95,7 @@ const access = [
       {
         name: "Bookings",
         path: "/bookings",
-        component: AddOns,
-      },
-      {
-        name: "Calendar",
-        path: "/bookings",
-        component: AddOns,
+        component: Bookings,
       },
     ],
   },
