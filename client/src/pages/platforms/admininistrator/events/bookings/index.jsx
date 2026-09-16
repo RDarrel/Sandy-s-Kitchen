@@ -50,6 +50,14 @@ const statusDots = {
   cancelled: "bg-rose-500",
 };
 
+const statusBorders = {
+  approved: "border-l-emerald-500",
+  pending: "border-l-amber-500",
+  setup: "border-l-sky-500",
+  completed: "border-l-violet-500",
+  cancelled: "border-l-rose-500",
+};
+
 const statusOrder = ["pending", "approved", "setup", "completed", "cancelled"];
 
 const statusColors = {
@@ -97,7 +105,6 @@ function buildBookingEvents(anchor) {
   const week = startOfWeek(startOfDay(anchor), { weekStartsOn: 0 });
   const at = (dayOffset, hour, minute = 0) =>
     addMinutes(setHours(addDays(week, dayOffset), hour), minute);
-  const day = (dayOffset) => addDays(week, dayOffset);
 
   return [
     {
@@ -200,24 +207,6 @@ function buildBookingEvents(anchor) {
         status: "approved",
         payment: "paid",
         contact: "0918 700 1911",
-      },
-    },
-    {
-      id: "monthly-maintenance",
-      title: "Venue maintenance",
-      start: day(1),
-      end: day(2),
-      allDay: true,
-      resourceId: "venue",
-      color: statusColors.setup,
-      meta: {
-        customer: "Internal",
-        service: "Blocked venue",
-        venue: "Function Hall B",
-        guests: 0,
-        status: "setup",
-        payment: "paid",
-        contact: "Internal",
       },
     },
     {
@@ -376,26 +365,22 @@ function renderBookingMonthCell({ day, segments, isToday, isOutside }) {
   return (
     <div className="flex h-full min-h-0 flex-col px-2 py-1.5">
       {bookings.length > 0 && (
-        <div className="mt-auto min-w-0 space-y-0.5">
+        <div className="mt-auto min-w-0 space-y-1">
           {displayStatuses.map((status) => (
             <div
               key={status}
-              className="flex min-w-0 items-center gap-1.5 text-[10px] leading-4"
+              className={`flex min-w-0 items-center gap-1.5 border-l-2 pl-1.5 text-[10px] leading-4 ${statusBorders[status]}`}
             >
-              <span
-                aria-hidden
-                className={`size-1.5 shrink-0 rounded-full ${statusDots[status]}`}
-              />
-              <span className="min-w-0 flex-1 truncate font-medium capitalize">
+              <span className="min-w-0 flex-1 truncate font-medium capitalize text-foreground">
                 {statusLabels[status]}
               </span>
-              <span className="shrink-0 font-semibold tabular-nums">
+              <span className="shrink-0 font-semibold tabular-nums text-foreground">
                 {statusCounts[status]}
               </span>
             </div>
           ))}
           {hiddenStatusTotal > 0 && (
-            <div className="text-[10px] leading-4 text-muted-foreground">
+            <div className="pl-2 text-[10px] font-medium leading-4 text-muted-foreground">
               +{hiddenStatusTotal} other
             </div>
           )}
