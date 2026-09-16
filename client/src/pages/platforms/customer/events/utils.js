@@ -94,7 +94,7 @@ export const onMenuToggle = (
   category,
   menu,
   limit,
-  setMenuSelections,
+  menuSelections,
   selectedMainCount,
   selectedSideCount,
   packageInfo,
@@ -102,51 +102,54 @@ export const onMenuToggle = (
   const categoryId = category?._id;
   const menuId = menu?._id;
 
-  setMenuSelections((prev) => {
-    const group = prev[type] || {};
-    const current = group[categoryId] || [];
-    const isSelected = current.includes(menuId);
-    const nextCategorySelections = isSelected
-      ? current.filter((id) => id !== menuId)
-      : [...current, menuId];
+  const group = menuSelections[type] || {};
+  const current = group[categoryId] || [];
 
-    if (!isSelected && nextCategorySelections.length > limit) {
-      toast.warning(
-        `${category?.name} allows ${limit} selection${limit > 1 ? "s" : ""}.`,
-      );
-      return prev;
-    }
+  const isSelected = current.includes(menuId);
 
-    if (
-      !isSelected &&
-      type === "main" &&
-      selectedMainCount >= packageInfo.mainCourseLimit
-    ) {
-      toast.warning(
-        `This package allows up to ${packageInfo.mainCourseLimit} main courses.`,
-      );
-      return prev;
-    }
+  const nextCategorySelections = isSelected
+    ? current.filter((id) => id !== menuId)
+    : [...current, menuId];
 
-    if (
-      !isSelected &&
-      type === "side" &&
-      selectedSideCount >= packageInfo.sideMenuLimit
-    ) {
-      toast.warning(
-        `This package allows up to ${packageInfo.sideMenuLimit} side menus.`,
-      );
-      return prev;
-    }
+  if (!isSelected && nextCategorySelections.length > limit) {
+    toast.warning(
+      `${category?.name} allows ${limit} selection${limit > 1 ? "s" : ""}.`,
+    );
 
-    return {
-      ...prev,
-      [type]: {
-        ...group,
-        [categoryId]: nextCategorySelections,
-      },
-    };
-  });
+    return null;
+  }
+
+  if (
+    !isSelected &&
+    type === "main" &&
+    selectedMainCount >= packageInfo.mainCourseLimit
+  ) {
+    toast.warning(
+      `This package allows up to ${packageInfo.mainCourseLimit} main courses.`,
+    );
+
+    return null;
+  }
+
+  if (
+    !isSelected &&
+    type === "side" &&
+    selectedSideCount >= packageInfo.sideMenuLimit
+  ) {
+    toast.warning(
+      `This package allows up to ${packageInfo.sideMenuLimit} side menus.`,
+    );
+
+    return null;
+  }
+
+  return {
+    ...menuSelections,
+    [type]: {
+      ...group,
+      [categoryId]: nextCategorySelections,
+    },
+  };
 };
 
 export const getSelectedMenus = (categories = [], selections = {}) => {

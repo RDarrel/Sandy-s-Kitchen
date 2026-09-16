@@ -135,16 +135,20 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleMenuToggle = (type, category, menu, limit) => {
-    onMenuToggle(
+    const nextSelections = onMenuToggle(
       type,
       category,
       menu,
       limit,
-      setMenuSelections,
+      menuSelections,
       selectedMainCount,
       selectedSideCount,
       packageInfo,
     );
+
+    if (!nextSelections) return;
+
+    setMenuSelections(nextSelections);
   };
 
   const goNext = (e) => {
