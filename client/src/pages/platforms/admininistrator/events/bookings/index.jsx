@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { EventCalendar } from "@/components/reui/event-calendar/event-calendar";
 import { EventCalendarContent } from "@/components/reui/event-calendar/event-calendar-content";
 import { EventCalendarNav } from "@/components/reui/event-calendar/event-calendar-nav";
@@ -14,7 +14,14 @@ import {
 } from "date-fns";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const BOOKING_STREAMS = [
   { id: "catering", title: "Catering", color: "var(--color-rose-500)" },
@@ -335,7 +342,7 @@ function renderMoreIndicator({ count }) {
   );
 }
 
-function renderBookingMonthCell({ day, segments, isToday, isOutside }) {
+function renderBookingMonthCell({ day, segments, isToday, isOutside, selectedDay }) {
   const bookings = [...segments.allDay, ...segments.timed]
     .map((segment) => segment.occurrence.event)
     .filter((event) => event.meta);
@@ -358,9 +365,14 @@ function renderBookingMonthCell({ day, segments, isToday, isOutside }) {
         ...visibleStatuses.filter((status) => status !== priorityStatus),
       ]
     : [];
+  const isSelected = format(day, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd");
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col px-2 py-1.5 pb-6">
+    <div
+      className={`relative flex h-full min-h-0 flex-col px-2 py-1.5 pb-6 transition-colors ${
+        isSelected ? "bg-primary/5 ring-1 ring-primary/30" : ""
+      }`}
+    >
       {bookings.length > 0 && (
         <div className="min-w-0 space-y-0.5">
           {displayStatuses.map((status) => (
@@ -398,45 +410,261 @@ function renderBookingMonthCell({ day, segments, isToday, isOutside }) {
   );
 }
 
+function BookingRow({ booking }) {
+  const meta = booking.meta;
+  const service = serviceBadges[meta.service];
+
+  return (
+    <div className="rounded-md border bg-background p-2.5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{booking.title}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {format(booking.start, "h:mm a")} - {format(booking.end, "h:mm a")}
+          </p>
+        </div>
+        {service && (
+          <Badge variant="outline" className={`shrink-0 ${service.className}`}>
+            {service.label}
+          </Badge>
+        )}
+      </div>
+
+      <div className="mt-2 grid gap-1 text-xs text-muted-foreground">
+        <div className="flex justify-between gap-3">
+          <span>Customer</span>
+          <span className="truncate font-medium text-foreground">
+            {meta.customer}
+          </span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>Venue</span>
+          <span className="truncate text-right font-medium text-foreground">
+            {meta.venue}
+          </span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>Guests</span>
+          <span className="font-medium text-foreground">{meta.guests} pax</span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span>Payment</span>
+          <Badge
+            variant="outline"
+            className={`capitalize ${paymentStyles[meta.payment]}`}
+          >
+            {meta.payment}
+          </Badge>
+        </div>
+      </div>
+
+      <div className="mt-2 flex flex-wrap justify-end gap-1.5 border-t pt-2">
+        <Button type="button" variant="outline" size="sm" className="h-7 px-2">
+          View
+        </Button>
+        {meta.status === "pending" ? (
+          <>
+            <Button type="button" variant="outline" size="sm" className="h-7 px-2">
+              Reject
+            </Button>
+            <Button type="button" size="sm" className="h-7 px-2">
+              Approve
+            </Button>
+          </>
+        ) : (
+          <Button type="button" variant="outline" size="sm" className="h-7 px-2">
+            Manage
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Bookings() {
   const events = useMemo(() => buildBookingEvents(new Date()), []);
+  const [selectedDate, setSelectedDate] = useState(
+    () => events.find((event) => event.id === "lim-corporate-lunch")?.start ?? new Date()
+  );
+  const [statusFilter, setStatusFilter] = useState("pending");
+
+  const selectDate = (date) => {
+    const key = format(date, "yyyy-MM-dd");
+    const dayBookings = events.filter(
+      (event) => format(event.start, "yyyy-MM-dd") === key
+    );
+
+    setSelectedDate(date);
+    setStatusFilter(
+      dayBookings.some((booking) => booking.meta.status === "pending")
+        ? "pending"
+        : "all"
+    );
+  };
+
+  const selectedBookings = useMemo(() => {
+    const selectedKey = format(selectedDate, "yyyy-MM-dd");
+
+    return events
+      .filter((event) => format(event.start, "yyyy-MM-dd") === selectedKey)
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+  }, [events, selectedDate]);
+
+  const selectedBookingsByStatus = useMemo(() => {
+    const filteredBookings =
+      statusFilter === "all"
+        ? selectedBookings
+        : selectedBookings.filter(
+            (booking) => booking.meta.status === statusFilter
+          );
+
+    return statusOrder
+      .map((status) => ({
+        status,
+        bookings: filteredBookings.filter(
+          (booking) => booking.meta.status === status
+        ),
+      }))
+      .filter((group) => group.bookings.length > 0);
+  }, [selectedBookings, statusFilter]);
+
+  const selectedStatusCounts = useMemo(() => {
+    return selectedBookings.reduce(
+      (counts, booking) => ({
+        ...counts,
+        [booking.meta.status]: (counts[booking.meta.status] || 0) + 1,
+      }),
+      { all: selectedBookings.length }
+    );
+  }, [selectedBookings]);
 
   return (
     <div className="w-full p-4">
-      <Card className="w-full py-0">
-        <CardContent className="p-0">
-          <EventCalendar
-            defaultEvents={events}
-            defaultView="month"
-            resources={BOOKING_STREAMS}
-            renderEvent={renderBookingEvent}
-            renderEventTooltip={renderBookingTooltip}
-            renderMoreIndicator={renderMoreIndicator}
-            renderMonthCell={renderBookingMonthCell}
-            interactions={{ drag: false, resize: false, selectSlot: false }}
-            maxEventsPerCell={3}
-            viewSettings={{
-              weekends: true,
-              weekNumbers: false,
-              nowIndicator: true,
-              offDays: false,
-            }}
-            eventTooltip
-            showDayAddButton={false}
-            offDays
-            className="h-[620px] w-full"
-            classNames={{
-              monthCellContent: "gap-1",
-              moreIndicator: "mt-0.5 px-1",
-            }}
-          >
-            <div className="flex flex-wrap items-center gap-2 pe-2">
-              <EventCalendarNav className="min-w-0 flex-1" />
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <Card className="w-full py-0">
+          <CardContent className="p-0">
+            <EventCalendar
+              defaultEvents={events}
+              defaultView="month"
+              resources={BOOKING_STREAMS}
+              renderEvent={renderBookingEvent}
+              renderEventTooltip={renderBookingTooltip}
+              renderMoreIndicator={renderMoreIndicator}
+              renderMonthCell={(props) =>
+                renderBookingMonthCell({ ...props, selectedDay: selectedDate })
+              }
+              interactions={{ drag: false, resize: false, selectSlot: false }}
+              onSlotClick={({ date }) => selectDate(date)}
+              onEventClick={(occurrence) =>
+                selectDate(occurrence.start ?? occurrence.event.start)
+              }
+              maxEventsPerCell={3}
+              viewSettings={{
+                weekends: true,
+                weekNumbers: false,
+                nowIndicator: true,
+                offDays: false,
+              }}
+              eventTooltip
+              showDayAddButton={false}
+              offDays
+              className="h-[620px] w-full"
+              classNames={{
+                monthCell:
+                  "cursor-pointer hover:bg-muted/40 transition-colors",
+                monthCellContent: "gap-1",
+                moreIndicator: "mt-0.5 px-1",
+              }}
+            >
+              <div className="flex flex-wrap items-center gap-2 pe-2">
+                <EventCalendarNav className="min-w-0 flex-1" />
+              </div>
+              <EventCalendarContent />
+            </EventCalendar>
+          </CardContent>
+        </Card>
+
+        <Card className="flex h-[620px] flex-col gap-0 overflow-hidden py-0">
+          <CardHeader className="gap-2 border-b px-3 py-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="truncate text-sm">
+                {format(selectedDate, "MMM d, yyyy")}
+              </CardTitle>
+              <CardDescription className="shrink-0 text-xs">
+                {selectedBookings.length} booking
+                {selectedBookings.length !== 1 ? "s" : ""}
+              </CardDescription>
             </div>
-            <EventCalendarContent />
-          </EventCalendar>
-        </CardContent>
-      </Card>
+            {selectedBookings.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {["all", ...statusOrder]
+                  .filter((status) => selectedStatusCounts[status])
+                  .map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => setStatusFilter(status)}
+                      className={`inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[11px] font-medium capitalize transition-colors ${
+                        statusFilter === status
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "bg-background hover:bg-muted"
+                      }`}
+                    >
+                      {status !== "all" && (
+                        <span
+                          aria-hidden
+                          className={`size-1.5 rounded-full ${statusDots[status]}`}
+                        />
+                      )}
+                      {status === "all" ? "All" : statusLabels[status]}
+                      <span className="tabular-nums">
+                        {selectedStatusCounts[status]}
+                      </span>
+                    </button>
+                  ))}
+              </div>
+            )}
+          </CardHeader>
+          <CardContent className="min-h-0 flex-1 overflow-y-auto p-3">
+            {selectedBookingsByStatus.length > 0 ? (
+              <div className="space-y-3">
+                {selectedBookingsByStatus.map(({ status, bookings }) => (
+                  <section key={status} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          aria-hidden
+                          className={`size-2 rounded-full ${statusDots[status]}`}
+                        />
+                        <h3 className="text-xs font-semibold uppercase text-muted-foreground">
+                          {statusLabels[status]}
+                        </h3>
+                      </div>
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {bookings.length}
+                      </span>
+                    </div>
+	                    <div className="space-y-1.5">
+                      {bookings.map((booking) => (
+                        <BookingRow key={booking.id} booking={booking} />
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center rounded-md border border-dashed p-6 text-center">
+                <div>
+                  <p className="text-sm font-medium">No bookings</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Select another day to review its bookings.
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
