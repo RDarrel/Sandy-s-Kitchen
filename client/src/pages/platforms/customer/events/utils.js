@@ -63,6 +63,32 @@ export const buildPackageInfo = (item = {}) => {
   };
 };
 
+export const buildPayload = (form, menuSelections, estimate) => {
+  const { bookingType } = form;
+  const isBoth = form?.bookingType === "both";
+  const catering = {
+    ...form?.catering,
+    mainDishes: Object.values(menuSelections?.main).flat(),
+    sideDishes: Object.values(menuSelections?.side).flat(),
+  };
+  const payload = {
+    ...(isBoth
+      ? { venue: form?.venue, catering }
+      : { [bookingType]: form[bookingType] }),
+    contact: form?.contact,
+    date: form?.date,
+    eventType: form?.eventType,
+    notes: form?.notes,
+    bookingType: form?.bookingType,
+    pricing: {
+      ...(isBoth ? estimate : { [bookingType]: estimate[bookingType] }),
+      total: (estimate?.catering?.total || 0) + (estimate?.venue?.total || 0),
+    },
+  };
+
+  return payload;
+};
+
 export const onMenuToggle = (
   type,
   category,

@@ -4,7 +4,7 @@ exports.save = async (req, res) => {
     const created = await Booking.create(req.body);
     res
       .status(201)
-      .json({ data: created, success: "Inquiry saved successfully." });
+      .json({ data: created, success: "Inquiry submitted  successfully." });
   } catch (error) {
     console.log("Error:", error.message);
     res.status(500).json({

@@ -54,7 +54,7 @@ export const DEFAULT_FORM = {
     name: "",
     email: "",
     phone: "",
-    preferredContact: "Phone call",
+    preferredContact: "phone",
   },
   eventType: "",
   bookingType: "",

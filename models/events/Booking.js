@@ -23,7 +23,7 @@ const contactSchema = new mongoose.Schema(
 
     preferredContact: {
       type: String,
-      enum: ["email", "phone"],
+      enum: ["email", "phone", "sms"],
       required: true,
     },
 
@@ -250,7 +250,7 @@ const bookingSchema = new mongoose.Schema(
   {
     customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Users",
     },
 
     contact: {
@@ -289,7 +289,6 @@ const bookingSchema = new mongoose.Schema(
 
     payment: {
       type: paymentSchema,
-      required: true,
     },
 
     status: {

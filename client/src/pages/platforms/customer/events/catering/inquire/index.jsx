@@ -24,6 +24,7 @@ import {
 } from "./constant";
 import {
   buildPackageInfo,
+  buildPayload,
   computeEstimated,
   getSelectedMenus,
   onMenuToggle,
@@ -33,12 +34,15 @@ import isValid from "./validation";
 import Header from "./header";
 import Actions from "./actions";
 import useCateringDraft from "./useCateringDraft";
+import { SAVE } from "@/services/redux/slices/events/bookings";
+import { toast } from "sonner";
 
 const Inquire = ({ selected = {}, onSelect = () => {} }) => {
-  const dispatch = useDispatch();
   const { collections: venueCollections = [] } = useSelector(
     ({ venues }) => venues,
   );
+  const { auth } = useSelector(({ auth }) => auth);
+  const dispatch = useDispatch();
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState(DEFAULT_STEPS);
   const [form, setForm] = useState(DEFAULT_FORM);
@@ -96,7 +100,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
         max: packageInfo?.includedGuests,
       },
     });
-  }, [form.catering?.pax, form?.venue?.pax, packageInfo, selectedVenue]);
+  }, [form.catering, packageInfo, selectedVenue]);
 
   const venueEstimate = useMemo(() => {
     return computeEstimated({
@@ -159,33 +163,30 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleSubmit = () => {
-    const isBoth = form?.bookingType === "both";
-    const payload = {
-      catering: {
-        ...form?.catering,
-        item: selected?._id,
-        mainDishes: Object.values(menuSelections?.main).flat(),
-        sideDishes: Object.values(menuSelections?.side).flat(),
-      },
-      ...(isBoth && { venue: form?.venue }),
-      contact: form?.contact,
-      date: form?.date,
-      eventType: form?.eventType,
-      notes: form?.notes,
-      bookingType: form?.bookingType,
-      pricing: {
+    const payload = buildPayload(
+      { ...form, catering: { ...form?.catering, item: selected?._id } },
+      menuSelections,
+      {
         catering: cateringEstimate,
         venue: venueEstimate,
-        total: (cateringEstimate?.total || 0) + (venueEstimate?.total || 0),
       },
-    };
+    );
+    dispatch(SAVE({ ...payload, customer: auth?._id }))
+      .unwrap()
+      .then((payload) => {
+        toast.success(payload?.success);
+        handleBack();
+      })
+      .catch((error) => toast.error(error?.message || error));
+  };
 
-    console.log("payload", payload);
-
-    // console.info("Catering inquiry payload", payload);
-    // toast.success(
-    //   "Inquiry prepared. Sandy's Kitchen will confirm availability.",
-    // );
+  const handleBack = () => {
+    onSelect({}, "default");
+    clearCateringDraft();
+    setForm(DEFAULT_FORM);
+    setMenuSelections(DEFAULT_MENU_SELECTIONS);
+    setSteps(DEFAULT_STEPS);
+    setCurrentStep(1);
   };
 
   if (!packageSelected) {
@@ -211,10 +212,6 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
     );
   }
 
-  const handleBack = () => {
-    onSelect({}, "default");
-    clearCateringDraft();
-  };
   return (
     <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">

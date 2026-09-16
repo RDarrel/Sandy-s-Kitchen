@@ -25,6 +25,7 @@ import {
 } from "./constant";
 import {
   buildPackageInfo,
+  buildPayload,
   computeEstimated,
   getSelectedMenus,
   onMenuToggle,
@@ -34,13 +35,14 @@ import isValid from "./validation";
 import Header from "./header";
 import Actions from "./actions";
 import useVenueDraft from "./useVenueDraft";
+import { SAVE } from "@/services/redux/slices/events/bookings";
 
 const Inquire = ({ selected = {}, onSelect = () => {} }) => {
-  const dispatch = useDispatch();
   const { collections: packages = [] } = useSelector(
     ({ cateringPackages }) => cateringPackages,
   );
-
+  const { auth } = useSelector(({ auth }) => auth);
+  const dispatch = useDispatch();
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState(DEFAULT_STEPS);
   const [form, setForm] = useState(DEFAULT_FORM);
@@ -93,7 +95,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
         max: packageInfo?.includedGuests,
       },
     });
-  }, [form.catering?.pax, form?.venue?.pax, packageInfo, selectedCatering]);
+  }, [form.catering, packageInfo, selectedCatering]);
 
   const venueEstimate = useMemo(() => {
     return computeEstimated({
@@ -156,35 +158,29 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleSubmit = () => {
-    const payload = {
-      package: selected?._id,
-      event: {
-        type: form.eventType,
-        date: form.eventDate,
-        time: form.eventTime,
-        duration: form.duration,
-        guests: Number(form.guestCount),
-        location: form.location,
-        setupNotes: form.setupNotes,
+    const payload = buildPayload(
+      { ...form, venue: { ...form?.venue, item: selected?._id } },
+      menuSelections,
+      {
+        catering: cateringEstimate,
+        venue: venueEstimate,
       },
-      menus: {
-        mainCourses: selectedMenus.main.map(({ _id, name }) => ({ _id, name })),
-        sideMenus: selectedMenus.side.map(({ _id, name }) => ({ _id, name })),
-      },
-      customer: {
-        fullName: form.fullName,
-        email: form.email,
-        phone: form.phone,
-        preferredContact: form.preferredContact,
-      },
-      specialRequests: form.specialRequests,
-      estimate,
-    };
-
-    console.info("Catering inquiry payload", payload);
-    toast.success(
-      "Inquiry prepared. Sandy's Kitchen will confirm availability.",
     );
+    dispatch(SAVE({ ...payload, customer: auth?._id }))
+      .unwrap()
+      .then((payload) => {
+        toast.success(payload?.success);
+        handleBack();
+      })
+      .catch((error) => toast.error(error?.message || error));
+  };
+  const handleBack = () => {
+    onSelect({}, "default");
+    clearVenueDraft();
+    setForm(DEFAULT_FORM);
+    setMenuSelections(DEFAULT_MENU_SELECTIONS);
+    setSteps(DEFAULT_STEPS);
+    setCurrentStep(1);
   };
   if (!selected?._id) {
     return (
@@ -210,10 +206,6 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
     );
   }
 
-  const handleBack = () => {
-    onSelect({}, "default");
-    clearVenueDraft();
-  };
   return (
     <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">
@@ -318,6 +310,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
                         setForm={setForm}
                         handleMenuToggle={handleMenuToggle}
                         updateField={updateField}
+                        handleSubmit={handleSubmit}
                       />
                       <Actions
                         currentStep={currentStep}

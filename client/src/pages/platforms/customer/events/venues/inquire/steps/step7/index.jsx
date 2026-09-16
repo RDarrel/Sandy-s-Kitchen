@@ -11,6 +11,8 @@ import {
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
 import Header from "../header";
+import { useSelector } from "react-redux";
+import Spinner from "@/components/shared/spinner";
 
 const formatTimeRange = (start, end) => {
   if (!start || !end) return "";
@@ -66,6 +68,7 @@ const Step6 = ({
   selectedVenue,
   handleSubmit = () => {},
 }) => {
+  const { formSubmitted } = useSelector(({ bookings }) => bookings);
   const cateringTime = form?.catering?.time;
   const venueTime = form?.venue?.time;
 
@@ -179,7 +182,10 @@ const Step6 = ({
               ["Name", form?.contact?.name],
               ["Phone", form?.contact?.phone],
               ["Email", form?.contact?.email],
-              ["Preferred", form?.contact?.preferredContact],
+              [
+                "Preferred",
+                Formatter.preferredContact(form?.contact?.preferredContact),
+              ],
             ]}
           />
 
@@ -244,7 +250,11 @@ const Step6 = ({
             onClick={handleSubmit}
           >
             Send Inquiry
-            <Send className="size-3.5" />
+            {formSubmitted ? (
+              <Spinner formSubmitted={formSubmitted} />
+            ) : (
+              <Send className="size-3.5" />
+            )}
           </Button>
         </div>
       </div>

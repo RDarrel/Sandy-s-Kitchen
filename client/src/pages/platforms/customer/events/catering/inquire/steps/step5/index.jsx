@@ -50,9 +50,9 @@ const Step5 = ({ setForm = () => {}, form }) => {
             onChange={(e) => updateField("preferredContact", e.target.value)}
             className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
           >
-            <option>Phone call</option>
-            <option>SMS</option>
-            <option>Email</option>
+            <option value={"phone"}>Phone call</option>
+            <option value={"sms"}>SMS</option>
+            <option value={"email"}>Email</option>
           </select>
         </Field>
 
