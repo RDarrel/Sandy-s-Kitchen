@@ -163,23 +163,23 @@ const ShortDeliveries = () => {
             </CardHeader>
 
             <CardContent className="px-5 pb-5 sm:px-6">
-              <TabsContent value="pending" className="mt-0">
+              <TabsContent value="pending">
                 <PendingShortDeliveriesTab
                   highlightPurchaseId={highlightPurchaseId}
                 />
               </TabsContent>
 
-              <TabsContent value="redelivery" className="mt-0">
+              <TabsContent value="redelivery">
                 <Incoming highlightPurchaseId={highlightPurchaseId} />
               </TabsContent>
 
-              <TabsContent value="received" className="mt-0">
+              <TabsContent value="received">
                 <ReceivedShortDeliveriesTab
                   highlightPurchaseId={highlightPurchaseId}
                 />
               </TabsContent>
 
-              <TabsContent value="refunded" className="mt-0">
+              <TabsContent value="refunded">
                 <RefundedShortDeliveriesTab
                   highlightPurchaseId={highlightPurchaseId}
                 />

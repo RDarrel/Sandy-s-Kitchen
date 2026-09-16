@@ -53,9 +53,9 @@ const CreateOrderHeader = ({
 
   return (
     <CardHeader className="space-y-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <CardTitle className="text-2xl text-foreground">
+          <CardTitle className="text-xl text-foreground">
             Create Order
           </CardTitle>
           <CardDescription>

@@ -312,7 +312,7 @@ const CreateOrderCart = () => {
 
   return (
     <>
-      <CardHeader className="w-full space-y-1">
+      <CardHeader className="grid w-full auto-rows-min grid-cols-[1fr_auto] items-start gap-1.5 space-y-0">
         <div className="min-w-0">
           <CardTitle className="text-lg">Order Details</CardTitle>
           <p className="text-xs text-muted-foreground">

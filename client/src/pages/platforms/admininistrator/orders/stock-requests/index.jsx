@@ -88,10 +88,10 @@ const StockRequests = () => {
             </CardHeader>
 
             <CardContent className="px-5 pb-5 sm:px-6">
-              <TabsContent value="pending" className="mt-0">
+              <TabsContent value="pending">
                 <PendingStockRequestsTab />
               </TabsContent>
-              <TabsContent value="rejected" className="mt-0">
+              <TabsContent value="rejected">
                 <RejectedStockRequestsTab />
               </TabsContent>
             </CardContent>

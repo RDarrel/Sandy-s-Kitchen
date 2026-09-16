@@ -33,7 +33,7 @@ const Header = () => {
     }
   }, [search, dispatch, collections]);
   return (
-    <CardHeader>
+    <CardHeader className="grid auto-rows-min grid-cols-[1fr_auto] items-start gap-1.5 space-y-0">
       <CardTitle>Audit Trail</CardTitle>
 
       <CardDescription>

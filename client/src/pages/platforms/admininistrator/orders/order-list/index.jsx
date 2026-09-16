@@ -91,10 +91,10 @@ const OrderList = () => {
             </CardHeader>
 
             <CardContent className="px-5 pb-5  sm:px-6">
-              <TabsContent value="incoming" className="mt-0">
+              <TabsContent value="incoming">
                 <IncomingOrdersTab />
               </TabsContent>
-              <TabsContent value="received" className="mt-0">
+              <TabsContent value="received">
                 <ReceivedOrdersTab />
               </TabsContent>
             </CardContent>

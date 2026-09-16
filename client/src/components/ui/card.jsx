@@ -13,6 +13,7 @@ Card.displayName = "Card"
 const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
+    data-slot="card-header"
     className={cn("flex flex-col space-y-1.5 p-6", className)}
     {...props} />
 ))
@@ -37,6 +38,7 @@ CardDescription.displayName = "CardDescription"
 const CardAction = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
+    data-slot="card-action"
     className={cn(
       "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
       className
