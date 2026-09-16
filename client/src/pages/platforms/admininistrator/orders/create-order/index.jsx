@@ -29,7 +29,7 @@ const CreateOrder = () => {
       <div className="bg-background p-4 md:p-6">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-6 lg:gap-x-3 lg:grid-cols-[1fr_40px_380px] lg:items-start">
-            <Card className="border-border py-6 shadow-sm">
+            <Card className="border-border  shadow-sm">
               <CreateOrderHeader
                 search={search}
                 setSearch={setSearch}

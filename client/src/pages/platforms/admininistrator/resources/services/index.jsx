@@ -38,7 +38,7 @@ const Services = () => {
     <>
       <div className="bg-background p-4 md:p-6">
         <div className="mx-auto max-w-7xl">
-          <Card className="border-border py-6 shadow-sm">
+          <Card className="border-border shadow-sm">
             <Header />
             <Body
               deleteOpen={deleteOpen}

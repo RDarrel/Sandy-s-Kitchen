@@ -4,7 +4,14 @@ import { useMemo } from "react";
 import { EventCalendar } from "@/components/reui/event-calendar/event-calendar";
 import { EventCalendarContent } from "@/components/reui/event-calendar/event-calendar-content";
 import { EventCalendarNav } from "@/components/reui/event-calendar/event-calendar-nav";
-import { addDays, addMinutes, format, setHours, startOfDay, startOfWeek } from "date-fns";
+import {
+  addDays,
+  addMinutes,
+  format,
+  setHours,
+  startOfDay,
+  startOfWeek,
+} from "date-fns";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +19,11 @@ import { Card, CardContent } from "@/components/ui/card";
 const BOOKING_STREAMS = [
   { id: "catering", title: "Catering", color: "var(--color-rose-500)" },
   { id: "venue", title: "Venue", color: "var(--color-amber-500)" },
-  { id: "full-service", title: "Catering + Venue", color: "var(--color-emerald-500)" },
+  {
+    id: "full-service",
+    title: "Catering + Venue",
+    color: "var(--color-emerald-500)",
+  },
 ];
 
 const statusStyles = {
@@ -284,10 +295,16 @@ function renderBookingTooltip({ occurrence }) {
         <p className="text-xs text-muted-foreground">{meta.customer}</p>
       </div>
       <div className="flex flex-wrap gap-1.5">
-        <Badge variant="outline" className={`capitalize ${statusStyles[meta.status]}`}>
+        <Badge
+          variant="outline"
+          className={`capitalize ${statusStyles[meta.status]}`}
+        >
           {meta.status}
         </Badge>
-        <Badge variant="outline" className={`capitalize ${paymentStyles[meta.payment]}`}>
+        <Badge
+          variant="outline"
+          className={`capitalize ${paymentStyles[meta.payment]}`}
+        >
           {meta.payment}
         </Badge>
       </div>
