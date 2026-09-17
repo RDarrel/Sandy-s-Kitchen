@@ -18,7 +18,15 @@ import {
   startOfDay,
   startOfWeek,
 } from "date-fns";
-import { CalendarCheck, Clock3, MapPin, Phone, UsersRound } from "lucide-react";
+import {
+  CalendarCheck,
+  Clock3,
+  MapPin,
+  Phone,
+  Search,
+  UsersRound,
+  X,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +37,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import EmptyDay from "./emptyDay";
 
 const BOOKING_STREAMS = [
@@ -625,6 +639,8 @@ function Bookings() {
   );
 
   const [statusFilter, setStatusFilter] = useState("pending");
+  const [bookingSearch, setBookingSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const selectDate = (date) => {
     const key = format(date, "yyyy-MM-dd");
@@ -679,6 +695,39 @@ function Bookings() {
       },
     );
   }, [selectedBookings]);
+
+  const bookingSearchResults = useMemo(() => {
+    const query = bookingSearch.trim().toLowerCase();
+
+    if (!query) return [];
+
+    return events
+      .filter((event) => {
+        const meta = event.meta || {};
+        const searchable = [
+          event.title,
+          meta.customer,
+          meta.venue,
+          meta.service,
+          meta.status,
+          meta.payment,
+          meta.contact,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        return searchable.includes(query);
+      })
+      .sort((a, b) => a.start.getTime() - b.start.getTime())
+      .slice(0, 6);
+  }, [bookingSearch, events]);
+
+  const handleSearchResultClick = (booking) => {
+    setSelectedDate(booking.start);
+    setStatusFilter(booking.meta?.status || "all");
+    setSearchOpen(false);
+  };
 
   const monthlySummary = useMemo(() => {
     const monthKey = format(selectedDate, "yyyy-MM");
@@ -768,55 +817,218 @@ function Bookings() {
               }}
             >
               {/* Calendar header */}
-              <div className="border-b bg-muted/10 px-3 pb-2">
-                <EventCalendarNav className="flex min-h-11 min-w-0 items-center justify-between gap-3">
-                  {/* Calendar navigation */}
-                  <div className="flex min-w-0 items-center gap-2">
-                    <EventCalendarNavToday className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" />
+              <div className="relative z-50 border-b bg-muted/10 px-2 pb-2 sm:px-3">
+                <EventCalendarNav className="flex min-w-0 flex-col items-stretch gap-2 py-2 sm:min-h-11 sm:flex-row sm:items-center sm:justify-between sm:py-0 xl:flex-nowrap xl:gap-3">
+                  <div className="relative min-h-8 min-w-0 flex-1">
+                    {/* Calendar navigation */}
+                    <div
+                      className={`absolute inset-y-0 left-0 flex min-w-0 origin-left items-center gap-1.5 transition-all duration-200 ease-out sm:gap-2 ${
+                        searchOpen
+                          ? "pointer-events-none -translate-x-2 scale-[0.98] opacity-0"
+                          : "translate-x-0 scale-100 opacity-100"
+                      }`}
+                    >
+                      <EventCalendarNavToday className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" />
 
-                    <div className="mx-0.5 h-5 w-px shrink-0 bg-border" />
+                      <div className="mx-0.5 h-5 w-px shrink-0 bg-border" />
 
-                    <div className="flex min-w-0 items-center rounded-md border bg-background px-0.5 shadow-xs">
-                      <EventCalendarNavPrev />
+                      <div className="flex min-w-0 items-center rounded-md border bg-background px-0.5 shadow-xs">
+                        <EventCalendarNavPrev />
 
-                      <EventCalendarTitle className="min-w-28 px-1 text-center text-sm font-semibold text-foreground sm:min-w-32" />
+                        <EventCalendarTitle className="min-w-24 px-1 text-center text-sm font-semibold text-foreground sm:min-w-32" />
 
-                      <EventCalendarNavNext />
+                        <EventCalendarNavNext />
+                      </div>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon-sm"
+                            onClick={() => setSearchOpen(true)}
+                            aria-label="Search bookings"
+                          >
+                            <Search className="size-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          Search bookings
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+
+                    {/* Global booking search */}
+                    <div
+                      className={`absolute inset-y-0 left-0 z-10 flex w-full max-w-xl origin-left items-center transition-all duration-200 ease-out ${
+                        searchOpen
+                          ? "pointer-events-auto translate-x-0 scale-100 opacity-100"
+                          : "pointer-events-none translate-x-2 scale-[0.98] opacity-0"
+                      }`}
+                    >
+                      <div className="flex w-full items-center gap-1.5">
+                        <div className="relative min-w-0 flex-1">
+                          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            type="search"
+                            value={bookingSearch}
+                            onChange={(event) =>
+                              setBookingSearch(event.target.value)
+                            }
+                            placeholder="Search by name, mobile, or email..."
+                            className="h-8 bg-background/95 pl-8 pr-3 text-xs"
+                          />
+
+                          {bookingSearch.trim() && (
+                            <div className="absolute left-0 right-0 top-full z-[80] mt-1 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-lg">
+                              {bookingSearchResults.length > 0 ? (
+                                <div>
+                                  <div className="flex items-center justify-between gap-3 border-b px-3 py-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                    <span>Search results</span>
+                                    <span className="normal-case tracking-normal">
+                                      {bookingSearchResults.length} bookings
+                                    </span>
+                                  </div>
+                                  <div className="max-h-72 divide-y overflow-y-auto">
+                                    {bookingSearchResults.map((booking) => (
+                                      <button
+                                        key={booking.id}
+                                        type="button"
+                                        onClick={() =>
+                                          handleSearchResultClick(booking)
+                                        }
+                                        className="flex w-full min-w-0 items-start gap-2 px-3 py-2 text-left text-xs transition-colors hover:bg-muted/50"
+                                      >
+                                        <span
+                                          aria-hidden
+                                          className={`mt-1.5 size-1.5 shrink-0 rounded-full ${statusDots[booking.meta.status]}`}
+                                        />
+                                        <span className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-3">
+                                          <span className="block min-w-0">
+                                            <span className="block min-w-0">
+                                              <span className="truncate text-[13px] font-medium leading-4 text-foreground">
+                                                {booking.meta.customer}
+                                              </span>
+                                            </span>
+                                          </span>
+                                          <span className="text-right text-[11px] text-muted-foreground">
+                                            {format(
+                                              booking.start,
+                                              "MMM d, h:mm a",
+                                            )}
+                                          </span>
+                                          <span className="mt-0.5 min-w-0 truncate text-[11px] text-muted-foreground">
+                                            {booking.title}
+                                          </span>
+                                          <span className="mt-0.5 flex min-w-0 shrink-0 items-center justify-end gap-1.5 text-[11px] text-muted-foreground">
+                                            <span className="max-w-28 truncate">
+                                              {booking.meta.service}
+                                            </span>
+                                          </span>
+                                          <span className="hidden">
+                                            <span className="truncate">
+                                              {booking.meta.customer}
+                                            </span>
+                                            <span className="shrink-0">
+                                              {format(
+                                                booking.start,
+                                                "MMM d, h:mm a",
+                                              )}
+                                            </span>
+                                          </span>
+                                          <span className="hidden">
+                                            {booking.meta.customer} ·{" "}
+                                            {format(
+                                              booking.start,
+                                              "MMM d, h:mm a",
+                                            )}
+                                          </span>
+                                          <span className="hidden">
+                                            {booking.meta.venue} ·{" "}
+                                            {booking.meta.service}
+                                          </span>
+                                          <span className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                                            <span className="flex min-w-0 items-center gap-1.5">
+                                              <MapPin className="size-3 shrink-0" />
+                                              <span className="truncate">
+                                                {booking.meta.venue}
+                                              </span>
+                                            </span>
+                                          </span>
+                                          <span className="mt-1 flex justify-end">
+                                            <span className="inline-flex items-center rounded-sm border bg-muted/30 px-1.5 py-0.5 text-[10px] font-medium capitalize leading-none text-muted-foreground">
+                                              {
+                                                statusLabels[
+                                                  booking.meta.status
+                                                ]
+                                              }
+                                            </span>
+                                          </span>
+                                        </span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="px-3 py-3 text-center text-xs text-muted-foreground">
+                                  No bookings found
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-sm"
+                              onClick={() => {
+                                setSearchOpen(false);
+                                setBookingSearch("");
+                              }}
+                              aria-label="Close search"
+                            >
+                              <X className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            Close search
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </div>
                   </div>
 
                   {/* Financial overview */}
-                  <div className="flex shrink-0 items-center gap-3">
-                    <div className="min-w-20 text-right">
+                  <div className="flex w-full shrink-0 items-center gap-2 rounded-md border bg-background/70 px-2 py-1.5 sm:w-auto sm:gap-3 sm:border-0 sm:bg-transparent sm:p-0">
+                    <div className="min-w-0 flex-1 text-center sm:min-w-20 sm:flex-none sm:text-right">
                       <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
                         Confirmed
                       </p>
-
-                      <p className="mt-0.5 text-xs font-semibold tabular-nums text-foreground">
+                      <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
                         {moneyFormatter.format(monthlySummary.confirmed)}
                       </p>
                     </div>
 
                     <div className="h-7 w-px shrink-0 bg-border/80" />
 
-                    <div className="min-w-20 text-right">
+                    <div className="min-w-0 flex-1 text-center sm:min-w-20 sm:flex-none sm:text-right">
                       <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
                         Received
                       </p>
-
-                      <p className="mt-0.5 text-xs font-semibold tabular-nums text-foreground">
+                      <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
                         {moneyFormatter.format(monthlySummary.received)}
                       </p>
                     </div>
 
                     <div className="h-7 w-px shrink-0 bg-border/80" />
 
-                    <div className="min-w-20 text-right">
+                    <div className="min-w-0 flex-1 text-center sm:min-w-20 sm:flex-none sm:text-right">
                       <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
                         To Collect
                       </p>
-
-                      <p className="mt-0.5 text-xs font-semibold tabular-nums text-foreground">
+                      <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
                         {moneyFormatter.format(monthlySummary.toCollect)}
                       </p>
                     </div>
@@ -824,7 +1036,7 @@ function Bookings() {
                 </EventCalendarNav>
 
                 {/* Monthly booking overview */}
-                <div className="flex min-h-8 min-w-0 items-center justify-between gap-4 border-t border-border/50 pt-2">
+                <div className="flex min-h-8 min-w-0 flex-col gap-2 border-t border-border/50 pt-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                   <div className="flex shrink-0 items-center gap-1.5">
                     <CalendarCheck className="size-3.5 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
@@ -835,7 +1047,7 @@ function Bookings() {
                     </span>
                   </div>
 
-                  <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                  <div className="flex min-w-0 flex-wrap items-center justify-start gap-x-3 gap-y-1 sm:justify-end">
                     {statusOrder
                       .filter((status) => monthlySummary.statuses[status])
                       .map((status) => (
