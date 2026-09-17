@@ -178,7 +178,7 @@ const VenueList = ({ isWebsite = true, onSelect = () => {} }) => {
           {/* Event Date */}
           <div className="grid gap-2">
             <Label>When is your event?</Label>
-            <DatePicker withTime />
+            <DatePicker />
           </div>
 
           <hr />
