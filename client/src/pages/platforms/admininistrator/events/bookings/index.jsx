@@ -382,14 +382,17 @@ function renderBookingMonthCell({
     : [];
   const isSelected =
     format(day, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd");
+  const hasBookings = bookings.length > 0;
 
   return (
     <div
-      className={`relative flex h-full min-h-0 flex-col gap-1.5 px-2 py-1.5 transition-colors ${
-        isSelected ? "bg-muted/25 ring-1 ring-border" : ""
+      className={`relative h-full min-h-0 transition-colors ${
+        hasBookings ? "bg-muted/20" : ""
+      } ${
+        isSelected ? "bg-muted/35 ring-1 ring-primary/25" : ""
       }`}
     >
-      <div className="flex min-h-5 items-center justify-between gap-2">
+      <div className="pointer-events-none absolute left-2 right-2 top-1.5 z-10 flex min-h-5 items-center justify-between gap-2">
         <span className="truncate text-[10px] font-medium text-muted-foreground">
           {bookings.length > 0
             ? `${bookings.length} booking${bookings.length > 1 ? "s" : ""}`
@@ -409,20 +412,22 @@ function renderBookingMonthCell({
       </div>
 
       {bookings.length > 0 && (
-        <div className="min-w-0 space-y-0.5">
-          {displayStatuses.map((status) => (
-            <div
-              key={status}
-              className={`flex min-w-0 items-center gap-1.5 border-l-2 pl-1.5 text-[11px] leading-4 ${statusBorders[status]}`}
-            >
-              <span className="min-w-0 flex-1 truncate font-medium capitalize text-foreground">
-                {statusLabels[status]}
-              </span>
-              <span className="shrink-0 font-semibold tabular-nums text-foreground">
-                {statusCounts[status]}
-              </span>
-            </div>
-          ))}
+        <div className="absolute inset-x-2 bottom-2 top-7 flex min-h-0 items-center">
+          <div className="w-full min-w-0 space-y-0.5">
+            {displayStatuses.map((status) => (
+              <div
+                key={status}
+                className={`flex min-w-0 items-center gap-1.5 border-l-2 pl-1.5 text-[11px] leading-4 ${statusBorders[status]}`}
+              >
+                <span className="min-w-0 flex-1 truncate font-medium capitalize text-foreground">
+                  {statusLabels[status]}
+                </span>
+                <span className="shrink-0 font-semibold tabular-nums text-foreground">
+                  {statusCounts[status]}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
