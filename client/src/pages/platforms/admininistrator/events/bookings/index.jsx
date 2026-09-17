@@ -385,10 +385,29 @@ function renderBookingMonthCell({
 
   return (
     <div
-      className={`relative flex h-full min-h-0 flex-col px-2 py-1.5 pb-6 transition-colors ${
-        isSelected ? "bg-primary/5 ring-1 ring-primary/30" : ""
+      className={`relative flex h-full min-h-0 flex-col gap-1.5 px-2 py-1.5 transition-colors ${
+        isSelected ? "bg-muted/25 ring-1 ring-border" : ""
       }`}
     >
+      <div className="flex min-h-5 items-center justify-between gap-2">
+        <span className="truncate text-[10px] font-medium text-muted-foreground">
+          {bookings.length > 0
+            ? `${bookings.length} booking${bookings.length > 1 ? "s" : ""}`
+            : ""}
+        </span>
+        <span
+          className={`flex size-5 shrink-0 items-center justify-center rounded-md text-[12px] font-medium ${
+            isToday
+              ? "bg-primary text-primary-foreground"
+              : isOutside
+                ? "text-muted-foreground"
+                : "text-foreground"
+          }`}
+        >
+          {format(day, "d")}
+        </span>
+      </div>
+
       {bookings.length > 0 && (
         <div className="min-w-0 space-y-0.5">
           {displayStatuses.map((status) => (
@@ -406,22 +425,6 @@ function renderBookingMonthCell({
           ))}
         </div>
       )}
-      <div className="pointer-events-none absolute bottom-1.5 left-2 right-2 flex items-center justify-between gap-2">
-        <span className="truncate text-[10px] font-medium text-muted-foreground">
-          {bookings.length > 0 ? `${bookings.length} total` : ""}
-        </span>
-        <span
-          className={`flex size-5 shrink-0 items-center justify-center rounded-full text-[13px] ${
-            isToday
-              ? "bg-primary text-primary-foreground"
-              : isOutside
-                ? "text-muted-foreground"
-                : ""
-          }`}
-        >
-          {format(day, "d")}
-        </span>
-      </div>
     </div>
   );
 }
