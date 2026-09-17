@@ -12,6 +12,7 @@ import {
   startOfDay,
   startOfWeek,
 } from "date-fns";
+import { Clock3, MapPin, Phone, UsersRound } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,14 @@ const statusDots = {
   setup: "bg-sky-500",
   completed: "bg-violet-500",
   cancelled: "bg-rose-500",
+};
+
+const statusText = {
+  approved: "text-emerald-700",
+  pending: "text-amber-700",
+  setup: "text-sky-700",
+  completed: "text-violet-700",
+  cancelled: "text-rose-700",
 };
 
 const statusBorders = {
@@ -342,7 +351,13 @@ function renderMoreIndicator({ count }) {
   );
 }
 
-function renderBookingMonthCell({ day, segments, isToday, isOutside, selectedDay }) {
+function renderBookingMonthCell({
+  day,
+  segments,
+  isToday,
+  isOutside,
+  selectedDay,
+}) {
   const bookings = [...segments.allDay, ...segments.timed]
     .map((segment) => segment.occurrence.event)
     .filter((event) => event.meta);
@@ -365,7 +380,8 @@ function renderBookingMonthCell({ day, segments, isToday, isOutside, selectedDay
         ...visibleStatuses.filter((status) => status !== priorityStatus),
       ]
     : [];
-  const isSelected = format(day, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd");
+  const isSelected =
+    format(day, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd");
 
   return (
     <div
@@ -415,40 +431,60 @@ function BookingRow({ booking }) {
   const service = serviceBadges[meta.service];
 
   return (
-    <div className="rounded-md border bg-background p-2.5">
-      <div className="flex items-start justify-between gap-3">
+    <div className="rounded-md border bg-background p-2.5 shadow-xs">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{booking.title}</p>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <p className="truncate text-sm font-semibold leading-5">
+              {booking.title}
+            </p>
+            <Badge variant="secondary" className="shrink-0 capitalize">
+              {statusLabels[meta.status]}
+            </Badge>
+          </div>
           <p className="truncate text-xs text-muted-foreground">
-            {format(booking.start, "h:mm a")} - {format(booking.end, "h:mm a")}
+            {meta.customer}
           </p>
         </div>
         {service && (
-          <Badge variant="outline" className={`shrink-0 ${service.className}`}>
+          <Badge
+            variant="outline"
+            className={`shrink-0 text-[10px] ${service.className}`}
+          >
             {service.label}
           </Badge>
         )}
       </div>
 
-      <div className="mt-2 grid gap-1 text-xs text-muted-foreground">
-        <div className="flex justify-between gap-3">
-          <span>Customer</span>
-          <span className="truncate font-medium text-foreground">
-            {meta.customer}
+      <div className="mt-2 grid gap-1.5 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Clock3 className={`size-3.5 shrink-0 ${statusText[meta.status]}`} />
+          <span className="font-medium text-foreground">
+            {format(booking.start, "h:mm a")} - {format(booking.end, "h:mm a")}
           </span>
         </div>
-        <div className="flex justify-between gap-3">
-          <span>Venue</span>
-          <span className="truncate text-right font-medium text-foreground">
+        <div className="flex items-center gap-2">
+          <MapPin className="size-3.5 shrink-0" />
+          <span className="truncate font-medium text-foreground">
             {meta.venue}
           </span>
         </div>
-        <div className="flex justify-between gap-3">
-          <span>Guests</span>
-          <span className="font-medium text-foreground">{meta.guests} pax</span>
+        <div className="flex items-center justify-between gap-3">
+          <span className="flex items-center gap-2">
+            <UsersRound className="size-3.5 shrink-0" />
+            <span className="font-medium text-foreground">
+              {meta.guests} pax
+            </span>
+          </span>
+          <span className="flex min-w-0 items-center gap-2">
+            <Phone className="size-3.5 shrink-0" />
+            <span className="truncate font-medium text-foreground">
+              {meta.contact}
+            </span>
+          </span>
         </div>
-        <div className="flex justify-between gap-3">
-          <span>Payment</span>
+        <div className="flex items-center justify-between gap-3">
+          <span className="truncate text-muted-foreground">{meta.service}</span>
           <Badge
             variant="outline"
             className={`capitalize ${paymentStyles[meta.payment]}`}
@@ -464,15 +500,25 @@ function BookingRow({ booking }) {
         </Button>
         {meta.status === "pending" ? (
           <>
-            <Button type="button" variant="outline" size="sm" className="h-7 px-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2"
+            >
               Reject
             </Button>
-            <Button type="button" size="sm" className="h-7 px-2">
+            <Button type="button" size="sm" className="h-7 px-2.5">
               Approve
             </Button>
           </>
         ) : (
-          <Button type="button" variant="outline" size="sm" className="h-7 px-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 px-2"
+          >
             Manage
           </Button>
         )}
@@ -484,21 +530,23 @@ function BookingRow({ booking }) {
 function Bookings() {
   const events = useMemo(() => buildBookingEvents(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(
-    () => events.find((event) => event.id === "lim-corporate-lunch")?.start ?? new Date()
+    () =>
+      events.find((event) => event.id === "lim-corporate-lunch")?.start ??
+      new Date(),
   );
   const [statusFilter, setStatusFilter] = useState("pending");
 
   const selectDate = (date) => {
     const key = format(date, "yyyy-MM-dd");
     const dayBookings = events.filter(
-      (event) => format(event.start, "yyyy-MM-dd") === key
+      (event) => format(event.start, "yyyy-MM-dd") === key,
     );
 
     setSelectedDate(date);
     setStatusFilter(
       dayBookings.some((booking) => booking.meta.status === "pending")
         ? "pending"
-        : "all"
+        : "all",
     );
   };
 
@@ -515,14 +563,14 @@ function Bookings() {
       statusFilter === "all"
         ? selectedBookings
         : selectedBookings.filter(
-            (booking) => booking.meta.status === statusFilter
+            (booking) => booking.meta.status === statusFilter,
           );
 
     return statusOrder
       .map((status) => ({
         status,
         bookings: filteredBookings.filter(
-          (booking) => booking.meta.status === status
+          (booking) => booking.meta.status === status,
         ),
       }))
       .filter((group) => group.bookings.length > 0);
@@ -534,7 +582,7 @@ function Bookings() {
         ...counts,
         [booking.meta.status]: (counts[booking.meta.status] || 0) + 1,
       }),
-      { all: selectedBookings.length }
+      { all: selectedBookings.length },
     );
   }, [selectedBookings]);
 
@@ -570,8 +618,7 @@ function Bookings() {
               offDays
               className="h-[620px] w-full"
               classNames={{
-                monthCell:
-                  "cursor-pointer hover:bg-muted/40 transition-colors",
+                monthCell: "cursor-pointer hover:bg-muted/40 transition-colors",
                 monthCellContent: "gap-1",
                 moreIndicator: "mt-0.5 px-1",
               }}
@@ -584,16 +631,21 @@ function Bookings() {
           </CardContent>
         </Card>
 
-        <Card className="flex h-[620px] flex-col gap-0 overflow-hidden py-0">
+        <Card className="flex h-[620px] flex-col gap-0 overflow-hidden py-0 shadow-sm">
           <CardHeader className="gap-2 border-b px-3 py-2.5">
             <div className="flex items-center justify-between gap-3">
-              <CardTitle className="truncate text-sm">
-                {format(selectedDate, "MMM d, yyyy")}
-              </CardTitle>
-              <CardDescription className="shrink-0 text-xs">
+              <div className="min-w-0">
+                <CardTitle className="truncate text-sm">
+                  {format(selectedDate, "MMM d, yyyy")}
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Selected schedule
+                </CardDescription>
+              </div>
+              <span className="shrink-0 rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
                 {selectedBookings.length} booking
                 {selectedBookings.length !== 1 ? "s" : ""}
-              </CardDescription>
+              </span>
             </div>
             {selectedBookings.length > 0 && (
               <div className="flex flex-wrap gap-1">
@@ -606,8 +658,8 @@ function Bookings() {
                       onClick={() => setStatusFilter(status)}
                       className={`inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[11px] font-medium capitalize transition-colors ${
                         statusFilter === status
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "bg-background hover:bg-muted"
+                          ? "border-primary bg-primary text-primary-foreground shadow-xs"
+                          : "bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                       }`}
                     >
                       {status !== "all" && (
@@ -630,21 +682,21 @@ function Bookings() {
               <div className="space-y-3">
                 {selectedBookingsByStatus.map(({ status, bookings }) => (
                   <section key={status} className="space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="sticky top-0 z-10 flex items-center justify-between rounded-md bg-background/95 px-2 py-1 backdrop-blur">
                       <div className="flex items-center gap-2">
                         <span
                           aria-hidden
                           className={`size-2 rounded-full ${statusDots[status]}`}
                         />
-                        <h3 className="text-xs font-semibold uppercase text-muted-foreground">
+                        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                           {statusLabels[status]}
                         </h3>
                       </div>
-                      <span className="text-xs font-medium text-muted-foreground">
+                      <span className="text-[11px] font-medium text-muted-foreground">
                         {bookings.length}
                       </span>
                     </div>
-	                    <div className="space-y-1.5">
+                    <div className="space-y-1.5">
                       {bookings.map((booking) => (
                         <BookingRow key={booking.id} booking={booking} />
                       ))}
