@@ -29,6 +29,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import EmptyDay from "./emptyDay";
 
 const BOOKING_STREAMS = [
   {
@@ -949,15 +950,7 @@ function Bookings() {
                 ))}
               </div>
             ) : (
-              <div className="flex h-full items-center justify-center rounded-md border border-dashed p-6 text-center">
-                <div>
-                  <p className="text-sm font-medium">No bookings</p>
-
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Select another day to review its bookings.
-                  </p>
-                </div>
-              </div>
+              <EmptyDay />
             )}
           </CardContent>
         </Card>
