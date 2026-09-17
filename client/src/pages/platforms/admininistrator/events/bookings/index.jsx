@@ -3,7 +3,13 @@
 import { useMemo, useState } from "react";
 import { EventCalendar } from "@/components/reui/event-calendar/event-calendar";
 import { EventCalendarContent } from "@/components/reui/event-calendar/event-calendar-content";
-import { EventCalendarNav } from "@/components/reui/event-calendar/event-calendar-nav";
+import {
+  EventCalendarNav,
+  EventCalendarNavNext,
+  EventCalendarNavPrev,
+  EventCalendarNavToday,
+  EventCalendarTitle,
+} from "@/components/reui/event-calendar/event-calendar-nav";
 import {
   addDays,
   addMinutes,
@@ -12,7 +18,7 @@ import {
   startOfDay,
   startOfWeek,
 } from "date-fns";
-import { Clock3, MapPin, Phone, UsersRound } from "lucide-react";
+import { CalendarCheck, Clock3, MapPin, Phone, UsersRound } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,8 +31,16 @@ import {
 } from "@/components/ui/card";
 
 const BOOKING_STREAMS = [
-  { id: "catering", title: "Catering", color: "var(--color-rose-500)" },
-  { id: "venue", title: "Venue", color: "var(--color-amber-500)" },
+  {
+    id: "catering",
+    title: "Catering",
+    color: "var(--color-rose-500)",
+  },
+  {
+    id: "venue",
+    title: "Venue",
+    color: "var(--color-amber-500)",
+  },
   {
     id: "full-service",
     title: "Catering + Venue",
@@ -46,7 +60,7 @@ const statusLabels = {
   approved: "approved",
   pending: "pending",
   setup: "setup",
-  completed: "done",
+  completed: "completed",
   cancelled: "cancelled",
 };
 
@@ -75,6 +89,8 @@ const statusBorders = {
 };
 
 const statusOrder = ["pending", "approved", "setup", "completed", "cancelled"];
+
+const confirmedStatuses = ["approved", "setup", "completed"];
 
 const statusColors = {
   approved: "var(--color-emerald-500)",
@@ -117,8 +133,17 @@ const serviceBadges = {
   },
 };
 
+const moneyFormatter = new Intl.NumberFormat("en-PH", {
+  style: "currency",
+  currency: "PHP",
+  maximumFractionDigits: 0,
+});
+
 function buildBookingEvents(anchor) {
-  const week = startOfWeek(startOfDay(anchor), { weekStartsOn: 0 });
+  const week = startOfWeek(startOfDay(anchor), {
+    weekStartsOn: 0,
+  });
+
   const at = (dayOffset, hour, minute = 0) =>
     addMinutes(setHours(addDays(week, dayOffset), hour), minute);
 
@@ -138,6 +163,8 @@ function buildBookingEvents(anchor) {
         status: "approved",
         payment: "partial",
         contact: "0917 234 8890",
+        amount: 52000,
+        received: 25000,
       },
     },
     {
@@ -155,6 +182,8 @@ function buildBookingEvents(anchor) {
         status: "pending",
         payment: "unpaid",
         contact: "0998 112 4501",
+        amount: 18000,
+        received: 0,
       },
     },
     {
@@ -172,6 +201,8 @@ function buildBookingEvents(anchor) {
         status: "approved",
         payment: "paid",
         contact: "0916 555 2210",
+        amount: 18500,
+        received: 18500,
       },
     },
     {
@@ -189,6 +220,8 @@ function buildBookingEvents(anchor) {
         status: "setup",
         payment: "partial",
         contact: "0927 443 7109",
+        amount: 36000,
+        received: 15000,
       },
     },
     {
@@ -206,6 +239,8 @@ function buildBookingEvents(anchor) {
         status: "pending",
         payment: "unpaid",
         contact: "0905 882 3300",
+        amount: 5000,
+        received: 0,
       },
     },
     {
@@ -223,6 +258,8 @@ function buildBookingEvents(anchor) {
         status: "approved",
         payment: "paid",
         contact: "0918 700 1911",
+        amount: 12000,
+        received: 12000,
       },
     },
     {
@@ -240,6 +277,8 @@ function buildBookingEvents(anchor) {
         status: "pending",
         payment: "unpaid",
         contact: "0917 222 4135",
+        amount: 28000,
+        received: 0,
       },
     },
     {
@@ -257,6 +296,8 @@ function buildBookingEvents(anchor) {
         status: "completed",
         payment: "paid",
         contact: "0999 808 4412",
+        amount: 22000,
+        received: 22000,
       },
     },
   ];
@@ -275,7 +316,9 @@ function renderBookingEvent({ occurrence }) {
         aria-hidden
         className={`size-1.5 shrink-0 rounded-full ${statusDots[meta.status]}`}
       />
+
       <span className="min-w-0 flex-1 truncate font-medium">{event.title}</span>
+
       {service && (
         <span
           className={`ms-auto shrink-0 rounded border px-1 text-[9px] font-bold leading-4 ${service.className}`}
@@ -297,15 +340,18 @@ function renderBookingTooltip({ occurrence }) {
     <div className="w-64 space-y-3 text-sm">
       <div>
         <p className="font-semibold">{event.title}</p>
+
         <p className="text-xs text-muted-foreground">{meta.customer}</p>
       </div>
+
       <div className="flex flex-wrap gap-1.5">
         <Badge
           variant="outline"
           className={`capitalize ${statusStyles[meta.status]}`}
         >
-          {meta.status}
+          {statusLabels[meta.status]}
         </Badge>
+
         <Badge
           variant="outline"
           className={`capitalize ${paymentStyles[meta.payment]}`}
@@ -313,29 +359,42 @@ function renderBookingTooltip({ occurrence }) {
           {meta.payment}
         </Badge>
       </div>
+
       <div className="grid gap-1 text-xs">
         <div className="flex justify-between gap-3">
           <span className="text-muted-foreground">Time</span>
+
           <span className="font-medium">
             {event.allDay
               ? "All day"
-              : `${format(event.start, "h:mm a")} - ${format(event.end, "h:mm a")}`}
+              : `${format(event.start, "h:mm a")} - ${format(
+                  event.end,
+                  "h:mm a",
+                )}`}
           </span>
         </div>
+
         <div className="flex justify-between gap-3">
           <span className="text-muted-foreground">Service</span>
+
           <span className="font-medium">{meta.service}</span>
         </div>
+
         <div className="flex justify-between gap-3">
           <span className="text-muted-foreground">Venue</span>
-          <span className="font-medium text-right">{meta.venue}</span>
+
+          <span className="text-right font-medium">{meta.venue}</span>
         </div>
+
         <div className="flex justify-between gap-3">
           <span className="text-muted-foreground">Guests</span>
+
           <span className="font-medium">{meta.guests} pax</span>
         </div>
+
         <div className="flex justify-between gap-3">
           <span className="text-muted-foreground">Contact</span>
+
           <span className="font-medium">{meta.contact}</span>
         </div>
       </div>
@@ -364,33 +423,37 @@ function renderBookingMonthCell({
 
   const statusCounts = bookings.reduce((counts, event) => {
     const status = event.meta.status;
+
     counts[status] = (counts[status] || 0) + 1;
+
     return counts;
   }, {});
 
   const visibleStatuses = statusOrder.filter((status) => statusCounts[status]);
+
   const priorityStatus =
     visibleStatuses.find((status) => status === "pending") ||
     visibleStatuses.find((status) => status === "setup") ||
     visibleStatuses.find((status) => status === "approved") ||
     visibleStatuses[0];
+
   const displayStatuses = priorityStatus
     ? [
         priorityStatus,
         ...visibleStatuses.filter((status) => status !== priorityStatus),
       ]
     : [];
+
   const isSelected =
     format(day, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd");
+
   const hasBookings = bookings.length > 0;
 
   return (
     <div
       className={`relative h-full min-h-0 transition-colors ${
         hasBookings ? "bg-muted/20" : ""
-      } ${
-        isSelected ? "bg-muted/35 ring-1 ring-primary/25" : ""
-      }`}
+      } ${isSelected ? "bg-muted/35 ring-1 ring-primary/25" : ""}`}
     >
       <div className="pointer-events-none absolute left-2 right-2 top-1.5 z-10 flex min-h-5 items-center justify-between gap-2">
         <span className="truncate text-[10px] font-medium text-muted-foreground">
@@ -398,6 +461,7 @@ function renderBookingMonthCell({
             ? `${bookings.length} booking${bookings.length > 1 ? "s" : ""}`
             : ""}
         </span>
+
         <span
           className={`flex size-5 shrink-0 items-center justify-center rounded-md text-[12px] font-medium ${
             isToday
@@ -422,6 +486,7 @@ function renderBookingMonthCell({
                 <span className="min-w-0 flex-1 truncate font-medium capitalize text-foreground">
                   {statusLabels[status]}
                 </span>
+
                 <span className="shrink-0 font-semibold tabular-nums text-foreground">
                   {statusCounts[status]}
                 </span>
@@ -446,14 +511,17 @@ function BookingRow({ booking }) {
             <p className="truncate text-sm font-semibold leading-5">
               {booking.title}
             </p>
+
             <Badge variant="secondary" className="shrink-0 capitalize">
               {statusLabels[meta.status]}
             </Badge>
           </div>
+
           <p className="truncate text-xs text-muted-foreground">
             {meta.customer}
           </p>
         </div>
+
         {service && (
           <Badge
             variant="outline"
@@ -467,32 +535,41 @@ function BookingRow({ booking }) {
       <div className="mt-2 grid gap-1.5 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <Clock3 className={`size-3.5 shrink-0 ${statusText[meta.status]}`} />
+
           <span className="font-medium text-foreground">
             {format(booking.start, "h:mm a")} - {format(booking.end, "h:mm a")}
           </span>
         </div>
+
         <div className="flex items-center gap-2">
           <MapPin className="size-3.5 shrink-0" />
+
           <span className="truncate font-medium text-foreground">
             {meta.venue}
           </span>
         </div>
+
         <div className="flex items-center justify-between gap-3">
           <span className="flex items-center gap-2">
             <UsersRound className="size-3.5 shrink-0" />
+
             <span className="font-medium text-foreground">
               {meta.guests} pax
             </span>
           </span>
+
           <span className="flex min-w-0 items-center gap-2">
             <Phone className="size-3.5 shrink-0" />
+
             <span className="truncate font-medium text-foreground">
               {meta.contact}
             </span>
           </span>
         </div>
+
         <div className="flex items-center justify-between gap-3">
           <span className="truncate text-muted-foreground">{meta.service}</span>
+
           <Badge
             variant="outline"
             className={`capitalize ${paymentStyles[meta.payment]}`}
@@ -506,6 +583,7 @@ function BookingRow({ booking }) {
         <Button type="button" variant="outline" size="sm" className="h-7 px-2">
           View
         </Button>
+
         {meta.status === "pending" ? (
           <>
             <Button
@@ -516,6 +594,7 @@ function BookingRow({ booking }) {
             >
               Reject
             </Button>
+
             <Button type="button" size="sm" className="h-7 px-2.5">
               Approve
             </Button>
@@ -537,20 +616,24 @@ function BookingRow({ booking }) {
 
 function Bookings() {
   const events = useMemo(() => buildBookingEvents(new Date()), []);
+
   const [selectedDate, setSelectedDate] = useState(
     () =>
       events.find((event) => event.id === "lim-corporate-lunch")?.start ??
       new Date(),
   );
+
   const [statusFilter, setStatusFilter] = useState("pending");
 
   const selectDate = (date) => {
     const key = format(date, "yyyy-MM-dd");
+
     const dayBookings = events.filter(
       (event) => format(event.start, "yyyy-MM-dd") === key,
     );
 
     setSelectedDate(date);
+
     setStatusFilter(
       dayBookings.some((booking) => booking.meta.status === "pending")
         ? "pending"
@@ -590,13 +673,57 @@ function Bookings() {
         ...counts,
         [booking.meta.status]: (counts[booking.meta.status] || 0) + 1,
       }),
-      { all: selectedBookings.length },
+      {
+        all: selectedBookings.length,
+      },
     );
   }, [selectedBookings]);
+
+  const monthlySummary = useMemo(() => {
+    const monthKey = format(selectedDate, "yyyy-MM");
+
+    const monthBookings = events.filter(
+      (event) => format(event.start, "yyyy-MM") === monthKey,
+    );
+
+    const statusCountsForMonth = monthBookings.reduce(
+      (counts, booking) => ({
+        ...counts,
+        [booking.meta.status]: (counts[booking.meta.status] || 0) + 1,
+      }),
+      {},
+    );
+
+    const confirmedBookings = monthBookings.filter((booking) =>
+      confirmedStatuses.includes(booking.meta.status),
+    );
+
+    const confirmed = confirmedBookings.reduce(
+      (total, booking) => total + Number(booking.meta.amount || 0),
+      0,
+    );
+
+    const received = confirmedBookings.reduce(
+      (total, booking) => total + Number(booking.meta.received || 0),
+      0,
+    );
+
+    const toCollect = Math.max(confirmed - received, 0);
+
+    return {
+      label: format(selectedDate, "MMMM yyyy"),
+      total: monthBookings.length,
+      confirmed,
+      received,
+      toCollect,
+      statuses: statusCountsForMonth,
+    };
+  }, [events, selectedDate]);
 
   return (
     <div className="w-full p-4">
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+        {/* Calendar */}
         <Card className="w-full py-0">
           <CardContent className="p-0">
             <EventCalendar
@@ -607,9 +734,16 @@ function Bookings() {
               renderEventTooltip={renderBookingTooltip}
               renderMoreIndicator={renderMoreIndicator}
               renderMonthCell={(props) =>
-                renderBookingMonthCell({ ...props, selectedDay: selectedDate })
+                renderBookingMonthCell({
+                  ...props,
+                  selectedDay: selectedDate,
+                })
               }
-              interactions={{ drag: false, resize: false, selectSlot: false }}
+              interactions={{
+                drag: false,
+                resize: false,
+                selectSlot: false,
+              }}
               onSlotClick={({ date }) => selectDate(date)}
               onEventClick={(occurrence) =>
                 selectDate(occurrence.start ?? occurrence.event.start)
@@ -624,37 +758,133 @@ function Bookings() {
               eventTooltip
               showDayAddButton={false}
               offDays
-              className="h-[620px] w-full"
+              className="h-[660px] w-full"
               classNames={{
+                monthDayHeader: "text-center",
                 monthCell: "cursor-pointer hover:bg-muted/40 transition-colors",
                 monthCellContent: "gap-1",
                 moreIndicator: "mt-0.5 px-1",
               }}
             >
-              <div className="flex flex-wrap items-center gap-2 pe-2">
-                <EventCalendarNav className="min-w-0 flex-1" />
+              {/* Calendar header */}
+              <div className="border-b bg-muted/10 px-3 pb-2">
+                <EventCalendarNav className="flex min-h-11 min-w-0 items-center justify-between gap-3">
+                  {/* Calendar navigation */}
+                  <div className="flex min-w-0 items-center gap-2">
+                    <EventCalendarNavToday className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" />
+
+                    <div className="mx-0.5 h-5 w-px shrink-0 bg-border" />
+
+                    <div className="flex min-w-0 items-center rounded-md border bg-background px-0.5 shadow-xs">
+                      <EventCalendarNavPrev />
+
+                      <EventCalendarTitle className="min-w-28 px-1 text-center text-sm font-semibold text-foreground sm:min-w-32" />
+
+                      <EventCalendarNavNext />
+                    </div>
+                  </div>
+
+                  {/* Financial overview */}
+                  <div className="flex shrink-0 items-center gap-3">
+                    <div className="min-w-20 text-right">
+                      <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Confirmed
+                      </p>
+
+                      <p className="mt-0.5 text-xs font-semibold tabular-nums text-foreground">
+                        {moneyFormatter.format(monthlySummary.confirmed)}
+                      </p>
+                    </div>
+
+                    <div className="h-7 w-px shrink-0 bg-border/80" />
+
+                    <div className="min-w-20 text-right">
+                      <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Received
+                      </p>
+
+                      <p className="mt-0.5 text-xs font-semibold tabular-nums text-foreground">
+                        {moneyFormatter.format(monthlySummary.received)}
+                      </p>
+                    </div>
+
+                    <div className="h-7 w-px shrink-0 bg-border/80" />
+
+                    <div className="min-w-20 text-right">
+                      <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+                        To Collect
+                      </p>
+
+                      <p className="mt-0.5 text-xs font-semibold tabular-nums text-foreground">
+                        {moneyFormatter.format(monthlySummary.toCollect)}
+                      </p>
+                    </div>
+                  </div>
+                </EventCalendarNav>
+
+                {/* Monthly booking overview */}
+                <div className="flex min-h-8 min-w-0 items-center justify-between gap-4 border-t border-border/50 pt-2">
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <CalendarCheck className="size-3.5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      Total bookings
+                    </span>
+                    <span className="rounded-sm bg-muted px-1.5 py-0.5 text-xs font-semibold leading-none tabular-nums text-foreground">
+                      {monthlySummary.total}
+                    </span>
+                  </div>
+
+                  <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                    {statusOrder
+                      .filter((status) => monthlySummary.statuses[status])
+                      .map((status) => (
+                        <div
+                          key={status}
+                          className="inline-flex items-center gap-1.5"
+                        >
+                          <span
+                            aria-hidden
+                            className={`size-1.5 rounded-full ${statusDots[status]}`}
+                          />
+
+                          <span className="text-xs capitalize text-muted-foreground">
+                            {statusLabels[status]}
+                          </span>
+
+                          <span className="text-xs font-semibold tabular-nums text-foreground">
+                            {monthlySummary.statuses[status]}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
               </div>
+
               <EventCalendarContent />
             </EventCalendar>
           </CardContent>
         </Card>
 
-        <Card className="flex h-[620px] flex-col gap-0 overflow-hidden py-0 shadow-sm">
+        {/* Selected date bookings */}
+        <Card className="flex h-[660px] flex-col gap-0 overflow-hidden py-0 shadow-sm">
           <CardHeader className="gap-2 border-b px-3 py-2.5">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <CardTitle className="truncate text-sm">
                   {format(selectedDate, "MMM d, yyyy")}
                 </CardTitle>
+
                 <CardDescription className="text-xs">
                   Selected schedule
                 </CardDescription>
               </div>
+
               <span className="shrink-0 rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
                 {selectedBookings.length} booking
                 {selectedBookings.length !== 1 ? "s" : ""}
               </span>
             </div>
+
             {selectedBookings.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {["all", ...statusOrder]
@@ -676,7 +906,9 @@ function Bookings() {
                           className={`size-1.5 rounded-full ${statusDots[status]}`}
                         />
                       )}
+
                       {status === "all" ? "All" : statusLabels[status]}
+
                       <span className="tabular-nums">
                         {selectedStatusCounts[status]}
                       </span>
@@ -685,6 +917,7 @@ function Bookings() {
               </div>
             )}
           </CardHeader>
+
           <CardContent className="min-h-0 flex-1 overflow-y-auto p-3">
             {selectedBookingsByStatus.length > 0 ? (
               <div className="space-y-3">
@@ -696,14 +929,17 @@ function Bookings() {
                           aria-hidden
                           className={`size-2 rounded-full ${statusDots[status]}`}
                         />
+
                         <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                           {statusLabels[status]}
                         </h3>
                       </div>
+
                       <span className="text-[11px] font-medium text-muted-foreground">
                         {bookings.length}
                       </span>
                     </div>
+
                     <div className="space-y-1.5">
                       {bookings.map((booking) => (
                         <BookingRow key={booking.id} booking={booking} />
@@ -716,6 +952,7 @@ function Bookings() {
               <div className="flex h-full items-center justify-center rounded-md border border-dashed p-6 text-center">
                 <div>
                   <p className="text-sm font-medium">No bookings</p>
+
                   <p className="mt-1 text-xs text-muted-foreground">
                     Select another day to review its bookings.
                   </p>
