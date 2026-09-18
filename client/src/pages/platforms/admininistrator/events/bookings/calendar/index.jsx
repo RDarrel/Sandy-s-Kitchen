@@ -20,11 +20,10 @@ const Calendar = ({
   setBookingSearch,
   setSearchOpen,
 }) => {
-  const { calendar, isLoadingCalendar: isLoadings } = useSelector(
+  const { calendar, isLoadingCalendar: isLoading } = useSelector(
     ({ bookings }) => bookings,
   );
   const dispatch = useDispatch();
-  const isLoading = false;
   return (
     <Card className="w-full py-0" key={"calendar"}>
       <CardContent className="p-0 relative">
