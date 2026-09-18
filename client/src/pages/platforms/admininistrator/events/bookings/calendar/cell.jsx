@@ -2,17 +2,11 @@ import { STATUS_BORDERS, STATUS_LABELS, STATUS_ORDER } from "../constant";
 import { format } from "date-fns";
 
 const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
-  const bookings = [...segments.allDay, ...segments.timed]
-    .map((segment) => segment.occurrence.event)
-    .filter((event) => event.meta);
-  console.log("segments", segments);
-  const statusCounts = bookings.reduce((counts, event) => {
-    const status = event.meta.status;
+  const bookings = [...segments.allDay, ...segments.timed].map(
+    (segment) => segment.occurrence.event,
+  );
 
-    counts[status] = (counts[status] || 0) + 1;
-
-    return counts;
-  }, {});
+  const statusCounts = bookings[0]?.statusCounts || {};
 
   const visibleStatuses = STATUS_ORDER.filter((status) => statusCounts[status]);
 

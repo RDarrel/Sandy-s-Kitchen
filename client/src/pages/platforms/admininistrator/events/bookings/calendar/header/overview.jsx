@@ -3,6 +3,7 @@ import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../../constant";
 import { Formatter } from "@/services/utilities";
 
 export const Monthly = ({ monthlySummary }) => {
+  console.log("monthlySummary", monthlySummary);
   return (
     <div className="flex min-h-8 min-w-0 flex-col gap-2 border-t border-border/50 pt-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <div className="flex shrink-0 items-center gap-1.5">

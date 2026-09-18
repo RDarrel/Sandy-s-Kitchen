@@ -13,9 +13,11 @@ exports.save = async (req, res) => {
     });
   }
 };
+
 exports.calendar = async (req, res) => {
   try {
     const { start, end } = req.query;
+
     const [result] = await Booking.aggregate([
       {
         $match: {
@@ -30,6 +32,7 @@ exports.calendar = async (req, res) => {
       {
         $facet: {
           calendar: [
+            // Count bookings per date and status
             {
               $group: {
                 _id: {
@@ -42,28 +45,34 @@ exports.calendar = async (req, res) => {
               },
             },
 
+            // Group all status counts under each date
             {
               $group: {
                 _id: "$_id.date",
 
-                bookings: {
+                statusCounts: {
                   $push: {
-                    status: "$_id.status",
-                    count: "$count",
+                    k: "$_id.status",
+                    v: "$count",
                   },
                 },
               },
             },
 
+            // Convert statusCounts array into an object
             {
               $project: {
                 _id: 0,
                 start: "$_id",
                 end: "$_id",
-                bookings: 1,
+
+                statusCounts: {
+                  $arrayToObject: "$statusCounts",
+                },
               },
             },
 
+            // Sort by date
             {
               $sort: {
                 start: 1,
@@ -72,6 +81,7 @@ exports.calendar = async (req, res) => {
           ],
 
           monthlyOverview: [
+            // Count bookings per status
             {
               $group: {
                 _id: "$status",
@@ -103,6 +113,7 @@ exports.calendar = async (req, res) => {
       success: true,
       data: {
         days: result.calendar,
+
         overview: {
           monthly: result.monthlyOverview,
           totalCount: result.totalBookings[0]?.count || 0,

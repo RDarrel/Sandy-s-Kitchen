@@ -33,7 +33,7 @@ const Calendar = ({
     <Card className="w-full py-0">
       <CardContent className="p-0">
         <EventCalendar
-          defaultEvents={calendar?.days?.map((day) => ({
+          events={(calendar?.days || []).map((day) => ({
             ...day,
             start: new Date(day?.start),
             end: new Date(day?.end),
