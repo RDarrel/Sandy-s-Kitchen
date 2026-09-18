@@ -5,10 +5,10 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { Formatter } from "@/services/utilities";
+import { format } from "date-fns";
+import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../constant";
 import EmptySchedule from "./emptySchedule";
 import Booking from "./booking";
-import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../constant";
 
 const Schedule = ({
   selectedBookings,
@@ -24,8 +24,8 @@ const Schedule = ({
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <CardTitle className="truncate text-sm">
-              {/* {format(selectedDate, "MMM d, yyyy")} */}
-              {Formatter.date(selectedDate)}
+              {format(selectedDate, "MMM d, yyyy")}
+              {/* {Formatter.date(selectedDate)} */}
             </CardTitle>
 
             <CardDescription className="text-xs">

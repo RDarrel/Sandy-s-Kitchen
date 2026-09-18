@@ -12,7 +12,6 @@ import {
 const Booking = ({ booking }) => {
   const meta = booking.meta;
   const service = SERVICE_BADGES[meta.service];
-  console.log("booking start", booking?.start);
   return (
     <div className="rounded-md border bg-background p-2.5 shadow-xs">
       <div className="flex items-start justify-between gap-2">
