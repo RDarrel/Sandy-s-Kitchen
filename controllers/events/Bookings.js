@@ -16,22 +16,35 @@ exports.save = async (req, res) => {
 
 exports.calendar = async (req, res) => {
   try {
-    const { start, end } = req.query;
+    const { start, end, monthStart, monthEnd } = req.query;
 
     const [result] = await Booking.aggregate([
+      // Exclude rejected bookings from everything
       {
         $match: {
           status: { $nin: ["rejected"] },
-          date: {
-            $gte: dateToUTC(start),
-            $lte: dateToUTC(end),
-          },
         },
       },
 
       {
         $facet: {
+          // Calendar visible range
           calendar: [
+            {
+              $match: {
+                date: {
+                  $gte: dateToUTC({
+                    date: start,
+                    dateOnly: true,
+                  }),
+                  $lt: dateToUTC({
+                    date: end,
+                    dateOnly: true,
+                  }),
+                },
+              },
+            },
+
             // Count bookings per date and status
             {
               $group: {
@@ -59,10 +72,11 @@ exports.calendar = async (req, res) => {
               },
             },
 
-            // Convert statusCounts array into an object
+            // Format calendar event
             {
               $project: {
                 _id: 0,
+
                 start: "$_id",
                 end: "$_id",
 
@@ -80,7 +94,23 @@ exports.calendar = async (req, res) => {
             },
           ],
 
+          // Exact selected month only
           monthlyOverview: [
+            {
+              $match: {
+                date: {
+                  $gte: dateToUTC({
+                    date: monthStart,
+                    dateOnly: true,
+                  }),
+                  $lt: dateToUTC({
+                    date: monthEnd,
+                    dateOnly: true,
+                  }),
+                },
+              },
+            },
+
             // Count bookings per status
             {
               $group: {
@@ -100,7 +130,23 @@ exports.calendar = async (req, res) => {
             },
           ],
 
+          // Total bookings for exact selected month
           totalBookings: [
+            {
+              $match: {
+                date: {
+                  $gte: dateToUTC({
+                    date: monthStart,
+                    dateOnly: true,
+                  }),
+                  $lt: dateToUTC({
+                    date: monthEnd,
+                    dateOnly: true,
+                  }),
+                },
+              },
+            },
+
             {
               $count: "count",
             },
@@ -125,5 +171,25 @@ exports.calendar = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+exports.schedule = async (req, res) => {
+  try {
+    const { date } = req.query;
+    const schedule = await Booking.find({
+      date: dateToUTC({ date, dateOnly: true }),
+      status: { $nin: ["rejected"] },
+    })
+      .populate("customer", "fullName")
+      .populate("catering.item")
+      .populate("venue.item");
+
+    return res.status(200).json({ data: schedule });
+  } catch (error) {
+    console.log("error", error.message);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch Schedule. Please try again." });
   }
 };

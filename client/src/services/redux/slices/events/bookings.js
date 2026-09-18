@@ -5,6 +5,7 @@ const url = "events/bookings";
 
 const initialState = {
   collections: [],
+  schedule: [],
   search: "",
   calendar: {
     days: [],
@@ -38,18 +39,41 @@ export const SAVE = createAsyncThunk(`${url}/save`, (data, thunkAPI) => {
   }
 });
 
-export const CALENDAR = createAsyncThunk(`${url}`, (query, thunkAPI) => {
-  try {
-    return axioKit.universal(`${url}/calendar`, query);
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
+export const CALENDAR = createAsyncThunk(
+  `${url}/calendar`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/calendar`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
 
-    return thunkAPI.rejectWithValue(message);
-  }
-});
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+export const SCHEDULE = createAsyncThunk(
+  `${url}/schedule`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/schedule`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
 export const reduxSlice = createSlice({
   name: url,
@@ -71,6 +95,21 @@ export const reduxSlice = createSlice({
         const { error } = action;
         state.message = error.message;
         state.isLoadingCalendar = false;
+      })
+      .addCase(SCHEDULE.pending, (state) => {
+        state.isLoadingSchedule = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(SCHEDULE.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.schedule = data;
+        state.isLoadingSchedule = false;
+      })
+      .addCase(SCHEDULE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingSchedule = false;
       })
       .addCase(SAVE.pending, (state) => {
         state.formSubmitted = true;

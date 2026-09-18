@@ -10,6 +10,7 @@ import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../constant";
 import EmptySchedule from "./emptySchedule";
 import Booking from "./booking";
 import ScheduleSkeleton from "./skeleton";
+import { useSelector } from "react-redux";
 
 const Schedule = ({
   selectedBookings,
@@ -18,8 +19,10 @@ const Schedule = ({
   selectedBookingsByStatus,
   statusFilter,
   setStatusFilter,
-  isLoading = false,
 }) => {
+  const { isLoadingSchedule: isLoading } = useSelector(
+    ({ bookings }) => bookings,
+  );
   if (isLoading) {
     return <ScheduleSkeleton selectedDate={selectedDate} />;
   }

@@ -7,10 +7,9 @@ import Header from "./header";
 import CalendarSkeleton from "./skeleton";
 import { Formatter } from "@/services/utilities";
 import { useDispatch, useSelector } from "react-redux";
-import { CALENDAR } from "@/services/redux/slices/events/bookings";
+import { CALENDAR, SCHEDULE } from "@/services/redux/slices/events/bookings";
 
 const Calendar = ({
-  events,
   selectedDate,
   selectDate,
   monthlySummary,
@@ -20,18 +19,16 @@ const Calendar = ({
   handleSearchResultClick,
   setBookingSearch,
   setSearchOpen,
-  isLoading = false,
 }) => {
-  const { calendar } = useSelector(({ bookings }) => bookings);
+  const { calendar, isLoadingCalendar: isLoading } = useSelector(
+    ({ bookings }) => bookings,
+  );
 
   const dispatch = useDispatch();
-  if (isLoading) {
-    return <CalendarSkeleton />;
-  }
 
   return (
-    <Card className="w-full py-0">
-      <CardContent className="p-0">
+    <Card className="w-full py-0" key={"calendar"}>
+      <CardContent className="p-0 relative">
         <EventCalendar
           events={(calendar?.days || []).map((day) => ({
             ...day,
@@ -52,15 +49,39 @@ const Calendar = ({
             resize: false,
             selectSlot: false,
           }}
-          onSlotClick={({ date }) => selectDate(date)}
+          onSlotClick={({ date }) =>
+            dispatch(SCHEDULE({ date: Formatter.localDate(new Date(date)) }))
+          }
           onEventClick={(occurrence) =>
             selectDate(occurrence.start ?? occurrence.event.start)
           }
           onRangeChange={({ range }) => {
+            const start = range.start;
+            const end = range.end;
+
+            // Get a date roughly in the middle of the visible calendar range
+            const middleDate = new Date((start.getTime() + end.getTime()) / 2);
+
+            // First day of displayed month
+            const monthStart = new Date(
+              middleDate.getFullYear(),
+              middleDate.getMonth(),
+              1,
+            );
+
+            // First day of next month (exclusive end)
+            const monthEnd = new Date(
+              middleDate.getFullYear(),
+              middleDate.getMonth() + 1,
+              1,
+            );
+
             dispatch(
               CALENDAR({
-                start: Formatter?.localDate(range?.start),
-                end: Formatter.localDate(range?.end),
+                start: Formatter.localDate(start),
+                end: Formatter.localDate(end),
+                monthStart: Formatter.localDate(monthStart),
+                monthEnd: Formatter.localDate(monthEnd),
               }),
             );
           }}
@@ -95,6 +116,11 @@ const Calendar = ({
 
           <EventCalendarContent />
         </EventCalendar>
+        {isLoading && (
+          <div className="absolute inset-0 z-50 overflow-hidden rounded-xl bg-background">
+            <CalendarSkeleton />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
