@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useState } from "react";
 import { EventCalendar } from "@/components/reui/event-calendar/event-calendar";
 import { EventCalendarContent } from "@/components/reui/event-calendar/event-calendar-content";
@@ -18,32 +16,18 @@ import {
   startOfDay,
   startOfWeek,
 } from "date-fns";
-import {
-  CalendarCheck,
-  Clock3,
-  MapPin,
-  Phone,
-  Search,
-  UsersRound,
-  X,
-} from "lucide-react";
+import { CalendarCheck, MapPin, Search, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import EmptyDay from "./emptyDay";
+import Schedule from "./schedule";
 
 const BOOKING_STREAMS = [
   {
@@ -514,121 +498,6 @@ function renderBookingMonthCell({
   );
 }
 
-function BookingRow({ booking }) {
-  const meta = booking.meta;
-  const service = serviceBadges[meta.service];
-
-  return (
-    <div className="rounded-md border bg-background p-2.5 shadow-xs">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <p className="truncate text-sm font-semibold leading-5">
-              {booking.title}
-            </p>
-
-            <Badge variant="secondary" className="shrink-0 capitalize">
-              {statusLabels[meta.status]}
-            </Badge>
-          </div>
-
-          <p className="truncate text-xs text-muted-foreground">
-            {meta.customer}
-          </p>
-        </div>
-
-        {service && (
-          <Badge
-            variant="outline"
-            className={`shrink-0 text-[10px] ${service.className}`}
-          >
-            {service.label}
-          </Badge>
-        )}
-      </div>
-
-      <div className="mt-2 grid gap-1.5 text-xs text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <Clock3 className={`size-3.5 shrink-0 ${statusText[meta.status]}`} />
-
-          <span className="font-medium text-foreground">
-            {format(booking.start, "h:mm a")} - {format(booking.end, "h:mm a")}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <MapPin className="size-3.5 shrink-0" />
-
-          <span className="truncate font-medium text-foreground">
-            {meta.venue}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between gap-3">
-          <span className="flex items-center gap-2">
-            <UsersRound className="size-3.5 shrink-0" />
-
-            <span className="font-medium text-foreground">
-              {meta.guests} pax
-            </span>
-          </span>
-
-          <span className="flex min-w-0 items-center gap-2">
-            <Phone className="size-3.5 shrink-0" />
-
-            <span className="truncate font-medium text-foreground">
-              {meta.contact}
-            </span>
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between gap-3">
-          <span className="truncate text-muted-foreground">{meta.service}</span>
-
-          <Badge
-            variant="outline"
-            className={`capitalize ${paymentStyles[meta.payment]}`}
-          >
-            {meta.payment}
-          </Badge>
-        </div>
-      </div>
-
-      <div className="mt-2 flex flex-wrap justify-end gap-1.5 border-t pt-2">
-        <Button type="button" variant="outline" size="sm" className="h-7 px-2">
-          View
-        </Button>
-
-        {meta.status === "pending" ? (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 px-2"
-            >
-              Reject
-            </Button>
-
-            <Button type="button" size="sm" className="h-7 px-2.5">
-              Approve
-            </Button>
-          </>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 px-2"
-          >
-            Manage
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function Bookings() {
   const events = useMemo(() => buildBookingEvents(new Date()), []);
 
@@ -1079,93 +948,14 @@ function Bookings() {
         </Card>
 
         {/* Selected date bookings */}
-        <Card className="flex h-[660px] flex-col gap-0 overflow-hidden py-0 shadow-sm">
-          <CardHeader className="gap-2 border-b px-3 py-2.5">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <CardTitle className="truncate text-sm">
-                  {format(selectedDate, "MMM d, yyyy")}
-                </CardTitle>
-
-                <CardDescription className="text-xs">
-                  Selected schedule
-                </CardDescription>
-              </div>
-
-              <span className="shrink-0 rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                {selectedBookings.length} booking
-                {selectedBookings.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-
-            {selectedBookings.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {["all", ...statusOrder]
-                  .filter((status) => selectedStatusCounts[status])
-                  .map((status) => (
-                    <button
-                      key={status}
-                      type="button"
-                      onClick={() => setStatusFilter(status)}
-                      className={`inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[11px] font-medium capitalize transition-colors ${
-                        statusFilter === status
-                          ? "border-primary bg-primary text-primary-foreground shadow-xs"
-                          : "bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
-                    >
-                      {status !== "all" && (
-                        <span
-                          aria-hidden
-                          className={`size-1.5 rounded-full ${statusDots[status]}`}
-                        />
-                      )}
-
-                      {status === "all" ? "All" : statusLabels[status]}
-
-                      <span className="tabular-nums">
-                        {selectedStatusCounts[status]}
-                      </span>
-                    </button>
-                  ))}
-              </div>
-            )}
-          </CardHeader>
-
-          <CardContent className="min-h-0 flex-1 overflow-y-auto p-3">
-            {selectedBookingsByStatus.length > 0 ? (
-              <div className="space-y-3">
-                {selectedBookingsByStatus.map(({ status, bookings }) => (
-                  <section key={status} className="space-y-2">
-                    <div className="sticky top-0 z-10 flex items-center justify-between rounded-md bg-background/95 px-2 py-1 backdrop-blur">
-                      <div className="flex items-center gap-2">
-                        <span
-                          aria-hidden
-                          className={`size-2 rounded-full ${statusDots[status]}`}
-                        />
-
-                        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          {statusLabels[status]}
-                        </h3>
-                      </div>
-
-                      <span className="text-[11px] font-medium text-muted-foreground">
-                        {bookings.length}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      {bookings.map((booking) => (
-                        <BookingRow key={booking.id} booking={booking} />
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            ) : (
-              <EmptyDay />
-            )}
-          </CardContent>
-        </Card>
+        <Schedule
+          selectedBookings={selectedBookings}
+          selectedDate={selectDate}
+          selectedStatusCounts={selectedStatusCounts}
+          selectedBookingsByStatus={selectedBookingsByStatus}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+        />
       </div>
     </div>
   );

@@ -91,7 +91,7 @@ function CalendarIllustration() {
   );
 }
 
-const EmptyDay = () => {
+const EmptySchedule = () => {
   return (
     <div className="flex items-center border border-dashed rounded-md justify-center h-full  p-4">
       <Empty className="py-12">
@@ -109,4 +109,4 @@ const EmptyDay = () => {
   );
 };
 
-export default EmptyDay;
+export default EmptySchedule;
