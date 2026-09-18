@@ -189,7 +189,7 @@ function Bookings() {
   const [statusFilter, setStatusFilter] = useState("pending");
   const [bookingSearch, setBookingSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const isLoadingBookings = true;
+  const isLoadingBookings = false;
 
   const selectDate = (date) => {
     const key = format(date, "yyyy-MM-dd");
@@ -316,7 +316,6 @@ function Bookings() {
       statuses: statusCountsForMonth,
     };
   }, [events, selectedDate]);
-
   return (
     <div className="w-full p-4">
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">

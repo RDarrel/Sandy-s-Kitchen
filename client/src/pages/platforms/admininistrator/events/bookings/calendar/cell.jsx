@@ -5,7 +5,7 @@ const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
   const bookings = [...segments.allDay, ...segments.timed]
     .map((segment) => segment.occurrence.event)
     .filter((event) => event.meta);
-
+  console.log("segments", segments);
   const statusCounts = bookings.reduce((counts, event) => {
     const status = event.meta.status;
 

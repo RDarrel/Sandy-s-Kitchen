@@ -5,6 +5,9 @@ import { BOOKING_STREAMS } from "../constant";
 import Cell from "./cell";
 import Header from "./header";
 import CalendarSkeleton from "./skeleton";
+import { Formatter } from "@/services/utilities";
+import { useDispatch, useSelector } from "react-redux";
+import { CALENDAR } from "@/services/redux/slices/events/bookings";
 
 const Calendar = ({
   events,
@@ -19,6 +22,9 @@ const Calendar = ({
   setSearchOpen,
   isLoading = false,
 }) => {
+  const { calendar } = useSelector(({ bookings }) => bookings);
+
+  const dispatch = useDispatch();
   if (isLoading) {
     return <CalendarSkeleton />;
   }
@@ -27,7 +33,11 @@ const Calendar = ({
     <Card className="w-full py-0">
       <CardContent className="p-0">
         <EventCalendar
-          defaultEvents={events}
+          defaultEvents={calendar?.days?.map((day) => ({
+            ...day,
+            start: new Date(day?.start),
+            end: new Date(day?.end),
+          }))}
           defaultView="month"
           resources={BOOKING_STREAMS}
           renderMoreIndicator={renderMoreIndicator}
@@ -46,6 +56,14 @@ const Calendar = ({
           onEventClick={(occurrence) =>
             selectDate(occurrence.start ?? occurrence.event.start)
           }
+          onRangeChange={({ range }) => {
+            dispatch(
+              CALENDAR({
+                start: Formatter?.localDate(range?.start),
+                end: Formatter.localDate(range?.end),
+              }),
+            );
+          }}
           maxEventsPerCell={3}
           viewSettings={{
             weekends: true,

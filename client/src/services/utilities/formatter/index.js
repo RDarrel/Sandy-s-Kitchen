@@ -5,6 +5,7 @@ import time from "./time";
 import packageIncluded from "./packageIncluded";
 import duration from "./duration";
 import preferredContact from "./preferredContact";
+import localDate from "./localDate";
 const Formatter = {
   amount,
   date,
@@ -13,6 +14,7 @@ const Formatter = {
   time,
   duration,
   preferredContact,
+  localDate,
 };
 
 export default Formatter;

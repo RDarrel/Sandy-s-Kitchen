@@ -6,11 +6,12 @@ const url = "events/bookings";
 const initialState = {
   collections: [],
   search: "",
-  params: {
-    type: "",
-    category: "",
-    measurement: "",
-    status: "",
+  calendar: {
+    days: [],
+    overview: {
+      monthly: [],
+      totalCount: 0,
+    },
   },
   filtered: [],
   selected: {},
@@ -19,6 +20,8 @@ const initialState = {
   formSubmitted: false,
   isSuccess: false,
   isLoading: false,
+  isLoadingCalendar: false,
+  isLoadingSchedule: false,
   message: "",
 };
 
@@ -35,9 +38,9 @@ export const SAVE = createAsyncThunk(`${url}/save`, (data, thunkAPI) => {
   }
 });
 
-export const BROWSE = createAsyncThunk(`${url}`, (_, thunkAPI) => {
+export const CALENDAR = createAsyncThunk(`${url}`, (query, thunkAPI) => {
   try {
-    return axioKit.universal(`${url}/browse`);
+    return axioKit.universal(`${url}/calendar`, query);
   } catch (error) {
     const message =
       (error.response && error.response.data && error.response.data.message) ||
@@ -54,20 +57,20 @@ export const reduxSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(BROWSE.pending, (state) => {
-        state.isLoading = true;
+      .addCase(CALENDAR.pending, (state) => {
+        state.isLoadingCalendar = true;
         state.isSuccess = false;
         state.message = "";
       })
-      .addCase(BROWSE.fulfilled, (state, action) => {
+      .addCase(CALENDAR.fulfilled, (state, action) => {
         const { data } = action.payload;
-        state.collections = state.filtered = data;
-        state.isLoading = false;
+        state.calendar = data;
+        state.isLoadingCalendar = false;
       })
-      .addCase(BROWSE.rejected, (state, action) => {
+      .addCase(CALENDAR.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
-        state.isLoading = false;
+        state.isLoadingCalendar = false;
       })
       .addCase(SAVE.pending, (state) => {
         state.formSubmitted = true;
