@@ -348,7 +348,7 @@ const CreateOrderCart = () => {
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-1 pt-0 -mt-6">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-1 pt-0 ">
         <div
           className={
             cart.length

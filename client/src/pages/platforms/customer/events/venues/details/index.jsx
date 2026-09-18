@@ -36,7 +36,7 @@ const Details = ({
         </Button>
 
         <Card className={"bg-card"}>
-          <CardContent className={"grid gap-5 relative px-3 md:px-5 py-4  "}>
+          <CardContent className={"grid gap-5 relative px-3 md:px-5  "}>
             <Header selected={selected} />
             <Body selected={selected} />
             <Footer
