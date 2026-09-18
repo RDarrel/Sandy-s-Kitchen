@@ -47,9 +47,10 @@ const Calendar = ({
             resize: false,
             selectSlot: false,
           }}
-          onSlotClick={({ date }) =>
-            dispatch(SCHEDULE({ date: Formatter.localDate(new Date(date)) }))
-          }
+          onSlotClick={({ date }) => {
+            dispatch(SCHEDULE({ date: Formatter.localDate(new Date(date)) }));
+            selectDate(date);
+          }}
           onEventClick={(occurrence) =>
             selectDate(occurrence.start ?? occurrence.event.start)
           }
