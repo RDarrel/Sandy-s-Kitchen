@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../constant";
 import EmptySchedule from "./emptySchedule";
 import Booking from "./booking";
+import ScheduleSkeleton from "./skeleton";
 
 const Schedule = ({
   selectedBookings,
@@ -17,7 +18,12 @@ const Schedule = ({
   selectedBookingsByStatus,
   statusFilter,
   setStatusFilter,
+  isLoading = false,
 }) => {
+  if (isLoading) {
+    return <ScheduleSkeleton selectedDate={selectedDate} />;
+  }
+
   return (
     <Card className="flex h-[660px] flex-col gap-0 overflow-hidden py-0 shadow-sm">
       <CardHeader className="gap-3 border-b px-3 !pb-0 pt-2.5">

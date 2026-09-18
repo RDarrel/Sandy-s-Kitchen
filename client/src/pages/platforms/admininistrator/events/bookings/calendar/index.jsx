@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BOOKING_STREAMS } from "../constant";
 import Cell from "./cell";
 import Header from "./header";
+import CalendarSkeleton from "./skeleton";
 
 const Calendar = ({
   events,
@@ -16,7 +17,12 @@ const Calendar = ({
   handleSearchResultClick,
   setBookingSearch,
   setSearchOpen,
+  isLoading = false,
 }) => {
+  if (isLoading) {
+    return <CalendarSkeleton />;
+  }
+
   return (
     <Card className="w-full py-0">
       <CardContent className="p-0">

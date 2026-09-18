@@ -189,6 +189,7 @@ function Bookings() {
   const [statusFilter, setStatusFilter] = useState("pending");
   const [bookingSearch, setBookingSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const isLoadingBookings = true;
 
   const selectDate = (date) => {
     const key = format(date, "yyyy-MM-dd");
@@ -331,6 +332,7 @@ function Bookings() {
           handleSearchResultClick={handleSearchResultClick}
           setBookingSearch={setBookingSearch}
           setSearchOpen={setSearchOpen}
+          isLoading={isLoadingBookings}
         />
 
         {/* Selected date bookings */}
@@ -341,6 +343,7 @@ function Bookings() {
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
           selectedDate={selectedDate}
+          isLoading={isLoadingBookings}
         />
       </div>
     </div>
