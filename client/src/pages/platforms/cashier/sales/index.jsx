@@ -15,7 +15,7 @@ import {
 import { format } from "@/services/utilities";
 import { useSelector } from "react-redux";
 import ViewReceiptModal from "@/components/shared/view-receipt";
-import TableLoading from "@/components/shared/loading/table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const formatDateTime = (value) => {
   try {
@@ -40,6 +40,30 @@ const SummaryLine = ({ label, value }) => (
     </span>
   </div>
 );
+
+const SalesTableLoadingRows = () =>
+  new Array(5).fill("").map((_, rowIndex) => (
+    <TableRow key={rowIndex}>
+      <TableCell>
+        <Skeleton className="h-5 w-full" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-5 w-24" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="ml-auto h-5 w-10" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="ml-auto h-5 w-24" />
+      </TableCell>
+      <TableCell>
+        <div className="flex justify-center gap-1">
+          <Skeleton className="h-8 w-8 rounded-lg" />
+          <Skeleton className="h-8 w-8 rounded-lg" />
+        </div>
+      </TableCell>
+    </TableRow>
+  ));
 
 const Sales = () => {
   const { sales, isLoadingSales } = useSelector(({ cashier }) => cashier);
@@ -148,7 +172,7 @@ const Sales = () => {
               </TableHeader>
               <TableBody>
                 {isLoadingSales ? (
-                  <TableLoading />
+                  <SalesTableLoadingRows />
                 ) : filteredRows.length ? (
                   filteredRows.map((row) => (
                     <TableRow key={row.id}>
