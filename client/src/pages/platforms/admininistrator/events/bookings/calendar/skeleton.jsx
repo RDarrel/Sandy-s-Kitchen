@@ -1,7 +1,7 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const dayHeaders = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const totalCells = 42;
 const bookedCells = new Set([2, 10, 17, 18, 20, 27, 33]);
 const selectedCell = 17;
 
@@ -14,7 +14,7 @@ const getStatusRowCount = (index) => {
 
 const CalendarSkeleton = () => {
   return (
-    <div className="h-[660px] w-full overflow-hidden">
+    <div className="flex h-full min-h-[660px] w-full flex-col overflow-hidden">
       <div className="relative z-50 border-b bg-muted/10 px-2 pb-2 sm:px-3">
         <div className="flex min-w-0 flex-col items-stretch gap-2 py-2 sm:min-h-11 sm:flex-row sm:items-center sm:justify-between sm:py-0 xl:flex-nowrap xl:gap-3">
           <div className="flex min-h-8 min-w-0 flex-1 items-center gap-2">
@@ -67,10 +67,10 @@ const CalendarSkeleton = () => {
         ))}
       </div>
 
-      <div className="grid h-[calc(660px-116px)] grid-cols-7 grid-rows-5">
-        {new Array(35).fill("").map((_, index) => {
+      <div className="grid min-h-0 flex-1 grid-cols-7 grid-rows-6">
+        {new Array(totalCells).fill("").map((_, index) => {
           const isLastColumn = (index + 1) % 7 === 0;
-          const isLastRow = index >= 28;
+          const isLastRow = index >= totalCells - 7;
 
           return (
             <div

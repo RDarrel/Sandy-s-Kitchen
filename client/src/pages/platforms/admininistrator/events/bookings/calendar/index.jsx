@@ -20,12 +20,11 @@ const Calendar = ({
   setBookingSearch,
   setSearchOpen,
 }) => {
-  const { calendar, isLoadingCalendar: isLoading } = useSelector(
+  const { calendar, isLoadingCalendar: isLoadings } = useSelector(
     ({ bookings }) => bookings,
   );
-
   const dispatch = useDispatch();
-
+  const isLoading = false;
   return (
     <Card className="w-full py-0" key={"calendar"}>
       <CardContent className="p-0 relative">
@@ -117,7 +116,7 @@ const Calendar = ({
           <EventCalendarContent />
         </EventCalendar>
         {isLoading && (
-          <div className="absolute inset-0 z-50 overflow-hidden rounded-xl bg-background">
+          <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden rounded-xl">
             <CalendarSkeleton />
           </div>
         )}
