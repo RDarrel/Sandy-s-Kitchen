@@ -81,28 +81,44 @@ export const PAYMENT_STYLES = {
 };
 
 export const SERVICE_BADGES = {
-  "Catering + Venue": {
+  both: {
     label: "C+V",
     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
   },
-  "Dinner buffet + venue": {
-    label: "C+V",
-    className: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  },
-  "Venue reservation": {
+  venue: {
     label: "VEN",
     className: "border-amber-200 bg-amber-50 text-amber-700",
   },
-  "Packed buffet": {
+
+  catering: {
     label: "CAT",
     className: "border-rose-200 bg-rose-50 text-rose-700",
-  },
-  "Catering only": {
-    label: "CAT",
-    className: "border-rose-200 bg-rose-50 text-rose-700",
-  },
-  "Blocked venue": {
-    label: "BLK",
-    className: "border-slate-200 bg-slate-50 text-slate-700",
   },
 };
+
+// export const SERVICE_BADGES = {
+//   "Catering + Venue": {
+//     label: "C+V",
+//     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+//   },
+//   "Dinner buffet + venue": {
+//     label: "C+V",
+//     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+//   },
+//   "Venue reservation": {
+//     label: "VEN",
+//     className: "border-amber-200 bg-amber-50 text-amber-700",
+//   },
+//   "Packed buffet": {
+//     label: "CAT",
+//     className: "border-rose-200 bg-rose-50 text-rose-700",
+//   },
+//   "Catering only": {
+//     label: "CAT",
+//     className: "border-rose-200 bg-rose-50 text-rose-700",
+//   },
+//   "Blocked venue": {
+//     label: "BLK",
+//     className: "border-slate-200 bg-slate-50 text-slate-700",
+//   },
+// };

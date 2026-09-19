@@ -177,6 +177,7 @@ exports.calendar = async (req, res) => {
 exports.schedule = async (req, res) => {
   try {
     const { date } = req.query;
+
     const schedule = await Booking.find({
       date: dateToUTC({ date, dateOnly: true }),
       status: { $nin: ["rejected"] },
@@ -185,11 +186,33 @@ exports.schedule = async (req, res) => {
       .populate("catering.item")
       .populate("venue.item");
 
-    return res.status(200).json({ data: schedule });
+    const statusOrder = ["pending", "approved", "done"];
+
+    const groupedSchedule = schedule.reduce((acc, booking) => {
+      const status = booking.status;
+
+      if (!acc[status]) {
+        acc[status] = [];
+      }
+
+      acc[status].push(booking);
+
+      return acc;
+    }, {});
+
+    const sortedSchedule = Object.fromEntries(
+      statusOrder
+        .filter((status) => groupedSchedule[status])
+        .map((status) => [status, groupedSchedule[status]]),
+    );
+    return res.status(200).json({
+      data: sortedSchedule,
+    });
   } catch (error) {
     console.log("error", error.message);
-    res
-      .status(500)
-      .json({ error: "Failed to fetch Schedule. Please try again." });
+
+    return res.status(500).json({
+      error: "Failed to fetch Schedule. Please try again.",
+    });
   }
 };

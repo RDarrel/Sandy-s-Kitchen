@@ -11,6 +11,7 @@ import EmptySchedule from "./emptySchedule";
 import Booking from "./booking";
 import ScheduleSkeleton from "./skeleton";
 import { useSelector } from "react-redux";
+import { useMemo, useState } from "react";
 
 const Schedule = ({
   selectedBookings,
@@ -20,9 +21,22 @@ const Schedule = ({
   statusFilter,
   setStatusFilter,
 }) => {
-  const { isLoadingSchedule: isLoading } = useSelector(
+  const { isLoadingSchedule: isLoading, schedule = {} } = useSelector(
     ({ bookings }) => bookings,
   );
+  const [activeStatus, setActiveStatus] = useState("all");
+  const { filtered, count, statusHeader } = useMemo(() => {
+    const bookings =
+      activeStatus === "all"
+        ? schedule
+        : { [activeStatus]: schedule[activeStatus] || [] };
+    const bookingsArray = Object.values(bookings)?.flat();
+    return {
+      filtered: bookings,
+      count: bookingsArray?.length,
+      statusHeader: { all: bookingsArray, ...bookings },
+    };
+  }, [activeStatus, schedule]);
   if (isLoading) {
     return <ScheduleSkeleton selectedDate={selectedDate} />;
   }
@@ -43,15 +57,15 @@ const Schedule = ({
           </div>
 
           <span className="shrink-0 rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
-            {selectedBookings.length} booking
-            {selectedBookings.length !== 1 ? "s" : ""}
+            {count} booking
+            {count !== 1 ? "s" : ""}
           </span>
         </div>
 
-        {selectedBookings.length > 0 && (
+        {count > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
             {["all", ...STATUS_ORDER]
-              .filter((status) => selectedStatusCounts[status])
+              .filter((status) => statusHeader[status])
               .map((status) => (
                 <button
                   key={status}
@@ -73,7 +87,7 @@ const Schedule = ({
                   {status === "all" ? "All" : STATUS_LABELS[status]}
 
                   <span className="tabular-nums">
-                    {selectedStatusCounts[status]}
+                    {statusHeader[status]?.length}
                   </span>
                 </button>
               ))}
@@ -82,9 +96,9 @@ const Schedule = ({
       </CardHeader>
 
       <CardContent className="min-h-0 flex-1 overflow-y-auto p-3">
-        {selectedBookingsByStatus.length > 0 ? (
+        {count > 0 ? (
           <div className="space-y-3">
-            {selectedBookingsByStatus.map(({ status, bookings }) => (
+            {Object.entries(filtered).map(([status, bookings]) => (
               <section key={status} className="space-y-2">
                 <div className="sticky top-0 z-10 flex items-center justify-between rounded-md bg-background/95 px-2 py-1 backdrop-blur">
                   <div className="flex items-center gap-2">
@@ -105,7 +119,7 @@ const Schedule = ({
 
                 <div className="space-y-1.5">
                   {bookings.map((booking) => (
-                    <Booking key={booking.id} booking={booking} />
+                    <Booking key={booking._id} booking={booking} />
                   ))}
                 </div>
               </section>
