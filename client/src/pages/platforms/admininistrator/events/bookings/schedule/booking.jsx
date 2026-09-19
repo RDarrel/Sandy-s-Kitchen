@@ -19,10 +19,16 @@ const PAYMENT_TEXT_STYLES = {
   refunded: "text-slate-700",
 };
 
+const PAYMENT_SUMMARY_STYLES = {
+  paid: "border-emerald-200 bg-emerald-50/70",
+  partial: "border-blue-200 bg-blue-50/70",
+  unpaid: "border-rose-200 bg-rose-50/70",
+  refunded: "border-slate-200 bg-slate-50/70",
+};
+
 const paymentStatus = "paid";
 
 const Booking = ({ booking }) => {
-  const meta = booking.meta;
   const service = SERVICE_BADGES[booking.bookingType];
   const payment = getPaymentInfo(booking, paymentStatus);
   const isBoth = booking.bookingType === "both";
@@ -33,15 +39,14 @@ const Booking = ({ booking }) => {
       return booking?.venue?.item?.address;
     return booking?.catering?.venue?.location;
   };
+
   return (
-    <div className="rounded-md border bg-background p-2.5 shadow-xs">
-      <div className="flex items-start justify-between gap-2">
+    <div className="overflow-hidden rounded-md border bg-background shadow-xs">
+      <div className="flex items-start justify-between gap-2 px-2.5 pt-2.5">
         <div className="min-w-0">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <p className="truncate text-sm font-semibold leading-5">
-              {booking?.eventType}
-            </p>
-          </div>
+          <p className="truncate text-sm font-semibold leading-5">
+            {booking?.eventType}
+          </p>
 
           <p className="truncate text-xs text-muted-foreground">
             {fullName(booking?.customer?.fullName)}
@@ -50,51 +55,44 @@ const Booking = ({ booking }) => {
 
         <Badge
           variant="outline"
-          className={`shrink-0 text-[10px] ${service?.className}`}
+          className={`mt-0.5 shrink-0 text-[10px] ${service?.className}`}
         >
           {service.label}
         </Badge>
       </div>
 
-      <div className="mt-2 grid gap-1.5 text-xs text-muted-foreground">
+      <div className="grid gap-1.5 px-2.5 py-2 text-xs text-muted-foreground">
         <Time booking={booking} />
 
-        <div className="flex items-center gap-2">
-          <MapPin className="size-3.5 shrink-0" />
+        <div className="grid gap-1.5">
+          <InfoLine
+            icon={
+              <MapPin className="size-3.5 shrink-0 text-muted-foreground" />
+            }
+            value={getLocation()}
+          />
 
-          <span className="truncate font-medium text-foreground">
-            {getLocation()}
-          </span>
-        </div>
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+            <InfoLine
+              icon={
+                <Phone className="size-3.5 shrink-0 text-muted-foreground" />
+              }
+              value={booking.contact?.phone}
+            />
 
-        <div className="flex min-w-0 items-center justify-between gap-3">
-          {!isBoth && (
-            <span className="flex shrink-0 items-center gap-2">
-              <UsersRound className="size-3.5 shrink-0" />
-
-              <span className="font-medium text-foreground">{pax} pax</span>
-            </span>
-          )}
-
-          <span className="flex min-w-0 items-center gap-2">
-            <Phone className="size-3.5 shrink-0" />
-
-            <span className="truncate font-medium text-foreground">
-              {booking.contact?.phone}
-            </span>
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between gap-3">
-          <span className="truncate text-muted-foreground">
-            {meta?.service}
-          </span>
+            {!isBoth && (
+              <span className="flex shrink-0 items-center gap-1.5 font-medium text-foreground">
+                <UsersRound className="size-3.5 shrink-0 text-muted-foreground" />
+                {pax} pax
+              </span>
+            )}
+          </div>
         </div>
 
         <PaymentSummary payment={payment} />
       </div>
 
-      <div className="mt-2 flex flex-wrap justify-end gap-1.5 border-t pt-2">
+      <div className="flex flex-wrap justify-end gap-1.5 border-t bg-muted/10 px-2.5 py-2">
         <Button type="button" variant="outline" size="sm" className="h-7 px-2">
           View
         </Button>
@@ -131,13 +129,25 @@ const Booking = ({ booking }) => {
 
 export default Booking;
 
+const InfoLine = ({ icon, value }) => (
+  <span className="flex min-w-0 items-center gap-2">
+    {icon}
+
+    <span className="truncate font-medium text-foreground">{value}</span>
+  </span>
+);
+
 const getPaymentInfo = (booking, statusOverride) => {
   const total = Number(booking?.pricing?.total ?? booking?.meta?.amount ?? 0);
   const received = Number(
     booking?.payment?.amount ?? booking?.meta?.received ?? 0,
   );
   const normalizedReceived =
-    statusOverride === "paid" ? total : statusOverride === "unpaid" ? 0 : received;
+    statusOverride === "paid"
+      ? total
+      : statusOverride === "unpaid"
+        ? 0
+        : received;
   const balance = Math.max(total - normalizedReceived, 0);
   const rawStatus = booking?.payment?.status || booking?.meta?.payment;
   const status =
@@ -154,7 +164,6 @@ const getPaymentInfo = (booking, statusOverride) => {
     received: normalizedReceived,
     balance,
     status,
-    label: status === "unpaid" ? "No payment" : status,
   };
 };
 
@@ -162,29 +171,48 @@ const PaymentSummary = ({ payment }) => {
   const isPaid = payment.status === "paid";
   const hasPayment = payment.received > 0;
   const statusStyle = PAYMENT_TEXT_STYLES[payment.status] || "text-foreground";
+  const summaryStyle =
+    PAYMENT_SUMMARY_STYLES[payment.status] || "border-border bg-muted/25";
+  const label = isPaid
+    ? "Paid in full"
+    : hasPayment
+      ? "Partial payment"
+      : "No payment yet";
+  const amountLabel = isPaid
+    ? Formatter.amount(payment.total)
+    : `Bal. ${Formatter.amount(payment.balance)}`;
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md bg-muted/25 px-2 py-1.5">
-      <span className="flex min-w-0 items-center gap-2">
-        <Wallet className="size-3.5 shrink-0 text-muted-foreground" />
+    <div
+      className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md border px-2 py-1.5 ${summaryStyle}`}
+    >
+      <div className="flex min-w-0 items-center gap-2">
+        <Wallet className={`size-3.5 shrink-0 ${statusStyle}`} />
 
-        <span className="min-w-0 truncate">
-          <span className={`font-medium ${statusStyle}`}>{payment.label}</span>
-          <span className="text-muted-foreground">
+        <div className="min-w-0">
+          <p className={`truncate font-medium leading-4 ${statusStyle}`}>
+            {label}
+          </p>
+
+          <p className="truncate text-[11px] leading-4 text-muted-foreground">
             {isPaid
-              ? " · full"
+              ? "Payment settled"
               : hasPayment
-                ? ` · Rec. ${Formatter.amount(payment.received)}`
-                : " · none yet"}
-          </span>
-        </span>
-      </span>
+                ? `Received ${Formatter.amount(payment.received)}`
+                : `Total ${Formatter.amount(payment.total)}`}
+          </p>
+        </div>
+      </div>
 
-      <span className="shrink-0 text-right font-medium text-foreground">
-        {isPaid
-          ? Formatter.amount(payment.total)
-          : `Bal. ${Formatter.amount(payment.balance)}`}
-      </span>
+      <div className="shrink-0 text-right">
+        <p className="font-semibold leading-4 text-foreground">{amountLabel}</p>
+
+        {!isPaid && (
+          <p className="text-[11px] leading-4 text-muted-foreground">
+            to collect
+          </p>
+        )}
+      </div>
     </div>
   );
 };
@@ -193,9 +221,10 @@ const Time = ({ booking }) => {
   const { bookingType, catering, venue } = booking;
   const isBoth = bookingType === "both";
   const time = booking[bookingType]?.time || {};
+
   if (isBoth) {
     return (
-      <div className="grid gap-1 rounded-md border bg-muted/20 p-1.5">
+      <div className="grid gap-1 rounded-md border bg-muted/15 p-1.5">
         <ServiceTimeRow
           icon={
             <Building2
@@ -220,6 +249,7 @@ const Time = ({ booking }) => {
       </div>
     );
   }
+
   return (
     <div className="flex items-center gap-2">
       <Clock3 className={`size-3.5 shrink-0 ${STATUS_TEXT[booking.status]}`} />
