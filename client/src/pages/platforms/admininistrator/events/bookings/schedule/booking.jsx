@@ -2,7 +2,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Formatter, fullName } from "@/services/utilities";
 import {
-  Phone,
   UsersRound,
   MapPin,
   Clock3,
@@ -32,7 +31,6 @@ const Booking = ({ booking }) => {
   const service = SERVICE_BADGES[booking.bookingType];
   const payment = getPaymentInfo(booking, paymentStatus);
   const isBoth = booking.bookingType === "both";
-  const pax = booking[booking.bookingType]?.pax;
 
   const getLocation = () => {
     if (isBoth || booking.bookingType === "venue")
@@ -71,22 +69,6 @@ const Booking = ({ booking }) => {
             }
             value={getLocation()}
           />
-
-          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-            <InfoLine
-              icon={
-                <Phone className="size-3.5 shrink-0 text-muted-foreground" />
-              }
-              value={booking.contact?.phone}
-            />
-
-            {!isBoth && (
-              <span className="flex shrink-0 items-center gap-1.5 font-medium text-foreground">
-                <UsersRound className="size-3.5 shrink-0 text-muted-foreground" />
-                {pax} pax
-              </span>
-            )}
-          </div>
         </div>
 
         <PaymentSummary payment={payment} />
@@ -251,11 +233,20 @@ const Time = ({ booking }) => {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Clock3 className={`size-3.5 shrink-0 ${STATUS_TEXT[booking.status]}`} />
+    <div className="flex items-center justify-between gap-3">
+      <span className="flex min-w-0 items-center gap-2">
+        <Clock3
+          className={`size-3.5 shrink-0 ${STATUS_TEXT[booking.status]}`}
+        />
 
-      <span className="font-medium text-foreground">
-        {Formatter.time(time.start)} - {Formatter.time(time.end)}
+        <span className="truncate font-medium text-foreground">
+          {Formatter.time(time.start)} - {Formatter.time(time.end)}
+        </span>
+      </span>
+
+      <span className="flex shrink-0 items-center gap-1 font-medium text-foreground">
+        <UsersRound className="size-3.5 text-muted-foreground" />
+        {booking[bookingType]?.pax} pax
       </span>
     </div>
   );
