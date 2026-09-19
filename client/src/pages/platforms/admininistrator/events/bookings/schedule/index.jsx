@@ -13,14 +13,7 @@ import ScheduleSkeleton from "./skeleton";
 import { useSelector } from "react-redux";
 import { useMemo, useState } from "react";
 
-const Schedule = ({
-  selectedBookings,
-  selectedDate,
-  selectedStatusCounts,
-  selectedBookingsByStatus,
-  statusFilter,
-  setStatusFilter,
-}) => {
+const Schedule = ({ selectedDate }) => {
   const { isLoadingSchedule: isLoading, schedule = {} } = useSelector(
     ({ bookings }) => bookings,
   );
@@ -70,9 +63,9 @@ const Schedule = ({
                 <button
                   key={status}
                   type="button"
-                  onClick={() => setStatusFilter(status)}
+                  onClick={() => setActiveStatus(status)}
                   className={`inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[11px] font-medium capitalize transition-colors ${
-                    statusFilter === status
+                    activeStatus === status
                       ? "border-primary bg-primary text-primary-foreground shadow-xs"
                       : "bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
