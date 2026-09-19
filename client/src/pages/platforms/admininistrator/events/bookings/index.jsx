@@ -180,11 +180,7 @@ function buildBookingEvents(anchor) {
 function Bookings() {
   const events = useMemo(() => buildBookingEvents(new Date()), []);
 
-  const [selectedDate, setSelectedDate] = useState(
-    () =>
-      events.find((event) => event.id === "lim-corporate-lunch")?.start ??
-      new Date(),
-  );
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
 
   const [statusFilter, setStatusFilter] = useState("pending");
   const [bookingSearch, setBookingSearch] = useState("");

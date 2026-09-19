@@ -1,23 +1,27 @@
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
 } from "@/components/ui/card";
 import { format } from "date-fns";
 import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../constant";
 import EmptySchedule from "./emptySchedule";
 import Booking from "./booking";
 import ScheduleSkeleton from "./skeleton";
-import { useSelector } from "react-redux";
-import { useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useMemo, useState } from "react";
+import { SCHEDULE } from "@/services/redux/slices/events/bookings";
+import { Formatter } from "@/services/utilities";
 
 const Schedule = ({ selectedDate }) => {
   const { isLoadingSchedule: isLoading, schedule = {} } = useSelector(
     ({ bookings }) => bookings,
   );
   const [activeStatus, setActiveStatus] = useState("all");
+  const dispatch = useDispatch();
+
   const { filtered, count, statusHeader } = useMemo(() => {
     const bookings =
       activeStatus === "all"
@@ -30,12 +34,16 @@ const Schedule = ({ selectedDate }) => {
       statusHeader: { all: bookingsArray, ...bookings },
     };
   }, [activeStatus, schedule]);
+
+  useEffect(() => {
+    dispatch(SCHEDULE({ date: Formatter.localDate(new Date(selectedDate)) }));
+  }, [dispatch]);
   if (isLoading) {
     return <ScheduleSkeleton selectedDate={selectedDate} />;
   }
 
   return (
-    <Card className="flex h-[660px] flex-col gap-0 overflow-hidden py-0 shadow-sm">
+    <Card className="flex h-[650px] flex-col gap-0 overflow-hidden py-0 shadow-sm">
       <CardHeader className="gap-3 border-b px-3 !pb-0 pt-2.5">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
@@ -56,7 +64,7 @@ const Schedule = ({ selectedDate }) => {
         </div>
 
         {count > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3">
+          <div className="mb-3 flex flex-wrap gap-1">
             {["all", ...STATUS_ORDER]
               .filter((status) => statusHeader[status])
               .map((status) => (

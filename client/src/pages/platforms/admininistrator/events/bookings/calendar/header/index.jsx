@@ -14,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Financial, Monthly } from "./overview";
 import { Search } from "lucide-react";
 import SearchCustomer from "./search";
+import { useDispatch } from "react-redux";
+import { SCHEDULE } from "@/services/redux/slices/events/bookings";
+import { Formatter } from "@/services/utilities";
 
 const Header = ({
   searchOpen,
@@ -23,9 +26,12 @@ const Header = ({
   bookingSearchResults,
   handleSearchResultClick,
   monthlySummary,
+  selectDate,
+  isLoading,
 }) => {
+  const dispatch = useDispatch();
   return (
-    <div className="relative z-50 border-b bg-muted/10 px-2 pb-2 sm:px-3">
+    <div className="relative z-50 bg-muted/10 px-2 pb-2 sm:px-3">
       <EventCalendarNav className="flex min-w-0 flex-col items-stretch gap-2 py-2 sm:min-h-11 sm:flex-row sm:items-center sm:justify-between sm:py-0 xl:flex-nowrap xl:gap-3">
         <div className="relative min-h-8 min-w-0 flex-1">
           {/* Calendar navigation */}
@@ -36,7 +42,13 @@ const Header = ({
                 : "translate-x-0 scale-100 opacity-100"
             }`}
           >
-            <EventCalendarNavToday className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground" />
+            <EventCalendarNavToday
+              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+              onClickCapture={() => {
+                dispatch(SCHEDULE({ date: Formatter.localDate(new Date()) }));
+                selectDate(new Date());
+              }}
+            />
 
             <div className="mx-0.5 h-5 w-px shrink-0 bg-border" />
 
@@ -76,11 +88,11 @@ const Header = ({
         </div>
 
         {/* Financial overview */}
-        <Financial monthlySummary={monthlySummary} />
+        <Financial isLoading={isLoading} monthlySummary={monthlySummary} />
       </EventCalendarNav>
 
       {/* Monthly booking overview */}
-      <Monthly monthlySummary={monthlySummary} />
+      <Monthly isLoading={isLoading} monthlySummary={monthlySummary} />
     </div>
   );
 };
