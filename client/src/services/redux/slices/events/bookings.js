@@ -23,6 +23,7 @@ const initialState = {
   isLoading: false,
   isLoadingCalendar: false,
   isLoadingSchedule: false,
+  isLoadingMyBookings: false,
   message: "",
 };
 
@@ -75,6 +76,24 @@ export const SCHEDULE = createAsyncThunk(
   },
 );
 
+export const MY_BOOKINGS = createAsyncThunk(
+  `${url}/my_bookings`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/me`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const reduxSlice = createSlice({
   name: url,
   initialState,
@@ -95,6 +114,21 @@ export const reduxSlice = createSlice({
         const { error } = action;
         state.message = error.message;
         state.isLoadingCalendar = false;
+      })
+      .addCase(MY_BOOKINGS.pending, (state) => {
+        state.isLoadingMyBookings = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(MY_BOOKINGS.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.collections = data;
+        state.isLoadingMyBookings = false;
+      })
+      .addCase(MY_BOOKINGS.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingMyBookings = false;
       })
       .addCase(SCHEDULE.pending, (state) => {
         state.isLoadingSchedule = true;

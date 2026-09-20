@@ -36,6 +36,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
   const payment = getPaymentSummary(booking);
   const customerName =
     fullName(booking?.customer?.fullName) || booking?.contact?.name || "Guest";
+  const isCombinedBooking = booking.bookingType === "both";
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -81,17 +82,36 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
               </Badge>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-1.5 md:grid-cols-4">
+            <div
+              className={`mt-3 grid grid-cols-2 gap-1.5 ${
+                isCombinedBooking ? "md:grid-cols-5" : "md:grid-cols-4"
+              }`}
+            >
               <Metric
                 icon={<CalendarDays className="size-3.5" />}
                 label="Date"
                 value={formatDate(booking.date)}
               />
-              <Metric
-                icon={<UsersRound className="size-3.5" />}
-                label="Pax"
-                value={getTotalPax(booking)}
-              />
+              {isCombinedBooking ? (
+                <>
+                  <Metric
+                    icon={<UsersRound className="size-3.5" />}
+                    label="Catering Pax"
+                    value={booking?.catering?.pax || 0}
+                  />
+                  <Metric
+                    icon={<UsersRound className="size-3.5" />}
+                    label="Venue Pax"
+                    value={booking?.venue?.pax || 0}
+                  />
+                </>
+              ) : (
+                <Metric
+                  icon={<UsersRound className="size-3.5" />}
+                  label="Pax"
+                  value={getTotalPax(booking)}
+                />
+              )}
               <Metric
                 icon={<Wallet className="size-3.5" />}
                 label="Total"
@@ -107,7 +127,11 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
           <section className="grid gap-2 md:grid-cols-2">
             <CompactPanel title="Customer">
-              <InfoRow label="Contact" value={booking?.contact?.name} />
+              <InfoRow
+                icon={<UsersRound className="size-3.5" />}
+                label="Name"
+                value={booking?.contact?.name}
+              />
               <InfoRow
                 icon={<Phone className="size-3.5" />}
                 label="Phone"
@@ -222,8 +246,8 @@ const InfoRow = ({ icon, label, value, className = "" }) => (
 );
 
 const ServiceReview = ({ item }) => (
-  <section className="overflow-hidden rounded-md border bg-background">
-    <div className="flex items-center justify-between gap-3 border-b bg-muted/10 px-3 py-2">
+  <section className="rounded-md border bg-background">
+    <div className="sticky top-0 z-10 flex items-center justify-between gap-3 rounded-t-md border-b bg-background/95 px-3 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex min-w-0 items-center gap-2">
         <span
           className={`flex size-7 shrink-0 items-center justify-center rounded-md border bg-background ${item.accentClassName}`}
@@ -238,7 +262,7 @@ const ServiceReview = ({ item }) => (
         </div>
       </div>
 
-      <Badge variant="outline" className="shrink-0 text-[10px]">
+      <Badge variant="outline" className="shrink-0 px-2.5 py-1 text-xs">
         {item.pax} pax
       </Badge>
     </div>
@@ -260,7 +284,7 @@ const ServiceReview = ({ item }) => (
         </ServiceSection>
       )}
 
-      <ServiceSection title="Inclusions" count={item.inclusions.length}>
+      <ServiceSection title="Resources" count={item.inclusions.length}>
         <InclusionGroup label={item.label} items={item.inclusions} />
       </ServiceSection>
 
@@ -331,26 +355,39 @@ const MenuPanel = ({ title, items }) => (
   </section>
 );
 
-const InclusionGroup = ({ label, items }) => (
-  <div>
-    {items?.length > 0 ? (
-      <div className="grid gap-1.5 md:grid-cols-2">
-        {items.map((inclusion, index) => (
-          <InclusionAllocation
-            key={inclusion?.item?._id || `${label}-${index}`}
-            inclusion={inclusion}
-          />
-        ))}
-      </div>
-    ) : (
-      <EmptyPanel label="No inclusions listed" />
-    )}
-  </div>
-);
+const InclusionGroup = ({ label, items }) => {
+  const sortedItems = [...(items || [])].sort((first, second) => {
+    const firstRequiresInput = requiresResourceInput(first);
+    const secondRequiresInput = requiresResourceInput(second);
+
+    if (firstRequiresInput === secondRequiresInput) return 0;
+    return firstRequiresInput ? -1 : 1;
+  });
+
+  return (
+    <div>
+      {sortedItems.length > 0 ? (
+        <div className="grid gap-1.5 md:grid-cols-2">
+          {sortedItems.map((inclusion, index) => (
+            <InclusionAllocation
+              key={inclusion?.item?._id || `${label}-${index}`}
+              inclusion={inclusion}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyPanel label="No resources listed" />
+      )}
+    </div>
+  );
+};
 
 const InclusionAllocation = ({ inclusion }) => {
+  const needsInput = requiresResourceInput(inclusion);
   const isEquipment = inclusion?.model === "Equipment";
   const amount = Number(inclusion?.amount || 0);
+  const available = 12;
+  const unit = getResourceUnit(inclusion);
 
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-md border bg-background px-2 py-1.5">
@@ -359,22 +396,33 @@ const InclusionAllocation = ({ inclusion }) => {
           {formatItemName(inclusion?.item)}
         </p>
         <p className="truncate text-[11px] text-muted-foreground">
-          {inclusion?.model || "Item"}
+          {isEquipment
+            ? `${inclusion?.model || "Equipment"} / ${available} available`
+            : inclusion?.model || "Item"}
         </p>
       </div>
 
-      {isEquipment && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-medium text-muted-foreground">
-            Reserve
-          </span>
-          <Input
-            type="number"
-            min="0"
-            defaultValue={amount || ""}
-            className="h-7 w-16 px-2 text-xs"
-          />
+      {needsInput && (
+        <div className="flex items-center justify-end gap-1.5">
+          <label className="flex items-center gap-1.5">
+            <span className="text-[10px] font-medium text-muted-foreground">
+              {capitalizeLabel(unit)}
+            </span>
+            <Input
+              type="number"
+              min="0"
+              defaultValue={amount || ""}
+              className="h-7 w-16 px-2 text-xs"
+            />
+          </label>
         </div>
+      )}
+
+      {!needsInput && (
+        <span className="inline-flex items-center gap-1 rounded-md border bg-background px-2 py-1 text-[11px] font-medium text-muted-foreground">
+          <CheckCircle2 className="size-3 text-primary" />
+          Included
+        </span>
       )}
     </div>
   );
@@ -505,3 +553,31 @@ const formatItemName = (item) => {
 
   return item.name || item.title || item.description || "-";
 };
+
+const capitalizeLabel = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+const getResourceUnit = (inclusion) => {
+  if (inclusion?.model === "Equipment" && inclusion?.item?.unit) {
+    return inclusion.item.unit;
+  }
+
+  const unit = getResourceRequirement(inclusion);
+
+  return unit === "none" ? "Qty" : unit;
+};
+
+const requiresResourceInput = (inclusion) => {
+  const unit = getResourceRequirement(inclusion);
+
+  return ["qty", "hrs"].includes(unit);
+};
+
+const getResourceRequirement = (inclusion) =>
+  String(
+    inclusion?.unit ||
+      inclusion?.item?.requirement ||
+      (inclusion?.model === "Equipment" ? "qty" : "none"),
+  ).toLowerCase();
