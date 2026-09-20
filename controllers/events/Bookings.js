@@ -188,7 +188,10 @@ exports.schedule = async (req, res) => {
         select: "inclusions name description",
         populate: { path: "inclusions.item" },
       })
-      .populate("venue.item")
+      .populate({
+        path: "venue.item",
+        populate: { path: "inclusions.item" },
+      })
       .populate("catering.mainDishes")
       .populate("catering.sideDishes");
 

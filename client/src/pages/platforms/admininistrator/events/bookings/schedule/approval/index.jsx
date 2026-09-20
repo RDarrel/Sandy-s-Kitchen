@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,40 +8,487 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Formatter, fullName } from "@/services/utilities";
+import {
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  Mail,
+  MapPin,
+  Phone,
+  Sparkles,
+  Utensils,
+  UsersRound,
+  Wallet,
+} from "lucide-react";
+import { SERVICE_BADGES, STATUS_STYLES } from "../../constant";
 
-const _form = {
-  name: "",
-  contact: {
-    person: "",
-    mobile: "",
-  },
-  address: "",
-};
-const Approval = ({ isOpen, setIsOpen, willCreate = true, selected = {} }) => {
-  const isBoth = selected?.bookingType === "both";
+const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
+  const booking = selected || {};
+  const service = SERVICE_BADGES[booking.bookingType] || {
+    label: "Booking",
+    className: "border-border bg-muted/40 text-foreground",
+  };
+  const services = getServiceRows(booking);
+  const payment = getPaymentSummary(booking);
+  const customerName =
+    fullName(booking?.customer?.fullName) || booking?.contact?.name || "Guest";
+
   const handleSubmit = (e) => {
     e.preventDefault();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>{willCreate ? "Add" : "Update"} Supplier</DialogTitle>
-          <DialogDescription>
-            Enter the supplier's details. Make sure everything is correct before
-            saving.
-          </DialogDescription>
+      <DialogContent className="max-w-[820px]  p-0">
+        <DialogHeader className="border-b px-4 py-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-base">
+                Approve Booking
+              </DialogTitle>
+              <DialogDescription>
+                Review request details and allocations before approval.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          asdasd
-          <DialogFooter className="mt-5">
-            <Button type="submit">Submit</Button>
-          </DialogFooter>
+
+        <form
+          id="approval-form"
+          onSubmit={handleSubmit}
+          className="space-y-3 p-4"
+        >
+          <section className="rounded-md border bg-muted/15 p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">
+                  {booking.eventType || "Event booking"}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {customerName}
+                </p>
+              </div>
+
+              <Badge
+                variant="outline"
+                className={`capitalize ${STATUS_STYLES[booking.status]}`}
+              >
+                {booking.status || "pending"}
+              </Badge>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-1.5 md:grid-cols-4">
+              <Metric
+                icon={<CalendarDays className="size-3.5" />}
+                label="Date"
+                value={formatDate(booking.date)}
+              />
+              <Metric
+                icon={<UsersRound className="size-3.5" />}
+                label="Pax"
+                value={getTotalPax(booking)}
+              />
+              <Metric
+                icon={<Wallet className="size-3.5" />}
+                label="Total"
+                value={Formatter.amount(payment.total)}
+              />
+              <Metric
+                icon={<CheckCircle2 className="size-3.5" />}
+                label="Type"
+                value={service.label}
+              />
+            </div>
+          </section>
+
+          <section className="grid gap-2 md:grid-cols-2">
+            <CompactPanel title="Customer">
+              <InfoRow label="Contact" value={booking?.contact?.name} />
+              <InfoRow
+                icon={<Phone className="size-3.5" />}
+                label="Phone"
+                value={booking?.contact?.phone}
+              />
+              <InfoRow
+                icon={<Mail className="size-3.5" />}
+                label="Email"
+                value={booking?.contact?.email}
+              />
+            </CompactPanel>
+
+            <CompactPanel title="Payment">
+              <InfoRow
+                label="Received"
+                value={Formatter.amount(payment.received)}
+              />
+              <InfoRow
+                label="Balance"
+                value={Formatter.amount(payment.balance)}
+              />
+              <InfoRow
+                label="Status"
+                value={payment.status}
+                className="capitalize"
+              />
+            </CompactPanel>
+          </section>
+
+          <section className="grid gap-3">
+            {services.map((item) => (
+              <ServiceReview key={item.type} item={item} />
+            ))}
+          </section>
+
+          <section className="grid gap-2 md:grid-cols-[minmax(0,1fr)_15rem]">
+            <Textarea
+              className="min-h-16 resize-none text-xs"
+              placeholder="Approval note or allocation instruction..."
+            />
+
+            <div className="rounded-md border bg-muted/10 p-3">
+              <div className="flex items-center justify-between text-sm font-semibold">
+                <span>Total</span>
+                <span>{Formatter.amount(payment.total)}</span>
+              </div>
+              <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
+                <span>Balance</span>
+                <span>{Formatter.amount(payment.balance)}</span>
+              </div>
+            </div>
+          </section>
         </form>
+
+        <DialogFooter className="border-t bg-muted/10 px-4 py-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="approval-form">
+            <CheckCircle2 className="size-4" />
+            Approve Booking
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
 
 export default Approval;
+
+const Metric = ({ icon, label, value }) => (
+  <div className="flex min-w-0 items-center gap-2 rounded-md border bg-background p-2">
+    <span className="shrink-0 text-muted-foreground">{icon}</span>
+    <span className="min-w-0">
+      <span className="block truncate text-[10px] leading-3 text-muted-foreground">
+        {label}
+      </span>
+      <span className="block truncate text-xs font-semibold">
+        {value || "-"}
+      </span>
+    </span>
+  </div>
+);
+
+const CompactPanel = ({ title, children }) => (
+  <section className="rounded-md border bg-background p-3">
+    <SectionTitle title={title} />
+    <div className="grid gap-1">{children}</div>
+  </section>
+);
+
+const SectionTitle = ({ title }) => (
+  <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    {title}
+  </h3>
+);
+
+const InfoRow = ({ icon, label, value, className = "" }) => (
+  <div className="grid grid-cols-[5rem_minmax(0,1fr)] items-center gap-2 text-xs">
+    <span className="flex items-center gap-1.5 text-muted-foreground">
+      {icon}
+      {label}
+    </span>
+    <span className={`truncate font-medium text-foreground ${className}`}>
+      {value || "-"}
+    </span>
+  </div>
+);
+
+const ServiceReview = ({ item }) => (
+  <section className="overflow-hidden rounded-md border bg-background">
+    <div className="flex items-center justify-between gap-3 border-b bg-muted/20 px-3 py-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-background">
+          {item.icon}
+        </span>
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold">{item.label}</h3>
+          <p className="truncate text-[11px] text-muted-foreground">
+            {item.name}
+          </p>
+        </div>
+      </div>
+
+      <Badge variant="outline" className="shrink-0 text-[10px]">
+        {item.pax} pax
+      </Badge>
+    </div>
+
+    <div className="grid gap-2 p-3">
+      <ServiceSection title="Details">
+        <ServicePanel item={item} />
+      </ServiceSection>
+
+      {item.type === "catering" && (
+        <ServiceSection title="Menu Choices">
+          <div className="grid gap-2 md:grid-cols-2">
+            <MenuPanel title="Main Dishes" items={item.mainDishes} />
+            <MenuPanel title="Side Dishes" items={item.sideDishes} />
+          </div>
+        </ServiceSection>
+      )}
+
+      <ServiceSection title="Inclusions">
+        <InclusionGroup label={item.label} items={item.inclusions} />
+      </ServiceSection>
+
+      {item.pricing && (
+        <ServiceSection title="Pricing">
+          <PricePanel label={item.label} pricing={item.pricing} />
+        </ServiceSection>
+      )}
+    </div>
+  </section>
+);
+
+const ServiceSection = ({ title, children }) => (
+  <div className="grid gap-1.5">
+    <div className="flex items-center gap-2">
+      <span className="h-px flex-1 bg-border" />
+      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </span>
+      <span className="h-px flex-1 bg-border" />
+    </div>
+    {children}
+  </div>
+);
+
+const ServicePanel = ({ item }) => (
+  <div className="grid gap-1 text-xs md:grid-cols-2">
+    <DetailPill
+      icon={<Clock3 className="size-3.5" />}
+      value={`${Formatter.time(item.time?.start)} - ${Formatter.time(item.time?.end)}`}
+    />
+    <DetailPill
+      icon={<MapPin className="size-3.5" />}
+      value={item.location}
+    />
+  </div>
+);
+
+const DetailPill = ({ icon, value }) => (
+  <span className="flex min-w-0 items-center gap-2 rounded-md border bg-background px-2 py-1">
+    <span className="shrink-0 text-muted-foreground">{icon}</span>
+    <span className="truncate font-medium">{value || "-"}</span>
+  </span>
+);
+
+const MenuPanel = ({ title, items }) => (
+  <section className="rounded-md border bg-muted/10 p-2.5">
+    <SectionTitle title={title} />
+    {items.length > 0 ? (
+      <div className="grid gap-1">
+        {items.map((item) => (
+          <div
+            key={item?._id || formatItemName(item)}
+            className="rounded-md border bg-background px-2 py-1 text-xs font-medium"
+          >
+            {formatItemName(item)}
+          </div>
+        ))}
+      </div>
+    ) : (
+      <EmptyPanel label={`No ${title.toLowerCase()} selected`} />
+    )}
+  </section>
+);
+
+const InclusionGroup = ({ label, items }) => (
+  <div>
+    {items?.length > 0 ? (
+      <div className="grid gap-1.5 md:grid-cols-2">
+        {items.map((inclusion, index) => (
+          <InclusionAllocation
+            key={inclusion?.item?._id || `${label}-${index}`}
+            inclusion={inclusion}
+          />
+        ))}
+      </div>
+    ) : (
+      <EmptyPanel label="No inclusions listed" />
+    )}
+  </div>
+);
+
+const InclusionAllocation = ({ inclusion }) => {
+  const isEquipment = inclusion?.model === "Equipment";
+  const amount = Number(inclusion?.amount || 0);
+
+  return (
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-md border bg-background px-2 py-1.5">
+      <div className="min-w-0">
+        <p className="truncate text-xs font-semibold">
+          {formatItemName(inclusion?.item)}
+        </p>
+        <p className="truncate text-[11px] text-muted-foreground">
+          {inclusion?.model || "Item"}
+        </p>
+      </div>
+
+      {isEquipment && (
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-medium text-muted-foreground">
+            Qty
+          </span>
+          <Input
+            type="number"
+            min="0"
+            defaultValue={amount || ""}
+            className="h-7 w-16 px-2 text-xs"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PricePanel = ({ label, pricing }) => (
+  <section className="rounded-md border bg-muted/10 p-2.5">
+    <div className="mb-1 flex items-center justify-between text-xs font-semibold">
+      <span>{label}</span>
+      <span>{Formatter.amount(pricing.total || 0)}</span>
+    </div>
+    <PriceRow label="Base" value={pricing.basePrice} />
+    <PriceRow label="Guest charge" value={pricing.guests?.charge} />
+    <PriceRow label="Duration charge" value={pricing.duration?.charge} />
+  </section>
+);
+
+const PriceRow = ({ label, value }) => (
+  <div className="flex items-center justify-between text-xs text-muted-foreground">
+    <span>{label}</span>
+    <span>{Formatter.amount(value || 0)}</span>
+  </div>
+);
+
+const EmptyPanel = ({ label }) => (
+  <div className="rounded-md border border-dashed bg-background px-3 py-5 text-center text-xs text-muted-foreground">
+    {label}
+  </div>
+);
+
+const getServiceRows = (booking) => {
+  const rows = [];
+
+  if (booking.bookingType === "catering" || booking.bookingType === "both") {
+    rows.push({
+      type: "catering",
+      icon: <Utensils className="size-4 text-rose-700" />,
+      name: booking?.catering?.item?.name || "Catering package",
+      subtitle: "Food service",
+      pax: booking?.catering?.pax || 0,
+      time: booking?.catering?.time,
+      label: "Catering",
+      location:
+        booking?.catering?.venue?.location ||
+        booking?.catering?.venue?.address ||
+        booking?.venue?.item?.address,
+      mainDishes: booking?.catering?.mainDishes || [],
+      sideDishes: booking?.catering?.sideDishes || [],
+      inclusions: booking?.catering?.item?.inclusions || [],
+      pricing: booking?.pricing?.catering,
+    });
+  }
+
+  if (booking.bookingType === "venue" || booking.bookingType === "both") {
+    rows.push({
+      type: "venue",
+      icon: <Building2 className="size-4 text-amber-700" />,
+      name: booking?.venue?.item?.name || "Venue reservation",
+      subtitle: booking?.venue?.item?.setting || "Event venue",
+      pax: booking?.venue?.pax || 0,
+      time: booking?.venue?.time,
+      label: "Venue",
+      location: booking?.venue?.item?.address,
+      inclusions: booking?.venue?.item?.inclusions || [],
+      pricing: booking?.pricing?.venue,
+    });
+  }
+
+  if (rows.length === 0) {
+    rows.push({
+      type: "booking",
+      icon: <Sparkles className="size-4 text-muted-foreground" />,
+      name: "Booking details",
+      subtitle: "No service details available",
+      pax: 0,
+      time: {},
+      label: "Booking",
+      location: "-",
+      inclusions: [],
+      pricing: null,
+    });
+  }
+
+  return rows;
+};
+
+const getPaymentSummary = (booking) => {
+  const total = Number(booking?.pricing?.total || 0);
+  const received = Number(booking?.payment?.amount || 0);
+
+  return {
+    total,
+    received,
+    balance: Math.max(total - received, 0),
+    status:
+      booking?.payment?.status ||
+      (received >= total && total > 0
+        ? "paid"
+        : received > 0
+          ? "partial"
+          : "unpaid"),
+  };
+};
+
+const getTotalPax = (booking) => {
+  if (booking.bookingType === "both") {
+    return Math.max(
+      Number(booking?.catering?.pax || 0),
+      Number(booking?.venue?.pax || 0),
+    );
+  }
+
+  return Number(booking?.[booking.bookingType]?.pax || 0);
+};
+
+const formatDate = (date) => {
+  if (!date) return "-";
+
+  return Formatter.date(date);
+};
+
+const formatItemName = (item) => {
+  if (!item) return "-";
+  if (typeof item === "string") return item;
+
+  return item.name || item.title || item.description || "-";
+};
