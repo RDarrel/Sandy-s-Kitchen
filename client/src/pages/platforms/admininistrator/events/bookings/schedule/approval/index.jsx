@@ -43,7 +43,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-[820px]  p-0">
+      <DialogContent className="max-w-[820px] p-0">
         <DialogHeader className="border-b px-4 py-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -223,9 +223,11 @@ const InfoRow = ({ icon, label, value, className = "" }) => (
 
 const ServiceReview = ({ item }) => (
   <section className="overflow-hidden rounded-md border bg-background">
-    <div className="flex items-center justify-between gap-3 border-b bg-muted/20 px-3 py-2">
+    <div className="flex items-center justify-between gap-3 border-b bg-muted/10 px-3 py-2">
       <div className="flex min-w-0 items-center gap-2">
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-background">
+        <span
+          className={`flex size-7 shrink-0 items-center justify-center rounded-md border bg-background ${item.accentClassName}`}
+        >
           {item.icon}
         </span>
         <div className="min-w-0">
@@ -247,7 +249,10 @@ const ServiceReview = ({ item }) => (
       </ServiceSection>
 
       {item.type === "catering" && (
-        <ServiceSection title="Menu Choices">
+        <ServiceSection
+          title="Menu Choices"
+          count={item.mainDishes.length + item.sideDishes.length}
+        >
           <div className="grid gap-2 md:grid-cols-2">
             <MenuPanel title="Main Dishes" items={item.mainDishes} />
             <MenuPanel title="Side Dishes" items={item.sideDishes} />
@@ -255,7 +260,7 @@ const ServiceReview = ({ item }) => (
         </ServiceSection>
       )}
 
-      <ServiceSection title="Inclusions">
+      <ServiceSection title="Inclusions" count={item.inclusions.length}>
         <InclusionGroup label={item.label} items={item.inclusions} />
       </ServiceSection>
 
@@ -268,12 +273,17 @@ const ServiceReview = ({ item }) => (
   </section>
 );
 
-const ServiceSection = ({ title, children }) => (
+const ServiceSection = ({ title, count, children }) => (
   <div className="grid gap-1.5">
     <div className="flex items-center gap-2">
       <span className="h-px flex-1 bg-border" />
-      <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
+        {typeof count === "number" && (
+          <span className="rounded-full border bg-background px-1.5 py-0 text-[10px] leading-4">
+            {count}
+          </span>
+        )}
       </span>
       <span className="h-px flex-1 bg-border" />
     </div>
@@ -356,7 +366,7 @@ const InclusionAllocation = ({ inclusion }) => {
       {isEquipment && (
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] font-medium text-muted-foreground">
-            Qty
+            Reserve
           </span>
           <Input
             type="number"
@@ -407,6 +417,7 @@ const getServiceRows = (booking) => {
       pax: booking?.catering?.pax || 0,
       time: booking?.catering?.time,
       label: "Catering",
+      accentClassName: "border-l-2 border-l-rose-500",
       location:
         booking?.catering?.venue?.location ||
         booking?.catering?.venue?.address ||
@@ -427,6 +438,7 @@ const getServiceRows = (booking) => {
       pax: booking?.venue?.pax || 0,
       time: booking?.venue?.time,
       label: "Venue",
+      accentClassName: "border-l-2 border-l-amber-500",
       location: booking?.venue?.item?.address,
       inclusions: booking?.venue?.item?.inclusions || [],
       pricing: booking?.pricing?.venue,
@@ -442,6 +454,7 @@ const getServiceRows = (booking) => {
       pax: 0,
       time: {},
       label: "Booking",
+      accentClassName: "border-l-2 border-l-muted-foreground",
       location: "-",
       inclusions: [],
       pricing: null,
