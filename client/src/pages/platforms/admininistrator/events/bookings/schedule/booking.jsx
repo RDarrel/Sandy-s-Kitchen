@@ -27,7 +27,7 @@ const PAYMENT_SUMMARY_STYLES = {
 
 const paymentStatus = "paid";
 
-const Booking = ({ booking }) => {
+const Booking = ({ booking, handleAction }) => {
   const service = SERVICE_BADGES[booking.bookingType];
   const payment = getPaymentInfo(booking, paymentStatus);
   const isBoth = booking.bookingType === "both";
@@ -90,7 +90,12 @@ const Booking = ({ booking }) => {
               Reject
             </Button>
 
-            <Button type="button" size="sm" className="h-7 px-2.5">
+            <Button
+              type="button"
+              size="sm"
+              className="h-7 px-2.5"
+              onClick={() => handleAction(booking, "approval")}
+            >
               Approve
             </Button>
           </>

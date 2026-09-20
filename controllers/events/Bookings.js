@@ -183,8 +183,14 @@ exports.schedule = async (req, res) => {
       status: { $nin: ["rejected"] },
     })
       .populate("customer", "fullName")
-      .populate("catering.item")
-      .populate("venue.item");
+      .populate({
+        path: "catering.item",
+        select: "inclusions name description",
+        populate: { path: "inclusions.item" },
+      })
+      .populate("venue.item")
+      .populate("catering.mainDishes")
+      .populate("catering.sideDishes");
 
     const statusOrder = ["pending", "approved", "done"];
 
