@@ -564,10 +564,10 @@ const previewBookings = [
 /* -------------------------------------------------------------------------- */
 
 const MyBookings = () => {
-  const { collections = [], isLoadingMyBookings } = useSelector(
+  const { collections = [], isLoadingMyBookingss } = useSelector(
     ({ bookings }) => bookings,
   );
-
+  const isLoadingMyBookings = false;
   const dispatch = useDispatch();
 
   const [query, setQuery] = useState("");
@@ -708,9 +708,13 @@ const MyBookings = () => {
           {/* Compact heading */}
           <div className="flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <h1 className="mt-0.5 text-lg font-semibold leading-tight tracking-tight">
-                My Bookings
-              </h1>
+              <div className="flex items-center gap-2">
+                <CalendarDays className="size-4 text-muted-foreground" />
+
+                <h1 className="text-lg font-semibold leading-tight tracking-tight">
+                  My Bookings
+                </h1>
+              </div>
 
               <p className="mt-0.5 text-[11px] text-muted-foreground">
                 Track your reservations, booking status, and payments.
@@ -793,31 +797,41 @@ const BookingFilters = ({ value, counts, onChange }) => {
   ];
 
   return (
-    <div className="flex gap-1 overflow-x-auto">
-      {filters.map((item) => (
-        <button
-          key={item.value}
-          type="button"
-          onClick={() => onChange(item.value)}
-          className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-md px-3 text-xs font-medium transition ${
-            value === item.value
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-          }`}
-        >
-          {item.label}
+    <div
+      role="tablist"
+      aria-label="Booking categories"
+      className="flex min-w-0 gap-1 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      {filters.map((item) => {
+        const isActive = value === item.value;
 
-          <span
-            className={`rounded-full px-1.5 text-[10px] leading-4 ${
-              value === item.value
-                ? "bg-primary-foreground/20 text-primary-foreground"
-                : "bg-muted text-muted-foreground"
+        return (
+          <button
+            key={item.value}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onChange(item.value)}
+            className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[11px] font-medium transition sm:gap-2 sm:px-3 sm:text-xs ${
+              isActive
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
             }`}
           >
-            {item.count || 0}
-          </span>
-        </button>
-      ))}
+            {item.label}
+
+            <span
+              className={`inline-flex min-w-4 items-center justify-center rounded-full px-1 text-[9px] leading-4 sm:min-w-[18px] sm:px-1.5 sm:text-[10px] ${
+                isActive
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {item.count || 0}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 };
@@ -839,11 +853,70 @@ const BookingTicket = ({ booking }) => {
   return (
     <article className="group overflow-hidden rounded-lg border bg-card shadow-sm transition hover:border-primary/30 hover:shadow-md">
       <div className="grid xl:grid-cols-[minmax(0,1fr)_11rem]">
-        {/* Main */}
-        <div className="grid gap-3 p-3 md:grid-cols-[4.25rem_minmax(0,1fr)]">
+        {/* Mobile layout */}
+        <div className="p-2.5 md:hidden">
+          {/* Date + booking header */}
+          <div className="flex min-w-0 items-start gap-2.5">
+            <div className="flex h-11 w-12 shrink-0 flex-col items-center justify-center rounded-md border bg-muted/30">
+              <span className="text-[9px] font-semibold uppercase leading-3 text-muted-foreground">
+                {date.month}
+              </span>
+              <span className="text-sm font-semibold leading-4">
+                {date.day}
+              </span>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h2 className="truncate text-sm font-semibold leading-4">
+                    {booking?.eventType || "Event booking"}
+                  </h2>
+
+                  <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[9px] text-muted-foreground">
+                    <span className="shrink-0 font-semibold uppercase tracking-wide">
+                      Booking
+                    </span>
+                    <span>•</span>
+                    <span className="truncate font-mono font-semibold text-foreground">
+                      {booking?.reference || "Reference unavailable"}
+                    </span>
+                  </div>
+                </div>
+
+                <span
+                  className={`inline-flex h-5 w-fit shrink-0 items-center gap-1 rounded-md border px-1.5 text-[9px] font-semibold ${status.badgeClassName}`}
+                >
+                  <StatusIcon className="size-3" />
+                  {status.label}
+                </span>
+              </div>
+
+              <p className="mt-1 text-[9px] leading-3 text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  {date.weekday}
+                </span>
+                <span className="mx-1">•</span>
+                {date.year}
+              </p>
+            </div>
+          </div>
+
+          {/* Services */}
+          <div className="mt-2 grid gap-1.5">
+            {services.map((service) => (
+              <ServiceDetail key={service.type} service={service} />
+            ))}
+          </div>
+
+          <BookingAction action={action} />
+        </div>
+
+        {/* Tablet / desktop layout - preserved original design */}
+        <div className="hidden gap-3 p-3 md:grid md:grid-cols-[4.25rem_minmax(0,1fr)]">
           {/* Date */}
-          <div className="flex items-center gap-3 md:block">
-            <div className="flex h-12 w-14 shrink-0 flex-col items-center justify-center rounded-md border bg-muted/30 md:mx-auto">
+          <div className="block">
+            <div className="mx-auto flex h-12 w-14 shrink-0 flex-col items-center justify-center rounded-md border bg-muted/30">
               <span className="text-[10px] font-semibold uppercase text-muted-foreground">
                 {date.month}
               </span>
@@ -853,11 +926,10 @@ const BookingTicket = ({ booking }) => {
               </span>
             </div>
 
-            <div className="min-w-0 md:mt-1 md:text-center">
+            <div className="mt-1 min-w-0 text-center">
               <p className="text-xs font-semibold text-foreground">
                 {date.weekday}
               </p>
-
               <p className="text-[11px] text-muted-foreground">{date.year}</p>
             </div>
           </div>
@@ -875,9 +947,7 @@ const BookingTicket = ({ booking }) => {
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                     Booking
                   </span>
-
                   <span className="text-[10px] text-muted-foreground">•</span>
-
                   <span className="truncate font-mono text-[11px] font-semibold text-foreground">
                     {booking?.reference || "Reference unavailable"}
                   </span>
@@ -888,7 +958,6 @@ const BookingTicket = ({ booking }) => {
                 className={`inline-flex h-6 w-fit shrink-0 items-center gap-1.5 rounded-md border px-2 text-[11px] font-semibold ${status.badgeClassName}`}
               >
                 <StatusIcon className="size-3.5" />
-
                 {status.label}
               </span>
             </div>
@@ -909,7 +978,6 @@ const BookingTicket = ({ booking }) => {
           </div>
         </div>
 
-        {/* Financial summary */}
         <FinancialSummary payment={payment} />
       </div>
     </article>
@@ -922,7 +990,6 @@ const BookingTicket = ({ booking }) => {
 
 const ServiceDetail = ({ service }) => {
   const isVenue = service.type === "venue";
-
   const Icon = isVenue ? Building2 : Utensils;
 
   return (
@@ -934,7 +1001,7 @@ const ServiceDetail = ({ service }) => {
 
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-1.5">
-            <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               {isVenue ? "Venue" : "Catering"}
             </span>
 
@@ -943,7 +1010,7 @@ const ServiceDetail = ({ service }) => {
             </span>
           </div>
 
-          <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] text-muted-foreground">
+          <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-muted-foreground">
             <span className="font-medium text-foreground">{service.time}</span>
 
             <span>•</span>
@@ -989,9 +1056,9 @@ const BookingAction = ({ action }) => {
                 : "border-border bg-muted/10"
       }`}
     >
-      <div className="flex min-w-0 items-center gap-1.5">
+      <div className="flex min-w-0 items-start gap-1.5 sm:items-center">
         <Icon
-          className={`size-3.5 shrink-0 ${
+          className={`mt-0.5 size-3 shrink-0 sm:mt-0 sm:size-3.5 ${
             action.variant === "payment"
               ? "text-amber-700"
               : action.variant === "success"
@@ -1005,7 +1072,7 @@ const BookingAction = ({ action }) => {
         />
 
         <p
-          className={`text-[11px] leading-4 ${
+          className={`text-[11px] leading-4 sm:text-xs ${
             action.variant === "payment"
               ? "font-medium text-amber-800"
               : action.variant === "success"
@@ -1025,7 +1092,7 @@ const BookingAction = ({ action }) => {
         <Button
           type="button"
           size="sm"
-          className="h-6 shrink-0 gap-1 px-2 text-[10px]"
+          className="h-6 w-full shrink-0 gap-1 px-2 text-[9px] sm:w-auto sm:text-[10px]"
         >
           {action.buttonLabel}
 
@@ -1044,26 +1111,76 @@ const FinancialSummary = ({ payment }) => {
   const isFullyPaid = payment.balance <= 0;
 
   return (
-    <div className="flex flex-col border-t bg-muted/10 p-3 xl:border-l xl:border-t-0">
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-1 xl:gap-3">
-        <AmountBlock label="Total" value={Formatter.amount(payment.total)} />
+    <>
+      {/* Mobile compact footer */}
+      <div className="border-t bg-muted/10 px-2.5 py-2 xl:hidden">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
+            <CompactAmountBlock
+              label="Total"
+              value={Formatter.amount(payment.total)}
+            />
 
-        <AmountBlock
-          label="Balance"
-          value={isFullyPaid ? "Paid" : Formatter.amount(payment.balance)}
-          valueClassName={isFullyPaid ? "text-emerald-700" : "text-amber-700"}
-        />
+            <CompactAmountBlock
+              label="Balance"
+              value={isFullyPaid ? "Paid" : Formatter.amount(payment.balance)}
+              valueClassName={
+                isFullyPaid ? "text-emerald-700" : "text-amber-700"
+              }
+            />
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 shrink-0 gap-1 px-2.5 text-[10px] sm:text-xs"
+          >
+            <span className="hidden sm:inline">View details</span>
+            <span className="sm:hidden">Details</span>
+            <ChevronRight className="size-3.5" />
+          </Button>
+        </div>
       </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="mt-3 h-8 w-full justify-between text-xs"
+      {/* Desktop financial sidebar */}
+      <div className="hidden flex-col border-l bg-muted/10 p-3 xl:flex">
+        <div className="grid grid-cols-1 gap-3">
+          <AmountBlock label="Total" value={Formatter.amount(payment.total)} />
+
+          <AmountBlock
+            label="Balance"
+            value={isFullyPaid ? "Paid" : Formatter.amount(payment.balance)}
+            valueClassName={isFullyPaid ? "text-emerald-700" : "text-amber-700"}
+          />
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="mt-3 h-8 w-full justify-between text-xs"
+        >
+          View details
+          <ChevronRight className="size-3.5" />
+        </Button>
+      </div>
+    </>
+  );
+};
+
+const CompactAmountBlock = ({ label, value, valueClassName = "" }) => {
+  return (
+    <div className="min-w-0">
+      <p className="text-[8px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+
+      <p
+        className={`mt-0.5 truncate text-xs font-semibold leading-4 ${valueClassName}`}
       >
-        View details
-        <ChevronRight className="size-3.5" />
-      </Button>
+        {value}
+      </p>
     </div>
   );
 };
@@ -1090,6 +1207,10 @@ const AmountBlock = ({ label, value, valueClassName = "" }) => {
 /*                                  LOADING                                   */
 /* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/*                                  LOADING                                   */
+/* -------------------------------------------------------------------------- */
+
 const LoadingList = () => {
   return (
     <div className="grid gap-2">
@@ -1104,15 +1225,66 @@ const BookingTicketSkeleton = () => {
   return (
     <article className="overflow-hidden rounded-lg border bg-card shadow-sm">
       <div className="grid xl:grid-cols-[minmax(0,1fr)_11rem]">
-        {/* Main */}
-        <div className="grid gap-3 p-3 md:grid-cols-[4.25rem_minmax(0,1fr)]">
-          {/* Date */}
-          <div className="flex items-center gap-3 md:block">
-            <Skeleton className="h-12 w-14 shrink-0 rounded-md md:mx-auto" />
+        {/* --------------------------------------------------------------- */}
+        {/* Mobile layout                                                   */}
+        {/* --------------------------------------------------------------- */}
+        <div className="p-2.5 md:hidden">
+          {/* Date + booking header */}
+          <div className="flex min-w-0 items-start gap-2.5">
+            {/* Date */}
+            <Skeleton className="h-11 w-12 shrink-0 rounded-md" />
 
-            <div className="min-w-0 md:mt-1 md:text-center">
-              <Skeleton className="h-3 w-7 md:mx-auto" />
-              <Skeleton className="mt-1 h-2.5 w-8 md:mx-auto" />
+            {/* Booking information */}
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  {/* Event title */}
+                  <Skeleton className="h-4 w-28 rounded" />
+
+                  {/* Booking reference */}
+                  <div className="mt-1 flex min-w-0 items-center gap-1">
+                    <Skeleton className="h-2.5 w-10 rounded" />
+
+                    <Skeleton className="size-1 shrink-0 rounded-full" />
+
+                    <Skeleton className="h-2.5 w-20 rounded" />
+                  </div>
+                </div>
+
+                {/* Status */}
+                <Skeleton className="h-5 w-[4.5rem] shrink-0 rounded-md" />
+              </div>
+
+              {/* Weekday + year */}
+              <div className="mt-1.5 flex items-center gap-1">
+                <Skeleton className="h-2.5 w-6 rounded" />
+                <Skeleton className="size-1 rounded-full" />
+                <Skeleton className="h-2.5 w-8 rounded" />
+              </div>
+            </div>
+          </div>
+
+          {/* Services */}
+          <div className="mt-2 grid gap-1.5">
+            <ServiceDetailSkeleton />
+            <ServiceDetailSkeleton />
+          </div>
+
+          {/* Booking action */}
+          <BookingActionSkeleton />
+        </div>
+
+        {/* --------------------------------------------------------------- */}
+        {/* Tablet / desktop layout                                         */}
+        {/* --------------------------------------------------------------- */}
+        <div className="hidden gap-3 p-3 md:grid md:grid-cols-[4.25rem_minmax(0,1fr)]">
+          {/* Date */}
+          <div className="block">
+            <Skeleton className="mx-auto h-12 w-14 rounded-md" />
+
+            <div className="mt-1 flex flex-col items-center gap-1">
+              <Skeleton className="h-3 w-7 rounded" />
+              <Skeleton className="h-2.5 w-8 rounded" />
             </div>
           </div>
 
@@ -1121,19 +1293,21 @@ const BookingTicketSkeleton = () => {
             {/* Header */}
             <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
               <div className="min-w-0">
-                {/* Event type */}
-                <Skeleton className="h-5 w-40" />
+                {/* Event title */}
+                <Skeleton className="h-5 w-36 rounded" />
 
                 {/* Booking reference */}
                 <div className="mt-1 flex min-w-0 items-center gap-1.5">
-                  <Skeleton className="h-2.5 w-11" />
+                  <Skeleton className="h-2.5 w-11 rounded" />
+
                   <Skeleton className="size-1 shrink-0 rounded-full" />
-                  <Skeleton className="h-2.5 w-24" />
+
+                  <Skeleton className="h-2.5 w-24 rounded" />
                 </div>
               </div>
 
-              {/* Status badge */}
-              <Skeleton className="h-6 w-20 rounded-md" />
+              {/* Status */}
+              <Skeleton className="h-6 w-20 shrink-0 rounded-md" />
             </div>
 
             {/* Catering / Venue */}
@@ -1154,27 +1328,36 @@ const BookingTicketSkeleton = () => {
   );
 };
 
+/* -------------------------------------------------------------------------- */
+/*                          SERVICE DETAIL SKELETON                           */
+/* -------------------------------------------------------------------------- */
+
 const ServiceDetailSkeleton = () => {
   return (
     <div className="min-w-0 rounded-md border bg-muted/10 px-2 py-1.5">
       <div className="flex min-w-0 items-start gap-2">
-        {/* Icon */}
+        {/* Service icon */}
         <Skeleton className="size-6 shrink-0 rounded" />
 
         <div className="min-w-0 flex-1">
-          {/* Service type + package */}
+          {/* Type + service name */}
           <div className="flex min-w-0 items-center gap-1.5">
-            <Skeleton className="h-2.5 w-10 shrink-0" />
-            <Skeleton className="h-3 w-28 max-w-[45%]" />
+            <Skeleton className="h-2.5 w-10 shrink-0 rounded" />
+
+            <Skeleton className="h-3 w-28 max-w-[45%] rounded" />
           </div>
 
           {/* Time / pax / location */}
           <div className="mt-1 flex min-w-0 items-center gap-1.5">
-            <Skeleton className="h-2.5 w-16 shrink-0" />
+            <Skeleton className="h-2.5 w-[5.5rem] shrink-0 rounded" />
+
             <Skeleton className="size-1 shrink-0 rounded-full" />
-            <Skeleton className="h-2.5 w-9 shrink-0" />
+
+            <Skeleton className="h-2.5 w-10 shrink-0 rounded" />
+
             <Skeleton className="size-1 shrink-0 rounded-full" />
-            <Skeleton className="h-2.5 min-w-0 flex-1" />
+
+            <Skeleton className="h-2.5 min-w-0 flex-1 rounded" />
           </div>
         </div>
       </div>
@@ -1182,43 +1365,73 @@ const ServiceDetailSkeleton = () => {
   );
 };
 
+/* -------------------------------------------------------------------------- */
+/*                          BOOKING ACTION SKELETON                           */
+/* -------------------------------------------------------------------------- */
+
 const BookingActionSkeleton = () => {
   return (
     <div className="mt-1.5 flex min-w-0 flex-col gap-1.5 rounded-md border bg-muted/10 px-2 py-1.5 sm:flex-row sm:items-center sm:justify-between">
+      {/* Message */}
       <div className="flex min-w-0 flex-1 items-center gap-1.5">
-        {/* Message icon */}
-        <Skeleton className="size-3.5 shrink-0 rounded-full" />
+        <Skeleton className="size-3.5 shrink-0 rounded" />
 
-        {/* Message */}
-        <Skeleton className="h-2.5 w-full max-w-80" />
+        <Skeleton className="h-3 min-w-0 flex-1 rounded sm:max-w-[26rem]" />
       </div>
 
-      {/* Action button placeholder */}
-      <Skeleton className="h-6 w-16 shrink-0 rounded-md" />
+      {/* Action button */}
+      <Skeleton className="h-6 w-full shrink-0 rounded-md sm:w-[5.5rem]" />
     </div>
   );
 };
 
+/* -------------------------------------------------------------------------- */
+/*                        FINANCIAL SUMMARY SKELETON                          */
+/* -------------------------------------------------------------------------- */
+
 const FinancialSummarySkeleton = () => {
   return (
-    <div className="flex flex-col border-t bg-muted/10 p-3 xl:border-l xl:border-t-0">
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-1 xl:gap-3">
-        {/* Total */}
-        <div>
-          <Skeleton className="h-2.5 w-8" />
-          <Skeleton className="mt-1.5 h-4 w-20" />
-        </div>
+    <>
+      {/* Mobile / tablet compact footer */}
+      <div className="border-t bg-muted/10 px-2.5 py-2 xl:hidden">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
+            {/* Total */}
+            <div className="min-w-0">
+              <Skeleton className="h-2 w-7 rounded" />
+              <Skeleton className="mt-1 h-3.5 w-16 rounded" />
+            </div>
 
-        {/* Balance */}
-        <div>
-          <Skeleton className="h-2.5 w-12" />
-          <Skeleton className="mt-1.5 h-4 w-16" />
+            {/* Balance */}
+            <div className="min-w-0">
+              <Skeleton className="h-2 w-10 rounded" />
+              <Skeleton className="mt-1 h-3.5 w-16 rounded" />
+            </div>
+          </div>
+
+          {/* View details */}
+          <Skeleton className="h-8 w-16 shrink-0 rounded-md sm:w-24" />
         </div>
       </div>
 
-      {/* View details */}
-      <Skeleton className="mt-3 h-8 w-full rounded-md" />
-    </div>
+      {/* Desktop financial sidebar */}
+      <div className="hidden flex-col border-l bg-muted/10 p-3 xl:flex">
+        {/* Total */}
+        <div>
+          <Skeleton className="h-2.5 w-8 rounded" />
+          <Skeleton className="mt-1.5 h-4 w-20 rounded" />
+        </div>
+
+        {/* Balance */}
+        <div className="mt-3">
+          <Skeleton className="h-2.5 w-12 rounded" />
+          <Skeleton className="mt-1.5 h-4 w-16 rounded" />
+        </div>
+
+        {/* View details */}
+        <Skeleton className="mt-3 h-8 w-full rounded-md" />
+      </div>
+    </>
   );
 };
 
