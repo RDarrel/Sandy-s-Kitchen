@@ -1,3 +1,4 @@
+const Counter = require("./Counter");
 const mongoose = require("mongoose");
 
 const contactSchema = new mongoose.Schema(
@@ -248,6 +249,11 @@ const paymentSchema = new mongoose.Schema(
 
 const bookingSchema = new mongoose.Schema(
   {
+    reference: {
+      type: String,
+      unique: true,
+      index: true,
+    },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",
@@ -337,6 +343,25 @@ const bookingSchema = new mongoose.Schema(
     timestamps: true,
   },
 );
+
+bookingSchema.pre("save", async function () {
+  if (!this.isNew || this.reference) return;
+
+  const year = new Date().getFullYear();
+
+  const counter = await Counter.findOneAndUpdate(
+    { key: `booking-${year}` },
+    { $inc: { sequence: 1 } },
+    {
+      returnDocument: true,
+      upsert: true,
+    },
+  );
+
+  const sequence = String(counter.sequence).padStart(4, "0");
+
+  this.reference = `SK-${year}-${sequence}`;
+});
 
 const Booking = mongoose.model("Booking", bookingSchema);
 
