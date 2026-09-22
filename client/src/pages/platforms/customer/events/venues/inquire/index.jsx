@@ -188,7 +188,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
   if (!selected?._id) {
     return (
-      <div className="min-h-screen bg-muted/30 p-3 sm:p-5">
+      <div className="min-h-screen p-3 sm:p-5">
         <div className="mx-auto max-w-3xl rounded-lg border bg-card p-5 shadow-sm">
           <Button
             variant="ghost"
@@ -211,7 +211,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 p-2 sm:p-4">
+    <div className="min-h-screen  p-2 sm:p-4">
       <div className="mx-auto max-w-5xl">
         <Button
           type="button"

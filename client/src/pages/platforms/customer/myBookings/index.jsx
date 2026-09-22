@@ -564,10 +564,9 @@ const previewBookings = [
 /* -------------------------------------------------------------------------- */
 
 const MyBookings = () => {
-  const { collections = [], isLoadingMyBookingss } = useSelector(
+  const { collections = [], isLoadingMyBookings } = useSelector(
     ({ bookings }) => bookings,
   );
-  const isLoadingMyBookings = false;
   const dispatch = useDispatch();
 
   const [query, setQuery] = useState("");
