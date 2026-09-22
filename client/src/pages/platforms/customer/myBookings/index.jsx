@@ -1,5 +1,5 @@
 import { MY_BOOKINGS } from "@/services/redux/slices/events/bookings";
-import { CalendarDays, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getStatusKey } from "./utils";
@@ -15,11 +15,12 @@ const MyBookings = () => {
   const dispatch = useDispatch();
 
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("upcoming");
+  const [filter, setFilter] = useState("");
 
   useEffect(() => {
     dispatch(MY_BOOKINGS());
   }, [dispatch]);
+
   const bookings = useMemo(() => {
     const data = collections;
     return [...data].sort((first, second) => {
@@ -93,6 +94,18 @@ const MyBookings = () => {
       },
     );
   }, [bookings]);
+
+  useEffect(() => {
+    if (isLoadingMyBookings || filter) return;
+
+    if (counts.upcoming > 0) {
+      setFilter("upcoming");
+    } else if (counts.pending > 0) {
+      setFilter("pending");
+    } else {
+      setFilter("all");
+    }
+  }, [filter, counts, isLoadingMyBookings]);
 
   const filteredBookings = useMemo(() => {
     const search = query.trim().toLowerCase();
