@@ -38,9 +38,7 @@ const Header = ({
         </div>
       </div>
 
-      <div className="border-t px-2 py-1.5">
-        <Filters value={filter} counts={counts} onChange={setFilter} />
-      </div>
+      <Filters value={filter} counts={counts} onChange={setFilter} />
     </header>
   );
 };

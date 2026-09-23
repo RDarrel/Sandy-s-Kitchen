@@ -1,7 +1,9 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSelector } from "react-redux";
 const Filters = ({ value, counts, onChange }) => {
-  const { isLoadingMyBookings } = useSelector(({ bookings }) => bookings);
+  const { isLoadingMyBookings, collections } = useSelector(
+    ({ bookings }) => bookings,
+  );
   const filters = [
     {
       value: "upcoming",
@@ -31,12 +33,13 @@ const Filters = ({ value, counts, onChange }) => {
   ];
 
   if (isLoadingMyBookings) return <FiltersSkeleton />;
+  if (collections.length === 0) return null;
 
   return (
     <div
       role="tablist"
       aria-label="Booking categories"
-      className="flex min-w-0 gap-1 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="border-t px-2 py-1.5 flex min-w-0 gap-1 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {filters
         .filter(({ value }) => counts[value])
@@ -101,7 +104,7 @@ const FiltersSkeleton = () => {
   ];
 
   return (
-    <div className="flex min-w-0 gap-1 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="border-t px-2 py-1.5  flex min-w-0 gap-1 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {filters.map((item) => (
         <div
           key={item.value}
