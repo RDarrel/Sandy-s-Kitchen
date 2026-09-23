@@ -32,7 +32,7 @@ export const getServiceRows = (booking) => {
 
       sideDishes: booking?.catering?.sideDishes || [],
 
-      inclusions: booking?.catering?.item?.inclusions || [],
+      inclusions: booking?.catering?.inclusions || [],
 
       pricing: booking?.pricing?.catering,
     });
@@ -60,7 +60,7 @@ export const getServiceRows = (booking) => {
 
       location: booking?.venue?.item?.address,
 
-      inclusions: booking?.venue?.item?.inclusions || [],
+      inclusions: booking?.venue?.inclusions || [],
 
       pricing: booking?.pricing?.venue,
     });

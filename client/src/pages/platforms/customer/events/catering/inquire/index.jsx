@@ -23,6 +23,7 @@ import {
   FALLBACK_VENUES,
 } from "./constant";
 import {
+  buildInclusions,
   buildPackageInfo,
   buildPayload,
   computeEstimated,
@@ -167,14 +168,28 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleSubmit = () => {
+    const cInclusions = buildInclusions(selected?.inclusions);
+    const eInclusions = buildInclusions(selectedVenue?.inclusions);
     const payload = buildPayload(
-      { ...form, catering: { ...form?.catering, item: selected?._id } },
+      {
+        ...form,
+        catering: {
+          ...form?.catering,
+          item: selected?._id,
+          inclusions: cInclusions,
+        },
+        venue: {
+          ...form?.venue,
+          inclusions: eInclusions,
+        },
+      },
       menuSelections,
       {
         catering: cateringEstimate,
         venue: venueEstimate,
       },
     );
+
     dispatch(SAVE({ ...payload, customer: auth?._id }))
       .unwrap()
       .then((payload) => {

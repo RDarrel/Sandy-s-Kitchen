@@ -183,15 +183,10 @@ exports.schedule = async (req, res) => {
       status: { $nin: ["rejected"] },
     })
       .populate("customer", "fullName")
-      .populate({
-        path: "catering.item",
-        select: "inclusions name description",
-        populate: { path: "inclusions.item" },
-      })
-      .populate({
-        path: "venue.item",
-        populate: { path: "inclusions.item" },
-      })
+      .populate("catering.item", "name description")
+      .populate("venue.item", "name description")
+      .populate("catering.inclusions.item")
+      .populate("venue.inclusions.item")
       .populate("catering.mainDishes")
       .populate("catering.sideDishes");
 

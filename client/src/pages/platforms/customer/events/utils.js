@@ -62,7 +62,10 @@ export const buildPackageInfo = (item = {}) => {
     sideMenuCategories: item?.sideMenuCategories || [],
   };
 };
-
+export const buildInclusions = (inclusions) => {
+  if (!inclusions?.length) return [];
+  return inclusions.map((inc) => ({ ...inc, item: inc?.item?._id }));
+};
 export const buildPayload = (form, menuSelections, estimate) => {
   const { bookingType } = form;
   const isBoth = form?.bookingType === "both";
@@ -71,10 +74,15 @@ export const buildPayload = (form, menuSelections, estimate) => {
     mainDishes: Object.values(menuSelections?.main).flat(),
     sideDishes: Object.values(menuSelections?.side).flat(),
   };
+  const _form = {
+    ...form,
+    catering,
+  };
+
   const payload = {
     ...(isBoth
       ? { venue: form?.venue, catering }
-      : { [bookingType]: form[bookingType] }),
+      : { [bookingType]: _form[bookingType] }),
     contact: form?.contact,
     date: form?.date,
     eventType: form?.eventType,

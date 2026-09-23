@@ -4,7 +4,7 @@ import ConflictPanel from "./conflictPanel";
 import { Formatter } from "@/services/utilities";
 import { formatItemName } from "../utils";
 import Inclusions from "../inclusions";
-import { SectionTitle } from "../components";
+import { EmptyPanel, SectionTitle } from "../components";
 
 const Service = ({ item, conflicts = [] }) => {
   const hasConflict = conflicts.length > 0;
@@ -95,7 +95,6 @@ const Service = ({ item, conflicts = [] }) => {
     </div>
   );
 };
-
 export default Service;
 
 const ServiceSection = ({ title, count, children }) => (

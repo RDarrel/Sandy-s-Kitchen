@@ -1,5 +1,6 @@
 const Counter = require("./Counter");
 const mongoose = require("mongoose");
+const inclusionSchema = require("./schemas/inclusions");
 
 const contactSchema = new mongoose.Schema(
   {
@@ -85,6 +86,9 @@ const cateringDetailsSchema = new mongoose.Schema(
         ref: "Menu",
       },
     ],
+    inclusions: {
+      type: [inclusionSchema],
+    },
   },
   { _id: false },
 );
@@ -111,6 +115,9 @@ const venueDetailsSchema = new mongoose.Schema(
       end: {
         type: String,
       },
+    },
+    inclusions: {
+      type: [inclusionSchema],
     },
   },
   { _id: false },

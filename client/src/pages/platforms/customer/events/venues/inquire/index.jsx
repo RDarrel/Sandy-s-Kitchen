@@ -24,6 +24,7 @@ import {
   FALLBACK_VENUES,
 } from "./constant";
 import {
+  buildInclusions,
   buildPackageInfo,
   buildPayload,
   computeEstimated,
@@ -61,6 +62,10 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   useEffect(() => {
     dispatch(BROWSE_CATERING_PACKAGES());
   }, [dispatch]);
+
+  useEffect(() => {
+    setMenuSelections(DEFAULT_MENU_SELECTIONS);
+  }, [form?.catering?.item]);
 
   useEffect(() => {
     if (form?.bookingType === "venue" || !form?.bookingType) {
@@ -162,8 +167,14 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleSubmit = () => {
+    const eInclusions = buildInclusions(selected?.inclusions);
+    const cInclusions = buildInclusions(selectedCatering?.inclusions);
     const payload = buildPayload(
-      { ...form, venue: { ...form?.venue, item: selected?._id } },
+      {
+        ...form,
+        venue: { ...form?.venue, item: selected?._id, inclusions: eInclusions },
+        catering: { ...form?.catering, inclusions: cInclusions },
+      },
       menuSelections,
       {
         catering: cateringEstimate,
