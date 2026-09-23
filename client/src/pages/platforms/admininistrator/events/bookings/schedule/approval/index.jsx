@@ -8,14 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Formatter, fullName } from "@/services/utilities";
 import {
   AlertTriangle,
   CalendarDays,
   CheckCircle2,
   Mail,
+  MessageSquareText,
   Phone,
+  ReceiptText,
+  StickyNote,
   UsersRound,
   Wallet,
 } from "lucide-react";
@@ -26,9 +28,10 @@ import {
   getServiceRows,
   getTotalPax,
 } from "./utils";
-import { CompactPanel, InfoRow, Metric } from "./components";
+import { Metric } from "./components";
 import Service from "./service";
 import { DIALOG_CONTENT_CLASSNAME } from "./constant";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const STATIC_CONFLICTS = {
   catering: [
@@ -144,20 +147,29 @@ const STATIC_CONFLICTS = {
 };
 
 const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
-  const booking = selected || {};
+  const [booking, setBooking] = useState({});
 
-  const service = SERVICE_BADGES[booking.bookingType] || {
+  useEffect(() => {
+    if (isOpen) {
+      setBooking(selected);
+    }
+  }, [isOpen, selected]);
+
+  const service = SERVICE_BADGES[booking?.bookingType] || {
     label: "Booking",
     className: "border-border bg-muted/40 text-foreground",
   };
 
-  const services = getServiceRows(booking);
+  const services = useMemo(() => {
+    return getServiceRows(booking);
+  }, [booking]);
+
   const payment = getPaymentSummary(booking);
 
   const customerName =
     fullName(booking?.customer?.fullName) || booking?.contact?.name || "Guest";
 
-  const isCombinedBooking = booking.bookingType === "both";
+  const isCombinedBooking = booking?.bookingType === "both";
 
   const hasConflicts = services.some(
     (item) => (STATIC_CONFLICTS[item.type] || []).length > 0,
@@ -176,16 +188,45 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
     // Approval logic here.
   };
 
+  const handleInclusionAmountChange = useCallback(
+    (serviceType, itemID, amount) => {
+      setBooking((prev) => {
+        const inclusions = [...(prev[serviceType]?.inclusions || [])];
+
+        const index = inclusions.findIndex(({ item }) => item?._id === itemID);
+
+        if (index === -1) {
+          return prev;
+        }
+
+        inclusions[index] = {
+          ...inclusions[index],
+          amount,
+        };
+
+        return {
+          ...prev,
+
+          [serviceType]: {
+            ...prev[serviceType],
+            inclusions,
+          },
+        };
+      });
+    },
+    [],
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
         className={`${DIALOG_CONTENT_CLASSNAME}
-    ${
-      hasConflicts
-        ? "xl:grid xl:w-fit xl:max-w-none xl:grid-cols-[790px_310px] xl:gap-6 [&>button]:xl:right-[320px]"
-        : "xl:w-[820px] xl:max-w-[820px]"
-    }
-  `}
+          ${
+            hasConflicts
+              ? "xl:grid xl:w-fit xl:max-w-none xl:grid-cols-[790px_310px] xl:gap-6 [&>button]:xl:right-[320px]"
+              : "xl:w-[820px] xl:max-w-[820px]"
+          }
+        `}
       >
         <div className="w-full overflow-visible rounded-lg border bg-background shadow-lg xl:w-[820px]">
           <DialogHeader className="border-b px-4 py-3">
@@ -227,7 +268,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">
-                    {booking.eventType || "Event booking"}
+                    {booking?.eventType || "Event booking"}
                   </p>
 
                   <p className="truncate text-xs text-muted-foreground">
@@ -237,9 +278,11 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
                 <Badge
                   variant="outline"
-                  className={`capitalize ${STATUS_STYLES[booking.status]}`}
+                  className={`capitalize ${
+                    STATUS_STYLES[booking?.status] || ""
+                  }`}
                 >
-                  {booking.status || "pending"}
+                  {booking?.status || "pending"}
                 </Badge>
               </div>
 
@@ -251,7 +294,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
                 <Metric
                   icon={<CalendarDays className="size-3.5" />}
                   label="Date"
-                  value={formatDate(booking.date)}
+                  value={formatDate(booking?.date)}
                 />
 
                 {isCombinedBooking ? (
@@ -278,7 +321,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
                 <Metric
                   icon={<Wallet className="size-3.5" />}
-                  label="Total"
+                  label="Estimate"
                   value={Formatter.amount(payment.total)}
                 />
 
@@ -290,46 +333,8 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
               </div>
             </section>
 
-            {/* Customer + Payment */}
-            <section className="grid gap-2 md:grid-cols-2">
-              <CompactPanel title="Customer">
-                <InfoRow
-                  icon={<UsersRound className="size-3.5" />}
-                  label="Name"
-                  value={booking?.contact?.name}
-                />
-
-                <InfoRow
-                  icon={<Phone className="size-3.5" />}
-                  label="Phone"
-                  value={booking?.contact?.phone}
-                />
-
-                <InfoRow
-                  icon={<Mail className="size-3.5" />}
-                  label="Email"
-                  value={booking?.contact?.email}
-                />
-              </CompactPanel>
-
-              <CompactPanel title="Payment">
-                <InfoRow
-                  label="Received"
-                  value={Formatter.amount(payment.received)}
-                />
-
-                <InfoRow
-                  label="Balance"
-                  value={Formatter.amount(payment.balance)}
-                />
-
-                <InfoRow
-                  label="Status"
-                  value={payment.status}
-                  className="capitalize"
-                />
-              </CompactPanel>
-            </section>
+            {/* Customer Details */}
+            <CustomerDetails booking={booking} customerName={customerName} />
 
             {/* Services */}
             <section className="grid gap-3">
@@ -338,29 +343,14 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
                   key={item.type}
                   item={item}
                   conflicts={STATIC_CONFLICTS[item.type] || []}
+                  isBoth={isCombinedBooking}
+                  handleInclusionAmountChange={handleInclusionAmountChange}
                 />
               ))}
             </section>
 
-            {/* Approval Note + Total */}
-            <section className="grid gap-2 md:grid-cols-[minmax(0,1fr)_15rem]">
-              <Textarea
-                className="min-h-16 resize-none text-xs"
-                placeholder="Approval note or allocation instruction..."
-              />
-
-              <div className="rounded-md border bg-muted/10 p-3">
-                <div className="flex items-center justify-between text-sm font-semibold">
-                  <span>Total</span>
-                  <span>{Formatter.amount(payment.total)}</span>
-                </div>
-
-                <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Balance</span>
-                  <span>{Formatter.amount(payment.balance)}</span>
-                </div>
-              </div>
-            </section>
+            {/* Booking Estimate */}
+            <BookingEstimate booking={booking} />
           </form>
 
           {/* Footer */}
@@ -391,5 +381,182 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
     </Dialog>
   );
 };
+
+const CustomerDetails = ({ booking, customerName }) => {
+  const preferredContact = Formatter.preferredContact(
+    booking?.contact?.preferredContact,
+  );
+
+  const hasSpecialRequest = Boolean(booking?.contact?.specialRequests?.trim());
+
+  const hasNotes = Boolean(booking?.notes?.trim());
+
+  return (
+    <section className="overflow-hidden rounded-md border bg-background">
+      {/* Contact */}
+      <div className="p-3">
+        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Contact details
+          </h3>
+
+          {preferredContact && (
+            <span className="rounded-md bg-muted/50 px-2 py-1 text-[10px] text-muted-foreground">
+              Preferred:{" "}
+              <span className="font-medium text-foreground">
+                {preferredContact}
+              </span>
+            </span>
+          )}
+        </div>
+
+        <div className="grid gap-1.5 sm:grid-cols-3">
+          <ContactDetail
+            icon={<UsersRound className="size-3.5" />}
+            label="Name"
+            value={customerName}
+          />
+
+          <ContactDetail
+            icon={<Phone className="size-3.5" />}
+            label="Phone"
+            value={booking?.contact?.phone}
+          />
+
+          <ContactDetail
+            icon={<Mail className="size-3.5" />}
+            label="Email"
+            value={booking?.contact?.email}
+          />
+        </div>
+      </div>
+
+      {/* Request Details */}
+      {(hasSpecialRequest || hasNotes) && (
+        <div className="border-t bg-muted/5 p-3">
+          <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Request details
+          </h3>
+
+          <div
+            className={`grid gap-2 ${
+              hasSpecialRequest && hasNotes ? "md:grid-cols-2" : "grid-cols-1"
+            }`}
+          >
+            {hasSpecialRequest && (
+              <RequestDetail
+                icon={<MessageSquareText className="size-3.5" />}
+                label="Special request"
+                value={booking?.contact?.specialRequests}
+              />
+            )}
+
+            {hasNotes && (
+              <RequestDetail
+                icon={<StickyNote className="size-3.5" />}
+                label="Notes"
+                value={booking?.notes}
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+};
+
+const BookingEstimate = ({ booking }) => {
+  const isCombinedBooking = booking?.bookingType === "both";
+
+  const cateringTotal = Number(booking?.pricing?.catering?.total || 0);
+
+  const venueTotal = Number(booking?.pricing?.venue?.total || 0);
+
+  const estimatedTotal = Number(booking?.pricing?.total || 0);
+
+  return (
+    <section className="overflow-hidden rounded-md border bg-background">
+      <div className="flex items-center gap-2 border-b bg-muted/10 px-3 py-2.5">
+        <div className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
+          <ReceiptText className="size-3.5" />
+        </div>
+
+        <div className="min-w-0">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
+            Booking estimate
+          </h3>
+
+          <p className="text-[10px] leading-4 text-muted-foreground">
+            Based on the submitted inquiry.
+          </p>
+        </div>
+      </div>
+
+      <div className="p-3">
+        {isCombinedBooking && (
+          <div className="mb-3 grid gap-2 sm:grid-cols-2">
+            <EstimateServiceCard label="Catering" value={cateringTotal} />
+
+            <EstimateServiceCard label="Venue" value={venueTotal} />
+          </div>
+        )}
+
+        <div
+          className={`flex items-center justify-between gap-4 ${
+            isCombinedBooking ? "border-t pt-3" : ""
+          }`}
+        >
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              Estimated total
+            </p>
+
+            <p className="mt-0.5 text-[10px] text-muted-foreground">
+              Subject to approval
+            </p>
+          </div>
+
+          <span className="shrink-0 text-lg font-semibold tabular-nums text-foreground">
+            {Formatter.amount(estimatedTotal)}
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const EstimateServiceCard = ({ label, value }) => (
+  <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/10 px-3 py-2">
+    <span className="text-xs font-medium text-muted-foreground">{label}</span>
+
+    <span className="text-sm font-semibold tabular-nums text-foreground">
+      {Formatter.amount(value)}
+    </span>
+  </div>
+);
+
+const ContactDetail = ({ icon, label, value }) => (
+  <div className="flex min-w-0 items-center gap-2 rounded-md border px-2.5 py-2">
+    <span className="shrink-0 text-muted-foreground">{icon}</span>
+
+    <div className="min-w-0">
+      <p className="text-[10px] leading-3 text-muted-foreground">{label}</p>
+
+      <p className="mt-0.5 truncate text-xs font-medium text-foreground">
+        {value || "-"}
+      </p>
+    </div>
+  </div>
+);
+const RequestDetail = ({ icon, label, value }) => (
+  <div className="min-w-0 rounded-md border bg-background p-2.5">
+    <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+      {icon}
+      <span>{label}</span>
+    </div>
+
+    <p className="line-clamp-3 text-xs leading-5 text-foreground">{value}</p>
+  </div>
+);
 
 export default Approval;

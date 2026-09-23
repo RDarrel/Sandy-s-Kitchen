@@ -184,7 +184,7 @@ exports.schedule = async (req, res) => {
     })
       .populate("customer", "fullName")
       .populate("catering.item", "name description")
-      .populate("venue.item", "name description")
+      .populate("venue.item", "name description address")
       .populate("catering.inclusions.item")
       .populate("venue.inclusions.item")
       .populate("catering.mainDishes")

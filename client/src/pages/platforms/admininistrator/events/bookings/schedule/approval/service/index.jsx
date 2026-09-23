@@ -1,12 +1,17 @@
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Clock3, MapPin } from "lucide-react";
+import { AlertTriangle, Building2, Clock3, MapPin } from "lucide-react";
 import ConflictPanel from "./conflictPanel";
 import { Formatter } from "@/services/utilities";
 import { formatItemName } from "../utils";
 import Inclusions from "../inclusions";
 import { EmptyPanel, SectionTitle } from "../components";
 
-const Service = ({ item, conflicts = [] }) => {
+const Service = ({
+  item,
+  conflicts = [],
+  isBoth = false,
+  handleInclusionAmountChange = () => {},
+}) => {
   const hasConflict = conflicts.length > 0;
   const Icon = item.icon;
   return (
@@ -62,7 +67,7 @@ const Service = ({ item, conflicts = [] }) => {
         {/* Service Content */}
         <div className="grid gap-2 p-3">
           <ServiceSection title="Details">
-            <ServicePanel item={item} />
+            <ServicePanel item={item} isBoth={isBoth} />
           </ServiceSection>
 
           {item.type === "catering" && (
@@ -79,7 +84,12 @@ const Service = ({ item, conflicts = [] }) => {
           )}
 
           <ServiceSection title="Resources" count={item.inclusions.length}>
-            <Inclusions label={item.label} items={item.inclusions} />
+            <Inclusions
+              label={item.label}
+              serviceType={item?.type}
+              items={item.inclusions}
+              handleInclusionAmountChange={handleInclusionAmountChange}
+            />
           </ServiceSection>
 
           {item.pricing && (
@@ -119,18 +129,36 @@ const ServiceSection = ({ title, count, children }) => (
   </div>
 );
 
-const ServicePanel = ({ item }) => (
-  <div className="grid gap-1 text-xs md:grid-cols-2">
-    <DetailPill
-      icon={<Clock3 className="size-3.5" />}
-      value={`${Formatter.time(item.time?.start)} - ${Formatter.time(
-        item.time?.end,
-      )}`}
-    />
+const ServicePanel = ({ item, isBoth }) => {
+  const isCateringOnly = item?.type === "catering" && !isBoth;
 
-    <DetailPill icon={<MapPin className="size-3.5" />} value={item.location} />
-  </div>
-);
+  return (
+    <div
+      className={`grid gap-1 text-xs ${
+        isCateringOnly ? "md:grid-cols-3" : "md:grid-cols-2"
+      }`}
+    >
+      <DetailPill
+        icon={<Clock3 className="size-3.5" />}
+        value={`${Formatter.time(item?.time?.start)} - ${Formatter.time(
+          item?.time?.end,
+        )}`}
+      />
+
+      {isCateringOnly && (
+        <DetailPill
+          icon={<Building2 className="size-3.5" />}
+          value={item?.location}
+        />
+      )}
+
+      <DetailPill
+        icon={<MapPin className="size-3.5" />}
+        value={isCateringOnly ? item?.address : item?.location}
+      />
+    </div>
+  );
+};
 
 const DetailPill = ({ icon, value }) => (
   <span className="flex min-w-0 items-center gap-2 rounded-md border bg-background px-2 py-1">

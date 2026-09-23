@@ -64,7 +64,7 @@ export const buildPackageInfo = (item = {}) => {
 };
 export const buildInclusions = (inclusions) => {
   if (!inclusions?.length) return [];
-  return inclusions.map((inc) => ({ ...inc, item: inc?.item?._id }));
+  return inclusions.map((inc) => ({ ...inc, item: inc?.item?._id, amount: 0 }));
 };
 export const buildPayload = (form, menuSelections, estimate) => {
   const { bookingType } = form;

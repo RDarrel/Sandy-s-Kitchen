@@ -27,6 +27,7 @@ export const getServiceRows = (booking) => {
         booking?.catering?.venue?.location ||
         booking?.catering?.venue?.address ||
         booking?.venue?.item?.address,
+      address: booking?.catering?.venue?.address,
 
       mainDishes: booking?.catering?.mainDishes || [],
 
@@ -98,9 +99,15 @@ export const getServiceRows = (booking) => {
 };
 
 export const getPaymentSummary = (booking) => {
-  const total = Number(booking?.pricing?.total || 0);
+  const total =
+    Number(booking?.pricing?.total || 0) ||
+    Number(booking?.pricing?.catering?.total || 0) +
+      Number(booking?.pricing?.venue?.total || 0) ||
+    Number(booking?.meta?.amount || 0);
 
-  const received = Number(booking?.payment?.amount || 0);
+  const received = Number(
+    booking?.payment?.amount || booking?.payment?.received || 0,
+  );
 
   return {
     total,
