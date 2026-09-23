@@ -353,11 +353,10 @@ bookingSchema.pre("save", async function () {
     { key: `booking-${year}` },
     { $inc: { sequence: 1 } },
     {
-      returnDocument: true,
+      returnDocument: "after",
       upsert: true,
     },
   );
-
   const sequence = String(counter.sequence).padStart(4, "0");
 
   this.reference = `SK-${year}-${sequence}`;
