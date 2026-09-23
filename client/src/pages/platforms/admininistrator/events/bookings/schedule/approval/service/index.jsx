@@ -195,21 +195,25 @@ const MenuPanel = ({ title, items }) => (
   </section>
 );
 
-export const PricePanel = ({ label, pricing }) => (
-  <section className="rounded-md border bg-muted/10 p-2.5">
-    <div className="mb-1 flex items-center justify-between text-xs font-semibold">
-      <span>{label}</span>
+export const PricePanel = ({ label, pricing }) => {
+  const rows = getPricingRows(pricing);
 
-      <span>{Formatter.amount(pricing.total || 0)}</span>
-    </div>
+  return (
+    <section className="rounded-md border bg-muted/10 p-2.5">
+      <div className="mb-1 flex items-center justify-between text-xs font-semibold">
+        <span>{label}</span>
 
-    <PriceRow label="Base" value={pricing.basePrice} />
+        <span>{Formatter.amount(pricing.total || 0)}</span>
+      </div>
 
-    <PriceRow label="Guest charge" value={pricing.guests?.charge} />
-
-    <PriceRow label="Duration charge" value={pricing.duration?.charge} />
-  </section>
-);
+      <div className="grid gap-0.5">
+        {rows.map((row) => (
+          <PriceRow key={row.label} label={row.label} value={row.value} />
+        ))}
+      </div>
+    </section>
+  );
+};
 
 export const PriceRow = ({ label, value }) => (
   <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -218,3 +222,59 @@ export const PriceRow = ({ label, value }) => (
     <span>{Formatter.amount(value || 0)}</span>
   </div>
 );
+
+const getPricingRows = (pricing = {}) => {
+  const rows = [];
+  const basePrice = Number(pricing?.basePrice || 0);
+  const guestCharge = Number(pricing?.guests?.charge || 0);
+  const durationCharge = Number(pricing?.duration?.charge || 0);
+  const extraGuests = getExtraGuests(pricing?.guests);
+  const extraDuration = getExtraDuration(pricing?.duration);
+
+  if (basePrice > 0) {
+    rows.push({
+      label: "Base price",
+      value: basePrice,
+    });
+  }
+
+  if (extraGuests > 0 && guestCharge > 0) {
+    rows.push({
+      label: `Extra guests (${extraGuests})`,
+      value: guestCharge,
+    });
+  }
+
+  if (extraDuration > 0 && durationCharge > 0) {
+    rows.push({
+      label: `Extra duration (${formatHours(extraDuration)})`,
+      value: durationCharge,
+    });
+  }
+
+  return rows;
+};
+
+const getExtraGuests = (guests = {}) => {
+  const extra = Number(guests?.extra || 0);
+
+  if (extra > 0) return extra;
+
+  return Math.max(
+    Number(guests?.booked || 0) - Number(guests?.included || 0),
+    0,
+  );
+};
+
+const getExtraDuration = (duration = {}) => {
+  const extra = Number(duration?.extra || 0);
+
+  if (extra > 0) return extra;
+
+  return Math.max(
+    Number(duration?.booked || 0) - Number(duration?.included || 0),
+    0,
+  );
+};
+
+const formatHours = (hours) => `${hours} hr${hours === 1 ? "" : "s"}`;
