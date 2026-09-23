@@ -69,21 +69,21 @@ export const Financial = ({ monthlySummary, isLoading }) => {
             {index > 0 && <div className="h-7 w-px shrink-0 bg-border/80" />}
 
             <div className="min-w-0 flex-1 text-center sm:min-w-20 sm:flex-none sm:text-right">
-              <p className="flex h-[11px] items-center justify-center sm:justify-end">
+              <div className="flex h-[11px] items-center justify-center sm:justify-end">
                 <Skeleton
                   className={`h-2.5 ${
                     index === 0 ? "w-14" : index === 1 ? "w-12" : "w-16"
                   }`}
                 />
-              </p>
+              </div>
 
-              <p className="mt-0.5 flex h-5 items-center justify-center sm:justify-end">
+              <div className="mt-0.5 flex h-5 items-center justify-center sm:justify-end">
                 <Skeleton
                   className={`h-4 ${
                     index === 0 ? "w-20" : index === 1 ? "w-16" : "w-14"
                   }`}
                 />
-              </p>
+              </div>
             </div>
           </div>
         ))}
