@@ -1,4 +1,7 @@
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSelector } from "react-redux";
 const Filters = ({ value, counts, onChange }) => {
+  const { isLoadingMyBookings } = useSelector(({ bookings }) => bookings);
   const filters = [
     {
       value: "upcoming",
@@ -26,6 +29,8 @@ const Filters = ({ value, counts, onChange }) => {
       count: counts.all,
     },
   ];
+
+  if (isLoadingMyBookings) return <FiltersSkeleton />;
 
   return (
     <div
@@ -70,3 +75,45 @@ const Filters = ({ value, counts, onChange }) => {
 };
 
 export default Filters;
+
+const FiltersSkeleton = () => {
+  const filters = [
+    {
+      value: "upcoming",
+      labelWidth: "w-[52px]",
+    },
+    {
+      value: "pending",
+      labelWidth: "w-[43px]",
+    },
+    {
+      value: "completed",
+      labelWidth: "w-[59px]",
+    },
+    {
+      value: "cancelled",
+      labelWidth: "w-[57px]",
+    },
+    {
+      value: "all",
+      labelWidth: "w-[17px]",
+    },
+  ];
+
+  return (
+    <div className="flex min-w-0 gap-1 overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {filters.map((item) => (
+        <div
+          key={item.value}
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 sm:gap-2 sm:px-3"
+        >
+          {/* Label */}
+          <Skeleton className={`h-[11px] ${item.labelWidth} rounded sm:h-3`} />
+
+          {/* Count */}
+          <Skeleton className="h-4 min-w-4 rounded-full sm:min-w-[18px]" />
+        </div>
+      ))}
+    </div>
+  );
+};
