@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock3, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, XCircle } from "lucide-react";
 export const UPCOMING_STATUSES = ["approved", "confirmed", "setup"];
 
 export const STATUS_META = {
@@ -6,6 +6,11 @@ export const STATUS_META = {
     label: "Pending",
     icon: Clock3,
     badgeClassName: "border-amber-200 bg-amber-50 text-amber-700",
+  },
+  changes_requested: {
+    label: "Action Required",
+    icon: AlertTriangle,
+    badgeClassName: "border-orange-200 bg-orange-50 text-orange-700",
   },
 
   approved: {

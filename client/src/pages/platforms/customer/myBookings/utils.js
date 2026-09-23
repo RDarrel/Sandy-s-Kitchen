@@ -6,6 +6,7 @@ import {
   Clock3,
   CreditCard,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 
@@ -111,6 +112,7 @@ export const getBookingAction = (booking, payment) => {
    * The booking has been submitted but the admin has not
    * approved it yet.
    */
+
   if (status === "pending") {
     return {
       message:
@@ -118,6 +120,17 @@ export const getBookingAction = (booking, payment) => {
       buttonLabel: null,
       icon: Clock3,
       variant: "default",
+    };
+  }
+
+  if (status === "changes_requested") {
+    return {
+      message:
+        booking?.changeRequest?.message ||
+        "Changes are required before your booking can be approved. Please review and update your booking.",
+      buttonLabel: "Review & Update",
+      icon: AlertTriangle,
+      variant: "action-required",
     };
   }
 

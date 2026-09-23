@@ -15,7 +15,9 @@ const Action = ({ action }) => {
               ? "border-red-200 bg-red-50/50"
               : action.variant === "preparing"
                 ? "border-violet-200 bg-violet-50/50"
-                : "border-border bg-muted/10"
+                : action.variant === "action-required"
+                  ? "border-orange-200 bg-orange-50/60"
+                  : "border-border bg-muted/10"
       }`}
     >
       <div className="flex min-w-0 items-start gap-1.5 sm:items-center">
@@ -29,7 +31,9 @@ const Action = ({ action }) => {
                   ? "text-red-700"
                   : action.variant === "preparing"
                     ? "text-violet-700"
-                    : "text-muted-foreground"
+                    : action.variant === "action-required"
+                      ? "text-orange-700"
+                      : "text-muted-foreground"
           }`}
         />
 
@@ -43,7 +47,9 @@ const Action = ({ action }) => {
                   ? "font-medium text-red-700"
                   : action.variant === "preparing"
                     ? "font-medium text-violet-700"
-                    : "text-muted-foreground"
+                    : action.variant === "action-required"
+                      ? "font-medium text-orange-800"
+                      : "text-muted-foreground"
           }`}
         >
           {action.message}

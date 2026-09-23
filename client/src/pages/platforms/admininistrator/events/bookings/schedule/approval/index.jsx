@@ -230,7 +230,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
   ${
     hasConflicts
-      ? "xl:grid xl:w-fit xl:max-w-none xl:grid-cols-[770px_310px] xl:gap-6 [&>button]:xl:right-[300px]"
+      ? "xl:grid xl:w-fit xl:max-w-none xl:grid-cols-[790px_310px] xl:gap-6 [&>button]:xl:right-[320px]"
       : "xl:w-[820px] xl:max-w-[820px]"
   }
   `}
