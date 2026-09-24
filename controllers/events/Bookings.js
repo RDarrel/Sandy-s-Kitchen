@@ -1,4 +1,5 @@
 const Booking = require("../../models/events/Booking");
+const Payment = require("../../models/events/Payment");
 const dateToUTC = require("../../utilities/dateToUTC");
 exports.save = async (req, res) => {
   try {
@@ -186,8 +187,14 @@ exports.schedule = async (req, res) => {
     const { date } = req.query;
 
     const schedule = await Booking.find({
-      date: dateToUTC({ date, dateOnly: true }),
-      status: { $nin: ["rejected"] },
+      date: dateToUTC({
+        date,
+        dateOnly: true,
+      }),
+
+      status: {
+        $nin: ["rejected"],
+      },
     })
       .populate("customer", "fullName")
       .populate("catering.item", "name description")
@@ -195,11 +202,68 @@ exports.schedule = async (req, res) => {
       .populate("catering.inclusions.item")
       .populate("venue.inclusions.item")
       .populate("catering.mainDishes")
-      .populate("catering.sideDishes");
+      .populate("catering.sideDishes")
+      .lean();
 
-    const statusOrder = ["pending", "approved", "done"];
+    /*
+     * Get all booking IDs from today's schedule.
+     */
+    const bookingIds = schedule.map(({ _id }) => _id);
 
-    const groupedSchedule = schedule.reduce((acc, booking) => {
+    /*
+     * ONE query for all payments belonging
+     * to these bookings.
+     */
+    const payments = await Payment.find({
+      booking: {
+        $in: bookingIds,
+      },
+    })
+      .sort({
+        paidAt: -1,
+      })
+      .lean();
+
+    /*
+     * Group payments by booking ID.
+     *
+     * Result:
+     *
+     * {
+     *   bookingId1: [payment1, payment2],
+     *   bookingId2: [payment3],
+     * }
+     */
+    const paymentsByBooking = payments.reduce((acc, payment) => {
+      const bookingId = payment.booking.toString();
+
+      if (!acc[bookingId]) {
+        acc[bookingId] = [];
+      }
+
+      acc[bookingId].push(payment);
+
+      return acc;
+    }, {});
+
+    /*
+     * Attach payments to each booking.
+     */
+    const scheduleWithPayments = schedule.map((booking) => ({
+      ...booking,
+      payments: paymentsByBooking[booking._id.toString()] || [],
+    }));
+
+    const statusOrder = [
+      "pending",
+      "approved",
+      "confirmed",
+      "setup",
+      "completed",
+      "cancelled",
+    ];
+
+    const groupedSchedule = scheduleWithPayments.reduce((acc, booking) => {
       const status = booking.status;
 
       if (!acc[status]) {
@@ -216,6 +280,7 @@ exports.schedule = async (req, res) => {
         .filter((status) => groupedSchedule[status])
         .map((status) => [status, groupedSchedule[status]]),
     );
+
     return res.status(200).json({
       data: sortedSchedule,
     });
