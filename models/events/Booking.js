@@ -1,6 +1,6 @@
 const Counter = require("./Counter");
 const mongoose = require("mongoose");
-const inclusionSchema = require("./schemas/inclusions");
+const inclusionSchema = require("./schemas/Inclusions");
 
 const contactSchema = new mongoose.Schema(
   {

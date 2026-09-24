@@ -1,5 +1,4 @@
 import {
-  BrickWall,
   ContactRound,
   Gauge,
   GitPullRequestArrow,
@@ -8,11 +7,13 @@ import {
   UtensilsCrossed,
   Boxes,
   CalendarDays,
+  BrickWall,
+  ClipboardList,
+  CreditCard,
 } from "lucide-react";
 import Dashboard from "./dashboard";
 import Staffs from "./staffs";
 import Suppliers from "./suppliers";
-import Audit from "./audit";
 import Items from "./menu/items";
 import Categories from "./menu/categories";
 import AddOns from "./menu/addOns";
@@ -23,8 +24,10 @@ import StockRequests from "./orders/stock-requests";
 import StockItems from "./inventory";
 import { Equipment, Services } from "./resources";
 import { Bookings, CateringPackages, Venues } from "./events";
+import Audit from "./audit";
+import Policy from "./policy";
 
-const access = [
+export const ADMIN_MANAGEMENT = [
   {
     name: "Dashboard",
     path: "/dashboard",
@@ -142,14 +145,25 @@ const access = [
       },
     ],
   },
-  // Requests → Orders → Delivered
+];
 
+export const ADMIN_SYSTEM = [
   {
     name: "Audit Trail",
     path: "/audit",
     icon: BrickWall,
     component: Audit,
   },
+  {
+    name: "Booking Policy",
+    path: "/booking-policy",
+    icon: ClipboardList,
+    component: Policy,
+  },
+  {
+    name: "Payment Methods",
+    path: "/payment-methods",
+    icon: CreditCard,
+    component: Policy,
+  },
 ];
-
-export default access;

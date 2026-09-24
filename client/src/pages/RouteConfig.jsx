@@ -1,13 +1,15 @@
 import { useSelector } from "react-redux";
 import { Route } from "react-router-dom";
-
 import ACCESS from "./platforms/access";
-
+import { ADMIN_SYSTEM } from "./platforms/admininistrator/access";
 const RouteConfig = () => {
   const { auth } = useSelector(({ auth }) => auth);
 
   const handleRoutes = () => {
-    const routes = ACCESS[auth?.role] || [];
+    const routes =
+      auth?.role === 1
+        ? [...ADMIN_SYSTEM, ...ACCESS[auth?.role]]
+        : ACCESS[auth?.role] || [];
     return routes.map(({ path, component, children }, x) => {
       const handleRoute = (key, path, Component) => (
         <Route key={key} path={path} element={<Component />} />

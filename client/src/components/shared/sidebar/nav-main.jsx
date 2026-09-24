@@ -106,12 +106,12 @@ const LinkWithoutChild = ({ pathname, ...link }) => {
   );
 };
 
-export function NavMain({ links }) {
+export function NavMain({ links, label = "Platforms" }) {
   const { pathname } = useLocation();
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platforms</SidebarGroupLabel>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarMenu>
         {links?.map((link) =>
           link?.children ? (
