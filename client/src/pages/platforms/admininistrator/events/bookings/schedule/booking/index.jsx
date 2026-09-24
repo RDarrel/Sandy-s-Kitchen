@@ -58,7 +58,7 @@ const Booking = ({ booking, handleAction }) => {
           )}
         </div>
 
-        <PaymentSummary payments={payment} />
+        <PaymentSummary payment={payment} />
       </div>
 
       <div className="flex flex-wrap justify-end gap-1.5 border-t bg-muted/10 px-2.5 py-2">
