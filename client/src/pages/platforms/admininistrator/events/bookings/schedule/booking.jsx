@@ -37,6 +37,7 @@ const Booking = ({ booking, handleAction }) => {
       return booking?.venue?.item?.address;
     return booking?.catering?.venue?.location;
   };
+
   const LocationIcon = isCateringOnly ? Building2 : MapPin;
   return (
     <div className="overflow-hidden rounded-md border bg-background shadow-xs">

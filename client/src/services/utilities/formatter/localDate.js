@@ -7,7 +7,7 @@ const localDate = (date = new Date()) => {
     month: "2-digit",
     day: "2-digit",
   })
-    .format(date)
+    .format(new Date(date))
     .replace(/\//g, "-");
 };
 

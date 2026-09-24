@@ -198,3 +198,6 @@ export const getResourceRequirement = (inclusion) =>
       inclusion?.item?.requirement ||
       (inclusion?.model === "Equipment" ? "qty" : "none"),
   ).toLowerCase();
+
+export const buildInclusions = (inclusions) =>
+  inclusions.map((inc) => ({ ...inc, item: inc?.item?._id }));

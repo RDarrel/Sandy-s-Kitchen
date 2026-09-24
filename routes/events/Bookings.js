@@ -4,13 +4,15 @@ const router = require("express").Router(),
     calendar,
     schedule,
     me,
+    approve,
   } = require("../../controllers/events/Bookings"),
   { validate } = require("../../middleware/jwt");
 
 router
-  .post("/save", validate, save)
   .get("/calendar", validate, calendar)
   .get("/schedule", validate, schedule)
-  .get("/me", validate, me);
+  .get("/me", validate, me)
+  .post("/save", validate, save)
+  .put("/approve", validate, approve);
 
 module.exports = router;

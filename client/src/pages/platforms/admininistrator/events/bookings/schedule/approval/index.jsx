@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { SERVICE_BADGES, STATUS_STYLES } from "../../constant";
 import {
+  buildInclusions,
   formatDate,
   getPaymentSummary,
   getServiceRows,
@@ -32,6 +33,10 @@ import { Metric } from "./components";
 import Service from "./service";
 import { DIALOG_CONTENT_CLASSNAME } from "./constant";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { APPROVE } from "@/services/redux/slices/events/bookings";
+import { toast } from "sonner";
+import Spinner from "@/components/shared/spinner";
 
 const STATIC_CONFLICTS = {
   catering: [
@@ -147,7 +152,9 @@ const STATIC_CONFLICTS = {
 };
 
 const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
+  const { formSubmitted } = useSelector(({ bookings }) => bookings);
   const [booking, setBooking] = useState({});
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (isOpen) {
@@ -171,9 +178,10 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const isCombinedBooking = booking?.bookingType === "both";
 
-  const hasConflicts = services.some(
-    (item) => (STATIC_CONFLICTS[item.type] || []).length > 0,
-  );
+  // const hasConflicts = services.some(
+  //   (item) => (STATIC_CONFLICTS[item.type] || []).length > 0,
+  // );
+  const hasConflicts = false;
 
   const totalConflicts = services.reduce(
     (total, item) => total + (STATIC_CONFLICTS[item.type] || []).length,
@@ -182,10 +190,23 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    const { catering = {}, venue = {} } = booking;
     if (hasConflicts) return;
 
-    // Approval logic here.
+    const eInclusions = buildInclusions(venue?.inclusions || []);
+    const cInclusions = buildInclusions(catering?.inclusions || []);
+    dispatch(APPROVE({ _id: booking?._id, eInclusions, cInclusions }))
+      .unwrap()
+      .then((payload) => {
+        toast.success(payload?.success);
+        setIsOpen(false);
+        setBooking({});
+      })
+      .catch((error) => {
+        console.error("APPROVE ERROR:", error);
+
+        toast.error("Failed to approve booking. Please try again.");
+      });
   };
 
   const handleInclusionAmountChange = useCallback(
@@ -371,9 +392,13 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
               Cancel
             </Button>
 
-            <Button type="submit" form="approval-form" disabled={hasConflicts}>
+            <Button
+              type="submit"
+              form="approval-form"
+              disabled={hasConflicts || formSubmitted}
+            >
               <CheckCircle2 className="size-4" />
-              Approve Booking
+              Approve Booking <Spinner formSubmitted={formSubmitted} />
             </Button>
           </DialogFooter>
         </div>

@@ -33,11 +33,11 @@ const Schedule = ({ selectedDate }) => {
       activeStatus === "all"
         ? schedule
         : { [activeStatus]: schedule[activeStatus] || [] };
-    const bookingsArray = Object.values(bookings)?.flat();
+    const bookingsArray = Object.values(schedule)?.flat();
     return {
       filtered: bookings,
       count: bookingsArray?.length,
-      statusHeader: { all: bookingsArray, ...bookings },
+      statusHeader: { all: bookingsArray, ...schedule },
     };
   }, [activeStatus, schedule]);
 

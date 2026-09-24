@@ -159,10 +159,17 @@ exports.calendar = async (req, res) => {
       success: true,
       data: {
         days: result.calendar,
-
         overview: {
           monthly: result.monthlyOverview,
           totalCount: result.totalBookings[0]?.count || 0,
+        },
+        visibleRange: {
+          start,
+          end,
+        },
+        monthRange: {
+          start: monthStart,
+          end: monthEnd,
         },
       },
     });
@@ -242,5 +249,63 @@ exports.me = async (req, res) => {
     res
       .status(500)
       .json({ error: "Failed to fetch my bookings. Please try again" });
+  }
+};
+
+exports.approve = async (req, res) => {
+  try {
+    const { eInclusions, cInclusions, _id } = req.body;
+
+    const update = {
+      status: "approved",
+    };
+
+    if (cInclusions?.length > 0) {
+      update["catering.inclusions"] = cInclusions;
+    }
+
+    if (eInclusions?.length > 0) {
+      update["venue.inclusions"] = eInclusions;
+    }
+
+    const booking = await Booking.findByIdAndUpdate(
+      _id,
+      {
+        $set: update,
+      },
+      {
+        returnDocument: "after",
+        runValidators: true,
+      },
+    )
+      .populate({
+        path: "catering.item",
+        select: "inclusions name description",
+        populate: { path: "inclusions.item" },
+      })
+      .populate({
+        path: "venue.item",
+        populate: { path: "inclusions.item" },
+      });
+
+    if (!booking) {
+      return res.status(404).json({
+        message: "Booking not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: "Booking approved successfully.",
+      data: {
+        _id: booking?._id,
+        date: booking?.date,
+        eInclusions: booking?.event?.inclusions || [],
+        cInclusions: booking?.catering?.inclusions || [],
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
   }
 };
