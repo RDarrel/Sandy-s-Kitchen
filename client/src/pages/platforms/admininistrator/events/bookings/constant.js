@@ -97,29 +97,18 @@ export const SERVICE_BADGES = {
   },
 };
 
-// export const SERVICE_BADGES = {
-//   "Catering + Venue": {
-//     label: "C+V",
-//     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
-//   },
-//   "Dinner buffet + venue": {
-//     label: "C+V",
-//     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
-//   },
-//   "Venue reservation": {
-//     label: "VEN",
-//     className: "border-amber-200 bg-amber-50 text-amber-700",
-//   },
-//   "Packed buffet": {
-//     label: "CAT",
-//     className: "border-rose-200 bg-rose-50 text-rose-700",
-//   },
-//   "Catering only": {
-//     label: "CAT",
-//     className: "border-rose-200 bg-rose-50 text-rose-700",
-//   },
-//   "Blocked venue": {
-//     label: "BLK",
-//     className: "border-slate-200 bg-slate-50 text-slate-700",
-//   },
-// };
+export const PAYMENT_TEXT_STYLES = {
+  pending: "text-amber-700",
+  paid: "text-emerald-700",
+  partial: "text-blue-700",
+  unpaid: "text-rose-700",
+  refunded: "text-slate-700",
+};
+
+export const PAYMENT_SUMMARY_STYLES = {
+  pending: "border-amber-200 bg-amber-50/70",
+  paid: "border-emerald-200 bg-emerald-50/70",
+  partial: "border-blue-200 bg-blue-50/70",
+  unpaid: "border-rose-200 bg-rose-50/70",
+  refunded: "border-slate-200 bg-slate-50/70",
+};

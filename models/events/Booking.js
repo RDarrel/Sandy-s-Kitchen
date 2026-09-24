@@ -219,37 +219,6 @@ const pricingSchema = new mongoose.Schema(
 
 /*
 |--------------------------------------------------------------------------
-| Payment
-|--------------------------------------------------------------------------
-*/
-
-const paymentSchema = new mongoose.Schema(
-  {
-    amount: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    status: {
-      type: String,
-      enum: ["unpaid", "partial", "paid", "refunded"],
-      default: "unpaid",
-    },
-
-    proof: {
-      type: String,
-    },
-
-    paidAt: {
-      type: Date,
-    },
-  },
-  { _id: false },
-);
-
-/*
-|--------------------------------------------------------------------------
 | Booking
 |--------------------------------------------------------------------------
 */
@@ -298,10 +267,6 @@ const bookingSchema = new mongoose.Schema(
     pricing: {
       type: pricingSchema,
       required: true,
-    },
-
-    payment: {
-      type: paymentSchema,
     },
 
     status: {

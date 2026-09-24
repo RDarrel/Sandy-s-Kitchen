@@ -1,31 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Formatter, fullName } from "@/services/utilities";
-import {
-  UsersRound,
-  MapPin,
-  Clock3,
-  Utensils,
-  Building2,
-  Wallet,
-} from "lucide-react";
-import { SERVICE_BADGES, STATUS_TEXT } from "../constant";
-
-const PAYMENT_TEXT_STYLES = {
-  pending: "text-amber-700",
-  paid: "text-emerald-700",
-  partial: "text-blue-700",
-  unpaid: "text-rose-700",
-  refunded: "text-slate-700",
-};
-
-const PAYMENT_SUMMARY_STYLES = {
-  pending: "border-amber-200 bg-amber-50/70",
-  paid: "border-emerald-200 bg-emerald-50/70",
-  partial: "border-blue-200 bg-blue-50/70",
-  unpaid: "border-rose-200 bg-rose-50/70",
-  refunded: "border-slate-200 bg-slate-50/70",
-};
+import { UsersRound, MapPin, Clock3, Utensils, Building2 } from "lucide-react";
+import { SERVICE_BADGES, STATUS_TEXT } from "../../constant";
+import PaymentSummary from "./payment";
 
 const Booking = ({ booking, handleAction }) => {
   const service = SERVICE_BADGES[booking.bookingType];
@@ -80,7 +58,7 @@ const Booking = ({ booking, handleAction }) => {
           )}
         </div>
 
-        <PaymentSummary payment={payment} />
+        <PaymentSummary payments={payment} />
       </div>
 
       <div className="flex flex-wrap justify-end gap-1.5 border-t bg-muted/10 px-2.5 py-2">
@@ -181,64 +159,6 @@ const getBookingTotal = (booking) => {
 
 const normalizePaymentStatus = (status) =>
   typeof status === "string" ? status.toLowerCase() : "";
-
-const PaymentSummary = ({ payment }) => {
-  const isPaid = payment.status === "paid";
-  const isPending = payment.status === "pending";
-  const hasPayment = payment.received > 0;
-  const statusStyle = PAYMENT_TEXT_STYLES[payment.status] || "text-foreground";
-  const summaryStyle =
-    PAYMENT_SUMMARY_STYLES[payment.status] || "border-border bg-muted/25";
-  const label = isPending
-    ? "Estimated total"
-    : isPaid
-      ? "Paid in full"
-      : hasPayment
-        ? "Partial payment"
-        : "No payment yet";
-  const amountLabel =
-    isPaid || isPending
-      ? Formatter.amount(payment.total)
-      : `Bal. ${Formatter.amount(payment.balance)}`;
-
-  return (
-    <div
-      className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md border px-2 py-1.5 ${summaryStyle}`}
-    >
-      <div className="flex min-w-0 items-center gap-2">
-        <Wallet className={`size-3.5 shrink-0 ${statusStyle}`} />
-
-        <div className="min-w-0">
-          <p className={`truncate font-medium leading-4 ${statusStyle}`}>
-            {label}
-          </p>
-
-          <p className="truncate text-[11px] leading-4 text-muted-foreground">
-            {isPending
-              ? "Subject to approval"
-              : isPaid
-                ? "Payment settled"
-                : hasPayment
-                  ? `Received ${Formatter.amount(payment.received)}`
-                  : `Total ${Formatter.amount(payment.total)}`}
-          </p>
-        </div>
-      </div>
-
-      <div className="shrink-0 text-right">
-        <p className="font-semibold leading-4 text-foreground">{amountLabel}</p>
-
-        {isPending ? (
-          <p className="text-[11px] leading-4 text-muted-foreground">{null}</p>
-        ) : !isPaid ? (
-          <p className="text-[11px] leading-4 text-muted-foreground">
-            to collect
-          </p>
-        ) : null}
-      </div>
-    </div>
-  );
-};
 
 const Time = ({ booking }) => {
   const { bookingType, catering, venue } = booking;
