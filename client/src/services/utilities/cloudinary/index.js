@@ -10,6 +10,9 @@ const Cloudinary = {
   getPackageImg: (version, fileName) => {
     return `${Cloudinary.getEndpoint()}/${version || ""}/packages/${fileName}`;
   },
+  getPaymentMethodImg: (version, methodId, fileName) => {
+    return `${Cloudinary.getEndpoint()}/${version || ""}/paymentMethods/${methodId}/${fileName}`;
+  },
   //if we have a userID it means upload profile image
   buildFileForm: (base64, folder, fileName, toUpdate) => {
     const mimeMatch = base64?.match(/^data:(.*);base64,/);
@@ -33,6 +36,11 @@ const Cloudinary = {
     formData.append("filename", fileName);
     if (toUpdate?.userID) formData.append("userID", toUpdate?.userID);
     if (toUpdate?.menuId) formData.append("menuId", toUpdate?.menuId);
+    if (toUpdate?.paymentMethodId)
+      formData.append("paymentMethodId", toUpdate?.paymentMethodId);
+
+    if (toUpdate?.attributeName)
+      formData.append("attributeName", toUpdate?.attributeName);
 
     return formData;
   },

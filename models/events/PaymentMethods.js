@@ -14,15 +14,14 @@ const paymentMethodSchema = new mongoose.Schema(
       required: true,
     },
 
-    image: {
-      url: {
-        type: String,
-        default: null,
-      },
-      publicId: {
-        type: String,
-        default: null,
-      },
+    methodImgId: {
+      type: String,
+      default: null,
+    },
+
+    qrImgId: {
+      type: String,
+      default: null,
     },
 
     accountName: {
@@ -37,32 +36,10 @@ const paymentMethodSchema = new mongoose.Schema(
       default: null,
     },
 
-    bankName: {
-      type: String,
-      trim: true,
-      default: null,
-    },
-
-    qrCode: {
-      url: {
-        type: String,
-        default: null,
-      },
-      publicId: {
-        type: String,
-        default: null,
-      },
-    },
-
     instructions: {
       type: String,
       trim: true,
       default: "",
-    },
-
-    requiresProof: {
-      type: Boolean,
-      default: true,
     },
 
     isActive: {

@@ -26,6 +26,7 @@ import { Equipment, Services } from "./resources";
 import { Bookings, CateringPackages, Venues } from "./events";
 import Audit from "./audit";
 import Policy from "./policy";
+import PaymentMethods from "./paymentMethods";
 
 export const ADMIN_MANAGEMENT = [
   {
@@ -164,6 +165,6 @@ export const ADMIN_SYSTEM = [
     name: "Payment Methods",
     path: "/payment-methods",
     icon: CreditCard,
-    component: Policy,
+    component: PaymentMethods,
   },
 ];
