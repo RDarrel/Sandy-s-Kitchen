@@ -25,6 +25,7 @@ import { SERVICE_BADGES, STATUS_STYLES } from "../../constant";
 import {
   buildInclusions,
   formatDate,
+  getConflictingVenues,
   getPaymentSummary,
   getServiceRows,
   getTotalPax,
@@ -38,122 +39,9 @@ import { APPROVE } from "@/services/redux/slices/events/bookings";
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
 
-const STATIC_CONFLICTS = {
-  catering: [
-    {
-      _id: "conflict-catering-1",
-      reference: "BK-2026-00128",
-      eventType: "Corporate Event",
-      customer: "Maria Santos",
-      status: "approved",
-      time: {
-        start: "16:00",
-        end: "20:00",
-      },
-      overlap: {
-        start: "16:00",
-        end: "19:00",
-      },
-    },
-    {
-      _id: "conflict-catering-2",
-      reference: "BK-2026-00129",
-      eventType: "Birthday Celebration",
-      customer: "Andrea Reyes",
-      status: "confirmed",
-      time: {
-        start: "18:00",
-        end: "21:00",
-      },
-      overlap: {
-        start: "18:00",
-        end: "19:00",
-      },
-    },
-  ],
-
-  venue: [
-    {
-      _id: "conflict-venue-1",
-      reference: "BK-2026-00131",
-      eventType: "Wedding Reception",
-      customer: "John Reyes",
-      status: "confirmed",
-      time: {
-        start: "17:00",
-        end: "22:00",
-      },
-      overlap: {
-        start: "17:00",
-        end: "20:00",
-      },
-    },
-    {
-      _id: "conflict-venue-2",
-      reference: "BK-2026-00134",
-      eventType: "Birthday Celebration",
-      customer: "Angela Cruz",
-      status: "approved",
-      time: {
-        start: "19:30",
-        end: "23:00",
-      },
-      overlap: {
-        start: "19:30",
-        end: "20:00",
-      },
-    },
-    {
-      _id: "conflict-venue-3",
-      reference: "BK-2026-00138",
-      eventType: "Debut Celebration",
-      customer: "Sophia Mendoza",
-      status: "confirmed",
-      time: {
-        start: "14:00",
-        end: "18:00",
-      },
-      overlap: {
-        start: "14:00",
-        end: "18:00",
-      },
-    },
-    {
-      _id: "conflict-venue-4",
-      reference: "BK-2026-00141",
-      eventType: "Company Anniversary",
-      customer: "Daniel Garcia",
-      status: "approved",
-      time: {
-        start: "15:30",
-        end: "19:30",
-      },
-      overlap: {
-        start: "15:30",
-        end: "19:30",
-      },
-    },
-    {
-      _id: "conflict-venue-5",
-      reference: "BK-2026-00146",
-      eventType: "Family Reunion",
-      customer: "Patricia Ramos",
-      status: "confirmed",
-      time: {
-        start: "18:30",
-        end: "22:30",
-      },
-      overlap: {
-        start: "18:30",
-        end: "20:00",
-      },
-    },
-  ],
-};
-
 const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
   const { auth } = useSelector(({ auth }) => auth);
-  const { formSubmitted } = useSelector(({ bookings }) => bookings);
+  const { formSubmitted, schedule } = useSelector(({ bookings }) => bookings);
   const [booking, setBooking] = useState({});
   const dispatch = useDispatch();
 
@@ -172,22 +60,16 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
     return getServiceRows(booking);
   }, [booking]);
 
+  const { hasConflicts, conflicts, totalConflicts } = useMemo(() => {
+    const { approved = [], confirmed = [], setup = [] } = schedule;
+    return getConflictingVenues(booking, [...approved, ...confirmed, ...setup]);
+  }, [booking, schedule]);
+
   const payment = getPaymentSummary(booking);
 
-  const customerName =
-    fullName(booking?.customer?.fullName) || booking?.contact?.name || "Guest";
+  const customerName = fullName(booking?.customer?.fullName);
 
   const isCombinedBooking = booking?.bookingType === "both";
-
-  // const hasConflicts = services.some(
-  //   (item) => (STATIC_CONFLICTS[item.type] || []).length > 0,
-  // );
-  const hasConflicts = false;
-
-  const totalConflicts = services.reduce(
-    (total, item) => total + (STATIC_CONFLICTS[item.type] || []).length,
-    0,
-  );
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -245,7 +127,6 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
     },
     [],
   );
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
@@ -371,7 +252,8 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
                 <Service
                   key={item.type}
                   item={item}
-                  conflicts={STATIC_CONFLICTS[item.type] || []}
+                  hasConflicts={hasConflicts}
+                  conflicts={conflicts}
                   isBoth={isCombinedBooking}
                   handleInclusionAmountChange={handleInclusionAmountChange}
                 />

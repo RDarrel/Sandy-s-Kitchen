@@ -1,7 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Formatter } from "@/services/utilities";
-import { AlertTriangle, ArrowUpRight, Clock3 } from "lucide-react";
+import { Formatter, fullName } from "@/services/utilities";
+import { AlertTriangle, Clock3 } from "lucide-react";
 import { STATUS_STYLES } from "../../../constant";
 
 const ConflictPanel = ({ service, conflicts = [] }) => {
@@ -65,8 +64,8 @@ const ConflictPanel = ({ service, conflicts = [] }) => {
 
               <p className="mt-0.5 text-[10px] leading-4 text-muted-foreground">
                 {conflicts.length === 1
-                  ? "An existing booking overlaps this schedule."
-                  : `${conflicts.length} existing bookings overlap this schedule.`}
+                  ? "This venue is already reserved at this time."
+                  : `${conflicts.length} bookings conflict with this schedule.`}
               </p>
             </div>
           </div>
@@ -89,8 +88,8 @@ const ConflictPanel = ({ service, conflicts = [] }) => {
             <AlertTriangle className="mt-0.5 size-3 shrink-0 text-destructive" />
 
             <p className="text-[10px] leading-4 text-muted-foreground">
-              This {service.label.toLowerCase()} schedule must be changed before
-              the booking can be approved.
+              The selected venue is unavailable at this time. Request a venue or
+              schedule change before approving this booking.
             </p>
           </div>
         </div>
@@ -110,15 +109,6 @@ const ConflictBooking = ({ conflict, showDivider = false }) => {
             <span className="text-[11px] font-semibold">
               {conflict.reference}
             </span>
-
-            <Badge
-              variant="outline"
-              className={`h-5 px-1.5 text-[9px] capitalize ${
-                STATUS_STYLES[conflict.status] || ""
-              }`}
-            >
-              {conflict.status}
-            </Badge>
           </div>
 
           <p className="mt-1 truncate text-xs font-semibold">
@@ -126,19 +116,18 @@ const ConflictBooking = ({ conflict, showDivider = false }) => {
           </p>
 
           <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
-            {conflict.customer}
+            {fullName(conflict.customer?.fullName)}
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 shrink-0 gap-1 px-2 text-[10px]"
+        <Badge
+          variant="outline"
+          className={`h-5 px-1.5 text-[9px] capitalize ${
+            STATUS_STYLES[conflict.status] || ""
+          }`}
         >
-          View
-          <ArrowUpRight className="size-3" />
-        </Button>
+          {conflict.status}
+        </Badge>
       </div>
 
       <div className="mt-2.5 grid grid-cols-2 gap-1.5">
@@ -150,8 +139,8 @@ const ConflictBooking = ({ conflict, showDivider = false }) => {
           </div>
 
           <p className="mt-1 whitespace-nowrap text-[10px] font-semibold">
-            {Formatter.time(conflict.time.start)} -{" "}
-            {Formatter.time(conflict.time.end)}
+            {Formatter.time(conflict.venue?.time.start)} -{" "}
+            {Formatter.time(conflict.venue?.time.end)}
           </p>
         </div>
 

@@ -201,3 +201,57 @@ export const getResourceRequirement = (inclusion) =>
 
 export const buildInclusions = (inclusions) =>
   inclusions.map((inc) => ({ ...inc, item: inc?.item?._id }));
+
+const formattedVenueDate = (date, time) =>
+  new Date(`${date.slice(0, 10)}T${time}:00`);
+
+export const getConflictingVenues = (booking, bookings) => {
+  const { venue = {} } = booking;
+  const { time } = venue;
+
+  const defaultResult = { hasConflicts: false, conflicts: [] };
+
+  if (booking?.bookingType === "catering") return defaultResult;
+
+  const bookingWithVenues = bookings.filter(({ bookingType }) =>
+    ["both", "venue"].includes(bookingType),
+  );
+
+  if (bookingWithVenues.length === 0) return defaultResult;
+
+  const conflicts = bookingWithVenues.filter(({ venue: existVenue }) => {
+    const { time: existTime } = existVenue;
+    return existTime?.start < time?.end && existTime.end > time?.start;
+  });
+
+  if (conflicts.length === 0) return defaultResult;
+
+  const pendingStart = formattedVenueDate(booking?.date, time?.start);
+  const pendingEnd = formattedVenueDate(booking?.date, time?.end);
+
+  const formattedConflicts = conflicts.map(({ venue, date, ...rest }) => {
+    const bookingStart = formattedVenueDate(date, venue?.time?.start);
+    const bookingEnd = formattedVenueDate(date, venue?.time?.end);
+
+    const overlapStart = new Date(
+      Math.max(bookingStart.getTime(), pendingStart.getTime()),
+    );
+
+    const overlapEnd = new Date(
+      Math.min(bookingEnd.getTime(), pendingEnd.getTime()),
+    );
+
+    return {
+      ...rest,
+      venue,
+      date,
+      overlap: { start: overlapStart, end: overlapEnd },
+    };
+  });
+
+  return {
+    hasConflicts: true,
+    conflicts: formattedConflicts,
+    totalConflicts: formattedConflicts.length,
+  };
+};

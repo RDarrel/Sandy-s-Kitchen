@@ -45,6 +45,10 @@ const Schedule = ({ selectedDate }) => {
     dispatch(SCHEDULE({ date: Formatter.localDate(new Date(selectedDate)) }));
   }, [dispatch]);
 
+  useEffect(() => {
+    setActiveStatus("all");
+  }, [selectedDate]);
+
   const handleAction = useCallback((booking, action) => {
     setSchedModal((prev) => ({ ...prev, [action]: !prev[action] }));
     setSelected(booking);
@@ -114,22 +118,24 @@ const Schedule = ({ selectedDate }) => {
             <div className="space-y-3">
               {Object.entries(filtered).map(([status, bookings]) => (
                 <section key={status} className="space-y-2">
-                  <div className="sticky top-0 z-10 flex items-center justify-between rounded-md bg-background/95 px-2 py-1 backdrop-blur">
-                    <div className="flex items-center gap-2">
-                      <span
-                        aria-hidden
-                        className={`size-2 rounded-full ${STATUS_DOTS[status]}`}
-                      />
+                  {activeStatus === "all" && (
+                    <div className="sticky top-0 z-10 flex items-center justify-between rounded-md bg-background/95 px-2 py-1 backdrop-blur">
+                      <div className="flex items-center gap-2">
+                        <span
+                          aria-hidden
+                          className={`size-2 rounded-full ${STATUS_DOTS[status]}`}
+                        />
 
-                      <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        {STATUS_LABELS[status]}
-                      </h3>
+                        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          {STATUS_LABELS[status]}
+                        </h3>
+                      </div>
+
+                      <span className="text-[11px] font-medium text-muted-foreground">
+                        {bookings.length}
+                      </span>
                     </div>
-
-                    <span className="text-[11px] font-medium text-muted-foreground">
-                      {bookings.length}
-                    </span>
-                  </div>
+                  )}
 
                   <div className="space-y-1.5">
                     {bookings.map((booking) => (

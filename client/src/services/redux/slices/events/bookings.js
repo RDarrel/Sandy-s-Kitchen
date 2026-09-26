@@ -5,7 +5,7 @@ const url = "events/bookings";
 
 const initialState = {
   collections: [],
-  schedule: [],
+  schedule: {},
   search: "",
   calendar: {
     days: [],
