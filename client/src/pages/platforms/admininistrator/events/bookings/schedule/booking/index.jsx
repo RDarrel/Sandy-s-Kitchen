@@ -7,7 +7,6 @@ import PaymentSummary from "./payment";
 
 const Booking = ({ booking, handleAction }) => {
   const service = SERVICE_BADGES[booking.bookingType];
-  const payment = getPaymentInfo(booking);
   const isBoth = booking.bookingType === "both";
   const isCateringOnly = !isBoth && booking?.bookingType === "catering";
   const getLocation = () => {
@@ -58,7 +57,7 @@ const Booking = ({ booking, handleAction }) => {
           )}
         </div>
 
-        <PaymentSummary payment={payment} booking={booking} />
+        <PaymentSummary booking={booking} />
       </div>
 
       <div className="flex flex-wrap justify-end gap-1.5 border-t bg-muted/10 px-2.5 py-2">
@@ -110,55 +109,6 @@ const InfoLine = ({ icon, value }) => (
     <span className="truncate font-medium text-foreground">{value}</span>
   </span>
 );
-
-const getPaymentInfo = (booking) => {
-  const total = getBookingTotal(booking);
-  const received = Number(
-    booking?.payment?.amount ??
-      booking?.payment?.received ??
-      booking?.meta?.received ??
-      0,
-  );
-  const rawStatus = normalizePaymentStatus(booking?.paymentStatus || "pending");
-  const normalizedReceived =
-    rawStatus === "paid"
-      ? total
-      : rawStatus === "unpaid" || rawStatus === "pending"
-        ? 0
-        : received;
-  const balance = Math.max(total - normalizedReceived, 0);
-  const status =
-    rawStatus ||
-    (total > 0 && normalizedReceived >= total
-      ? "paid"
-      : normalizedReceived > 0
-        ? "partial"
-        : "unpaid");
-
-  return {
-    total,
-    received: normalizedReceived,
-    balance,
-    status,
-  };
-};
-
-const getBookingTotal = (booking) => {
-  const total = Number(booking?.pricing?.total);
-
-  if (Number.isFinite(total) && total > 0) return total;
-
-  const cateringTotal = Number(booking?.pricing?.catering?.total || 0);
-  const venueTotal = Number(booking?.pricing?.venue?.total || 0);
-  const serviceTotal = cateringTotal + venueTotal;
-
-  if (serviceTotal > 0) return serviceTotal;
-
-  return Number(booking?.meta?.amount || 0);
-};
-
-const normalizePaymentStatus = (status) =>
-  typeof status === "string" ? status.toLowerCase() : "";
 
 const Time = ({ booking }) => {
   const { bookingType, catering, venue } = booking;
