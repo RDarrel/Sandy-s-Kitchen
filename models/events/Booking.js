@@ -217,6 +217,68 @@ const pricingSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const bookingTermsSchema = new mongoose.Schema(
+  {
+    depositPercent: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 100,
+    },
+
+    requiredDeposit: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    reservationHoldHours: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    depositDeadline: {
+      type: Date,
+      required: true,
+    },
+
+    cancellationDeadlineDays: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    cancellationDeadline: {
+      type: Date,
+      required: true,
+    },
+
+    depositRefundable: {
+      type: Boolean,
+      required: true,
+    },
+
+    balanceDueDaysBeforeEvent: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    balanceDueAt: {
+      type: Date,
+      required: true,
+    },
+
+    approvedAt: {
+      type: Date,
+      required: true,
+    },
+  },
+  {
+    _id: false,
+  },
+);
 /*
 |--------------------------------------------------------------------------
 | Booking
@@ -271,9 +333,23 @@ const bookingSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected", "completed", "cancelled"],
+      enum: [
+        "pending",
+        "approved",
+        "confirmed",
+        "setup",
+        "completed",
+        "cancelled",
+        "expired",
+        "rejected",
+      ],
       default: "pending",
       index: true,
+    },
+
+    terms: {
+      type: bookingTermsSchema,
+      default: undefined,
     },
 
     statusHistory: [

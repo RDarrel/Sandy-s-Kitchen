@@ -152,6 +152,7 @@ const STATIC_CONFLICTS = {
 };
 
 const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
+  const { auth } = useSelector(({ auth }) => auth);
   const { formSubmitted } = useSelector(({ bookings }) => bookings);
   const [booking, setBooking] = useState({});
   const dispatch = useDispatch();
@@ -195,7 +196,14 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
     const eInclusions = buildInclusions(venue?.inclusions || []);
     const cInclusions = buildInclusions(catering?.inclusions || []);
-    dispatch(APPROVE({ _id: booking?._id, eInclusions, cInclusions }))
+    dispatch(
+      APPROVE({
+        _id: booking?._id,
+        eInclusions,
+        cInclusions,
+        userId: auth?._id,
+      }),
+    )
       .unwrap()
       .then((payload) => {
         toast.success(payload?.success);

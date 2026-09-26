@@ -2,10 +2,13 @@ import { Wallet } from "lucide-react";
 import { PAYMENT_SUMMARY_STYLES, PAYMENT_TEXT_STYLES } from "../../constant";
 import { Formatter } from "@/services/utilities";
 
-const PaymentSummary = ({ payment }) => {
+const PaymentSummary = ({ payment, booking }) => {
+  const { payments = [] } = booking;
+
+  const hasPayment = payments.length > 0;
+
   const isPaid = payment.status === "paid";
   const isPending = payment.status === "pending";
-  const hasPayment = payment.received > 0;
   const statusStyle = PAYMENT_TEXT_STYLES[payment.status] || "text-foreground";
   const summaryStyle =
     PAYMENT_SUMMARY_STYLES[payment.status] || "border-border bg-muted/25";
