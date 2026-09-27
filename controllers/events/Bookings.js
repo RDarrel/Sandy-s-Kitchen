@@ -67,6 +67,18 @@ exports.schedule = async (req, res) => {
   }
 };
 
+exports.availability = async (req, res) => {
+  try {
+    const availability = await BookingService.availability({
+      bookingID: req.query.bookingID,
+    });
+    res.json({ data: availability });
+  } catch (error) {
+    console.log("error", error.message);
+    res.status(500).json({ error: "Failed to fetch availability" });
+  }
+};
+
 exports.me = async (req, res) => {
   try {
     const bookings = await Booking.find({ customer: res.locals.caller?._id })

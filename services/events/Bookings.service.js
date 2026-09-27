@@ -1,5 +1,6 @@
 const Payment = require("../../models/events/Payment");
 const Booking = require("../../models/events/Booking");
+const Equipment = require("../../models/inventory/Equipment");
 const BookingPolicy = require("../../models/events/BookingPolicy");
 const dateToUTC = require("../../utilities/dateToUTC");
 
@@ -326,6 +327,30 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
   return result;
 };
 
+const getEquipmentsAvailability = async (schedule, pendingBookings) => {
+  const equipmentsPending = pendingBookings
+    .flatMap(({ venue, catering }) => {
+      const inclusions = [
+        ...(venue?.inclusions ?? []),
+        ...(catering?.inclusions ?? []),
+      ];
+
+      return inclusions.filter(({ model }) => model === "Equipment");
+    })
+    .map(({ item }) => item?._id?.toString())
+    .filter(Boolean);
+
+  const equipmentIDS = [...new Set(equipmentsPending)];
+  const equipments = await Equipment.find({
+    _id: { $in: equipmentIDS },
+  }).select("totalQty");
+
+  console.log("equipments", equipments);
+  const reservedBookings = schedule.filter(({ status }) =>
+    ["approved", "confirmed", "setup"].includes(status),
+  );
+};
+
 const schedule = async ({ date }) => {
   const schedule = await Booking.find({
     date: dateToUTC({
@@ -416,6 +441,8 @@ const schedule = async ({ date }) => {
     return acc;
   }, {});
 
+  await getEquipmentsAvailability(schedule, groupedSchedule.pending);
+
   return Object.fromEntries(
     statusOrder
       .filter((status) => groupedSchedule[status])
@@ -423,8 +450,115 @@ const schedule = async ({ date }) => {
   );
 };
 
+const addUsage = (event) =>
+  event?.inclusions
+    ?.filter(({ model }) => model === "Equipment")
+    .map((inc) => ({
+      ...inc,
+      usage: event?.time,
+    })) || [];
+
+const getEquipments = (booking) => {
+  const { venue, catering } = booking;
+  const venueInclusions = addUsage(venue);
+  const cateringInclusions = addUsage(catering);
+  return [...venueInclusions, ...cateringInclusions];
+};
+
+const availability = async ({ bookingID }) => {
+  const populatedBooking = await Booking.findOne({ _id: bookingID }).lean();
+  const conflictingBookings = await Booking.find({
+    _id: { $ne: bookingID },
+
+    date: dateToUTC({
+      date: populatedBooking.date,
+      dateOnly: true,
+    }),
+
+    status: {
+      $in: ["approved", "confirmed", "setup"],
+    },
+  })
+    .select("venue.time venue.inclusions catering.time catering.inclusions")
+    .lean();
+  const reservedEquipments = conflictingBookings.flatMap((book) =>
+    getEquipments(book),
+  );
+
+  const pendingEquipments = getEquipments(populatedBooking);
+  const pendingEquipmentIDS = [
+    ...new Set(pendingEquipments.map(({ item }) => item.toString())),
+  ];
+
+  const equipments = await Equipment.find({
+    _id: { $in: pendingEquipmentIDS },
+  })
+    .select("totalQty")
+    .lean();
+
+  const equipmentsWithAmtUsage = pendingEquipments.map((p) => {
+    const affectedEquipments = reservedEquipments.filter(
+      ({ usage, item }) =>
+        usage.start < p.usage.end &&
+        usage.end > p.usage.start &&
+        item.toString() === p.item.toString(),
+    );
+    const getFormattedTimes = (key) => {
+      return affectedEquipments.map(({ usage, amount }) => ({
+        hour: usage[key],
+        isStart: key === "start",
+        amount,
+      }));
+    };
+
+    const times = [
+      ...getFormattedTimes("start"),
+      ...getFormattedTimes("end"),
+    ].sort((a, b) => {
+      const timeComparison = a.hour.localeCompare(b.hour);
+      // Different times → chronological order
+      if (timeComparison !== 0) return timeComparison;
+
+      // Same time → END first, then START
+      if (a.isStart === b.isStart) return 0;
+
+      return a.isStart ? 1 : -1;
+    });
+
+    let peakAmount = 0;
+    let currentTotalAmount = 0;
+
+    times.forEach((element) => {
+      if (element?.isStart) {
+        currentTotalAmount += element.amount;
+      } else {
+        currentTotalAmount -= element?.amount;
+      }
+      peakAmount = Math.max(peakAmount, currentTotalAmount);
+    });
+
+    return { ...p, totalAmt: peakAmount };
+  });
+  const availability = equipments.map((e) => {
+    const totalAmtReserved = Math.max(
+      0,
+      ...equipmentsWithAmtUsage
+        .filter(({ item }) => e._id.toString() === item.toString())
+        .map(({ totalAmt }) => totalAmt),
+    );
+
+    return {
+      ...e,
+      available: totalAmtReserved ? e.totalQty - totalAmtReserved : e.totalQty,
+    };
+  });
+
+  return availability;
+};
+
 module.exports = {
   approve,
   calendar,
   schedule,
+  availability,
 };
