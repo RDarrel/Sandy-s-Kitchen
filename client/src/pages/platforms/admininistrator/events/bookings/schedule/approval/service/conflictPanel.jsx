@@ -50,19 +50,19 @@ const ConflictPanel = ({ service, conflicts = [] }) => {
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-destructive">
+                <p className="text-sm font-semibold text-destructive">
                   {service.label} Conflict
                 </p>
 
                 <Badge
                   variant="outline"
-                  className="h-5 shrink-0 border-destructive/20 bg-background px-1.5 text-[9px] text-destructive"
+                  className="h-5 shrink-0 border-destructive/20 bg-background px-1.5 text-[10px] text-destructive"
                 >
                   {conflicts.length}
                 </Badge>
               </div>
 
-              <p className="mt-0.5 text-[10px] leading-4 text-muted-foreground">
+              <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
                 {conflicts.length === 1
                   ? "This venue is already reserved at this time."
                   : `${conflicts.length} bookings conflict with this schedule.`}
@@ -87,7 +87,7 @@ const ConflictPanel = ({ service, conflicts = [] }) => {
           <div className="flex items-start gap-1.5">
             <AlertTriangle className="mt-0.5 size-3 shrink-0 text-destructive" />
 
-            <p className="text-[10px] leading-4 text-muted-foreground">
+            <p className="text-[11px] leading-4 text-muted-foreground">
               The selected venue is unavailable at this time. Request a venue or
               schedule change before approving this booking.
             </p>
@@ -105,40 +105,38 @@ const ConflictBooking = ({ conflict, showDivider = false }) => {
     <div className={`p-3 ${showDivider ? "border-b" : ""}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] font-semibold">
-              {conflict.reference}
-            </span>
-          </div>
+          <p className="truncate text-sm font-semibold">{conflict.eventType}</p>
 
-          <p className="mt-1 truncate text-xs font-semibold">
-            {conflict.eventType}
-          </p>
-
-          <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
             {fullName(conflict.customer?.fullName)}
           </p>
         </div>
 
-        <Badge
-          variant="outline"
-          className={`h-5 px-1.5 text-[9px] capitalize ${
-            STATUS_STYLES[conflict.status] || ""
-          }`}
-        >
-          {conflict.status}
-        </Badge>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="max-w-[110px] truncate text-xs font-semibold text-muted-foreground">
+            {conflict.reference}
+          </span>
+
+          <Badge
+            variant="outline"
+            className={`h-5 px-1.5 text-[10px] capitalize ${
+              STATUS_STYLES[conflict.status] || ""
+            }`}
+          >
+            {conflict.status}
+          </Badge>
+        </div>
       </div>
 
       <div className="mt-2.5 grid grid-cols-2 gap-1.5">
         {/* Existing Booking Time */}
         <div className="rounded-md border bg-muted/10 px-2 py-1.5">
-          <div className="flex items-center gap-1 text-[9px] uppercase tracking-wide text-muted-foreground">
+          <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground">
             <Clock3 className="size-2.5" />
             Existing
           </div>
 
-          <p className="mt-1 whitespace-nowrap text-[10px] font-semibold">
+          <p className="mt-1 whitespace-nowrap text-[11px] font-semibold">
             {Formatter.time(conflict.venue?.time.start)} -{" "}
             {Formatter.time(conflict.venue?.time.end)}
           </p>
@@ -146,12 +144,12 @@ const ConflictBooking = ({ conflict, showDivider = false }) => {
 
         {/* Overlap Time */}
         <div className="rounded-md border border-destructive/20 bg-destructive/[0.04] px-2 py-1.5">
-          <div className="flex items-center gap-1 text-[9px] uppercase tracking-wide text-destructive">
+          <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-destructive">
             <AlertTriangle className="size-2.5" />
             Overlap
           </div>
 
-          <p className="mt-1 whitespace-nowrap text-[10px] font-semibold text-destructive">
+          <p className="mt-1 whitespace-nowrap text-[11px] font-semibold text-destructive">
             {Formatter.time(conflict.overlap.start)} -{" "}
             {Formatter.time(conflict.overlap.end)}
           </p>

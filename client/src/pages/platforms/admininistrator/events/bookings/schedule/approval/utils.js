@@ -2,7 +2,33 @@ import { Formatter } from "@/services/utilities";
 import { Building2, Sparkles, Utensils } from "lucide-react";
 export const getServiceRows = (booking) => {
   const rows = [];
+  if (booking.bookingType === "venue" || booking.bookingType === "both") {
+    rows.push({
+      type: "venue",
 
+      icon: Building2,
+
+      iconClassName: "text-amber-700",
+
+      name: booking?.venue?.item?.name || "Venue reservation",
+
+      subtitle: booking?.venue?.item?.setting || "Event venue",
+
+      pax: booking?.venue?.pax || 0,
+
+      time: booking?.venue?.time,
+
+      label: "Venue",
+
+      accentClassName: "border-l-2 border-l-amber-500",
+
+      location: booking?.venue?.item?.address,
+
+      inclusions: booking?.venue?.inclusions || [],
+
+      pricing: booking?.pricing?.venue,
+    });
+  }
   if (booking.bookingType === "catering" || booking.bookingType === "both") {
     rows.push({
       type: "catering",
@@ -36,34 +62,6 @@ export const getServiceRows = (booking) => {
       inclusions: booking?.catering?.inclusions || [],
 
       pricing: booking?.pricing?.catering,
-    });
-  }
-
-  if (booking.bookingType === "venue" || booking.bookingType === "both") {
-    rows.push({
-      type: "venue",
-
-      icon: Building2,
-
-      iconClassName: "text-amber-700",
-
-      name: booking?.venue?.item?.name || "Venue reservation",
-
-      subtitle: booking?.venue?.item?.setting || "Event venue",
-
-      pax: booking?.venue?.pax || 0,
-
-      time: booking?.venue?.time,
-
-      label: "Venue",
-
-      accentClassName: "border-l-2 border-l-amber-500",
-
-      location: booking?.venue?.item?.address,
-
-      inclusions: booking?.venue?.inclusions || [],
-
-      pricing: booking?.pricing?.venue,
     });
   }
 

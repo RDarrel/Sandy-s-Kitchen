@@ -186,14 +186,20 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
                   </p>
                 </div>
 
-                <Badge
-                  variant="outline"
-                  className={`capitalize ${
-                    STATUS_STYLES[booking?.status] || ""
-                  }`}
-                >
-                  {booking?.status || "pending"}
-                </Badge>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <span className="max-w-[140px] truncate text-xs font-semibold text-muted-foreground">
+                    {booking?.reference || "-"}
+                  </span>
+
+                  <Badge
+                    variant="outline"
+                    className={`capitalize ${
+                      STATUS_STYLES[booking?.status] || ""
+                    }`}
+                  >
+                    {booking?.status || "pending"}
+                  </Badge>
+                </div>
               </div>
 
               <div
@@ -270,7 +276,10 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
               <div className="mr-auto flex items-center gap-1.5 text-xs text-destructive">
                 <AlertTriangle className="size-3.5 shrink-0" />
 
-                <span>Resolve schedule conflicts before approval.</span>
+                <span>
+                  This booking cannot be approved due to a schedule
+                  conflict.{" "}
+                </span>
               </div>
             )}
 
