@@ -481,6 +481,7 @@ const availability = async ({ bookingID }) => {
   })
     .select("venue.time venue.inclusions catering.time catering.inclusions")
     .lean();
+
   const reservedEquipments = conflictingBookings.flatMap((book) =>
     getEquipments(book),
   );
@@ -539,6 +540,7 @@ const availability = async ({ bookingID }) => {
 
     return { ...p, totalAmt: peakAmount };
   });
+
   const availability = equipments.map((e) => {
     const totalAmtReserved = Math.max(
       0,

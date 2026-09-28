@@ -18,11 +18,9 @@ const CreateOrder = () => {
     dispatch = useDispatch();
 
   useEffect(() => {
-    if (token) {
-      dispatch(BROWSE({ token }));
-      dispatch(BROWSE_SUPPLIERS({ token }));
-    }
-  }, [dispatch, token]);
+    dispatch(BROWSE());
+    dispatch(BROWSE_SUPPLIERS());
+  }, [dispatch]);
 
   return (
     <>
