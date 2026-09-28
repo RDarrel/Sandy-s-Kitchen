@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Building2, Clock3, MapPin } from "lucide-react";
-import ConflictPanel from "./conflictPanel";
 import { Formatter } from "@/services/utilities";
 import { formatItemName } from "../utils";
 import Inclusions from "../inclusions";
@@ -103,11 +102,6 @@ const Service = ({
           )}
         </div>
       </section>
-
-      {/* Floating Conflict Panel */}
-      {hasConflict && item.type === "venue" && (
-        <ConflictPanel service={item} conflicts={conflicts} />
-      )}
     </div>
   );
 };

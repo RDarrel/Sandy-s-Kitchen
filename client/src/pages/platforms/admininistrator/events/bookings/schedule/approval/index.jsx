@@ -42,6 +42,7 @@ import {
 } from "@/services/redux/slices/events/bookings";
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
+import ConflictPanel from "./service/conflictPanel";
 
 const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
   const { auth } = useSelector(({ auth }) => auth);
@@ -94,6 +95,8 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
   const customerName = fullName(booking?.customer?.fullName);
 
   const isCombinedBooking = booking?.bookingType === "both";
+
+  const conflictService = services.find(({ type }) => type === "venue");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -316,19 +319,25 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
             <CustomerDetails booking={booking} customerName={customerName} />
 
             {/* Services */}
-            <section className="grid gap-3">
-              {services.map((item) => (
-                <Service
-                  key={item.type}
-                  item={item}
-                  hasConflicts={hasConflicts}
-                  conflicts={conflicts}
-                  isBoth={isCombinedBooking}
-                  handleInclusionAmountChange={handleInclusionAmountChange}
-                  equipAvailability={equipAvailability}
-                  isSharedAvailability={isCateringVenueOverlapping}
-                />
-              ))}
+            <section className="relative overflow-visible">
+              <div className="grid gap-3">
+                {services.map((item) => (
+                  <Service
+                    key={item.type}
+                    item={item}
+                    hasConflicts={hasConflicts}
+                    conflicts={conflicts}
+                    isBoth={isCombinedBooking}
+                    handleInclusionAmountChange={handleInclusionAmountChange}
+                    equipAvailability={equipAvailability}
+                    isSharedAvailability={isCateringVenueOverlapping}
+                  />
+                ))}
+              </div>
+
+              {hasConflicts && conflictService && (
+                <ConflictPanel service={conflictService} conflicts={conflicts} />
+              )}
             </section>
 
             {/* Booking Estimate */}
