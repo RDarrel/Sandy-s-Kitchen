@@ -327,30 +327,6 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
   return result;
 };
 
-const getEquipmentsAvailability = async (schedule, pendingBookings) => {
-  const equipmentsPending = pendingBookings
-    .flatMap(({ venue, catering }) => {
-      const inclusions = [
-        ...(venue?.inclusions ?? []),
-        ...(catering?.inclusions ?? []),
-      ];
-
-      return inclusions.filter(({ model }) => model === "Equipment");
-    })
-    .map(({ item }) => item?._id?.toString())
-    .filter(Boolean);
-
-  const equipmentIDS = [...new Set(equipmentsPending)];
-  const equipments = await Equipment.find({
-    _id: { $in: equipmentIDS },
-  }).select("totalQty");
-
-  console.log("equipments", equipments);
-  const reservedBookings = schedule.filter(({ status }) =>
-    ["approved", "confirmed", "setup"].includes(status),
-  );
-};
-
 const schedule = async ({ date }) => {
   const schedule = await Booking.find({
     date: dateToUTC({
@@ -440,8 +416,6 @@ const schedule = async ({ date }) => {
 
     return acc;
   }, {});
-
-  await getEquipmentsAvailability(schedule, groupedSchedule.pending);
 
   return Object.fromEntries(
     statusOrder
