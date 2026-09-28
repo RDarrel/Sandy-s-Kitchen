@@ -67,9 +67,9 @@ exports.schedule = async (req, res) => {
   }
 };
 
-exports.availability = async (req, res) => {
+exports.equipmentAvailability = async (req, res) => {
   try {
-    const availability = await BookingService.availability({
+    const availability = await BookingService.getEquipmentAvailability({
       bookingID: req.query.bookingID,
     });
     res.json({ data: availability });

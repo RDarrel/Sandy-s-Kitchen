@@ -439,7 +439,7 @@ const getEquipments = (booking) => {
   return [...venueInclusions, ...cateringInclusions];
 };
 
-const availability = async ({ bookingID }) => {
+const getEquipmentAvailability = async ({ bookingID }) => {
   const populatedBooking = await Booking.findOne({ _id: bookingID }).lean();
   const conflictingBookings = await Booking.find({
     _id: { $ne: bookingID },
@@ -529,12 +529,19 @@ const availability = async ({ bookingID }) => {
     };
   });
 
-  return availability;
+  const availabilityMap = Object.fromEntries(
+    availability.map(({ _id, available }) => [
+      _id.toString(),
+      { catering: available, venue: available, available },
+    ]),
+  );
+
+  return availabilityMap;
 };
 
 module.exports = {
   approve,
   calendar,
   schedule,
-  availability,
+  getEquipmentAvailability,
 };
