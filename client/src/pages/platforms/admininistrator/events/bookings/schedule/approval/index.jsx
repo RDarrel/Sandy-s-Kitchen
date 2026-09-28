@@ -29,27 +29,47 @@ import {
   getPaymentSummary,
   getServiceRows,
   getTotalPax,
+  hasCateringVenueOverlap,
 } from "./utils";
 import { Metric } from "./components";
 import Service from "./service";
 import { DIALOG_CONTENT_CLASSNAME } from "./constant";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { APPROVE } from "@/services/redux/slices/events/bookings";
+import {
+  APPROVE,
+  EQUIPMENT_AVAILABILITY,
+} from "@/services/redux/slices/events/bookings";
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
 
 const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
   const { auth } = useSelector(({ auth }) => auth);
-  const { formSubmitted, schedule } = useSelector(({ bookings }) => bookings);
+  const {
+    formSubmitted,
+    schedule,
+    equipmentAvailability: availability,
+    isLoadingEquipAvailability,
+  } = useSelector(({ bookings }) => bookings);
   const [booking, setBooking] = useState({});
+  const [equipAvailability, setEquipAvailability] = useState({
+    catering: [],
+    venue: [],
+  });
   const dispatch = useDispatch();
 
   useEffect(() => {
     if (isOpen) {
       setBooking(selected);
+      dispatch(EQUIPMENT_AVAILABILITY({ bookingID: selected?._id }));
     }
-  }, [isOpen, selected]);
+  }, [isOpen, selected, dispatch]);
+
+  useEffect(() => {
+    if (!isLoadingEquipAvailability && isOpen && selected?._id) {
+      setEquipAvailability(availability);
+    }
+  }, [availability, isLoadingEquipAvailability, isOpen, selected]);
 
   const service = SERVICE_BADGES[booking?.bookingType] || {
     label: "Booking",
@@ -59,6 +79,10 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
   const services = useMemo(() => {
     return getServiceRows(booking);
   }, [booking]);
+
+  const isCateringVenueOverlapping = useMemo(() => {
+    return hasCateringVenueOverlap(booking);
+  }, [booking, isOpen]);
 
   const { hasConflicts, conflicts, totalConflicts } = useMemo(() => {
     const { approved = [], confirmed = [], setup = [] } = schedule;
@@ -124,8 +148,47 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
           },
         };
       });
+
+      setEquipAvailability((prev) => {
+        const baseAvailability = availability?.[itemID]?.available ?? 0;
+        let updatedAvailability = { catering: 0, venue: 0 };
+        if (isCateringVenueOverlapping) {
+          const otherServiceAllocationKey = {
+            venue: "cateringAllocation",
+            catering: "venueAllocation",
+          };
+          const otherServiceAllocation =
+            prev?.[itemID]?.[otherServiceAllocationKey[serviceType]] ?? 0;
+
+          const bothAmount = availability?.[itemID]?.available;
+
+          const totalAllocation = otherServiceAllocation + amount;
+
+          const remainingAvailability = Math.max(
+            0,
+            bothAmount - totalAllocation,
+          );
+
+          updatedAvailability = {
+            catering: remainingAvailability,
+            venue: remainingAvailability,
+            [`${serviceType}Allocation`]: amount,
+          };
+        } else {
+          updatedAvailability = {
+            [serviceType]: Math.max(0, baseAvailability - amount),
+          };
+        }
+        return {
+          ...prev,
+          [itemID]: {
+            ...prev[itemID],
+            ...updatedAvailability,
+          },
+        };
+      });
     },
-    [],
+    [availability],
   );
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -262,6 +325,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
                   conflicts={conflicts}
                   isBoth={isCombinedBooking}
                   handleInclusionAmountChange={handleInclusionAmountChange}
+                  equipAvailability={equipAvailability}
                 />
               ))}
             </section>

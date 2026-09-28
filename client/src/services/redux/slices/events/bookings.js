@@ -6,6 +6,7 @@ const url = "events/bookings";
 const initialState = {
   collections: [],
   schedule: {},
+  equipmentAvailability: {},
   search: "",
   calendar: {
     days: [],
@@ -24,6 +25,7 @@ const initialState = {
   isLoadingCalendar: false,
   isLoadingSchedule: false,
   isLoadingMyBookings: false,
+  isLoadingEquipAvailability: false,
   message: "",
 };
 
@@ -89,6 +91,23 @@ export const SCHEDULE = createAsyncThunk(
   },
 );
 
+export const EQUIPMENT_AVAILABILITY = createAsyncThunk(
+  `${url}/equipmentAvailability`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/equipmentAvailability`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 const isDateWithinRange = (date, range) => {
   if (!date || !range?.start || !range?.end) return false;
 
@@ -148,6 +167,21 @@ export const reduxSlice = createSlice({
         const { error } = action;
         state.message = error.message;
         state.isLoadingMyBookings = false;
+      })
+      .addCase(EQUIPMENT_AVAILABILITY.pending, (state) => {
+        state.isLoadingEquipAvailability = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(EQUIPMENT_AVAILABILITY.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.equipmentAvailability = data;
+        state.isLoadingEquipAvailability = false;
+      })
+      .addCase(EQUIPMENT_AVAILABILITY.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingEquipAvailability = false;
       })
       .addCase(SCHEDULE.pending, (state) => {
         state.isLoadingSchedule = true;

@@ -253,3 +253,12 @@ export const getConflictingVenues = (booking, bookings) => {
     totalConflicts: formattedConflicts.length,
   };
 };
+
+export const hasCateringVenueOverlap = (booking) => {
+  const { catering, venue, bookingType } = booking;
+  if (bookingType !== "both") return false;
+  return (
+    venue?.time.start < catering?.time.end &&
+    venue.time?.end > catering.time?.start
+  );
+};

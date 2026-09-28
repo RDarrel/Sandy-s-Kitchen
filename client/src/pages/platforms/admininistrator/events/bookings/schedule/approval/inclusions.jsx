@@ -12,6 +12,7 @@ const Inclusions = ({
   label,
   serviceType = "",
   items,
+  equipAvailability = { venue: 0, catering: 0 },
   handleInclusionAmountChange = () => {},
 }) => {
   const sortedItems = [...(items || [])].sort((first, second) => {
@@ -33,6 +34,9 @@ const Inclusions = ({
             <Allocation
               key={inclusion?.item?._id || `${label}-${index}`}
               inclusion={inclusion}
+              available={
+                equipAvailability?.[inclusion?.item?._id]?.[serviceType] || 0
+              }
               serviceType={serviceType}
               handleInclusionAmountChange={handleInclusionAmountChange}
             />
@@ -48,12 +52,11 @@ const Inclusions = ({
 export default memo(Inclusions);
 
 const Allocation = memo(
-  ({ inclusion, serviceType, handleInclusionAmountChange }) => {
+  ({ inclusion, serviceType, handleInclusionAmountChange, available }) => {
     const needsInput = requiresResourceInput(inclusion);
     const isEquipment = inclusion?.model === "Equipment";
     const amount = Number(inclusion?.amount || 0);
 
-    const available = 12;
     const unit = getResourceUnit(inclusion);
 
     return (

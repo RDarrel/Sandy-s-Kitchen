@@ -8,6 +8,7 @@ import { EmptyPanel, SectionTitle } from "../components";
 
 const Service = ({
   item,
+  equipAvailability,
   conflicts = [],
   isBoth = false,
   handleInclusionAmountChange = () => {},
@@ -88,6 +89,7 @@ const Service = ({
               label={item.label}
               serviceType={item?.type}
               items={item.inclusions}
+              equipAvailability={equipAvailability}
               handleInclusionAmountChange={handleInclusionAmountChange}
             />
           </ServiceSection>
@@ -101,7 +103,9 @@ const Service = ({
       </section>
 
       {/* Floating Conflict Panel */}
-      {hasConflict && <ConflictPanel service={item} conflicts={conflicts} />}
+      {hasConflict && item.type === "venue" && (
+        <ConflictPanel service={item} conflicts={conflicts} />
+      )}
     </div>
   );
 };
