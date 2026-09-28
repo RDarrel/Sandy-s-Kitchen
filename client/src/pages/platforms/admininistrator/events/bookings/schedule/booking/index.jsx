@@ -64,14 +64,7 @@ const Booking = ({ booking, handleAction }) => {
         <Button type="button" variant="outline" size="sm" className="h-7 px-2">
           View
         </Button>
-        <Button
-          type="button"
-          size="sm"
-          className="h-7 px-2.5"
-          onClick={() => handleAction(booking, "approval")}
-        >
-          Approve
-        </Button>
+
         {booking.status === "pending" ? (
           <>
             <Button
