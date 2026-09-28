@@ -11,6 +11,7 @@ const Service = ({
   conflicts = [],
   isBoth = false,
   isSharedAvailability = false,
+  isLoadingEquipAvailability = false,
   handleInclusionAmountChange = () => {},
 }) => {
   const hasConflict = conflicts.length > 0;
@@ -91,6 +92,7 @@ const Service = ({
               items={item.inclusions}
               equipAvailability={equipAvailability}
               isSharedAvailability={isSharedAvailability}
+              isLoadingEquipAvailability={isLoadingEquipAvailability}
               handleInclusionAmountChange={handleInclusionAmountChange}
             />
           </ServiceSection>

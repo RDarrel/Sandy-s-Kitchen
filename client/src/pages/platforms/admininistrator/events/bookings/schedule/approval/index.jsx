@@ -331,12 +331,16 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
                     handleInclusionAmountChange={handleInclusionAmountChange}
                     equipAvailability={equipAvailability}
                     isSharedAvailability={isCateringVenueOverlapping}
+                    isLoadingEquipAvailability={isLoadingEquipAvailability}
                   />
                 ))}
               </div>
 
               {hasConflicts && conflictService && (
-                <ConflictPanel service={conflictService} conflicts={conflicts} />
+                <ConflictPanel
+                  service={conflictService}
+                  conflicts={conflicts}
+                />
               )}
             </section>
 
@@ -368,7 +372,9 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
             <Button
               type="submit"
               form="approval-form"
-              disabled={hasConflicts || formSubmitted}
+              disabled={
+                hasConflicts || formSubmitted || isLoadingEquipAvailability
+              }
             >
               <CheckCircle2 className="size-4" />
               Approve Booking <Spinner formSubmitted={formSubmitted} />

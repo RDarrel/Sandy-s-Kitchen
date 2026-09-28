@@ -5,15 +5,18 @@ import {
   requiresResourceInput,
 } from "./utils";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { EmptyPanel } from "./components";
 import { memo } from "react";
+
 const Inclusions = ({
   label,
   serviceType = "",
   items,
   equipAvailability = { venue: 0, catering: 0 },
   isSharedAvailability = false,
+  isLoadingEquipAvailability = false,
   handleInclusionAmountChange = () => {},
 }) => {
   const sortedItems = [...(items || [])].sort((first, second) => {
@@ -43,6 +46,7 @@ const Inclusions = ({
                 resourceAvailability={resourceAvailability}
                 serviceType={serviceType}
                 isSharedAvailability={isSharedAvailability}
+                isLoadingEquipAvailability={isLoadingEquipAvailability}
                 handleInclusionAmountChange={handleInclusionAmountChange}
               />
             );
@@ -65,12 +69,14 @@ const Allocation = memo(
     available,
     resourceAvailability = {},
     isSharedAvailability = false,
+    isLoadingEquipAvailability = false,
   }) => {
     const needsInput = requiresResourceInput(inclusion);
     const isEquipment = inclusion?.model === "Equipment";
     const amount = Number(inclusion?.amount || 0);
     const hasAvailabilityRecord =
-      "available" in resourceAvailability || serviceType in resourceAvailability;
+      "available" in resourceAvailability ||
+      serviceType in resourceAvailability;
     const totalAvailable = Number(
       resourceAvailability?.available ?? available ?? 0,
     );
@@ -79,10 +85,19 @@ const Allocation = memo(
       ? Number(resourceAvailability?.[`${otherServiceType}Allocation`] || 0)
       : 0;
     const maxAllowed = Math.max(totalAvailable - otherAllocation, 0);
+    const shouldShowAvailabilitySkeleton =
+      isEquipment && isLoadingEquipAvailability;
     const hasNoAvailability =
-      isEquipment && hasAvailabilityRecord && maxAllowed <= 0;
+      isEquipment &&
+      !shouldShowAvailabilitySkeleton &&
+      hasAvailabilityRecord &&
+      maxAllowed <= 0;
     const exceedsAvailability =
-      isEquipment && hasAvailabilityRecord && amount > 0 && amount > maxAllowed;
+      isEquipment &&
+      !shouldShowAvailabilitySkeleton &&
+      hasAvailabilityRecord &&
+      amount > 0 &&
+      amount > maxAllowed;
     const hasAvailabilityWarning = hasNoAvailability || exceedsAvailability;
     const maxInputValue =
       isEquipment && hasAvailabilityRecord ? maxAllowed : undefined;
@@ -105,25 +120,29 @@ const Allocation = memo(
             {formatItemName(inclusion?.item)}
           </p>
 
-          <p
-            className={`flex min-w-0 items-center gap-1 truncate text-[11px] ${
-              hasAvailabilityWarning
-                ? "text-destructive"
-                : "text-muted-foreground"
-            }`}
-          >
-            {hasAvailabilityWarning && (
-              <AlertTriangle className="size-3 shrink-0" />
-            )}
+          {shouldShowAvailabilitySkeleton ? (
+            <Skeleton className="mt-1 h-3.5 w-28" />
+          ) : (
+            <p
+              className={`flex min-w-0 items-center gap-1 truncate text-[11px] ${
+                hasAvailabilityWarning
+                  ? "text-destructive"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {hasAvailabilityWarning && (
+                <AlertTriangle className="size-3 shrink-0" />
+              )}
 
-            <span className="truncate">
-              {isEquipment
-                ? hasAvailabilityWarning
-                  ? availabilityMessage
-                  : `${inclusion?.model || "Equipment"} / ${available} available`
-                : inclusion?.model || "Item"}
-            </span>
-          </p>
+              <span className="truncate">
+                {isEquipment
+                  ? hasAvailabilityWarning
+                    ? availabilityMessage
+                    : `${inclusion?.model || "Equipment"} / ${available} available`
+                  : inclusion?.model || "Item"}
+              </span>
+            </p>
+          )}
         </div>
 
         {needsInput && (
