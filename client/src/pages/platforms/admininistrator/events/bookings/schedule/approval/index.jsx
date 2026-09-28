@@ -82,7 +82,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const isCateringVenueOverlapping = useMemo(() => {
     return hasCateringVenueOverlap(booking);
-  }, [booking, isOpen]);
+  }, [booking]);
 
   const { hasConflicts, conflicts, totalConflicts } = useMemo(() => {
     const { approved = [], confirmed = [], setup = [] } = schedule;
@@ -188,7 +188,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
         };
       });
     },
-    [availability],
+    [availability, isCateringVenueOverlapping],
   );
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -326,6 +326,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
                   isBoth={isCombinedBooking}
                   handleInclusionAmountChange={handleInclusionAmountChange}
                   equipAvailability={equipAvailability}
+                  isSharedAvailability={isCateringVenueOverlapping}
                 />
               ))}
             </section>
