@@ -82,23 +82,25 @@ export const getServices = (booking) => {
 
 export const getPaymentSummary = (booking) => {
   const total = Number(booking?.pricing?.total || 0);
+  const payments = Array.isArray(booking?.payments) ? booking.payments : [];
 
-  /*
-   * This assumes payment.amount represents the total amount
-   * already received from the customer.
-   */
-  const received = Number(booking?.payment?.amount || 0);
+  const received = payments.reduce((sum, payment) => {
+    if (["voided", "refunded"].includes(payment?.status)) {
+      return sum;
+    }
 
-  /*
-   * Temporary based on your current preview structure.
-   * Later this can come from your actual backend payment rules.
-   */
-  const downPayment = Number(booking?.payment?.downPayment || 0);
+    return sum + Number(payment?.amount || 0);
+  }, 0);
+
+  const downPayment = Number(
+    booking?.terms?.requiredDeposit || booking?.payment?.downPayment || 0,
+  );
 
   return {
     total,
     received,
     downPayment,
+    hasPayments: payments.length > 0,
     balance: Math.max(total - received, 0),
   };
 };
@@ -140,19 +142,28 @@ export const getBookingAction = (booking, payment) => {
    * The booking was approved, but the required down payment
    * has not been fully paid yet.
    */
+  if (status === "approved" && !payment.hasPayments && payment.downPayment > 0) {
+    return {
+      message: `${Formatter.amount(
+        payment.downPayment,
+      )} down payment required to confirm your booking.`,
+      buttonLabel: "Pay now",
+      icon: CreditCard,
+      variant: "payment",
+    };
+  }
+
   if (
     status === "approved" &&
     payment.downPayment > 0 &&
     payment.received < payment.downPayment
   ) {
-    const remainingDownPayment = payment.downPayment - payment.received;
-
     return {
-      message: `Your booking has been approved. Pay ${Formatter.amount(
-        remainingDownPayment,
-      )} to confirm your reservation.`,
-      buttonLabel: "Pay",
-      icon: CreditCard,
+      message: `Your down payment is being processed. Required down payment: ${Formatter.amount(
+        payment.downPayment,
+      )}.`,
+      buttonLabel: null,
+      icon: Clock3,
       variant: "payment",
     };
   }

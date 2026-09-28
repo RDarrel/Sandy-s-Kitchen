@@ -42,11 +42,10 @@ const Ticket = ({ booking }) => {
                     {booking?.eventType || "Event booking"}
                   </h2>
 
-                  <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[9px] text-muted-foreground">
-                    <span className="shrink-0 font-semibold uppercase tracking-wide">
-                      Booking
+                  <div className="mt-0.5 flex min-w-0 items-center text-[9px]">
+                    <span className="shrink-0 font-medium text-muted-foreground">
+                      Booking #
                     </span>
-                    <span>•</span>
                     <span className="truncate font-mono font-semibold text-foreground">
                       {booking?.reference || "Reference unavailable"}
                     </span>
@@ -112,11 +111,10 @@ const Ticket = ({ booking }) => {
                   {booking?.eventType || "Event booking"}
                 </h2>
 
-                <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Booking
+                <div className="mt-0.5 flex min-w-0 items-center">
+                  <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
+                    Booking #
                   </span>
-                  <span className="text-[10px] text-muted-foreground">•</span>
                   <span className="truncate font-mono text-[11px] font-semibold text-foreground">
                     {booking?.reference || "Reference unavailable"}
                   </span>
@@ -143,7 +141,7 @@ const Ticket = ({ booking }) => {
             </div>
 
             {/* Payment / booking message */}
-            <Action action={action} />
+            <Action action={action} booking={booking} />
           </div>
         </div>
 

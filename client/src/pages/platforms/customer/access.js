@@ -24,7 +24,7 @@ const access = [
   },
   {
     name: "My Bookings",
-    path: "/my-inquiries",
+    path: "/my-bookings",
     icon: ClipboardList,
     component: MyBookings,
   },

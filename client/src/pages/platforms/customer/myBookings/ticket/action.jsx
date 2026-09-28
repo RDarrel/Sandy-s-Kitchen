@@ -1,9 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const Action = ({ action }) => {
+const Action = ({ action, booking }) => {
   const Icon = action.icon;
+  const navigate = useNavigate();
 
+  const handlePay = () => {
+    navigate(`/platforms/my-bookings/${booking.reference}/payment`);
+  };
   return (
     <div
       className={`mt-1.5 flex min-w-0 flex-col gap-1.5 rounded-md border px-2 py-1.5 sm:flex-row sm:items-center sm:justify-between ${
@@ -60,6 +65,7 @@ const Action = ({ action }) => {
         <Button
           type="button"
           size="sm"
+          onClick={handlePay}
           className="h-6 w-full shrink-0 gap-1 px-2 text-[9px] sm:w-auto sm:text-[10px]"
         >
           {action.buttonLabel}

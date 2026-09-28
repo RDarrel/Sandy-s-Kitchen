@@ -16,6 +16,7 @@ import Venue from "./pages/website/venue";
 import Login from "./pages/authentication/login";
 import SignUp from "./pages/authentication/sign-up";
 import "./App.css";
+import Payment from "./pages/platforms/customer/myBookings/payment";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -39,6 +40,10 @@ export default function App() {
       {/* <Route path="/authentication/:action" element={<Authentication />} /> */}
       <Route path="/platforms" element={<Platforms />}>
         {RouteConfig()}
+        <Route
+          path="/platforms/my-bookings/:reference/payment"
+          element={<Payment />}
+        />
         <Route path="*" element={<h2>Not Found</h2>} />
       </Route>
       <Route path="cashier" element={<Cashier />} />
