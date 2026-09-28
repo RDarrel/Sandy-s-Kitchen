@@ -122,3 +122,21 @@ exports.approve = async (req, res) => {
     });
   }
 };
+
+exports.paymentDetails = async (req, res) => {
+  try {
+    const { reference } = req.params;
+
+    const booking = await BookingService.getPaymentDetails({
+      reference,
+      customer: res.locals.caller?._id,
+    });
+
+    return res.status(200).json({
+      data: booking,
+    });
+  } catch (error) {
+    console.log("error", error.message);
+    res.status(500).json({ message: "Failed to fetch payment details" });
+  }
+};

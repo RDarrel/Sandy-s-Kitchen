@@ -563,10 +563,26 @@ const getEquipmentAvailability = async ({ bookingID }) => {
   return availabilityMap;
 };
 
+const getPaymentDetails = async ({ customer, reference }) => {
+  const booking = await Booking.findOne({
+    customer,
+    reference,
+  }).lean();
+
+  if (!booking) return {};
+
+  const [bookingWithPayments] = await attachPaymentsToBookings({
+    bookings: [booking],
+  });
+
+  return bookingWithPayments;
+};
+
 module.exports = {
   approve,
   calendar,
   schedule,
   getEquipmentAvailability,
   getMyBookings,
+  getPaymentDetails,
 };
