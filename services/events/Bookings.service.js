@@ -104,6 +104,57 @@ const calculateTerms = ({ booking, policy }) => {
   };
 };
 
+const attachPaymentsToBookings = async ({ bookings }) => {
+  /*
+   * Get all booking IDs from today's schedule.
+   */
+  const bookingIds = bookings.map(({ _id }) => _id);
+
+  /*
+   * ONE query for all payments belonging
+   * to these bookings.
+   */
+  const payments = await Payment.find({
+    booking: {
+      $in: bookingIds,
+    },
+  })
+    .sort({
+      paidAt: -1,
+    })
+    .lean();
+
+  /*
+   * Group payments by booking ID.
+   *
+   * Result:
+   *
+   * {
+   *   bookingId1: [payment1, payment2],
+   *   bookingId2: [payment3],
+   * }
+   */
+  const paymentsByBooking = payments.reduce((acc, payment) => {
+    const bookingId = payment.booking.toString();
+
+    if (!acc[bookingId]) {
+      acc[bookingId] = [];
+    }
+
+    acc[bookingId].push(payment);
+
+    return acc;
+  }, {});
+
+  /*
+   * Attach payments to each booking.
+   */
+  return bookings.map((booking) => ({
+    ...booking,
+    payments: paymentsByBooking[booking._id.toString()] || [],
+  }));
+};
+
 /*
 |--------------------------------------------------------------------------
 | Approve Booking
@@ -327,6 +378,24 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
   return result;
 };
 
+const getMyBookings = async ({ customer }) => {
+  const bookings = await Booking.find({ customer })
+    .populate({
+      path: "catering.item",
+      select: "inclusions name description",
+      populate: { path: "inclusions.item" },
+    })
+    .populate({
+      path: "venue.item",
+      populate: { path: "inclusions.item" },
+    })
+    .populate("catering.mainDishes")
+    .populate("catering.sideDishes")
+    .lean();
+
+  return await attachPaymentsToBookings({ bookings });
+};
+
 const schedule = async ({ date }) => {
   const schedule = await Booking.find({
     date: dateToUTC({
@@ -347,54 +416,9 @@ const schedule = async ({ date }) => {
     .populate("catering.sideDishes")
     .lean();
 
-  /*
-   * Get all booking IDs from today's schedule.
-   */
-  const bookingIds = schedule.map(({ _id }) => _id);
-
-  /*
-   * ONE query for all payments belonging
-   * to these bookings.
-   */
-  const payments = await Payment.find({
-    booking: {
-      $in: bookingIds,
-    },
-  })
-    .sort({
-      paidAt: -1,
-    })
-    .lean();
-
-  /*
-   * Group payments by booking ID.
-   *
-   * Result:
-   *
-   * {
-   *   bookingId1: [payment1, payment2],
-   *   bookingId2: [payment3],
-   * }
-   */
-  const paymentsByBooking = payments.reduce((acc, payment) => {
-    const bookingId = payment.booking.toString();
-
-    if (!acc[bookingId]) {
-      acc[bookingId] = [];
-    }
-
-    acc[bookingId].push(payment);
-
-    return acc;
-  }, {});
-
-  /*
-   * Attach payments to each booking.
-   */
-  const scheduleWithPayments = schedule.map((booking) => ({
-    ...booking,
-    payments: paymentsByBooking[booking._id.toString()] || [],
-  }));
+  const scheduleWithPayments = await attachPaymentsToBookings({
+    bookings: schedule,
+  });
 
   const statusOrder = [
     "pending",
@@ -544,4 +568,5 @@ module.exports = {
   calendar,
   schedule,
   getEquipmentAvailability,
+  getMyBookings,
 };

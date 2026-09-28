@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getStatusKey } from "./utils";
 import { UPCOMING_STATUSES } from "./constant";
-import Header from "./header";
-import Ticket from "./ticket";
 import TicketSkeleton from "./ticket/skeleton";
 import EmptyBooking from "./empty";
+import Header from "./header";
+import Ticket from "./ticket";
+
 const MyBookings = () => {
   const { collections = [], isLoadingMyBookings } = useSelector(
     ({ bookings }) => bookings,
@@ -96,8 +97,6 @@ const MyBookings = () => {
   }, [bookings]);
 
   useEffect(() => {
-    if (isLoadingMyBookings || filter) return;
-
     if (counts.upcoming > 0) {
       setFilter("upcoming");
     } else if (counts.pending > 0) {
@@ -105,7 +104,7 @@ const MyBookings = () => {
     } else {
       setFilter("all");
     }
-  }, [filter, counts, isLoadingMyBookings]);
+  }, [counts]);
 
   const filteredBookings = useMemo(() => {
     const search = query.trim().toLowerCase();

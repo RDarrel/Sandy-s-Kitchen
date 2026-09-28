@@ -81,18 +81,9 @@ exports.equipmentAvailability = async (req, res) => {
 
 exports.me = async (req, res) => {
   try {
-    const bookings = await Booking.find({ customer: res.locals.caller?._id })
-      .populate({
-        path: "catering.item",
-        select: "inclusions name description",
-        populate: { path: "inclusions.item" },
-      })
-      .populate({
-        path: "venue.item",
-        populate: { path: "inclusions.item" },
-      })
-      .populate("catering.mainDishes")
-      .populate("catering.sideDishes");
+    const bookings = await BookingService.getMyBookings({
+      customer: res.locals.caller?._id,
+    });
 
     res.status(200).json({ data: bookings });
   } catch (error) {
