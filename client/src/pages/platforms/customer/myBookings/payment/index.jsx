@@ -86,11 +86,14 @@ const Payment = () => {
 
   const payment = useMemo(() => getPaymentSummary(selected), [selected]);
 
+  const suggestedPaymentAmount =
+    payment.requiredDeposit > 0 ? payment.requiredDeposit : payment.balance;
+
   useEffect(() => {
-    if (!amountPaid && payment.requiredDeposit > 0) {
-      setAmountPaid(String(payment.requiredDeposit));
+    if (!amountPaid && suggestedPaymentAmount > 0) {
+      setAmountPaid(String(suggestedPaymentAmount));
     }
-  }, [amountPaid, payment.requiredDeposit]);
+  }, [amountPaid, suggestedPaymentAmount]);
 
   const paidAmount = Number(amountPaid || 0);
 
@@ -187,7 +190,6 @@ const Payment = () => {
 
           <aside className="lg:sticky lg:top-4">
             <PaymentSummary
-              booking={selected}
               payment={payment}
               method={selectedMethod}
               paidAmount={paidAmount}
@@ -232,22 +234,22 @@ const BookingHeader = ({ booking, fallbackReference, onBack }) => {
           </span>
         </div>
 
-          <div className="hidden">
-            <span className="font-medium text-foreground/80">
-              {booking?.eventType || "Event booking"}
-            </span>
+        <div className="hidden">
+          <span className="font-medium text-foreground/80">
+            {booking?.eventType || "Event booking"}
+          </span>
 
-            <span>•</span>
+          <span>•</span>
 
-            <span className="inline-flex items-center gap-1">
-              <CalendarDays className="size-3" />
-              {formatDate(booking?.date)}
-            </span>
+          <span className="inline-flex items-center gap-1">
+            <CalendarDays className="size-3" />
+            {formatDate(booking?.date)}
+          </span>
 
-            <span className="font-mono">
-              #{booking?.reference || fallbackReference}
-            </span>
-          </div>
+          <span className="font-mono">
+            #{booking?.reference || fallbackReference}
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -261,44 +263,44 @@ const PaymentMethods = ({ methods, selectedMethodId, setSelectedMethodId }) => {
   return (
     <div className="-mx-1 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div className="flex w-max min-w-full gap-1.5">
-      {methods.map((method) => {
-        const selected = method._id === selectedMethodId;
-        const methodType = TYPE_META[method.type]?.label || "Payment method";
+        {methods.map((method) => {
+          const selected = method._id === selectedMethodId;
+          const methodType = TYPE_META[method.type]?.label || "Payment method";
 
-        return (
-          <button
-            key={method._id}
-            type="button"
-            onClick={() => setSelectedMethodId(method._id)}
-            className={`flex h-12 w-44 shrink-0 items-center gap-2 rounded-md border px-2 text-left transition ${
-              selected
-                ? "border-foreground/20 bg-muted/40 shadow-xs"
-                : "bg-background hover:border-foreground/20 hover:bg-muted/20"
-            }`}
-          >
-            <MethodLogo method={method} className="size-9 p-1.5" />
-
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[11px] font-semibold text-foreground">
-                {method.name}
-              </span>
-              <span className="mt-0.5 block truncate text-[9px] text-muted-foreground">
-                {method.accountName || methodType}
-              </span>
-            </span>
-
-            <span
-              className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${
+          return (
+            <button
+              key={method._id}
+              type="button"
+              onClick={() => setSelectedMethodId(method._id)}
+              className={`flex h-12 w-44 shrink-0 items-center gap-2 rounded-md border px-2 text-left transition ${
                 selected
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-transparent text-transparent"
+                  ? "border-foreground/20 bg-muted/40 shadow-xs"
+                  : "bg-background hover:border-foreground/20 hover:bg-muted/20"
               }`}
             >
-              <Check className="size-3" />
-            </span>
-          </button>
-        );
-      })}
+              <MethodLogo method={method} className="size-9 p-1.5" />
+
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[11px] font-semibold text-foreground">
+                  {method.name}
+                </span>
+                <span className="mt-0.5 block truncate text-[9px] text-muted-foreground">
+                  {method.accountName || methodType}
+                </span>
+              </span>
+
+              <span
+                className={`flex size-4 shrink-0 items-center justify-center rounded border ${
+                  selected
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-transparent text-transparent"
+                }`}
+              >
+                <Check className="size-2.5" />
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -391,9 +393,7 @@ const MethodDetails = ({ method }) => {
                   copyable
                 />
               )}
-
             </div>
-
           </div>
         )}
       </div>
@@ -421,20 +421,19 @@ const CompactDetail = ({ label, value, copyable = false }) => {
       </span>
 
       <span className="flex min-w-0 items-center justify-end gap-1.5">
-        <span className="break-all text-right text-xs font-semibold">
-          {value || "-"}
-        </span>
-
         {copyable && value && (
           <button
             type="button"
             onClick={handleCopy}
-            className="flex size-5 shrink-0 items-center justify-center rounded border bg-background text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            className="flex size-5 shrink-0 mr-1 items-center justify-center rounded border bg-background text-muted-foreground transition hover:bg-muted hover:text-foreground"
             title={`Copy ${label.toLowerCase()}`}
           >
             <Copy className="size-3" />
           </button>
         )}
+        <span className="break-all text-right text-xs font-semibold">
+          {value || "-"}
+        </span>
       </span>
     </div>
   );
@@ -503,16 +502,6 @@ const PaymentForm = ({
         />
       )}
 
-      {!invalidAmount && (
-        <div className="mt-2 flex items-center justify-between gap-3 rounded-md bg-muted/30 px-2.5 py-1.5 text-[10px]">
-          <span className="text-muted-foreground">Remaining after payment</span>
-
-          <span className="font-semibold">
-            {Formatter.amount(remainingAfterPayment)}
-          </span>
-        </div>
-      )}
-
       <div className="mt-2.5">
         <FormField label="Proof of payment">
           <label className="flex h-14 cursor-pointer items-center gap-2.5 rounded-md border border-dashed bg-muted/10 px-3 transition hover:border-primary/30 hover:bg-muted/20">
@@ -571,104 +560,108 @@ const PaymentForm = ({
 /* -------------------------------------------------------------------------- */
 
 const PaymentSummary = ({
-  booking,
   payment,
   method,
   paidAmount,
   invalidAmount,
   remainingAfterPayment,
 }) => {
+  const hasValidPaymentAmount = paidAmount > 0 && !invalidAmount;
+  const hasDepositDue = payment.requiredDeposit > 0;
+  const primaryLabel = hasDepositDue
+    ? "Minimum payment due"
+    : "Current balance";
+  const primaryAmount = hasDepositDue
+    ? payment.requiredDeposit
+    : payment.balance;
+
   return (
     <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
-      {/* Main amount */}
-      <div className="px-4 py-3.5">
-        <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Required down payment
-        </p>
-
-        <p className="mt-1 text-2xl font-semibold leading-none tracking-tight">
-          {Formatter.amount(payment.requiredDeposit)}
-        </p>
-
-        {payment.depositDeadline && (
-          <p className="mt-1.5 text-[10px] text-muted-foreground">
-            Due {formatDate(payment.depositDeadline)}
-          </p>
-        )}
-      </div>
-
-      {/* Booking */}
-      <div className="border-t px-4 py-3">
-        <p className="mb-2 text-[10px] font-semibold">Booking</p>
-
-        <SummaryRow
-          label="Reference"
-          value={`#${booking?.reference || "-"}`}
-          mono
+      <div className="bg-background px-4 py-3">
+        <SectionHeader
+          title="Payment summary"
+          description="Review the amount before submitting your payment."
         />
-
-        <SummaryRow label="Event" value={booking?.eventType || "-"} />
-
-        <SummaryRow label="Date" value={formatDate(booking?.date)} />
       </div>
 
-      {/* Payment breakdown */}
-      <div className="border-t px-4 py-3">
-        <p className="mb-2 text-[10px] font-semibold">Payment summary</p>
+      <div className="border-t bg-muted/5 px-4 py-3.5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {primaryLabel}
+            </p>
 
+            <p className="mt-1.5 text-2xl font-semibold leading-none tracking-tight sm:text-[1.75rem]">
+              {Formatter.amount(primaryAmount)}
+            </p>
+          </div>
+
+          {hasDepositDue && payment.depositDeadline && (
+            <span className="shrink-0 rounded-md bg-muted/40 px-2 py-1 text-[9px] font-medium text-muted-foreground">
+              Due {formatDate(payment.depositDeadline)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t px-4 py-3">
         <SummaryRow
           label="Booking total"
           value={Formatter.amount(payment.total)}
         />
 
-        <SummaryRow label="Paid" value={Formatter.amount(payment.received)} />
-
         <SummaryRow
-          label="Current balance"
-          value={Formatter.amount(payment.balance)}
+          label="Already paid"
+          value={Formatter.amount(payment.received)}
         />
 
-        {paidAmount > 0 && !invalidAmount && (
-          <>
-            <div className="my-2 border-t" />
-
-            <SummaryRow
-              label="Paying now"
-              value={Formatter.amount(paidAmount)}
-              strong
-            />
-
-            <SummaryRow
-              label="Balance after"
-              value={Formatter.amount(remainingAfterPayment)}
-              strong
-            />
-          </>
+        {hasDepositDue && (
+          <SummaryRow
+            label="Current balance"
+            value={Formatter.amount(payment.balance)}
+          />
         )}
       </div>
 
-      {/* Method */}
-      {method && (
-        <div className="border-t px-4 py-3">
-          <p className="mb-2 text-[10px] font-semibold">Paying with</p>
+      {hasValidPaymentAmount && (
+        <div className="border-t bg-muted/5 px-4 py-3">
+          <SummaryRow
+            label="Paying now"
+            value={Formatter.amount(paidAmount)}
+            strong
+          />
 
-          <div className="flex items-center gap-2">
-            <MethodLogo method={method} className="size-7" />
-
-            <div className="min-w-0">
-              <p className="truncate text-[11px] font-semibold">
-                {method.name}
-              </p>
-
-              <p className="text-[9px] text-muted-foreground">
-                {TYPE_META[method.type]?.label || "Payment method"}
-              </p>
-            </div>
-          </div>
+          <SummaryRow
+            label="Balance after"
+            value={Formatter.amount(remainingAfterPayment)}
+          />
         </div>
       )}
 
-      {/* Desktop action */}
+      <div className="border-t px-4 py-3.5">
+        {method ? (
+          <div className="flex items-center gap-2.5">
+            <MethodLogo method={method} className="size-9 p-1.5" />
+
+            <div className="min-w-0">
+              <p className="text-[11px] text-muted-foreground">Paying with</p>
+
+              <p className="mt-0.5 truncate text-sm font-semibold">
+                {method.name}
+              </p>
+            </div>
+
+            <span className="ml-auto shrink-0 rounded-md border bg-muted/20 px-2 py-1 text-[11px] font-medium text-muted-foreground">
+              {TYPE_META[method.type]?.label || "Payment method"}
+            </span>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Select a payment method to continue.
+          </p>
+        )}
+      </div>
+
       <div className="hidden border-t p-3 lg:block">
         <Button
           className="h-9 w-full gap-1.5 text-xs"
@@ -678,17 +671,7 @@ const PaymentSummary = ({
           Submit payment
         </Button>
 
-        <div className="mt-2 flex items-center justify-between">
-          <span className="text-[9px] text-muted-foreground">
-            Amount to submit
-          </span>
-
-          <span className="text-xs font-semibold">
-            {Formatter.amount(paidAmount)}
-          </span>
-        </div>
-
-        <p className="mt-2 text-center text-[9px] leading-4 text-muted-foreground">
+        <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">
           Payment will be reviewed before your booking is updated.
         </p>
       </div>
@@ -696,15 +679,15 @@ const PaymentSummary = ({
   );
 };
 
-const SummaryRow = ({ label, value, strong = false, mono = false }) => {
+const SummaryRow = ({ label, value, strong = false }) => {
   return (
     <div className="flex items-start justify-between gap-3 py-1">
-      <span className="text-[10px] text-muted-foreground">{label}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
 
       <span
-        className={`max-w-[60%] break-words text-right text-[10px] ${
+        className={`max-w-[60%] break-words text-right text-xs ${
           strong ? "font-semibold text-foreground" : "font-medium"
-        } ${mono ? "font-mono" : ""}`}
+        }`}
       >
         {value}
       </span>
@@ -855,8 +838,12 @@ const getPaymentSummary = (booking) => {
 
   const balance = Math.max(total - received, 0);
 
+  const requiredDepositTotal = Number(
+    booking?.terms?.requiredDeposit || balance || 0,
+  );
+
   const requiredDeposit = Math.min(
-    Number(booking?.terms?.requiredDeposit || balance || 0),
+    Math.max(requiredDepositTotal - received, 0),
     balance,
   );
 
