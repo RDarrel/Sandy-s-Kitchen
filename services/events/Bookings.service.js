@@ -119,6 +119,7 @@ const attachPaymentsToBookings = async ({ bookings }) => {
       $in: bookingIds,
     },
   })
+    .populate("method", "name")
     .sort({
       paidAt: -1,
     })
@@ -578,6 +579,33 @@ const getPaymentDetails = async ({ customer, reference }) => {
   return bookingWithPayments;
 };
 
+const getBookingDetails = async ({ customer, reference }) => {
+  const booking = await Booking.findOne({
+    customer,
+    reference,
+  })
+    .populate({
+      path: "catering.item",
+      select: "inclusions name description",
+      populate: { path: "inclusions.item" },
+    })
+    .populate({
+      path: "venue.item",
+      populate: { path: "inclusions.item" },
+    })
+    .populate("catering.mainDishes")
+    .populate("catering.sideDishes")
+    .lean();
+
+  if (!booking) return {};
+
+  const [bookingWithPayments] = await attachPaymentsToBookings({
+    bookings: [booking],
+  });
+
+  return bookingWithPayments;
+};
+
 module.exports = {
   approve,
   calendar,
@@ -585,4 +613,5 @@ module.exports = {
   getEquipmentAvailability,
   getMyBookings,
   getPaymentDetails,
+  getBookingDetails,
 };

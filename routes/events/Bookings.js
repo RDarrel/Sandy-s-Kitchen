@@ -7,15 +7,18 @@ const router = require("express").Router(),
     me,
     approve,
     paymentDetails,
+    bookingDetails,
   } = require("../../controllers/events/Bookings"),
   { validate } = require("../../middleware/jwt");
 
 router
   .get("/calendar", validate, calendar)
   .get("/equipmentAvailability", validate, equipmentAvailability)
-  .get("/:reference/payment", validate, paymentDetails)
-  .get("/schedule", validate, schedule)
   .get("/me", validate, me)
+  .get("/schedule", validate, schedule)
+
+  .get("/:reference/details", validate, bookingDetails)
+  .get("/:reference/payment", validate, paymentDetails)
   .post("/save", validate, save)
   .put("/approve", validate, approve);
 

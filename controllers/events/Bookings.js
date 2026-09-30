@@ -140,3 +140,21 @@ exports.paymentDetails = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch payment details" });
   }
 };
+
+exports.bookingDetails = async (req, res) => {
+  try {
+    const { reference } = req.params;
+
+    const booking = await BookingService.getBookingDetails({
+      reference,
+      customer: res.locals.caller?._id,
+    });
+
+    return res.status(200).json({
+      data: booking,
+    });
+  } catch (error) {
+    console.log("error", error.message);
+    res.status(500).json({ message: "Failed to fetch booking details" });
+  }
+};
