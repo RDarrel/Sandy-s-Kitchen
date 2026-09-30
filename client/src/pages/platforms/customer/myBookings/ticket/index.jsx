@@ -145,7 +145,7 @@ const Ticket = ({ booking }) => {
           </div>
         </div>
 
-        <Summary payment={payment} />
+        <Summary payment={payment} reference={booking?.reference} />
       </div>
     </article>
   );

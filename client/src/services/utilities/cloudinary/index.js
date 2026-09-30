@@ -42,6 +42,8 @@ const Cloudinary = {
     if (toUpdate?.attributeName)
       formData.append("attributeName", toUpdate?.attributeName);
 
+    if (toUpdate?.paymentID) formData.append("paymentID", toUpdate?.paymentID);
+
     return formData;
   },
 };

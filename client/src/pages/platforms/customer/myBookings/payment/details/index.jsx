@@ -10,15 +10,15 @@ import MethodDetails from "./methods/details";
 const Details = ({
   activeMethods = [],
   selectedMethod,
+  form,
   payment,
   paidAmount,
-  amountPaid,
   invalidAmount,
   belowDeposit,
   exceedsBalance,
-  setSelectedMethodId = () => {},
+  isSubmitting = false,
   navigate = () => {},
-  setAmountPaid = () => {},
+  setForm = () => {},
 }) => {
   const { isLoadingBookingPayment, selected } = useSelector(
     ({ bookings }) => bookings,
@@ -26,6 +26,7 @@ const Details = ({
   const { isLoading: isLoadingMethods } = useSelector(
     ({ paymentMethods }) => paymentMethods,
   );
+
   return (
     <>
       <section className="min-w-0 overflow-hidden rounded-lg border bg-card shadow-sm">
@@ -56,8 +57,8 @@ const Details = ({
             ) : activeMethods.length > 0 ? (
               <PaymentMethods
                 methods={activeMethods}
-                selectedMethodId={selectedMethod?._id}
-                setSelectedMethodId={setSelectedMethodId}
+                form={form}
+                setForm={setForm}
               />
             ) : (
               <div className="rounded-md border border-dashed bg-muted/10 px-3 py-5 text-center text-xs text-muted-foreground">
@@ -84,14 +85,19 @@ const Details = ({
             <PaymentFormSkeleton />
           ) : (
             <PaymentForm
-              amountPaid={amountPaid}
-              setAmountPaid={setAmountPaid}
+              form={form}
+              amountPaid={form.amount}
               payment={payment}
               method={selectedMethod}
               paidAmount={paidAmount}
               invalidAmount={invalidAmount}
               belowDeposit={belowDeposit}
               exceedsBalance={exceedsBalance}
+              isSubmitting={isSubmitting}
+              setAmountPaid={(value) =>
+                setForm((prev) => ({ ...prev, amount: value }))
+              }
+              setForm={setForm}
             />
           )}
         </div>

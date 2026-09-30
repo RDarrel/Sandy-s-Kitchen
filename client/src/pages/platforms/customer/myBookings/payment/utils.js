@@ -30,3 +30,29 @@ export const getPaymentSummary = (booking) => {
     depositDeadline: booking?.terms?.depositDeadline,
   };
 };
+
+export const sortPaymentMethods = (paymentMethods) => {
+  return paymentMethods
+    .filter(({ isActive }) => isActive)
+    .sort((firstMethod, secondMethod) => {
+      if (firstMethod.type === secondMethod.type) return 0;
+
+      if (firstMethod.type === "e_wallet") return -1;
+
+      if (secondMethod.type === "e_wallet") return 1;
+
+      return 0;
+    });
+};
+
+export const getPaymentType = (booking, sentAmount, balance) => {
+  const { payments = [] } = booking;
+
+  const hasVerifiedPayment = payments.some(
+    ({ status }) => status === "verified",
+  );
+  if (sentAmount >= balance) return "final";
+  if (!hasVerifiedPayment) return "deposit";
+
+  return "partial";
+};

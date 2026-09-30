@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 import { TYPE_META } from "../../constant";
 import MethodLogo from "./logo";
 
-const PaymentMethods = ({ methods, selectedMethodId, setSelectedMethodId }) => {
+const PaymentMethods = ({ methods, form, setForm = () => {} }) => {
   const scrollRef = useRef(null);
 
   const pointerState = useRef({
@@ -118,7 +118,7 @@ const PaymentMethods = ({ methods, selectedMethodId, setSelectedMethodId }) => {
       return;
     }
 
-    setSelectedMethodId(methodId);
+    setForm((prev) => ({ ...prev, method: methodId }));
 
     scrollMethodIntoView(event.currentTarget, methodId);
   };
@@ -136,7 +136,7 @@ const PaymentMethods = ({ methods, selectedMethodId, setSelectedMethodId }) => {
     >
       <div className="flex w-max min-w-full gap-1.5">
         {methods.map((method) => {
-          const selected = method._id === selectedMethodId;
+          const selected = method._id === form.method;
 
           const methodType = TYPE_META[method.type]?.label || "Payment method";
 
@@ -149,7 +149,7 @@ const PaymentMethods = ({ methods, selectedMethodId, setSelectedMethodId }) => {
               className={`flex h-14 w-[13.5rem] shrink-0 items-center gap-2 rounded-md border px-2.5 text-left transition sm:w-48 ${
                 selected
                   ? "border-foreground/20 bg-muted/40 shadow-xs"
-                  : "bg-background hover:border-foreground/20 hover:bg-muted/20"
+                  : "border-border/70 bg-card hover:border-foreground/20"
               }`}
             >
               <MethodLogo method={method} className="size-9 p-1.5" />

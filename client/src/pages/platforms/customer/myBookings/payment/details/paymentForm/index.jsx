@@ -9,6 +9,7 @@ import InlineWarning from "./inlineWarning";
 import SectionHeader from "../../sectionHeader";
 import FormField from "./formField";
 import ReceiptPreviewDialog from "./preview";
+import Spinner from "@/components/shared/spinner";
 
 export const formatFileSize = (bytes) => {
   if (!bytes) return "0 KB";
@@ -31,10 +32,11 @@ const PaymentForm = ({
   invalidAmount,
   belowDeposit,
   exceedsBalance,
+  form,
+  isSubmitting = false,
+  setForm = () => {},
 }) => {
   const receiptInputRef = useRef(null);
-
-  const [receipt, setReceipt] = useState(null);
   const [receiptPreviewUrl, setReceiptPreviewUrl] = useState("");
   const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
 
@@ -63,7 +65,7 @@ const PaymentForm = ({
 
     const previewUrl = URL.createObjectURL(file);
 
-    setReceipt(file);
+    setForm((prev) => ({ ...prev, proof: file }));
     setReceiptPreviewUrl(previewUrl);
   };
 
@@ -72,7 +74,7 @@ const PaymentForm = ({
       URL.revokeObjectURL(receiptPreviewUrl);
     }
 
-    setReceipt(null);
+    setForm((prev) => ({ ...prev, proof: null }));
     setReceiptPreviewUrl("");
     setIsReceiptPreviewOpen(false);
 
@@ -84,7 +86,6 @@ const PaymentForm = ({
   const handleReplaceReceipt = () => {
     receiptInputRef.current?.click();
   };
-
   return (
     <>
       <div>
@@ -94,7 +95,7 @@ const PaymentForm = ({
         />
 
         <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
-          <FormField label="Amount sent">
+          <FormField label="Amount sent" required>
             <div className="relative">
               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px] text-muted-foreground">
                 ₱
@@ -102,10 +103,10 @@ const PaymentForm = ({
 
               <Input
                 type="number"
-                min="1"
+                min={payment?.requiredDeposit}
                 max={payment.balance || undefined}
-                value={amountPaid}
-                onChange={({ target }) => setAmountPaid(target.value)}
+                value={String(amountPaid || "")}
+                onChange={({ target }) => setAmountPaid(Number(target.value))}
                 className={`h-9 pl-6 text-[13px] font-semibold ${
                   invalidAmount ? "border-destructive" : ""
                 }`}
@@ -117,6 +118,10 @@ const PaymentForm = ({
             <Input
               placeholder="Enter reference number or transaction ID"
               className="h-9 text-[13px]"
+              value={form?.reference}
+              onChange={({ target }) =>
+                setForm((prev) => ({ ...prev, reference: target.value }))
+              }
             />
           </FormField>
         </div>
@@ -139,7 +144,7 @@ const PaymentForm = ({
 
         <div className="mt-2.5">
           <FormField label="Proof of payment">
-            {!receipt ? (
+            {!form?.proof ? (
               <label className="flex h-14 cursor-pointer items-center gap-2.5 rounded-md border border-dashed bg-muted/10 px-3 transition hover:border-primary/30 hover:bg-muted/20">
                 <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted">
                   <ImagePlus className="size-3.5 text-muted-foreground" />
@@ -187,11 +192,11 @@ const PaymentForm = ({
                 {/* File information */}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13px] font-medium">
-                    {receipt.name}
+                    {form?.proof?.name}
                   </p>
 
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {formatFileSize(receipt.size)}
+                    {formatFileSize(form?.proof?.size)}
                   </p>
                 </div>
 
@@ -254,6 +259,10 @@ const PaymentForm = ({
             <Textarea
               placeholder="Add a note if needed"
               className="min-h-12 resize-none text-[13px]"
+              value={form?.notes}
+              onChange={({ target }) =>
+                setForm((prev) => ({ ...prev, notes: target.value }))
+              }
             />
           </FormField>
         </div>
@@ -262,9 +271,14 @@ const PaymentForm = ({
         <div className="mt-3 border-t pt-3 lg:hidden">
           <Button
             className="h-9 w-full gap-1.5 text-[13px]"
-            disabled={!method || invalidAmount}
+            disabled={!method || isSubmitting}
+            type="submit"
           >
-            <CheckCircle2 className="size-3.5" />
+            {isSubmitting ? (
+              <Spinner formSubmitted={isSubmitting} />
+            ) : (
+              <CheckCircle2 className="size-3.5" />
+            )}
             Submit payment · {Formatter.amount(paidAmount)}
           </Button>
 
@@ -278,7 +292,7 @@ const PaymentForm = ({
         open={isReceiptPreviewOpen}
         onOpenChange={setIsReceiptPreviewOpen}
         src={receiptPreviewUrl}
-        file={receipt}
+        file={form?.proof}
       />
     </>
   );

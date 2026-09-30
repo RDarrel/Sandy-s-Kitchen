@@ -6,6 +6,7 @@ import { Formatter } from "@/services/utilities";
 import SummaryRow from "./row";
 import SectionHeader from "../sectionHeader";
 import MethodLogo from "../details/methods/logo";
+import Spinner from "@/components/shared/spinner";
 
 const formatDate = (date) => {
   if (!date) return "-";
@@ -17,11 +18,10 @@ const Summary = ({
   payment,
   method,
   paidAmount,
-  invalidAmount,
   isLoadingMethod,
   remainingAfterPayment,
+  isSubmitting = false,
 }) => {
-  const hasValidPaymentAmount = paidAmount > 0 && !invalidAmount;
   const hasDepositDue = payment.requiredDeposit > 0;
 
   const primaryLabel = hasDepositDue
@@ -80,20 +80,20 @@ const Summary = ({
         )}
       </div>
 
-      {hasValidPaymentAmount && (
-        <div className="border-t bg-muted/5 px-3 py-3 sm:px-4">
-          <SummaryRow
-            label="Paying now"
-            value={Formatter.amount(paidAmount)}
-            strong
-          />
+      {/* {hasValidPaymentAmount && ( */}
+      <div className="border-t bg-muted/5 px-3 py-3 sm:px-4">
+        <SummaryRow
+          label="Paying now"
+          value={Formatter.amount(paidAmount)}
+          strong
+        />
 
-          <SummaryRow
-            label="Balance after"
-            value={Formatter.amount(remainingAfterPayment)}
-          />
-        </div>
-      )}
+        <SummaryRow
+          label="Balance after"
+          value={Formatter.amount(remainingAfterPayment)}
+        />
+      </div>
+      {/* )} */}
 
       <div className="border-t px-3 py-3.5 sm:px-4">
         {isLoadingMethod ? (
@@ -134,9 +134,14 @@ const Summary = ({
       <div className="hidden border-t p-3 lg:block">
         <Button
           className="h-9 w-full gap-1.5 text-xs"
-          disabled={!method || invalidAmount}
+          disabled={!method || isSubmitting}
+          type="submit"
         >
-          <CheckCircle2 className="size-3.5" />
+          {isSubmitting ? (
+            <Spinner formSubmitted={isSubmitting} />
+          ) : (
+            <CheckCircle2 className="size-3.5" />
+          )}
           Submit payment
         </Button>
 

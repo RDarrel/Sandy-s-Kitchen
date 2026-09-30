@@ -1,10 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Formatter } from "@/services/utilities";
 import { ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const Summary = ({ payment }) => {
+const Summary = ({ payment, reference }) => {
   const isFullyPaid = payment.balance <= 0;
+  const navigate = useNavigate();
 
+  const handleViewDetails = () => {
+    navigate(`/platforms/my-bookings/${reference}`);
+  };
   return (
     <>
       {/* Mobile compact footer */}
@@ -55,6 +60,7 @@ const Summary = ({ payment }) => {
           variant="outline"
           size="sm"
           className="mt-3 h-8 w-full justify-between text-xs"
+          onClick={handleViewDetails}
         >
           View details
           <ChevronRight className="size-3.5" />

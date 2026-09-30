@@ -12,6 +12,7 @@ import {
   bookings,
   bookingPolicy,
   paymentMethods,
+  payments,
 } from "./slices/events";
 import { addOns, menus, menuCategories } from "./slices/menu";
 import {
@@ -49,6 +50,7 @@ const store = configureStore({
     bookings,
     bookingPolicy,
     paymentMethods,
+    payments,
   },
 });
 

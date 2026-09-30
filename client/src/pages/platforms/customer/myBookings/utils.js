@@ -81,40 +81,68 @@ export const getServices = (booking) => {
 };
 
 export const getPaymentSummary = (booking) => {
+  const payments = booking?.payments || [];
+
   const total = Number(booking?.pricing?.total || 0);
-  const payments = Array.isArray(booking?.payments) ? booking.payments : [];
+  const downPayment = Number(booking?.terms?.requiredDeposit || 0);
 
-  const received = payments.reduce((sum, payment) => {
-    if (["voided", "refunded"].includes(payment?.status)) {
-      return sum;
-    }
-
-    return sum + Number(payment?.amount || 0);
-  }, 0);
-
-  const downPayment = Number(
-    booking?.terms?.requiredDeposit || booking?.payment?.downPayment || 0,
+  const verifiedPayments = payments.filter(
+    ({ status }) => status === "verified",
   );
+
+  const pendingPayments = payments.filter(({ status }) => status === "pending");
+
+  const voidedPayments = payments.filter(({ status }) => status === "voided");
+
+  const verifiedAmount = verifiedPayments.reduce(
+    (total, payment) => total + Number(payment?.amount || 0),
+    0,
+  );
+
+  const pendingAmount = pendingPayments.reduce(
+    (total, payment) => total + Number(payment?.amount || 0),
+    0,
+  );
+
+  const balance = Math.max(total - verifiedAmount, 0);
+
+  const remainingDownPayment = Math.max(downPayment - verifiedAmount, 0);
+
+  const pendingPayment = pendingPayments[0] || null;
 
   return {
     total,
-    received,
     downPayment,
+
+    verifiedAmount,
+    pendingAmount,
+
+    balance,
+    remainingDownPayment,
+
+    verifiedPayments,
+    pendingPayments,
+    voidedPayments,
+
+    pendingPayment,
+
     hasPayments: payments.length > 0,
-    balance: Math.max(total - received, 0),
+    hasVerifiedPayments: verifiedPayments.length > 0,
+    hasPendingPayment: pendingPayments.length > 0,
+    hasVoidedPayments: voidedPayments.length > 0,
+
+    isDownPaymentSatisfied: verifiedAmount >= downPayment,
+    isFullyPaid: balance <= 0,
   };
 };
-
 export const getBookingAction = (booking, payment) => {
-  const status = booking.status;
+  const status = booking?.status;
 
   /*
    * PENDING
    *
-   * The booking has been submitted but the admin has not
-   * approved it yet.
+   * Booking inquiry is waiting for admin approval.
    */
-
   if (status === "pending") {
     return {
       message:
@@ -125,6 +153,12 @@ export const getBookingAction = (booking, payment) => {
     };
   }
 
+  /*
+   * CHANGES REQUESTED
+   *
+   * Customer needs to update the booking before
+   * it can be approved.
+   */
   if (status === "changes_requested") {
     return {
       message:
@@ -139,60 +173,95 @@ export const getBookingAction = (booking, payment) => {
   /*
    * APPROVED
    *
-   * The booking was approved, but the required down payment
-   * has not been fully paid yet.
-   */
-  if (status === "approved" && !payment.hasPayments && payment.downPayment > 0) {
-    return {
-      message: `${Formatter.amount(
-        payment.downPayment,
-      )} down payment required to confirm your booking.`,
-      buttonLabel: "Pay now",
-      icon: CreditCard,
-      variant: "payment",
-    };
-  }
-
-  if (
-    status === "approved" &&
-    payment.downPayment > 0 &&
-    payment.received < payment.downPayment
-  ) {
-    return {
-      message: `Your down payment is being processed. Required down payment: ${Formatter.amount(
-        payment.downPayment,
-      )}.`,
-      buttonLabel: null,
-      icon: Clock3,
-      variant: "payment",
-    };
-  }
-
-  /*
-   * APPROVED
-   *
-   * Required down payment is already satisfied,
-   * but there is still a remaining balance.
-   */
-  if (status === "approved" && payment.balance > 0) {
-    return {
-      message: `Down payment received. Your booking is awaiting confirmation. Remaining balance: ${Formatter.amount(
-        payment.balance,
-      )}.`,
-      buttonLabel: null,
-      icon: CheckCircle2,
-      variant: "success",
-    };
-  }
-
-  /*
-   * APPROVED
-   *
-   * Customer has already fully paid.
+   * Booking has been approved and is waiting for the
+   * required down payment to be verified.
    */
   if (status === "approved") {
+    /*
+     * There is already a payment waiting for verification.
+     *
+     * Do not allow another payment until this one
+     * has been verified or voided.
+     */
+    if (payment.hasPendingPayment) {
+      return {
+        message: `${Formatter.amount(
+          payment.pendingAmount,
+        )} payment submitted. We'll update your booking once your payment has been verified.`,
+        buttonLabel: null,
+        icon: Clock3,
+        variant: "payment",
+      };
+    }
+
+    /*
+     * Required down payment has not been satisfied.
+     *
+     * This can be:
+     * - no payment yet
+     * - partially verified down payment
+     * - previous payment was voided
+     */
+    if (!payment.isDownPaymentSatisfied) {
+      /*
+       * Some amount has already been verified, but the
+       * required down payment is still incomplete.
+       */
+      if (payment.hasVerifiedPayments) {
+        return {
+          message: `${Formatter.amount(
+            payment.remainingDownPayment,
+          )} more is required to complete your down payment.`,
+          buttonLabel: "Pay now",
+          icon: CreditCard,
+          variant: "payment",
+        };
+      }
+
+      /*
+       * A previous payment was voided and there is
+       * currently no pending/verified payment.
+       *
+       * The full reason remains available in the
+       * payment history.
+       */
+      if (payment.hasVoidedPayments) {
+        return {
+          message: `A previous payment could not be verified. ${Formatter.amount(
+            payment.remainingDownPayment,
+          )} down payment is still required.`,
+          buttonLabel: "Pay now",
+          icon: AlertTriangle,
+          variant: "action-required",
+        };
+      }
+
+      /*
+       * No payment has been submitted yet.
+       */
+      return {
+        message: `${Formatter.amount(
+          payment.remainingDownPayment,
+        )} down payment required to confirm your booking.`,
+        buttonLabel: "Pay now",
+        icon: CreditCard,
+        variant: "payment",
+      };
+    }
+
+    /*
+     * FALLBACK
+     *
+     * Normally the backend should automatically move:
+     *
+     * approved -> confirmed
+     *
+     * once the required verified down payment has
+     * been satisfied.
+     */
     return {
-      message: "Payment received. Your booking is awaiting confirmation.",
+      message:
+        "Your down payment has been verified. Your booking is awaiting confirmation.",
       buttonLabel: null,
       icon: CheckCircle2,
       variant: "success",
@@ -202,10 +271,44 @@ export const getBookingAction = (booking, payment) => {
   /*
    * CONFIRMED
    *
-   * Booking is already confirmed but customer still
-   * has a remaining balance.
+   * Required down payment has already been verified
+   * and the booking is confirmed.
    */
-  if (status === "confirmed" && payment.balance > 0) {
+  if (status === "confirmed") {
+    /*
+     * Fully paid.
+     */
+    if (payment.isFullyPaid) {
+      return {
+        message:
+          "Your booking is confirmed and fully paid. No further payment is required.",
+        buttonLabel: null,
+        icon: CheckCircle2,
+        variant: "success",
+      };
+    }
+
+    /*
+     * A balance payment has been submitted and is
+     * currently waiting for admin verification.
+     *
+     * No additional payment can be submitted yet.
+     */
+    if (payment.hasPendingPayment) {
+      return {
+        message: `${Formatter.amount(
+          payment.pendingAmount,
+        )} payment submitted. Awaiting verification.`,
+        buttonLabel: null,
+        icon: Clock3,
+        variant: "payment",
+      };
+    }
+
+    /*
+     * No pending payment.
+     * Customer may continue paying the remaining balance.
+     */
     return {
       message: `Your booking is confirmed. Remaining balance: ${Formatter.amount(
         payment.balance,
@@ -217,27 +320,40 @@ export const getBookingAction = (booking, payment) => {
   }
 
   /*
-   * CONFIRMED
-   *
-   * Booking is confirmed and fully paid.
-   */
-  if (status === "confirmed") {
-    return {
-      message:
-        "Your booking is confirmed and fully paid. No further payment is required.",
-      buttonLabel: null,
-      icon: CheckCircle2,
-      variant: "success",
-    };
-  }
-
-  /*
    * SETUP / PREPARING
    *
-   * Event preparation has started but there is still
-   * an outstanding balance.
+   * Event preparation is already in progress.
    */
-  if (status === "setup" && payment.balance > 0) {
+  if (status === "setup") {
+    /*
+     * Fully paid.
+     */
+    if (payment.isFullyPaid) {
+      return {
+        message: "We're preparing for your event. Your payment is complete.",
+        buttonLabel: null,
+        icon: Clock3,
+        variant: "preparing",
+      };
+    }
+
+    /*
+     * Payment is currently under review.
+     */
+    if (payment.hasPendingPayment) {
+      return {
+        message: `We're preparing for your event. ${Formatter.amount(
+          payment.pendingAmount,
+        )} payment is awaiting verification.`,
+        buttonLabel: null,
+        icon: Clock3,
+        variant: "preparing",
+      };
+    }
+
+    /*
+     * Customer still has an outstanding balance.
+     */
     return {
       message: `We're preparing for your event. Remaining balance: ${Formatter.amount(
         payment.balance,
@@ -249,26 +365,43 @@ export const getBookingAction = (booking, payment) => {
   }
 
   /*
-   * SETUP / PREPARING
-   *
-   * Event preparation has started and payment is complete.
-   */
-  if (status === "setup") {
-    return {
-      message: "We're preparing for your event. Your payment is complete.",
-      buttonLabel: null,
-      icon: Clock3,
-      variant: "preparing",
-    };
-  }
-
-  /*
    * COMPLETED
    *
-   * Event is completed but there is still an outstanding
-   * balance.
+   * Event has already been completed.
    */
-  if (status === "completed" && payment.balance > 0) {
+  if (status === "completed") {
+    /*
+     * Fully paid.
+     */
+    if (payment.isFullyPaid) {
+      return {
+        message:
+          "Your event has been completed. Thank you for choosing Sandy's Kitchenette.",
+        buttonLabel: null,
+        icon: CheckCircle2,
+        variant: "success",
+      };
+    }
+
+    /*
+     * Final/balance payment is still waiting
+     * for verification.
+     */
+    if (payment.hasPendingPayment) {
+      return {
+        message: `Your event has been completed. ${Formatter.amount(
+          payment.pendingAmount,
+        )} payment is awaiting verification.`,
+        buttonLabel: null,
+        icon: Clock3,
+        variant: "payment",
+      };
+    }
+
+    /*
+     * Event is complete but an outstanding balance
+     * still exists.
+     */
     return {
       message: `Your event has been completed. Remaining balance: ${Formatter.amount(
         payment.balance,
@@ -280,28 +413,11 @@ export const getBookingAction = (booking, payment) => {
   }
 
   /*
-   * COMPLETED
-   *
-   * Event is completed and fully paid.
-   */
-  if (status === "completed") {
-    return {
-      message:
-        "Your event has been completed. Thank you for choosing Sandy's Kitchenette.",
-      buttonLabel: null,
-      icon: CheckCircle2,
-      variant: "success",
-    };
-  }
-
-  /*
    * CANCELLED
    *
-   * Do not show a normal "Pay balance" action for a
-   * cancelled booking even if pricing - received > 0.
-   *
-   * Refund/payment handling should be shown in the
-   * booking details separately.
+   * Normal payment actions are disabled.
+   * Payment/refund history can still be viewed
+   * from the booking details.
    */
   if (status === "cancelled") {
     return {
