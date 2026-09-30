@@ -22,15 +22,15 @@ const paymentSchema = new mongoose.Schema(
     },
 
     method: {
-      type: String,
-      enum: ["cash", "gcash", "maya", "bank_transfer", "card", "other"],
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PaymentMethod",
       required: true,
     },
 
     status: {
       type: String,
       enum: ["pending", "verified", "voided", "refunded"],
-      default: "verified",
+      default: "pending",
     },
 
     reference: {
@@ -39,22 +39,8 @@ const paymentSchema = new mongoose.Schema(
       default: null,
     },
 
-    proof: {
-      url: {
-        type: String,
-        default: null,
-      },
-
-      publicId: {
-        type: String,
-        default: null,
-      },
-    },
-
-    paidAt: {
-      type: Date,
-      required: true,
-      default: Date.now,
+    proofImgId: {
+      type: String,
     },
 
     verifiedAt: {

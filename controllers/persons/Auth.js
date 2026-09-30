@@ -1,6 +1,7 @@
 const Entity = require("../../models/persons/Users"),
   Menu = require("../../models/menu/Menu"),
   PaymentMethod = require("../../models/events/PaymentMethods"),
+  Payment = require("../../models/events/Payment"),
   generateToken = require("../../config/generateToken"),
   handleDuplicate = require("../../config/duplicate"),
   { cloudinary } = require("../../config/cloudinary");
@@ -76,6 +77,7 @@ exports.upload = async (req, res) => {
       userID = "",
       menuId = "",
       paymentMethodId = "",
+      paymentID = "",
     } = req.body;
     if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
@@ -129,6 +131,13 @@ exports.upload = async (req, res) => {
       await PaymentMethod.updateOne(
         { _id: paymentMethodId },
         { $set: { [attributeName]: `v${result.version}` } },
+      );
+    }
+
+    if (paymentID) {
+      await Payment.updateOne(
+        { _id: paymentID },
+        { $set: { proofImgId: `v${result.version}` } },
       );
     }
 
