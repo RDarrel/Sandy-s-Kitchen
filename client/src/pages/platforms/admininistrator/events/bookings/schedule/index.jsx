@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { SCHEDULE } from "@/services/redux/slices/events/bookings";
 import { Formatter } from "@/services/utilities";
 import Approval from "./approval";
+import ReviewPayment from "./reviewPayment";
 
 const Schedule = ({ selectedDate }) => {
   const { isLoadingSchedule: isLoading, schedule = {} } = useSelector(
@@ -23,6 +24,7 @@ const Schedule = ({ selectedDate }) => {
   const [activeStatus, setActiveStatus] = useState("all");
   const [schedModal, setSchedModal] = useState({
     approval: false,
+    reviewPayment: false,
     view: false,
   });
   const [selected, setSelected] = useState({});
@@ -158,6 +160,11 @@ const Schedule = ({ selectedDate }) => {
       <Approval
         isOpen={schedModal?.approval}
         setIsOpen={() => handleAction({}, "approval")}
+        selected={selected}
+      />
+      <ReviewPayment
+        isOpen={schedModal?.reviewPayment}
+        setIsOpen={() => handleAction({}, "reviewPayment")}
         selected={selected}
       />
     </>
