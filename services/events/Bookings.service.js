@@ -593,6 +593,8 @@ const getBookingDetails = async ({ customer, reference }) => {
       path: "venue.item",
       populate: { path: "inclusions.item" },
     })
+    .populate("catering.inclusions.item", "name category")
+    .populate("venue.inclusions.item", "name category")
     .populate("catering.mainDishes")
     .populate("catering.sideDishes")
     .lean();
