@@ -4,6 +4,7 @@ import { Formatter, fullName } from "@/services/utilities";
 import { UsersRound, MapPin, Clock3, Utensils, Building2 } from "lucide-react";
 import { SERVICE_BADGES, STATUS_TEXT } from "../../constant";
 import PaymentSummary from "./payment";
+import Actions from "./actions";
 
 const Booking = ({ booking, handleAction }) => {
   const service = SERVICE_BADGES[booking.bookingType];
@@ -60,42 +61,7 @@ const Booking = ({ booking, handleAction }) => {
         <PaymentSummary booking={booking} />
       </div>
 
-      <div className="flex flex-wrap justify-end gap-1.5 border-t bg-muted/10 px-2.5 py-2">
-        <Button type="button" variant="outline" size="sm" className="h-7 px-2">
-          View
-        </Button>
-
-        {booking.status === "pending" ? (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 px-2"
-            >
-              Reject
-            </Button>
-
-            <Button
-              type="button"
-              size="sm"
-              className="h-7 px-2.5"
-              onClick={() => handleAction(booking, "approval")}
-            >
-              Approve
-            </Button>
-          </>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 px-2"
-          >
-            Manage
-          </Button>
-        )}
-      </div>
+      <Actions handleAction={handleAction} booking={booking} />
     </div>
   );
 };

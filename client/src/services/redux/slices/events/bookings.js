@@ -27,6 +27,7 @@ const initialState = {
   isLoadingMyBookings: false,
   isLoadingEquipAvailability: false,
   isLoadingBookingPayment: false,
+  isLoadingBookingDetails: false,
   message: "",
 };
 
@@ -127,6 +128,21 @@ export const GET_BOOKING_PAYMENT = createAsyncThunk(
     }
   },
 );
+
+export const GET_BOOKING_DETAILS = createAsyncThunk(
+  `${url}/GET_BOOKING_DETAILS`,
+  (reference, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/${reference}/details`);
+    } catch (error) {
+      const message =
+        error.response?.data?.message || error.message || error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 const isDateWithinRange = (date, range) => {
   if (!date || !range?.start || !range?.end) return false;
 
@@ -186,6 +202,21 @@ export const reduxSlice = createSlice({
         const { error } = action;
         state.message = error.message;
         state.isLoadingMyBookings = false;
+      })
+      .addCase(GET_BOOKING_DETAILS.pending, (state) => {
+        state.isLoadingBookingDetails = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(GET_BOOKING_DETAILS.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.selected = data;
+        state.isLoadingBookingDetails = false;
+      })
+      .addCase(GET_BOOKING_DETAILS.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingBookingDetails = false;
       })
       .addCase(GET_BOOKING_PAYMENT.pending, (state) => {
         state.isLoadingBookingPayment = true;

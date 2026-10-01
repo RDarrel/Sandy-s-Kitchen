@@ -42,25 +42,25 @@ const Ticket = ({ booking }) => {
                     {booking?.eventType || "Event booking"}
                   </h2>
 
-                  <div className="mt-0.5 flex min-w-0 items-center text-[9px]">
+                  <div className="mt-0.5 flex min-w-0 items-center text-[10px]">
                     <span className="shrink-0 font-medium text-muted-foreground">
                       Booking #
                     </span>
-                    <span className="truncate font-mono font-semibold text-foreground">
+                    <span className="truncate font-mono text-[11px] font-semibold text-foreground">
                       {booking?.reference || "Reference unavailable"}
                     </span>
                   </div>
                 </div>
 
                 <span
-                  className={`inline-flex h-5 w-fit shrink-0 items-center gap-1 rounded-md border px-1.5 text-[9px] font-semibold ${status.badgeClassName}`}
+                  className={`inline-flex h-5 w-fit shrink-0 items-center gap-1 rounded-md border px-1.5 text-[10px] font-semibold ${status.badgeClassName}`}
                 >
                   <StatusIcon className="size-3" />
                   {status.label}
                 </span>
               </div>
 
-              <p className="mt-1 text-[9px] leading-3 text-muted-foreground">
+              <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
                 <span className="font-medium text-foreground">
                   {date.weekday}
                 </span>

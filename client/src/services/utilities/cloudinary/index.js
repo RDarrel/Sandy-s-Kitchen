@@ -10,6 +10,12 @@ const Cloudinary = {
   getPackageImg: (version, fileName) => {
     return `${Cloudinary.getEndpoint()}/${version || ""}/packages/${fileName}`;
   },
+  getPaymentProofImg: (version, paymentId, methodId) => {
+    return `${Cloudinary.getEndpoint()}/${version || ""}/payments/${paymentId}/${methodId}`;
+  },
+  getPaymentProofImgId: (version, paymentId, methodId) => {
+    return Cloudinary.getPaymentProofImg(version, paymentId, methodId);
+  },
   getPaymentMethodImg: (version, methodId, fileName) => {
     return `${Cloudinary.getEndpoint()}/${version || ""}/paymentMethods/${methodId}/${fileName}`;
   },

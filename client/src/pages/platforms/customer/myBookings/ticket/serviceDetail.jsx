@@ -17,12 +17,12 @@ const ServiceDetail = ({ service }) => {
               {isVenue ? "Venue" : "Catering"}
             </span>
 
-            <span className="truncate text-xs font-semibold">
+            <span className="truncate text-[13px] font-semibold">
               {service.name}
             </span>
           </div>
 
-          <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-muted-foreground">
+          <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
             <span className="font-medium text-foreground">{service.time}</span>
 
             <span>•</span>

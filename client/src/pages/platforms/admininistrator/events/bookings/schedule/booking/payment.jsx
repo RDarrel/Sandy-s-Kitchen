@@ -74,8 +74,7 @@ const getPaymentSummary = (booking) => {
   const total = toAmount(booking?.pricing?.total);
   const requiredDeposit = toAmount(booking?.terms?.requiredDeposit);
   const depositDeadline = formatDeadline(booking?.terms?.depositDeadline);
-  const payments = getPayments(booking.payments);
-
+  const { payments = [] } = booking;
   const { verifiedAmount, pendingAmount, pendingCount } = payments.reduce(
     (summary, payment) => {
       const status = normalizeStatus(payment?.status);
@@ -188,7 +187,7 @@ const normalizeStatus = (status) =>
   typeof status === "string" ? status.toLowerCase() : "";
 
 const getPayments = (booking) => {
-  return Array.isArray(booking?.payments) ? booking.payments : [];
+  return booking.payments || [];
 };
 
 const toAmount = (amount) => {

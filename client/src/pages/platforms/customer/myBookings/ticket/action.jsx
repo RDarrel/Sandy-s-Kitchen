@@ -43,7 +43,7 @@ const Action = ({ action, booking }) => {
         />
 
         <p
-          className={`text-[11px] leading-4 sm:text-xs ${
+          className={`text-xs leading-5 ${
             action.variant === "payment"
               ? "font-medium text-amber-800"
               : action.variant === "success"
@@ -66,7 +66,7 @@ const Action = ({ action, booking }) => {
           type="button"
           size="sm"
           onClick={handlePay}
-          className="h-6 w-full shrink-0 gap-1 px-2 text-[9px] sm:w-auto sm:text-[10px]"
+          className="h-6 w-full shrink-0 gap-1 px-2 text-[10px] sm:w-auto"
         >
           {action.buttonLabel}
 

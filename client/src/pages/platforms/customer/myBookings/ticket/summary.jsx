@@ -75,12 +75,12 @@ export default Summary;
 const CompactAmountBlock = ({ label, value, valueClassName = "" }) => {
   return (
     <div className="min-w-0">
-      <p className="text-[8px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
 
       <p
-        className={`mt-0.5 truncate text-xs font-semibold leading-4 ${valueClassName}`}
+        className={`mt-0.5 truncate text-[13px] font-semibold leading-4 ${valueClassName}`}
       >
         {value}
       </p>
