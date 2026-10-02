@@ -225,6 +225,39 @@ export const getBookingAction = (booking, payment) => {
      * - previous payment was voided
      */
     if (!payment.isDownPaymentSatisfied) {
+      /*
+       * Some amount has already been verified, but the
+       * required down payment is still incomplete.
+       */
+      if (payment.hasVerifiedPayments) {
+        return {
+          message: `${Formatter.amount(
+            payment.remainingDownPayment,
+          )} more is required to complete your down payment.`,
+          buttonLabel: "Pay now",
+          icon: CreditCard,
+          variant: "payment",
+        };
+      }
+
+      /*
+       * A previous payment was voided and there is
+       * currently no pending/verified payment.
+       *
+       * The full reason remains available in the
+       * payment history.
+       */
+      if (payment.hasVoidedPayments) {
+        return {
+          message: `A previous payment could not be verified. ${Formatter.amount(
+            payment.remainingDownPayment,
+          )} down payment is still required.`,
+          buttonLabel: "Pay now",
+          icon: AlertTriangle,
+          variant: "action-required",
+        };
+      }
+
       return {
         message: `${Formatter.amount(
           payment.remainingDownPayment,
