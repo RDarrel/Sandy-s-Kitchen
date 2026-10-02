@@ -43,15 +43,32 @@ const paymentSchema = new mongoose.Schema(
       type: String,
     },
 
-    verifiedAt: {
+    reviewedAt: {
       type: Date,
       default: null,
     },
+    snapshot: {
+      bookingTotal: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
 
-    receivedBy: {
+      verifiedSoFar: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
+    },
+
+    reviewedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
+    },
+
+    rejectionReason: {
+      type: String,
     },
 
     notes: {
