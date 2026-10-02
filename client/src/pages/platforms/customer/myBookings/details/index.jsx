@@ -51,6 +51,7 @@ import {
   getServices,
   getStatusMeta,
 } from "../utils";
+import PaymentDetails from "./paymentDetails";
 
 // Icon tint per notice variant — the only place color is used to signal
 // status. Everything else (cards, backgrounds) stays neutral.
@@ -715,9 +716,14 @@ const PaymentSummary = ({ booking, payment, action }) => {
 /* -------------------------------------------------------------------------- */
 
 const PaymentHistory = ({ payments = [] }) => {
-  const paymentItems = payments.length > 0 ? payments : PAYMENT_HISTORY_PREVIEW;
+  const paymentItems = payments.length > 0 ? payments : [];
   const [selectedPayment, setSelectedPayment] = useState(null);
 
+  const sortedPayments = useMemo(() => {
+    return [...paymentItems].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    );
+  }, [paymentItems]);
   return (
     <>
       <section className="overflow-hidden rounded-lg border bg-card">
@@ -725,9 +731,11 @@ const PaymentHistory = ({ payments = [] }) => {
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-semibold">Payment history</h2>
 
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground">
-              {paymentItems.length}
-            </span>
+            {paymentItems?.length > 0 && (
+              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground">
+                {paymentItems.length}
+              </span>
+            )}
           </div>
 
           <ReceiptText className="size-3.5 text-muted-foreground" />
@@ -736,7 +744,7 @@ const PaymentHistory = ({ payments = [] }) => {
         {paymentItems.length > 0 ? (
           <div className="px-3 py-3">
             <PaymentHistoryTimeline
-              payments={paymentItems}
+              payments={sortedPayments}
               onViewPayment={setSelectedPayment}
             />
           </div>
@@ -754,11 +762,15 @@ const PaymentHistory = ({ payments = [] }) => {
           </div>
         )}
       </section>
-
-      <PaymentHistoryModal
+      <PaymentDetails
+        isOpen={Boolean(selectedPayment)}
+        payment={selectedPayment}
+        setIsOpen={() => selectedPayment(null)}
+      />
+      {/* <PaymentHistoryModal
         payment={selectedPayment}
         setPayment={setSelectedPayment}
-      />
+      /> */}
     </>
   );
 };
@@ -909,8 +921,8 @@ const PaymentHistoryModal = ({ payment, setPayment }) => {
               />
 
               <PaymentDetailRow
-                label="Date verified"
-                value={formatDateTime(payment?.verifiedAt)}
+                label="Reviewed"
+                value={formatDateTime(payment?.reviewedAt)}
               />
 
               <PaymentDetailRow
@@ -918,14 +930,14 @@ const PaymentHistoryModal = ({ payment, setPayment }) => {
                 value={payment?.reference}
               />
             </div>
-            {payment?.status === "voided" && payment?.voidReason && (
+            {payment?.status === "voided" && payment?.rejectionReason && (
               <div className="border-t bg-destructive/5 px-4 py-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-destructive">
                   Reason for voiding
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-foreground">
-                  {payment.voidReason}
+                  {payment.rejectionReason}
                 </p>
               </div>
             )}

@@ -167,10 +167,148 @@ export const MY_BOOKINGS = createAsyncThunk(
   },
 );
 
+const updateBookingStatus = (state, status, booking) => {
+  const { eInclusions = [], cInclusions = [], payments = [], date } = booking;
+  const eventDate = Formatter.localDate(date);
+  const calendar = { ...state.calendar };
+  const schedule = { ...state.schedule };
+  const oldCollections = [...(schedule?.[status?.old] ?? [])];
+
+  const index = oldCollections.findIndex(({ _id }) => _id === booking?._id);
+
+  if (index === -1) return;
+
+  const toRemoveBooking = { ...oldCollections[index] };
+
+  oldCollections.splice(index, 1);
+
+  if (oldCollections.length === 0) {
+    delete schedule[status.old];
+  } else {
+    schedule[status.old] = oldCollections;
+  }
+
+  const updatedBooking = {
+    ...toRemoveBooking,
+    status: status.new,
+    ...(eInclusions?.length > 0 && {
+      event: {
+        ...toRemoveBooking?.event,
+        inclusions: eInclusions,
+      },
+    }),
+
+    ...(cInclusions?.length > 0 && {
+      catering: {
+        ...toRemoveBooking?.catering,
+        inclusions: cInclusions,
+      },
+    }),
+    ...(payments?.length > 0 && { payments }),
+  };
+
+  state.schedule = {
+    ...schedule,
+    [status.new]: [updatedBooking, ...(schedule?.[status.new] ?? [])],
+  };
+
+  const { visibleRange, monthRange } = calendar;
+
+  const isVisible = isDateWithinRange(eventDate, visibleRange);
+  const isWithinMonth = isDateWithinRange(eventDate, monthRange);
+
+  if (isVisible) {
+    const { days = [], overview = {} } = calendar;
+    const { monthly = [] } = overview;
+
+    const dayIdx = days.findIndex(({ start }) => start === date);
+
+    if (dayIdx > -1) {
+      days[dayIdx] = {
+        ...days[dayIdx],
+        statusCounts: {
+          ...days[dayIdx].statusCounts,
+          [status.old]: (days[dayIdx].statusCounts?.[status.old] || 0) - 1,
+          [status.new]: (days[dayIdx].statusCounts?.[status.new] || 0) + 1,
+        },
+      };
+    }
+    if (isWithinMonth) {
+      const getStatsIdx = (stats) =>
+        monthly.findIndex(({ status }) => status === stats);
+
+      const oldStatusIdx = getStatsIdx(status.old);
+      const newStatusIdx = getStatsIdx(status.new);
+
+      if (oldStatusIdx > -1) {
+        monthly[oldStatusIdx] = {
+          ...monthly[oldStatusIdx],
+          count: Math.max((monthly[oldStatusIdx]?.count || 0) - 1, 0),
+        };
+      }
+
+      if (newStatusIdx > -1) {
+        monthly[newStatusIdx] = {
+          ...monthly[newStatusIdx],
+          count: (monthly[newStatusIdx]?.count || 0) + 1,
+        };
+      } else {
+        monthly.push({ status: status.new, count: 1 });
+      }
+    }
+
+    state.calendar = {
+      ...state.calendar,
+      days,
+      overview: {
+        ...state.calendar?.overview,
+        monthly,
+      },
+    };
+  }
+};
+
 export const reduxSlice = createSlice({
   name: url,
   initialState,
-  reducers: {},
+  reducers: {
+    UPDATE_PAYMENT: (state, { payload }) => {
+      const { bookingStatus, data } = payload;
+
+      const collections = [...(state.schedule[bookingStatus] || [])];
+      const index = collections.findIndex(({ _id }) => _id === data?.booking);
+
+      if (index > -1) {
+        const payments = [...(collections[index]?.payments || [])];
+        const paymentIdx = payments.findIndex(({ _id }) => _id === data?._id);
+        payments[paymentIdx] = data;
+        collections[index] = {
+          ...collections[index],
+          payments,
+        };
+      }
+      state.schedule = {
+        ...state.schedule,
+        [bookingStatus]: collections,
+      };
+    },
+
+    CONFIRM_BOOKING: (state, { payload }) => {
+      const { bookingStatus, data, date } = payload;
+      const collections = [...(state.schedule[bookingStatus] || [])];
+      const booking = collections.find(({ _id }) => _id === data?.booking);
+
+      const payments = [...(booking?.payments || [])];
+      const paymentIdx = payments.findIndex(({ _id }) => _id === data?._id);
+      payments[paymentIdx] = data;
+
+      updateBookingStatus(
+        state,
+        { old: "approved", new: "confirmed" },
+        { _id: data?.booking, payments, date },
+      );
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(CALENDAR.pending, (state) => {
@@ -339,7 +477,7 @@ export const reduxSlice = createSlice({
           const { monthly = [] } = overview;
 
           const dayIdx = days.findIndex(({ start }) => start === date);
-          console.log("dayIdx", dayIdx, days);
+
           if (dayIdx > -1) {
             days[dayIdx] = {
               ...days[dayIdx],
@@ -393,5 +531,5 @@ export const reduxSlice = createSlice({
       });
   },
 });
-
+export const { UPDATE_PAYMENT, CONFIRM_BOOKING } = reduxSlice.actions;
 export default reduxSlice.reducer;

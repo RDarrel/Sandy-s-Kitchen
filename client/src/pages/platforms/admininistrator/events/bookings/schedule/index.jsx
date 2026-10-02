@@ -48,6 +48,12 @@ const Schedule = ({ selectedDate }) => {
   }, [dispatch]);
 
   useEffect(() => {
+    if (!schedule[activeStatus]) {
+      setActiveStatus("all");
+    }
+  }, [schedule, activeStatus]);
+
+  useEffect(() => {
     setActiveStatus("all");
   }, [selectedDate]);
 

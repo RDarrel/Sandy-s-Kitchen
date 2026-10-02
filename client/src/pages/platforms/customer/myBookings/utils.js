@@ -110,6 +110,15 @@ export const getPaymentSummary = (booking) => {
 
   const pendingPayment = pendingPayments[0] || null;
 
+  const latestPayment =
+    payments.length > 0
+      ? payments.reduce((latest, payment) =>
+          new Date(payment.createdAt) > new Date(latest.createdAt)
+            ? payment
+            : latest,
+        )
+      : null;
+
   return {
     total,
     downPayment,
@@ -125,11 +134,14 @@ export const getPaymentSummary = (booking) => {
     voidedPayments,
 
     pendingPayment,
+    latestPayment,
 
     hasPayments: payments.length > 0,
     hasVerifiedPayments: verifiedPayments.length > 0,
     hasPendingPayment: pendingPayments.length > 0,
     hasVoidedPayments: voidedPayments.length > 0,
+
+    isLatestPaymentVoided: latestPayment?.status === "voided",
 
     isDownPaymentSatisfied: verifiedAmount >= downPayment,
     isFullyPaid: balance <= 0,
@@ -194,6 +206,16 @@ export const getBookingAction = (booking, payment) => {
       };
     }
 
+    if (payment.isLatestPaymentVoided) {
+      return {
+        message: `Your previous payment could not be verified. ${Formatter.amount(
+          payment.remainingDownPayment,
+        )} down payment is still required.`,
+        buttonLabel: "Pay now",
+        icon: AlertTriangle,
+        variant: "action-required",
+      };
+    }
     /*
      * Required down payment has not been satisfied.
      *
@@ -203,42 +225,6 @@ export const getBookingAction = (booking, payment) => {
      * - previous payment was voided
      */
     if (!payment.isDownPaymentSatisfied) {
-      /*
-       * Some amount has already been verified, but the
-       * required down payment is still incomplete.
-       */
-      if (payment.hasVerifiedPayments) {
-        return {
-          message: `${Formatter.amount(
-            payment.remainingDownPayment,
-          )} more is required to complete your down payment.`,
-          buttonLabel: "Pay now",
-          icon: CreditCard,
-          variant: "payment",
-        };
-      }
-
-      /*
-       * A previous payment was voided and there is
-       * currently no pending/verified payment.
-       *
-       * The full reason remains available in the
-       * payment history.
-       */
-      if (payment.hasVoidedPayments) {
-        return {
-          message: `A previous payment could not be verified. ${Formatter.amount(
-            payment.remainingDownPayment,
-          )} down payment is still required.`,
-          buttonLabel: "Pay now",
-          icon: AlertTriangle,
-          variant: "action-required",
-        };
-      }
-
-      /*
-       * No payment has been submitted yet.
-       */
       return {
         message: `${Formatter.amount(
           payment.remainingDownPayment,
@@ -285,6 +271,17 @@ export const getBookingAction = (booking, payment) => {
         buttonLabel: null,
         icon: CheckCircle2,
         variant: "success",
+      };
+    }
+
+    if (payment.isLatestPaymentVoided) {
+      return {
+        message: `Your previous payment could not be verified. Remaining balance: ${Formatter.amount(
+          payment.balance,
+        )}.`,
+        buttonLabel: "Pay balance",
+        icon: AlertTriangle,
+        variant: "action-required",
       };
     }
 
@@ -337,6 +334,17 @@ export const getBookingAction = (booking, payment) => {
       };
     }
 
+    if (payment.isLatestPaymentVoided) {
+      return {
+        message: `Your previous payment could not be verified. Remaining balance: ${Formatter.amount(
+          payment.balance,
+        )}.`,
+        buttonLabel: "Pay balance",
+        icon: AlertTriangle,
+        variant: "action-required",
+      };
+    }
+
     /*
      * Payment is currently under review.
      */
@@ -383,6 +391,16 @@ export const getBookingAction = (booking, payment) => {
       };
     }
 
+    if (payment.isLatestPaymentVoided) {
+      return {
+        message: `Your previous payment could not be verified. Remaining balance: ${Formatter.amount(
+          payment.balance,
+        )}.`,
+        buttonLabel: "Pay balance",
+        icon: AlertTriangle,
+        variant: "action-required",
+      };
+    }
     /*
      * Final/balance payment is still waiting
      * for verification.

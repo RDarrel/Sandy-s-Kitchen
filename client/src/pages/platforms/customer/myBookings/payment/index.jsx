@@ -92,7 +92,7 @@ const Payment = () => {
 
       reader.readAsDataURL(file);
     });
-    console.log("paymentID", paymentID);
+
     const proofForm = Cloudinary.buildFileForm(
       proofBase64,
       `payments/${paymentID}`,
@@ -124,6 +124,10 @@ const Payment = () => {
           reference: reference?.trim(),
           booking: selected?._id,
           type: getPaymentType(selected, form?.amount, payment?.balance),
+          snapshot: {
+            bookingTotal: payment?.total,
+            verifiedSoFar: payment?.received,
+          },
         }),
       ).unwrap();
 

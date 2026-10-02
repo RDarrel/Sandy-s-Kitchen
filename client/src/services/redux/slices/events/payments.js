@@ -23,13 +23,25 @@ export const SAVE = createAsyncThunk(`${url}/save`, (form, thunkAPI) => {
   }
 });
 
+export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
+  try {
+    return axioKit.update(url, form);
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
 export const reduxSlice = createSlice({
   name: url,
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-
       .addCase(SAVE.pending, (state) => {
         state.formSubmitted = true;
         state.isSuccess = false;
@@ -43,6 +55,23 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(SAVE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
+      })
+      .addCase(UPDATE.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(UPDATE.fulfilled, (state, action) => {
+        const { success } = action.payload;
+
+        state.formSubmitted = false;
+        state.message = success;
+        state.isSuccess = true;
+      })
+      .addCase(UPDATE.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;
