@@ -4,7 +4,7 @@ const Proof = ({ proofSrc }) => {
   return (
     <section className="flex min-w-0 flex-col overflow-hidden rounded-lg border bg-background ">
       <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
-        <h3 className="text-sm font-medium">Customer proof</h3>
+        <h3 className="text-sm font-medium">Payment proof</h3>
 
         {proofSrc && (
           <a

@@ -1,5 +1,5 @@
 import { Formatter } from "@/services/utilities";
-import { Clock } from "lucide-react";
+import { Clock, MessageSquareText } from "lucide-react";
 import { formatPaymentType } from "./utils";
 
 const TORN_EDGE =
@@ -60,8 +60,6 @@ const PaymentSlip = ({
         </Row>
 
         <Row label="Submitted">{Formatter.date(payment?.createdAt, true)}</Row>
-
-        {payment?.notes && <Row label="Notes">{payment.notes}</Row>}
       </SlipRows>
 
       <SlipRows>
@@ -75,6 +73,19 @@ const PaymentSlip = ({
           {Formatter.amount(balanceAfterVerification)}
         </Row>
       </SlipRows>
+
+      {payment?.notes?.trim() && (
+        <div className="border-t border-dashed py-3 text-xs">
+          <div className="flex items-center gap-1.5 font-semibold">
+            <MessageSquareText className="size-3.5 shrink-0" />
+            <span>Customer note</span>
+          </div>
+
+          <p className="mt-1.5 whitespace-pre-line leading-5 text-foreground">
+            {payment.notes}
+          </p>
+        </div>
+      )}
 
       <p
         className={`mt-auto border-t border-dashed pt-3 text-center text-xs font-medium text-emerald-700 dark:text-emerald-400`}
@@ -100,6 +111,7 @@ const Row = ({ label, strong = false, children }) => (
     }`}
   >
     <dt className={strong ? "" : "text-muted-foreground"}>{label}</dt>
+
     <dd className="min-w-0 max-w-[60%] break-words text-right tabular-nums">
       {children}
     </dd>

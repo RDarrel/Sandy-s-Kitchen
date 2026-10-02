@@ -64,33 +64,6 @@ const NOTICE_ICON_TONE = {
   default: "text-muted-foreground",
 };
 
-const PAYMENT_HISTORY_PREVIEW = [
-  {
-    _id: "preview-payment-1",
-    amount: 5000,
-    method: { name: "GCash" },
-    type: "down_payment",
-    status: "verified",
-    paidAt: "2026-09-25T09:30:00.000Z",
-  },
-  {
-    _id: "preview-payment-2",
-    amount: 2500,
-    method: { name: "Bank transfer" },
-    type: "partial_payment",
-    status: "pending",
-    createdAt: "2026-09-28T06:15:00.000Z",
-  },
-  {
-    _id: "preview-payment-3",
-    amount: 1500,
-    method: { name: "Cash" },
-    type: "balance_payment",
-    status: "voided",
-    paidAt: "2026-09-30T04:45:00.000Z",
-  },
-];
-
 const BookingDetails = () => {
   const { selected: booking, isLoadingBookingDetails } = useSelector(
     ({ bookings }) => bookings,
@@ -765,7 +738,7 @@ const PaymentHistory = ({ payments = [] }) => {
       <PaymentDetails
         isOpen={Boolean(selectedPayment)}
         payment={selectedPayment}
-        setIsOpen={() => selectedPayment(null)}
+        setIsOpen={() => setSelectedPayment(null)}
       />
       {/* <PaymentHistoryModal
         payment={selectedPayment}
@@ -804,7 +777,13 @@ const PaymentHistoryTimeline = ({ payments = [], onViewPayment }) => {
                   <span className="px-1 text-muted-foreground/60">
                     &middot;
                   </span>
-                  <span>{capitalizeText(payment?.type || "payment")}</span>
+                  <span>
+                    {capitalizeText(
+                      payment?.type === "deposit"
+                        ? "Down Payment"
+                        : payment?.type,
+                    )}
+                  </span>
                 </TimelineContent>
               </div>
 
@@ -840,162 +819,6 @@ const PaymentHistoryTimeline = ({ payments = [], onViewPayment }) => {
         </TimelineItem>
       ))}
     </Timeline>
-  );
-};
-
-const PaymentHistoryModal = ({ payment, setPayment }) => {
-  const isOpen = Boolean(payment);
-
-  const methodId = getPaymentMethodId(payment);
-
-  const proofSrc =
-    payment?.proofImgId && methodId
-      ? Cloudinary.getPaymentProofImgId(
-          payment.proofImgId,
-          payment?._id,
-          methodId,
-        )
-      : "";
-
-  const paymentType =
-    payment?.type === "deposit"
-      ? "Down payment"
-      : capitalizeText(payment?.type || "payment");
-
-  return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          setPayment(null);
-        }
-      }}
-    >
-      <DialogContent className="max-h-[92vh] max-w-lg overflow-hidden p-0">
-        <DialogHeader className="border-b bg-muted/20 px-5 py-4 pr-12">
-          <div className="flex items-start gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-background">
-              <ReceiptText className="size-4 text-muted-foreground" />
-            </div>
-
-            <div className="min-w-0">
-              <DialogTitle className="text-base">Payment details</DialogTitle>
-
-              <DialogDescription className="mt-1 text-xs">
-                Details of your submitted payment for this booking.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
-
-        <div className="max-h-[calc(92vh-82px)] overflow-y-auto px-5 py-4">
-          {/* Payment details */}
-          <div className="overflow-hidden rounded-lg border bg-card">
-            <div className="border-b bg-background px-4 py-3">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Amount paid
-                  </p>
-
-                  <p className="mt-1 text-2xl font-semibold tracking-tight">
-                    {Formatter.amount(payment?.amount)}
-                  </p>
-                </div>
-
-                <PaymentStatus status={payment?.status} />
-              </div>
-            </div>
-
-            <div className="space-y-2.5 px-4 py-3">
-              <PaymentDetailRow
-                label="Payment method"
-                value={getPaymentMethodName(payment)}
-              />
-
-              <PaymentDetailRow label="Payment type" value={paymentType} />
-
-              <PaymentDetailRow
-                label="Date submitted"
-                value={formatDateTime(payment?.createdAt)}
-              />
-
-              <PaymentDetailRow
-                label="Reviewed"
-                value={formatDateTime(payment?.reviewedAt)}
-              />
-
-              <PaymentDetailRow
-                label="Transaction reference"
-                value={payment?.reference}
-              />
-            </div>
-            {payment?.status === "voided" && payment?.rejectionReason && (
-              <div className="border-t bg-destructive/5 px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-destructive">
-                  Reason for voiding
-                </p>
-
-                <p className="mt-1 text-xs leading-5 text-foreground">
-                  {payment.rejectionReason}
-                </p>
-              </div>
-            )}
-
-            {payment?.notes && (
-              <div className="border-t px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Notes
-                </p>
-
-                <p className="mt-1 whitespace-pre-line text-xs leading-5">
-                  {payment.notes}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Proof of payment */}
-          {proofSrc && (
-            <div className="mt-4 overflow-hidden rounded-lg border bg-card">
-              <div className="border-b px-4 py-2.5">
-                <p className="text-xs font-semibold">Proof of payment</p>
-
-                <p className="mt-0.5 text-[10px] text-muted-foreground">
-                  Uploaded receipt or transaction screenshot
-                </p>
-              </div>
-
-              <a
-                href={proofSrc}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="View payment proof"
-                className="block bg-muted/20 p-3"
-              >
-                <img
-                  src={proofSrc}
-                  alt="Payment proof"
-                  className="max-h-[360px] w-full rounded-md border bg-background object-contain"
-                />
-              </a>
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-const PaymentDetailRow = ({ label, value, children }) => {
-  return (
-    <div className="flex items-start justify-between gap-4 text-xs">
-      <span className="shrink-0 text-muted-foreground">{label}</span>
-
-      <span className="max-w-[62%] break-words text-right font-medium">
-        {children ?? value ?? "-"}
-      </span>
-    </div>
   );
 };
 
@@ -1048,7 +871,7 @@ const PaymentStatus = ({ status }) => {
           PAYMENT_STATUS_DOT[status] || PAYMENT_STATUS_DOT.refunded
         }`}
       />
-      {capitalizeText(status || "unknown")}
+      {capitalizeText(status === "voided" ? "rejected" : status)}
     </span>
   );
 };
