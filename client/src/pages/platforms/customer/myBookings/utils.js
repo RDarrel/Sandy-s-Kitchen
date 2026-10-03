@@ -53,13 +53,8 @@ export const getServices = (booking) => {
 
       time: formatTimeRange(booking?.catering?.time),
 
-      location:
-        booking?.catering?.venue?.location ||
-        booking?.catering?.venue?.address ||
-        (booking.bookingType === "catering"
-          ? booking?.venue?.item?.address
-          : null) ||
-        "-",
+      location: booking?.catering?.venue?.location || "-",
+      address: booking?.catering?.venue?.address,
     });
   }
 

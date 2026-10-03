@@ -5,6 +5,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Frame, FrameHeader, FramePanel } from "@/components/reui/frame";
 import {
   Timeline,
   TimelineContent,
@@ -18,9 +19,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -36,6 +35,7 @@ import {
   CreditCard,
   Mail,
   MapPin,
+  NotebookText,
   Pencil,
   Phone,
   ReceiptText,
@@ -57,8 +57,6 @@ import {
 } from "../utils";
 import PaymentDetails from "./paymentDetails";
 
-// Icon tint per notice variant — the only place color is used to signal
-// status. Everything else (cards, backgrounds) stays neutral.
 const NOTICE_ICON_TONE = {
   payment: "text-amber-600 dark:text-amber-400",
   "action-required": "text-amber-600 dark:text-amber-400",
@@ -67,6 +65,10 @@ const NOTICE_ICON_TONE = {
   preparing: "text-violet-600 dark:text-violet-400",
   default: "text-muted-foreground",
 };
+
+/* -------------------------------------------------------------------------- */
+/* BOOKING DETAILS                                                            */
+/* -------------------------------------------------------------------------- */
 
 const BookingDetails = () => {
   const { selected: booking, isLoadingBookingDetails } = useSelector(
@@ -133,9 +135,7 @@ const BookingDetails = () => {
         My bookings
       </Button>
 
-      {/* Two real columns starting from the very top — the header card
-          belongs to the left column only, so the sidebar rises up next
-          to it instead of starting lower down. */}
+      {/* Mobile */}
       <div className="space-y-3 lg:hidden">
         <BookingOverview
           booking={booking}
@@ -159,8 +159,8 @@ const BookingDetails = () => {
         <TermsSummary terms={booking?.terms} />
       </div>
 
+      {/* Desktop */}
       <div className="hidden items-start gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_300px]">
-        {/* On mobile, payment comes first — it's what customers check most. */}
         <aside className="order-1 space-y-3 lg:sticky lg:top-3 lg:order-2">
           <PaymentSummary booking={booking} payment={payment} action={action} />
 
@@ -185,7 +185,7 @@ const BookingDetails = () => {
           {booking?.catering && <CateringDetails booking={booking} />}
 
           {booking?.venue && <VenueDetails booking={booking} />}
-
+          <NotesAndRequests booking={booking} />
           <CustomerInformation booking={booking} />
         </div>
       </div>
@@ -196,11 +196,12 @@ const BookingDetails = () => {
 export default BookingDetails;
 
 /* -------------------------------------------------------------------------- */
-/* OVERVIEW (date + title + status + action, merged into one compact card)    */
+/* BOOKING OVERVIEW                                                           */
 /* -------------------------------------------------------------------------- */
 
 const groupMenusByCategory = (menus) => {
   const grouped = Object.groupBy(menus ?? [], (item) => item.category);
+
   const formatted = Object.fromEntries(
     Object.entries(grouped).map(([category, items]) => [
       category,
@@ -233,10 +234,9 @@ const BookingOverview = ({ booking, status, date, action }) => {
   const canManageBooking = canEditBooking || canCancelBooking;
 
   const handleEdit = () => {
-    const { statusHistory, terms, ...rest } = booking;
+    const { statusHistory: _statusHistory, terms: _terms, ...rest } = booking;
 
     const mainDishes = groupMenusByCategory(booking?.catering?.mainDishes);
-
     const sideDishes = groupMenusByCategory(booking?.catering?.sideDishes);
 
     const cateringDraft = {
@@ -261,72 +261,70 @@ const BookingOverview = ({ booking, status, date, action }) => {
   };
 
   const handleCancel = () => {
-    // Open your cancellation confirmation modal here.
-    // Example:
-    // setCancelOpen(true);
+    // Open cancellation confirmation modal here.
   };
 
   return (
     <section className="overflow-hidden rounded-lg border bg-card">
-      {/* Header */}
-      <div className="flex flex-col gap-2.5 p-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Booking identity */}
+      <div className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-12 w-14 shrink-0 flex-col items-center justify-center rounded-md border bg-muted/30">
-            <span className="text-[10px] font-semibold uppercase leading-none text-muted-foreground">
+          {/* Date */}
+          <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-md border bg-muted/20">
+            <span className="text-[9px] font-semibold uppercase leading-none text-muted-foreground">
               {date.month}
             </span>
 
-            <span className="mt-0.5 text-lg font-bold leading-none">
+            <span className="mt-1 text-lg font-bold leading-none">
               {date.day}
             </span>
           </div>
 
+          {/* Main booking info */}
           <div className="min-w-0">
-            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
               <h1 className="truncate text-base font-semibold leading-5 sm:text-lg">
                 {booking?.eventType || "Event booking"}
               </h1>
 
               <span
-                className={`inline-flex h-5 shrink-0 items-center gap-1 rounded-md border px-2 text-[10px] font-semibold ${status.badgeClassName}`}
+                className={`inline-flex h-5 shrink-0 items-center gap-1 rounded-md border px-2 text-[10px] font-medium ${status.badgeClassName}`}
               >
                 <StatusIcon className="size-3" />
                 {status.label}
               </span>
             </div>
 
-            <p className="mt-0.5 font-mono text-[11px] font-semibold text-muted-foreground sm:hidden">
-              #{booking?.reference}
-            </p>
-
-            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
               <span>
                 {date.weekday}, {formatDate(booking?.date)}
               </span>
 
-              <span className="hidden size-1 rounded-full bg-border sm:block" />
+              <span className="size-1 rounded-full bg-border" />
 
               <span>Submitted {formatDate(booking?.createdAt)}</span>
+            </div>
+
+            {/* Mobile reference */}
+            <p className="mt-1 font-mono text-[10px] font-medium text-muted-foreground sm:hidden">
+              #{booking?.reference}
             </p>
           </div>
         </div>
 
-        <div className="hidden shrink-0 items-center gap-2 px-1 sm:flex">
-          <ReceiptText className="size-3.5 shrink-0 text-muted-foreground" />
+        {/* Desktop reference */}
+        <div className="hidden shrink-0 text-right sm:block">
+          <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+            Booking reference
+          </p>
 
-          <div className="leading-none">
-            <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
-              Booking reference
-            </p>
-
-            <p className="mt-1 font-mono text-[13px] font-semibold">
-              {booking?.reference}
-            </p>
-          </div>
+          <p className="mt-1 font-mono text-xs font-semibold">
+            {booking?.reference}
+          </p>
         </div>
       </div>
 
-      {/* Status / Actions */}
+      {/* Current booking state */}
       <div className="flex flex-col gap-2 border-t bg-muted/20 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
           <ActionIcon className={`size-4 shrink-0 ${iconTone}`} />
@@ -379,94 +377,91 @@ const BookingOverview = ({ booking, status, date, action }) => {
     </section>
   );
 };
-
 /* -------------------------------------------------------------------------- */
-/* RESERVATION DETAILS                                                        */
+/* RESERVATION OVERVIEW                                                       */
 /* -------------------------------------------------------------------------- */
 
-// Event type and event date already appear in the header card above, and
-// "Submitted" is in its subtitle — repeating them here was the clutter.
-// This card now shows exactly one new fact (booking type, as a small badge)
-// and leads straight into the schedule, which is what customers actually
-// come here to check.
 const ReservationOverview = ({ services }) => {
   return (
-    <section className="overflow-hidden rounded-lg border bg-card">
-      <div className="flex min-h-11 items-center justify-between gap-2.5 border-b px-3 py-2.5">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted">
-            <ReceiptText className="size-3.5 text-muted-foreground" />
-          </div>
+    <FramedCard header={<FrameTitle icon={ReceiptText} title="Schedule" />}>
+      {services.length > 0 ? (
+        <div className="divide-y">
+          {services.map((service) => {
+            const hasLocation =
+              service?.location &&
+              service.location !== "-" &&
+              service.location !== "Location not available";
 
-          <h2 className="truncate text-sm font-semibold">Schedule</h2>
-        </div>
-      </div>
+            const hasAddress =
+              service?.address &&
+              service.address !== "-" &&
+              service.address !== "Address not available";
 
-      <div className="p-2.5">
-        {services.length > 0 ? (
-          <div className="overflow-hidden rounded-md border bg-background">
-            {services.map((service) => {
-              const hasLocation =
-                service?.location &&
-                service.location !== "-" &&
-                service.location !== "Location not available";
+            return (
+              <div
+                key={service.type}
+                className="grid gap-2.5 px-3 py-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(220px,1fr)_76px] sm:items-start"
+              >
+                {/* Service */}
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium capitalize text-muted-foreground">
+                    {service.type}
+                  </p>
 
-              return (
-                <div
-                  key={service.type}
-                  className="grid gap-1.5 border-b px-2.5 py-2 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_minmax(180px,0.9fr)_76px] sm:items-center"
-                >
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-medium capitalize text-muted-foreground">
-                      {service.type}
-                    </p>
-
-                    <p className="mt-0.5 truncate text-xs font-semibold">
-                      {service.name}
-                    </p>
-                  </div>
-
-                  <div className="flex min-w-0 flex-wrap gap-x-2 gap-y-1">
-                    <ScheduleMeta icon={Clock3}>{service.time}</ScheduleMeta>
-
-                    {hasLocation && (
-                      <ScheduleMeta icon={MapPin} wide>
-                        {service.location}
-                      </ScheduleMeta>
-                    )}
-                  </div>
-
-                  <p className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold text-muted-foreground sm:justify-end">
-                    <UserRound className="size-3.5 shrink-0" />
-                    {service.pax} pax
+                  <p className="mt-0.5 truncate text-[13px] font-semibold leading-5">
+                    {service.name}
                   </p>
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            No services scheduled.
-          </p>
-        )}
-      </div>
-    </section>
+
+                {/* Time + location */}
+                <div className="min-w-0 space-y-1.5">
+                  <ScheduleMeta icon={Clock3}>{service.time}</ScheduleMeta>
+
+                  {(hasLocation || hasAddress) && (
+                    <div className="flex min-w-0 items-start gap-1.5">
+                      <MapPin className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+
+                      <div className="min-w-0">
+                        {hasLocation && (
+                          <p className="text-xs font-medium leading-4">
+                            {service.location}
+                          </p>
+                        )}
+
+                        {hasAddress && (
+                          <p className="break-words text-[11px] leading-4 text-muted-foreground">
+                            {service.address}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pax */}
+                <p className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-muted-foreground sm:justify-end">
+                  <UserRound className="size-3.5 shrink-0" />
+                  {service.pax} pax
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="px-3 py-3 text-xs text-muted-foreground">
+          No services scheduled.
+        </p>
+      )}
+    </FramedCard>
   );
 };
 
-const ScheduleMeta = ({ icon: Icon, children, wide = false }) => {
+const ScheduleMeta = ({ icon: Icon, children }) => {
   return (
-    <span
-      className={`inline-flex min-w-0 items-center gap-1 text-[11px] font-medium text-muted-foreground ${
-        wide ? "max-w-full sm:max-w-[260px]" : ""
-      }`}
-    >
-      {createElement(Icon, {
-        className: "size-3.5 shrink-0",
-      })}
-
-      <span className={wide ? "truncate" : ""}>{children}</span>
-    </span>
+    <div className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
+      <Icon className="size-3.5 shrink-0" />
+      <span>{children}</span>
+    </div>
   );
 };
 
@@ -487,6 +482,7 @@ const CateringDetails = ({ booking }) => {
     >
       <div className="grid gap-x-7 gap-y-3 sm:grid-cols-2">
         <MenuList title="Main dishes" items={catering?.mainDishes || []} />
+
         <MenuList title="Side dishes" items={catering?.sideDishes || []} />
       </div>
 
@@ -524,7 +520,8 @@ const MenuList = ({ title, items = [] }) => {
         <p className="text-xs font-semibold">{title}</p>
 
         <span className="shrink-0 text-[10px] font-medium text-muted-foreground">
-          {items.length} item{items.length === 1 ? "" : "s"}
+          {items.length} item
+          {items.length === 1 ? "" : "s"}
         </span>
       </div>
 
@@ -568,7 +565,8 @@ const InclusionDetails = ({ items = [] }) => {
 
         {items.length > 0 && (
           <span className="text-[10px] font-medium text-muted-foreground">
-            {items.length} item{items.length === 1 ? "" : "s"}
+            {items.length} item
+            {items.length === 1 ? "" : "s"}
           </span>
         )}
       </div>
@@ -626,6 +624,49 @@ const InclusionRow = ({ inclusion }) => {
 };
 
 /* -------------------------------------------------------------------------- */
+/* NOTES & SPECIAL REQUESTS                                                   */
+/* -------------------------------------------------------------------------- */
+
+const NotesAndRequests = ({ booking }) => {
+  const specialRequests = booking?.contact?.specialRequests?.trim();
+  const notes = booking?.notes?.trim();
+
+  if (!specialRequests && !notes) {
+    return null;
+  }
+
+  return (
+    <Section title="Notes & special requests" icon={NotebookText}>
+      <div className="space-y-3">
+        {specialRequests && (
+          <div>
+            <p className="text-[11px] font-medium text-muted-foreground">
+              Special requests
+            </p>
+
+            <p className="mt-1 whitespace-pre-line text-xs leading-5">
+              {specialRequests}
+            </p>
+          </div>
+        )}
+
+        {notes && (
+          <div className={specialRequests ? "border-t pt-3" : ""}>
+            <p className="text-[11px] font-medium text-muted-foreground">
+              Notes
+            </p>
+
+            <p className="mt-1 whitespace-pre-line text-xs leading-5">
+              {notes}
+            </p>
+          </div>
+        )}
+      </div>
+    </Section>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
 /* CUSTOMER INFORMATION                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -640,24 +681,17 @@ const CustomerInformation = ({ booking }) => {
           label="Contact person"
           value={contact?.name}
         />
+
         <ContactItem icon={Phone} label="Phone" value={contact?.phone} />
+
         <ContactItem icon={Mail} label="Email" value={contact?.email} />
+
         <ContactItem
           icon={ReceiptText}
           label="Preferred contact"
           value={Formatter.preferredContact(contact?.preferredContact)}
         />
       </div>
-
-      {(contact?.specialRequests || booking?.notes) && (
-        <div className="mt-3 border-t pt-3">
-          <SectionLabel>Special requests / notes</SectionLabel>
-
-          <p className="mt-1.5 whitespace-pre-line text-xs leading-5 text-muted-foreground">
-            {contact?.specialRequests || booking?.notes}
-          </p>
-        </div>
-      )}
     </Section>
   );
 };
@@ -671,6 +705,7 @@ const ContactItem = ({ icon: Icon, label, value }) => {
 
       <div className="min-w-0">
         <p className="text-[10px] text-muted-foreground">{label}</p>
+
         <p className="mt-0.5 break-words text-xs font-medium">{value || "-"}</p>
       </div>
     </div>
@@ -683,8 +718,11 @@ const ContactItem = ({ icon: Icon, label, value }) => {
 
 const PaymentSummary = ({ booking, payment, action }) => {
   const navigate = useNavigate();
+
   const isFullyPaid = payment.total > 0 && payment.balance === 0;
+
   const hasPendingPayment = Number(payment.pendingAmount || 0) > 0;
+
   const displayedBalance = hasPendingPayment
     ? Math.max(
         Number(payment.balance || 0) - Number(payment.pendingAmount || 0),
@@ -695,12 +733,14 @@ const PaymentSummary = ({ booking, payment, action }) => {
   const serviceRows = getPaymentBreakdownRows(booking?.pricing);
 
   return (
-    <section className="overflow-hidden rounded-lg border bg-card">
-      <div className="flex items-center justify-between border-b px-3 py-2.5">
-        <h2 className="text-sm font-semibold">Payment summary</h2>
-        <CreditCard className="size-3.5 text-muted-foreground" />
-      </div>
-
+    <FramedCard
+      header={
+        <FrameTitle
+          title="Payment summary"
+          trailing={<CreditCard className="size-3.5 text-muted-foreground" />}
+        />
+      }
+    >
       <div className="p-3">
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
@@ -755,6 +795,7 @@ const PaymentSummary = ({ booking, payment, action }) => {
                 value={payment.pendingAmount}
                 pending
               />
+
               <p className="pt-1 text-[10px] leading-4 text-muted-foreground">
                 Your balance will be updated after this payment is verified.
               </p>
@@ -775,7 +816,7 @@ const PaymentSummary = ({ booking, payment, action }) => {
           </Button>
         )}
       </div>
-    </section>
+    </FramedCard>
   );
 };
 
@@ -785,6 +826,7 @@ const PaymentSummary = ({ booking, payment, action }) => {
 
 const PaymentHistory = ({ booking, payments = [] }) => {
   const paymentItems = payments;
+
   const [selectedPayment, setSelectedPayment] = useState(null);
 
   const sortedPayments = useMemo(() => {
@@ -792,25 +834,28 @@ const PaymentHistory = ({ booking, payments = [] }) => {
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
     );
   }, [paymentItems]);
+
   return (
     <>
-      <section className="overflow-hidden rounded-lg border bg-card">
-        <div className="flex items-center justify-between border-b px-3 py-2.5">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold">Payment history</h2>
-
-            {paymentItems?.length > 0 && (
-              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground">
-                {paymentItems.length}
-              </span>
-            )}
-          </div>
-
-          <ReceiptText className="size-3.5 text-muted-foreground" />
-        </div>
-
+      <FramedCard
+        header={
+          <FrameTitle
+            title="Payment history"
+            afterTitle={
+              paymentItems.length > 0 ? (
+                <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-semibold leading-none text-muted-foreground">
+                  {paymentItems.length}
+                </span>
+              ) : null
+            }
+            trailing={
+              <ReceiptText className="size-3.5 text-muted-foreground" />
+            }
+          />
+        }
+      >
         {paymentItems.length > 0 ? (
-          <div className="px-3 py-3">
+          <div className="p-3">
             <PaymentHistoryTimeline
               payments={sortedPayments}
               onViewPayment={setSelectedPayment}
@@ -829,17 +874,14 @@ const PaymentHistory = ({ booking, payments = [] }) => {
             </p>
           </div>
         )}
-      </section>
+      </FramedCard>
+
       <PaymentDetails
         isOpen={Boolean(selectedPayment)}
         booking={booking}
         payment={selectedPayment}
         setIsOpen={() => setSelectedPayment(null)}
       />
-      {/* <PaymentHistoryModal
-        payment={selectedPayment}
-        setPayment={setSelectedPayment}
-      /> */}
     </>
   );
 };
@@ -870,9 +912,11 @@ const PaymentHistoryTimeline = ({ payments = [], onViewPayment }) => {
                   <span className="truncate">
                     {getPaymentMethodName(payment)}
                   </span>
+
                   <span className="px-1 text-muted-foreground/60">
                     &middot;
                   </span>
+
                   <span>
                     {capitalizeText(
                       payment?.type === "deposit"
@@ -918,7 +962,6 @@ const PaymentHistoryTimeline = ({ payments = [], onViewPayment }) => {
   );
 };
 
-// Status shown as a small dot + text — no colored pill background.
 const PAYMENT_STATUS_DOT = {
   verified: "bg-emerald-600",
   pending: "bg-amber-600",
@@ -931,14 +974,17 @@ const PAYMENT_TIMELINE_STATUS = {
     icon: Check,
     className: "border-none bg-emerald-600 text-white",
   },
+
   pending: {
     icon: Clock3,
     className: "border-none bg-amber-500 text-white",
   },
+
   voided: {
     icon: X,
     className: "border-none bg-red-600 text-white",
   },
+
   refunded: {
     icon: CreditCard,
     className: "border-none bg-slate-400 text-white",
@@ -948,6 +994,7 @@ const PAYMENT_TIMELINE_STATUS = {
 const PaymentTimelineIndicator = ({ status }) => {
   const meta =
     PAYMENT_TIMELINE_STATUS[status] || PAYMENT_TIMELINE_STATUS.refunded;
+
   const Icon = meta.icon;
 
   return (
@@ -967,6 +1014,7 @@ const PaymentStatus = ({ status }) => {
           PAYMENT_STATUS_DOT[status] || PAYMENT_STATUS_DOT.refunded
         }`}
       />
+
       {capitalizeText(status === "voided" ? "rejected" : status)}
     </span>
   );
@@ -978,40 +1026,51 @@ const PaymentStatus = ({ status }) => {
 
 const TermsSummary = ({ terms }) => {
   return (
-    <section className="overflow-hidden rounded-lg border bg-card">
-      <div className="flex items-center justify-between border-b px-3 py-2.5">
-        <h2 className="text-sm font-semibold">Booking terms</h2>
-        <Clock3 className="size-3.5 text-muted-foreground" />
-      </div>
-
+    <FramedCard
+      header={
+        <FrameTitle
+          title="Booking terms"
+          trailing={<Clock3 className="size-3.5 text-muted-foreground" />}
+        />
+      }
+    >
       {terms ? (
         <div className="space-y-2 p-3">
           <Term
             label="Required down payment"
             value={Formatter.amount(terms.requiredDeposit)}
           />
+
           <Term
             label="Down payment due"
             value={formatDateTime(terms.depositDeadline)}
           />
+
           <Term
             label="Full payment due"
             value={formatDate(terms.balanceDueAt)}
           />
+
           <Term
             label="Cancellation deadline"
             value={formatDate(terms.cancellationDeadline)}
           />
         </div>
       ) : (
-        <div className="p-3">
-          <p className="text-xs leading-5 text-muted-foreground">
+        <div className="px-4 py-5 text-center">
+          <div className="mx-auto flex size-8 items-center justify-center rounded-full bg-muted">
+            <Clock3 className="size-3.5 text-muted-foreground" />
+          </div>
+
+          <p className="mt-2 text-xs font-medium">Terms not available yet</p>
+
+          <p className="mx-auto mt-0.5 max-w-[220px] text-[10px] leading-4 text-muted-foreground">
             Booking terms will be available after your booking has been
             approved.
           </p>
         </div>
       )}
-    </section>
+    </FramedCard>
   );
 };
 
@@ -1019,6 +1078,7 @@ const Term = ({ label, value }) => {
   return (
     <div className="flex items-start justify-between gap-4 text-xs">
       <span className="text-muted-foreground">{label}</span>
+
       <span className="max-w-[58%] text-right font-medium">{value || "-"}</span>
     </div>
   );
@@ -1030,16 +1090,51 @@ const Term = ({ label, value }) => {
 
 const Section = ({ title, description, icon: Icon, badge, children }) => {
   return (
-    <section className="overflow-hidden rounded-lg border bg-card">
-      <div className="flex min-h-11 items-center gap-2.5 border-b px-3 py-2.5">
+    <FramedCard
+      header={
+        <FrameTitle
+          icon={Icon}
+          title={title}
+          description={description}
+          trailing={
+            badge ? (
+              <span className="shrink-0 rounded-md border bg-background px-2 py-1 text-[10px] font-medium text-muted-foreground">
+                {badge}
+              </span>
+            ) : null
+          }
+        />
+      }
+    >
+      <div className="p-3">{children}</div>
+    </FramedCard>
+  );
+};
+
+const FrameTitle = ({
+  icon: Icon,
+  title,
+  description,
+  afterTitle,
+  trailing,
+}) => {
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-2">
         {Icon && (
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-background">
             <Icon className="size-3.5 text-muted-foreground" />
           </div>
         )}
 
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate text-sm font-semibold">{title}</h2>
+        <div className="min-w-0">
+          <div className="flex min-w-0 items-center gap-2">
+            <h2 className="truncate text-sm font-semibold leading-5">
+              {title}
+            </h2>
+
+            {afterTitle}
+          </div>
 
           {description && (
             <p className="mt-0.5 text-[10px] leading-4 text-muted-foreground">
@@ -1047,16 +1142,22 @@ const Section = ({ title, description, icon: Icon, badge, children }) => {
             </p>
           )}
         </div>
-
-        {badge && (
-          <span className="shrink-0 rounded-md border bg-background px-2 py-1 text-[10px] font-semibold text-muted-foreground">
-            {badge}
-          </span>
-        )}
       </div>
 
-      <div className="p-3">{children}</div>
-    </section>
+      {trailing && <div className="flex shrink-0 items-center">{trailing}</div>}
+    </div>
+  );
+};
+
+const FramedCard = ({ header, children }) => {
+  return (
+    <Frame className="w-full " spacing="none">
+      {header && (
+        <FrameHeader className="min-h-0 px-3 py-1">{header}</FrameHeader>
+      )}
+
+      <FramePanel className="p-0">{children}</FramePanel>
+    </Frame>
   );
 };
 
@@ -1097,8 +1198,10 @@ const PaymentChargeRow = ({ label, detail, value }) => {
 
       <span className="text-muted-foreground">
         <span>{label}</span>
+
         <span className="ml-1 text-[11px]">{detail}</span>
       </span>
+
       <span>{Formatter.amount(value || 0)}</span>
     </div>
   );
@@ -1122,7 +1225,9 @@ const AmountRow = ({
         {detail ? (
           <span className="inline-flex items-center gap-1.5">
             <span className="size-1 rounded-full bg-muted-foreground/40" />
+
             {label}
+
             <span className="text-[11px] font-normal text-muted-foreground/80">
               {detail}
             </span>
@@ -1167,9 +1272,11 @@ const SkeletonCard = ({ children, className = "" }) => {
 
 const SkeletonSectionHeader = ({ withBadge = false }) => {
   return (
-    <div className="flex min-h-11 items-center gap-2.5 border-b px-3 py-2.5">
-      <SkeletonBlock className="size-7 shrink-0 rounded-md" />
+    <div className="flex h-10 items-center gap-2 border-b px-3">
+      <SkeletonBlock className="size-6 shrink-0 rounded-md" />
+
       <SkeletonBlock className="h-4 w-36" />
+
       {withBadge && <SkeletonBlock className="ml-auto h-6 w-16 rounded-md" />}
     </div>
   );
@@ -1178,7 +1285,7 @@ const SkeletonSectionHeader = ({ withBadge = false }) => {
 const PaymentSummarySkeleton = () => {
   return (
     <SkeletonCard>
-      <div className="flex items-center justify-between border-b px-3 py-2.5">
+      <div className="flex h-10 items-center justify-between border-b px-3">
         <SkeletonBlock className="h-4 w-32" />
         <SkeletonBlock className="size-3.5" />
       </div>
@@ -1189,6 +1296,7 @@ const PaymentSummarySkeleton = () => {
             <SkeletonBlock className="h-3 w-32" />
             <SkeletonBlock className="mt-2 h-6 w-24" />
           </div>
+
           <SkeletonBlock className="h-3 w-20" />
         </div>
 
@@ -1201,11 +1309,13 @@ const PaymentSummarySkeleton = () => {
                 <SkeletonBlock className="h-3.5 w-28" />
                 <SkeletonBlock className="h-3.5 w-16" />
               </div>
+
               <div className="ml-2 mt-1.5 space-y-1.5 pl-3">
                 <div className="flex items-center justify-between">
                   <SkeletonBlock className="h-3 w-24" />
                   <SkeletonBlock className="h-3 w-14" />
                 </div>
+
                 <div className="flex items-center justify-between">
                   <SkeletonBlock className="h-3 w-20" />
                   <SkeletonBlock className="h-3 w-12" />
@@ -1233,7 +1343,7 @@ const PaymentSummarySkeleton = () => {
 const PaymentHistorySkeleton = () => {
   return (
     <SkeletonCard>
-      <div className="flex items-center justify-between border-b px-3 py-2.5">
+      <div className="flex h-10 items-center justify-between border-b px-3">
         <div className="flex items-center gap-2">
           <SkeletonBlock className="h-4 w-28" />
           <SkeletonBlock className="h-4 w-6 rounded-full" />
@@ -1242,7 +1352,7 @@ const PaymentHistorySkeleton = () => {
         <SkeletonBlock className="size-3.5 rounded-sm" />
       </div>
 
-      <div className="px-3 py-3">
+      <div className="p-3">
         <div className="space-y-0">
           {[1, 2, 3].map((item) => (
             <div key={item} className="relative ms-7 pb-4 last:pb-0">
@@ -1281,12 +1391,13 @@ const PaymentHistorySkeleton = () => {
 const TermsSkeleton = () => {
   return (
     <SkeletonCard>
-      <div className="flex items-center justify-between border-b px-3 py-2.5">
+      <div className="flex h-10 items-center justify-between border-b px-3">
         <SkeletonBlock className="h-4 w-28" />
         <SkeletonBlock className="size-3.5" />
       </div>
+
       <div className="space-y-2 p-3">
-        {[1, 2, 3, 4, 5].map((item) => (
+        {[1, 2, 3, 4].map((item) => (
           <div key={item} className="flex items-center justify-between gap-4">
             <SkeletonBlock className="h-3 w-28" />
             <SkeletonBlock className="h-3 w-20" />
@@ -1303,14 +1414,17 @@ const BookingOverviewSkeleton = () => {
       <div className="flex flex-col gap-2.5 p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <SkeletonBlock className="h-12 w-14 rounded-md" />
+
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <SkeletonBlock className="h-5 w-44" />
               <SkeletonBlock className="h-5 w-16 rounded-md" />
             </div>
+
             <SkeletonBlock className="mt-2 h-3 w-52" />
           </div>
         </div>
+
         <SkeletonBlock className="h-9 w-28 rounded-md" />
       </div>
 
@@ -1319,7 +1433,8 @@ const BookingOverviewSkeleton = () => {
           <SkeletonBlock className="size-4 shrink-0" />
           <SkeletonBlock className="h-4 w-full max-w-md" />
         </div>
-        <SkeletonBlock className="h-7 w-20 rounded-md" />
+
+        <SkeletonBlock className="h-7 w-28 rounded-md" />
       </div>
     </SkeletonCard>
   );
@@ -1329,25 +1444,26 @@ const ScheduleSkeleton = () => {
   return (
     <SkeletonCard>
       <SkeletonSectionHeader />
-      <div className="p-2.5">
-        <div className="overflow-hidden rounded-md border bg-background">
-          {[1, 2].map((item) => (
-            <div
-              key={item}
-              className="grid gap-1.5 border-b px-2.5 py-2 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_minmax(180px,0.9fr)_76px] sm:items-center"
-            >
-              <div>
-                <SkeletonBlock className="h-3 w-14" />
-                <SkeletonBlock className="mt-1.5 h-3.5 w-36" />
-              </div>
-              <div className="flex gap-2">
-                <SkeletonBlock className="h-3.5 w-20" />
-                <SkeletonBlock className="h-3.5 w-32" />
-              </div>
-              <SkeletonBlock className="h-3.5 w-14 sm:ml-auto" />
+
+      <div className="divide-y">
+        {[1, 2].map((item) => (
+          <div
+            key={item}
+            className="grid gap-1.5 px-3 py-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(180px,0.9fr)_76px] sm:items-center"
+          >
+            <div>
+              <SkeletonBlock className="h-3 w-14" />
+              <SkeletonBlock className="mt-1.5 h-3.5 w-36" />
             </div>
-          ))}
-        </div>
+
+            <div className="flex gap-2">
+              <SkeletonBlock className="h-3.5 w-20" />
+              <SkeletonBlock className="h-3.5 w-32" />
+            </div>
+
+            <SkeletonBlock className="h-3.5 w-14 sm:ml-auto" />
+          </div>
+        ))}
       </div>
     </SkeletonCard>
   );
@@ -1357,6 +1473,7 @@ const ServiceDetailsSkeleton = ({ withMenus = false }) => {
   return (
     <SkeletonCard>
       <SkeletonSectionHeader withBadge />
+
       <div className="p-3">
         {withMenus ? (
           <div className="grid gap-x-7 gap-y-3 sm:grid-cols-2">
@@ -1369,6 +1486,7 @@ const ServiceDetailsSkeleton = ({ withMenus = false }) => {
                   <SkeletonBlock className="h-3.5 w-20" />
                   <SkeletonBlock className="h-3 w-10" />
                 </div>
+
                 <div className="px-2">
                   {[1, 2, 3].map((item) => (
                     <div
@@ -1390,6 +1508,7 @@ const ServiceDetailsSkeleton = ({ withMenus = false }) => {
             <SkeletonBlock className="h-3.5 w-24" />
             <SkeletonBlock className="h-3 w-10" />
           </div>
+
           <div className="mt-2.5 flex flex-wrap gap-1.5">
             {[1, 2, 3, 4].map((item) => (
               <SkeletonBlock key={item} className="h-6 w-24 rounded-md" />
@@ -1405,10 +1524,12 @@ const ContactSkeleton = () => {
   return (
     <SkeletonCard>
       <SkeletonSectionHeader />
+
       <div className="grid gap-x-6 gap-y-2.5 p-3 sm:grid-cols-2">
         {[1, 2, 3, 4].map((item) => (
           <div key={item} className="flex items-start gap-2">
             <SkeletonBlock className="mt-0.5 size-3.5 shrink-0" />
+
             <div>
               <SkeletonBlock className="h-3 w-20" />
               <SkeletonBlock className="mt-1.5 h-3.5 w-28" />
@@ -1501,18 +1622,23 @@ const getServicePricingBreakdown = (label, pricing = {}) => {
 
   const guests = getPricingMetric(pricing?.guests);
   const duration = getPricingMetric(pricing?.duration);
+
   const guestCharge =
     guests.extra > 0 ? Number(pricing?.guests?.charge || 0) : 0;
+
   const durationCharge =
     duration.extra > 0 ? Number(pricing?.duration?.charge || 0) : 0;
+
   const baseAmount = Number(pricing?.basePrice || 0);
 
   return {
     label,
+
     total:
       baseAmount > 0
         ? baseAmount
         : Math.max(total - guestCharge - durationCharge, 0),
+
     guests,
     duration,
     guestCharge,
@@ -1524,6 +1650,7 @@ const getPricingMetric = (breakdown = {}) => {
   const included = Number(breakdown?.included || 0);
   const booked = Number(breakdown?.booked || 0);
   const extra = Number(breakdown?.extra || 0);
+
   const computedExtra = Math.max(booked - included, 0);
 
   return {
