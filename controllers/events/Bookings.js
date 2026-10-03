@@ -3,13 +3,39 @@ const BookingService = require("../../services/events/Bookings.service");
 
 exports.save = async (req, res) => {
   try {
-    const created = await Booking.create(req.body);
-    res
-      .status(201)
-      .json({ data: created, success: "Inquiry submitted  successfully." });
+    const { _id, ...data } = req.body;
+
+    let booking;
+
+    if (_id) {
+      booking = await Booking.findById(_id);
+
+      if (!booking) {
+        return res.status(404).json({
+          error: "Booking not found.",
+        });
+      }
+
+      booking.set(data);
+
+      await booking.save();
+
+      return res.status(200).json({
+        data: booking,
+        success: "Inquiry updated successfully.",
+      });
+    }
+
+    booking = await Booking.create(data);
+
+    return res.status(201).json({
+      data: booking,
+      success: "Inquiry submitted successfully.",
+    });
   } catch (error) {
     console.log("Error:", error.message);
-    res.status(500).json({
+
+    return res.status(500).json({
       error: "Failed to save your inquiry. Please try again.",
     });
   }

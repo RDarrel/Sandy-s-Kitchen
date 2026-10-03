@@ -586,8 +586,28 @@ const getBookingDetails = async ({ customer, reference }) => {
   })
     .populate({
       path: "catering.item",
-      select: "inclusions name description",
-      populate: { path: "inclusions.item" },
+      populate: [
+        {
+          path: "mainCourseCategories.category",
+          select: "name",
+        },
+        {
+          path: "mainCourseCategories.choices",
+          select: "name description",
+        },
+        {
+          path: "sideMenuCategories.category",
+          select: "name",
+        },
+        {
+          path: "sideMenuCategories.choices",
+          select: "name description",
+        },
+        {
+          path: "inclusions.item",
+          select: "name requirement category",
+        },
+      ],
     })
     .populate({
       path: "venue.item",
