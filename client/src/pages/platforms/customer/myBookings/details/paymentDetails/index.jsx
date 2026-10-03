@@ -19,7 +19,10 @@ const PaymentDetails = ({ isOpen, setIsOpen, booking, payment }) => {
     payment?.snapshot?.bookingTotal ?? booking?.pricing?.total,
   );
   const paymentAmount = toAmount(payment?.amount);
-  const verifiedBeforePayment = payment?.snapshot?.verifiedSoFar;
+  const verifiedBeforePayment = getVerifiedAmountBeforePayment(
+    booking,
+    payment,
+  );
   const balanceBeforePayment = Math.max(totalAmount - verifiedBeforePayment, 0);
   const appliedAmount = payment?.status === "verified" ? paymentAmount : 0;
   const balanceAfterPayment = Math.max(balanceBeforePayment - appliedAmount, 0);
@@ -72,7 +75,7 @@ const PaymentDetails = ({ isOpen, setIsOpen, booking, payment }) => {
               balanceAfterPayment={balanceAfterPayment}
               projectedBalance={projectedBalance}
               totalAmount={totalAmount}
-              verifiedAmount={verifiedBeforePayment}
+              verifiedAmount={verifiedBeforePayment + appliedAmount}
             />
           </div>
         </div>

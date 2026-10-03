@@ -33,6 +33,7 @@ const Packages = () => {
     dispatch(BROWSE_SERVICES({ module: "catering" }));
     dispatch(BROWSE_EQUIPMENT());
   }, [dispatch]);
+
   const handleAction = useCallback((action, item) => {
     switch (action) {
       case "update":

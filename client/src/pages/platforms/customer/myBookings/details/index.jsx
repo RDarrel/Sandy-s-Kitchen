@@ -1,12 +1,5 @@
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -22,24 +15,35 @@ import {
   TimelineSeparator,
   TimelineTitle,
 } from "@/components/reui/timeline";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { GET_BOOKING_DETAILS } from "@/services/redux/slices/events/bookings";
 import { Formatter } from "@/services/utilities";
-import Cloudinary from "@/services/utilities/cloudinary";
 import {
   ArrowLeft,
   ArrowUpRight,
   Check,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   CreditCard,
   Mail,
   MapPin,
+  Pencil,
   Phone,
   ReceiptText,
   UserRound,
   UtensilsCrossed,
   Warehouse,
   X,
+  XCircle,
 } from "lucide-react";
 import { createElement, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -144,7 +148,7 @@ const BookingDetails = () => {
 
         <ReservationOverview services={services} />
 
-        <PaymentHistory payments={booking?.payments || []} />
+        <PaymentHistory booking={booking} payments={booking?.payments || []} />
 
         {booking?.catering && <CateringDetails booking={booking} />}
 
@@ -160,7 +164,10 @@ const BookingDetails = () => {
         <aside className="order-1 space-y-3 lg:sticky lg:top-3 lg:order-2">
           <PaymentSummary booking={booking} payment={payment} action={action} />
 
-          <PaymentHistory payments={booking?.payments || []} />
+          <PaymentHistory
+            booking={booking}
+            payments={booking?.payments || []}
+          />
 
           <TermsSummary terms={booking?.terms} />
         </aside>
@@ -192,14 +199,76 @@ export default BookingDetails;
 /* OVERVIEW (date + title + status + action, merged into one compact card)    */
 /* -------------------------------------------------------------------------- */
 
+const groupMenusByCategory = (menus) => {
+  const grouped = Object.groupBy(menus ?? [], (item) => item.category);
+  const formatted = Object.fromEntries(
+    Object.entries(grouped).map(([category, items]) => [
+      category,
+      items.map(({ _id }) => _id),
+    ]),
+  );
+
+  return formatted;
+};
+
 const BookingOverview = ({ booking, status, date, action }) => {
   const navigate = useNavigate();
+
   const StatusIcon = status.icon;
   const ActionIcon = action.icon;
+
   const iconTone = NOTICE_ICON_TONE[action.variant] || NOTICE_ICON_TONE.default;
+
+  const canEditBooking = ["pending", "changes_requested"].includes(
+    booking?.status,
+  );
+
+  const canCancelBooking = [
+    "pending",
+    "changes_requested",
+    "approved",
+    "confirmed",
+  ].includes(booking?.status);
+
+  const canManageBooking = canEditBooking || canCancelBooking;
+
+  const handleEdit = () => {
+    const { statusHistory, terms, ...rest } = booking;
+
+    const mainDishes = groupMenusByCategory(booking?.catering?.mainDishes);
+
+    const sideDishes = groupMenusByCategory(booking?.catering?.sideDishes);
+
+    const cateringDraft = {
+      currentStep: 1,
+
+      form: {
+        ...rest,
+        date: booking?.date?.split("T")[0],
+      },
+
+      menuSelections: {
+        main: mainDishes,
+        side: sideDishes,
+      },
+
+      selected: booking?.catering?.item,
+    };
+
+    sessionStorage.setItem("cateringDraft", JSON.stringify(cateringDraft));
+
+    navigate("/platforms/catering");
+  };
+
+  const handleCancel = () => {
+    // Open your cancellation confirmation modal here.
+    // Example:
+    // setCancelOpen(true);
+  };
 
   return (
     <section className="overflow-hidden rounded-lg border bg-card">
+      {/* Header */}
       <div className="flex flex-col gap-2.5 p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-12 w-14 shrink-0 flex-col items-center justify-center rounded-md border bg-muted/30">
@@ -242,22 +311,22 @@ const BookingOverview = ({ booking, status, date, action }) => {
           </div>
         </div>
 
-        <div className="hidden shrink-0 items-center gap-2 self-start rounded-md border bg-background px-2.5 py-1.5 sm:inline-flex sm:self-auto">
+        <div className="hidden shrink-0 items-center gap-2 px-1 sm:flex">
           <ReceiptText className="size-3.5 shrink-0 text-muted-foreground" />
 
           <div className="leading-none">
             <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
-              Booking
+              Booking reference
             </p>
 
-            <p className="mt-1 font-mono text-[11px] font-semibold">
-              #{booking?.reference}
+            <p className="mt-1 font-mono text-[13px] font-semibold">
+              {booking?.reference}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Status / action row — neutral background, color used only on the icon. */}
+      {/* Status / Actions */}
       <div className="flex flex-col gap-2 border-t bg-muted/20 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
           <ActionIcon className={`size-4 shrink-0 ${iconTone}`} />
@@ -267,18 +336,44 @@ const BookingOverview = ({ booking, status, date, action }) => {
           </p>
         </div>
 
-        {action.buttonLabel && (
-          <Button
-            type="button"
-            size="sm"
-            className="h-7 shrink-0 gap-1.5 px-2.5 text-xs"
-            onClick={() =>
-              navigate(`/platforms/my-bookings/${booking.reference}/payment`)
-            }
-          >
-            {action.buttonLabel}
-            <CreditCard className="size-3.5" />
-          </Button>
+        {canManageBooking && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 shrink-0 gap-1.5 bg-background px-2.5 text-xs"
+              >
+                Manage booking
+                <ChevronDown className="size-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className="w-44">
+              {canEditBooking && (
+                <DropdownMenuItem
+                  className="gap-2 text-xs"
+                  onClick={handleEdit}
+                >
+                  <Pencil className="size-3.5" />
+                  Edit booking
+                </DropdownMenuItem>
+              )}
+
+              {canEditBooking && canCancelBooking && <DropdownMenuSeparator />}
+
+              {canCancelBooking && (
+                <DropdownMenuItem
+                  className="gap-2 text-xs text-destructive focus:text-destructive"
+                  onClick={handleCancel}
+                >
+                  <XCircle className="size-3.5" />
+                  Cancel booking
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
     </section>
@@ -688,8 +783,8 @@ const PaymentSummary = ({ booking, payment, action }) => {
 /* PAYMENT HISTORY                                                            */
 /* -------------------------------------------------------------------------- */
 
-const PaymentHistory = ({ payments = [] }) => {
-  const paymentItems = payments.length > 0 ? payments : [];
+const PaymentHistory = ({ booking, payments = [] }) => {
+  const paymentItems = payments;
   const [selectedPayment, setSelectedPayment] = useState(null);
 
   const sortedPayments = useMemo(() => {
@@ -737,6 +832,7 @@ const PaymentHistory = ({ payments = [] }) => {
       </section>
       <PaymentDetails
         isOpen={Boolean(selectedPayment)}
+        booking={booking}
         payment={selectedPayment}
         setIsOpen={() => setSelectedPayment(null)}
       />
@@ -1387,14 +1483,6 @@ const getPaymentMethodName = (payment) => {
   }
 
   return capitalizeText(payment?.method || "Payment method");
-};
-
-const getPaymentMethodId = (payment) => {
-  if (typeof payment?.method === "object") {
-    return payment?.method?._id || "";
-  }
-
-  return payment?.method || "";
 };
 
 const getPaymentBreakdownRows = (pricing = {}) => {

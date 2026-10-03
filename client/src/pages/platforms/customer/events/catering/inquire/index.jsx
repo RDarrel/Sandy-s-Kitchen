@@ -168,8 +168,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleSubmit = () => {
-    const cInclusions = buildInclusions(selected?.inclusions);
-    const eInclusions = buildInclusions(selectedVenue?.inclusions);
+    const isUpdating = Boolean(form?._id);
+    const cInclusions = buildInclusions(selected?.inclusions, isUpdating);
+    const eInclusions = buildInclusions(selectedVenue?.inclusions, isUpdating);
     const payload = buildPayload(
       {
         ...form,
@@ -189,7 +190,6 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
         venue: venueEstimate,
       },
     );
-
     dispatch(SAVE({ ...payload, customer: auth?._id }))
       .unwrap()
       .then((payload) => {

@@ -101,7 +101,7 @@ const PaymentSlip = ({
         <Row label="Transaction reference">
           <span className="flex min-w-0 items-start justify-end gap-1">
             <span className="select-all break-all font-mono font-semibold">
-              {payment?.reference || "—"}
+              {payment?.reference || "-"}
             </span>
           </span>
         </Row>
@@ -237,17 +237,17 @@ const getFooterMessage = (payment) => {
 
   if (payment?.status === "verified") {
     return isDownPayment
-      ? "This down payment was applied to your booking."
-      : "This payment was applied to your booking balance.";
+      ? "Your down payment has been verified and your booking is confirmed."
+      : "Your payment has been verified and applied to your booking balance.";
   }
 
   if (payment?.status === "voided") {
     return isDownPayment
-      ? "This down payment was not applied to your booking."
-      : "This payment was not applied to your booking balance.";
+      ? "This down payment was not verified and was not applied to your booking."
+      : "This payment was not verified and was not applied to your booking balance.";
   }
 
   return isDownPayment
-    ? "Once verified, this down payment will be applied to your booking."
+    ? "Once verified, this down payment will confirm your booking."
     : "Once verified, this payment will be applied to your booking balance.";
 };

@@ -62,9 +62,13 @@ export const buildPackageInfo = (item = {}) => {
     sideMenuCategories: item?.sideMenuCategories || [],
   };
 };
-export const buildInclusions = (inclusions) => {
+export const buildInclusions = (inclusions, isUpdating = false) => {
   if (!inclusions?.length) return [];
-  return inclusions.map((inc) => ({ ...inc, item: inc?.item?._id, amount: 0 }));
+  return inclusions.map((inc) => ({
+    ...inc,
+    item: inc?.item?._id,
+    amount: isUpdating ? inc?.amount : 0,
+  }));
 };
 export const buildPayload = (form, menuSelections, estimate) => {
   const { bookingType } = form;
@@ -80,6 +84,7 @@ export const buildPayload = (form, menuSelections, estimate) => {
   };
 
   const payload = {
+    ...(form?._id && { _id: form?._id }),
     ...(isBoth
       ? { venue: form?.venue, catering }
       : { [bookingType]: _form[bookingType] }),

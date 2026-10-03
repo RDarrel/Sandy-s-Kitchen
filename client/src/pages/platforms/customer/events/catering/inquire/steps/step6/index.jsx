@@ -78,8 +78,12 @@ const Step6 = ({
   return (
     <div>
       <Header
-        title="Review Inquiry"
-        description="Check the details before sending your catering request."
+        title={form?._id ? "Review Updated  Inquiry" : "Review Inquiry"}
+        description={
+          form?._id
+            ? "Review your updated booking details before saving your changes."
+            : "Check the details before sending your catering request."
+        }
       />
 
       <div className="grid gap-3 lg:grid-cols-[1fr_18rem]">
@@ -213,7 +217,7 @@ const Step6 = ({
             onClick={handleSubmit}
             disabled={formSubmitted}
           >
-            Send Inquiry
+            {form?._id ? "Save Changes" : "Send Inquiry"}
             {formSubmitted ? (
               <Spinner formSubmitted={formSubmitted} />
             ) : (
