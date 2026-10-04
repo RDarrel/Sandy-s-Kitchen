@@ -291,7 +291,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
                           </StepperTitle>
 
                           <StepperDescription className="mt-0.5 truncate text-[10px]">
-                            {step.description}
+                            {step?.title === "Review" && isUpdating
+                              ? "Submit changes"
+                              : step.description}
                           </StepperDescription>
                         </div>
                       </StepperTrigger>
