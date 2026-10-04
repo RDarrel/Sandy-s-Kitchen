@@ -243,7 +243,7 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
     // Exclude rejected bookings from everything
     {
       $match: {
-        status: { $nin: ["rejected"] },
+        status: { $nin: ["rejected", "changes_requested"] },
       },
     },
 
@@ -405,7 +405,7 @@ const schedule = async ({ date }) => {
     }),
 
     status: {
-      $nin: ["rejected"],
+      $nin: ["rejected", "changes_requested"],
     },
   })
     .populate("customer", "fullName")
@@ -423,6 +423,7 @@ const schedule = async ({ date }) => {
 
   const statusOrder = [
     "pending",
+    "changes_requested",
     "approved",
     "confirmed",
     "setup",
@@ -628,6 +629,15 @@ const getBookingDetails = async ({ customer, reference }) => {
   return bookingWithPayments;
 };
 
+const update = async ({ booking }) => {
+  const updated = await Booking.findByIdAndUpdate(booking?._id, booking, {
+    returnDocument: "after",
+  })
+    .select("_id status date statusHistory")
+    .lean();
+  return updated;
+};
+
 module.exports = {
   approve,
   calendar,
@@ -636,4 +646,5 @@ module.exports = {
   getMyBookings,
   getPaymentDetails,
   getBookingDetails,
+  update,
 };

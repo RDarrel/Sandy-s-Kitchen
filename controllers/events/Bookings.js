@@ -22,7 +22,7 @@ exports.save = async (req, res) => {
 
       return res.status(200).json({
         data: booking,
-        success: "Inquiry updated successfully.",
+        success: "Booking changes submitted successfully.",
       });
     }
 
@@ -146,6 +146,20 @@ exports.approve = async (req, res) => {
     return res.status(error.statusCode || 500).json({
       message: error.message,
     });
+  }
+};
+
+exports.update = async (req, res) => {
+  try {
+    const updated = await BookingService.update({ booking: req.body });
+    res.json({
+      data: updated,
+      statusTransaction: req.body?.statusTransaction,
+      success: "Booking updated successfully.",
+    });
+  } catch (error) {
+    console.log("error", error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 

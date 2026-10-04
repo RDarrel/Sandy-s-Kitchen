@@ -8,6 +8,7 @@ const router = require("express").Router(),
     approve,
     paymentDetails,
     bookingDetails,
+    update,
   } = require("../../controllers/events/Bookings"),
   { validate } = require("../../middleware/jwt");
 
@@ -20,6 +21,7 @@ router
   .get("/:reference/details", validate, bookingDetails)
   .get("/:reference/payment", validate, paymentDetails)
   .post("/save", validate, save)
-  .put("/approve", validate, approve);
+  .put("/approve", validate, approve)
+  .put("/update", validate, update);
 
 module.exports = router;

@@ -1,7 +1,17 @@
 const Counter = require("./Counter");
 const mongoose = require("mongoose");
 const inclusionSchema = require("./schemas/Inclusions");
-
+const STATUS_ENUM = [
+  "pending",
+  "changes_requested",
+  "approved",
+  "confirmed",
+  "setup",
+  "completed",
+  "cancelled",
+  "expired",
+  "rejected",
+];
 const contactSchema = new mongoose.Schema(
   {
     name: {
@@ -308,6 +318,12 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
+    bookingOrigin: {
+      type: String,
+      enum: ["catering", "venue"],
+      required: true,
+    },
+
     eventType: {
       type: String,
       required: true,
@@ -333,16 +349,7 @@ const bookingSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: [
-        "pending",
-        "approved",
-        "confirmed",
-        "setup",
-        "completed",
-        "cancelled",
-        "expired",
-        "rejected",
-      ],
+      enum: STATUS_ENUM,
       default: "pending",
       index: true,
     },
@@ -356,15 +363,7 @@ const bookingSchema = new mongoose.Schema(
       {
         status: {
           type: String,
-          enum: [
-            "pending",
-            "approved",
-            "confirmed",
-            "setup",
-            "completed",
-            "rejected",
-            "cancelled",
-          ],
+          enum: STATUS_ENUM,
           required: true,
         },
 
