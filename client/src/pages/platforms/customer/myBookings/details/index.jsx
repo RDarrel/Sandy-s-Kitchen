@@ -459,7 +459,10 @@ const ReservationOverview = ({ services }) => {
 const ScheduleMeta = ({ icon: Icon, children }) => {
   return (
     <div className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
-      <Icon className="size-3.5 shrink-0" />
+      {createElement(Icon, {
+        className: "size-3.5 shrink-0",
+      })}
+
       <span>{children}</span>
     </div>
   );
