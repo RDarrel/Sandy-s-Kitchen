@@ -1,6 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -8,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { Formatter, fullName } from "@/services/utilities";
 import {
   AlertTriangle,
@@ -39,6 +50,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   APPROVE,
   EQUIPMENT_AVAILABILITY,
+  UPDATE,
 } from "@/services/redux/slices/events/bookings";
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
@@ -57,6 +69,9 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
     catering: [],
     venue: [],
   });
+  const [changeRequestOpen, setChangeRequestOpen] = useState(false);
+  const [changeRequestReason, setChangeRequestReason] = useState("");
+  const [changeRequestError, setChangeRequestError] = useState("");
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -124,6 +139,48 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
         toast.error("Failed to approve booking. Please try again.");
       });
+  };
+  const handleRequestChanges = () => {
+    const reason = changeRequestReason.trim();
+
+    if (!reason) {
+      setChangeRequestError("Reason is required.");
+      return;
+    }
+
+    const statusHistory = [...(selected?.statusHistory ?? [])];
+
+    statusHistory.push({
+      status: "changes_requested",
+      changedBy: auth?._id,
+      reason,
+    });
+
+    dispatch(
+      UPDATE({
+        _id: booking?._id,
+        status: "changes_requested",
+        statusHistory,
+        statusTransaction: {
+          new: "changes_requested",
+          old: "pending",
+        },
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        toast.success("Changes requested successfully.");
+        setIsOpen(false);
+        setBooking({});
+      })
+      .catch((error) => {
+        console.error("error:", error);
+        toast.error("Failed to request changes. Please try again.");
+      });
+
+    setChangeRequestOpen(false);
+    setChangeRequestReason("");
+    setChangeRequestError("");
   };
 
   const handleInclusionAmountChange = useCallback(
@@ -368,7 +425,19 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
             >
               Cancel
             </Button>
-
+            <Button
+              type="button"
+              variant="outline"
+              className="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800"
+              onClick={() => {
+                setChangeRequestReason("");
+                setChangeRequestError("");
+                setChangeRequestOpen(true);
+              }}
+              disabled={formSubmitted}
+            >
+              Request Changes
+            </Button>
             <Button
               type="submit"
               form="approval-form"
@@ -382,6 +451,67 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
           </DialogFooter>
         </div>
       </DialogContent>
+
+      <AlertDialog
+        open={changeRequestOpen}
+        onOpenChange={(open) => {
+          setChangeRequestOpen(open);
+          if (!open) {
+            setChangeRequestReason("");
+            setChangeRequestError("");
+          }
+        }}
+      >
+        <AlertDialogContent
+          className={`max-w-md ${hasConflicts ? "xl:left-[calc(50%-167px)]" : ""}`}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-5 text-amber-600" />
+              Request changes
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Provide the reason the customer needs to address before this
+              booking can be approved.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-2">
+            <Textarea
+              value={changeRequestReason}
+              onChange={(e) => {
+                setChangeRequestReason(e.target.value);
+                if (e.target.value.trim()) setChangeRequestError("");
+              }}
+              placeholder="Enter the required changes..."
+              className="min-h-28"
+              disabled={formSubmitted}
+            />
+
+            {changeRequestError && (
+              <p className="text-xs font-medium text-destructive">
+                {changeRequestError}
+              </p>
+            )}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={formSubmitted}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleRequestChanges();
+              }}
+              disabled={!changeRequestReason || formSubmitted}
+            >
+              Submit Request
+              <Spinner formSubmitted={formSubmitted} />
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };

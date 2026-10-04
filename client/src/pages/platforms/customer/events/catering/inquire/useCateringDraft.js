@@ -14,7 +14,8 @@ const useCateringDraft = ({
   setCurrentStep,
 }) => {
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
-
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [reason, setReason] = useState("");
   // RESTORE VENUE DRAFT
   useEffect(() => {
     try {
@@ -40,6 +41,14 @@ const useCateringDraft = ({
 
         if (draft?.currentStep) {
           setCurrentStep(draft.currentStep);
+        }
+
+        if (draft?.form?._id) {
+          setIsUpdating(true);
+        }
+
+        if (draft?.form?.reason) {
+          setReason(draft?.form?.reason);
         }
       }
     } catch (error) {
@@ -72,10 +81,14 @@ const useCateringDraft = ({
 
   const clearCateringDraft = () => {
     sessionStorage.removeItem(CATERING_DRAFT_KEY);
+    setReason("");
+    setIsUpdating(false);
   };
 
   return {
     isDraftLoaded,
+    isUpdating,
+    reason,
     clearCateringDraft,
   };
 };

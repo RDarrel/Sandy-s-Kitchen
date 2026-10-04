@@ -93,6 +93,7 @@ export const buildPayload = (form, menuSelections, estimate) => {
     eventType: form?.eventType,
     notes: form?.notes,
     bookingType: form?.bookingType,
+    status: "pending",
     pricing: {
       ...(isBoth ? estimate : { [bookingType]: estimate[bookingType] }),
       total: (estimate?.catering?.total || 0) + (estimate?.venue?.total || 0),

@@ -13,7 +13,7 @@ import {
   StepperTitle,
   StepperTrigger,
 } from "@/components/reui/stepper";
-import { ArrowLeft, Check } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BROWSE as BROWSE_CATERING_PACKAGES } from "@/services/redux/slices/events/cateringPackages";
 import { Step1, Step2, Step3, Step4, Step5, Step6, Step7 } from "./steps";
@@ -37,19 +37,25 @@ import Header from "./header";
 import Actions from "./actions";
 import useVenueDraft from "./useVenueDraft";
 import { SAVE } from "@/services/redux/slices/events/bookings";
+import { useNavigate } from "react-router-dom";
 
 const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   const { collections: packages = [] } = useSelector(
     ({ cateringPackages }) => cateringPackages,
   );
   const { auth } = useSelector(({ auth }) => auth);
-  const dispatch = useDispatch();
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState(DEFAULT_STEPS);
   const [form, setForm] = useState(DEFAULT_FORM);
   const [menuSelections, setMenuSelections] = useState(DEFAULT_MENU_SELECTIONS);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const { clearVenueDraft } = useVenueDraft({
+  const {
+    clearVenueDraft,
+    isUpdating = false,
+    reason = "",
+  } = useVenueDraft({
     selected,
     form,
     setForm,
@@ -167,8 +173,11 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleSubmit = () => {
-    const eInclusions = buildInclusions(selected?.inclusions);
-    const cInclusions = buildInclusions(selectedCatering?.inclusions);
+    const eInclusions = buildInclusions(selected?.inclusions, isUpdating);
+    const cInclusions = buildInclusions(
+      selectedCatering?.inclusions,
+      isUpdating,
+    );
     const payload = buildPayload(
       {
         ...form,
@@ -190,6 +199,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
       .catch((error) => toast.error(error?.message || error));
   };
   const handleBack = () => {
+    if (isUpdating) {
+      navigate(-1);
+    }
     onSelect({}, "default");
     clearVenueDraft();
     setForm(DEFAULT_FORM);
@@ -277,7 +289,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
                           </StepperTitle>
 
                           <StepperDescription className="mt-0.5 truncate text-[10px]">
-                            {step.description}
+                            {step?.title === "Review" && isUpdating
+                              ? "Submit changes"
+                              : step.description}
                           </StepperDescription>
                         </div>
                       </StepperTrigger>
@@ -292,7 +306,27 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
             </div>
 
             <form onSubmit={goNext}>
-              <StepperPanel className="min-w-0 flex flex-col  h-full">
+              <StepperPanel className="flex h-full min-w-0 flex-col">
+                {isUpdating && reason && (
+                  <div className="border-b bg-amber-50/70 px-3 py-2.5 text-amber-950 sm:px-5 dark:bg-amber-950/20 dark:text-amber-100">
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-background/80 dark:border-amber-900/60 dark:bg-background/20">
+                        <AlertTriangle className="size-3.5 text-amber-700 dark:text-amber-300" />
+                      </span>
+
+                      <div className="min-w-0">
+                        <h2 className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+                          Booking Changes Required
+                        </h2>
+
+                        <p className="mt-1 text-xs font-normal leading-5">
+                          {reason}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {[
                   Step1,
                   ...(form?.bookingType === "both"
@@ -326,6 +360,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
                         handleMenuToggle={handleMenuToggle}
                         updateField={updateField}
                         handleSubmit={handleSubmit}
+                        isUpdating={isUpdating}
                       />
                       <Actions
                         currentStep={currentStep}

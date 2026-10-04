@@ -37,7 +37,7 @@ const CateringParent = () => {
     const cateringDraft = getDraft("cateringDraft");
     const inquiry = getDraft("inquiry");
 
-    if (cateringDraft) {
+    if (cateringDraft && !from) {
       const { selected } = JSON.parse(cateringDraft);
       setSelected(selected);
       setActionType("inquire");

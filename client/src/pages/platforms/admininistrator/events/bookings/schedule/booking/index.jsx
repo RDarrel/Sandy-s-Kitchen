@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Formatter, fullName } from "@/services/utilities";
 import { UsersRound, MapPin, Clock3, Utensils, Building2 } from "lucide-react";
 import { SERVICE_BADGES, STATUS_TEXT } from "../../constant";

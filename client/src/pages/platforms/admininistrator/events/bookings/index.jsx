@@ -196,11 +196,17 @@ function Bookings() {
 
     setSelectedDate(date);
 
-    setStatusFilter(
-      dayBookings.some((booking) => booking.meta.status === "pending")
-        ? "pending"
-        : "all",
+    const hasPendingBooking = dayBookings.some(
+      (booking) => booking.meta.status === "pending",
     );
+
+    let nextStatusFilter = "all";
+
+    if (hasPendingBooking) {
+      nextStatusFilter = "pending";
+    }
+
+    setStatusFilter(nextStatusFilter);
   };
 
   const selectedBookings = useMemo(() => {

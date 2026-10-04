@@ -12,7 +12,7 @@ import {
   StepperTitle,
   StepperTrigger,
 } from "@/components/reui/stepper";
-import { ArrowLeft, Check } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BROWSE as BROWSE_VENUES } from "@/services/redux/slices/events/venues";
 import { Step1, Step2, Step3, Step4, Step5, Step6 } from "./steps";
@@ -37,20 +37,22 @@ import Actions from "./actions";
 import useCateringDraft from "./useCateringDraft";
 import { SAVE } from "@/services/redux/slices/events/bookings";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   const { collections: venueCollections = [] } = useSelector(
     ({ venues }) => venues,
   );
   const { auth } = useSelector(({ auth }) => auth);
-  const dispatch = useDispatch();
   const [currentStep, setCurrentStep] = useState(1);
   const [steps, setSteps] = useState(DEFAULT_STEPS);
   const [form, setForm] = useState(DEFAULT_FORM);
   const [menuSelections, setMenuSelections] = useState(DEFAULT_MENU_SELECTIONS);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const packageSelected = Boolean(selected?._id);
 
-  const { clearCateringDraft } = useCateringDraft({
+  const { clearCateringDraft, isUpdating, reason } = useCateringDraft({
     selected,
     form,
     setForm,
@@ -168,7 +170,6 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleSubmit = () => {
-    const isUpdating = Boolean(form?._id);
     const cInclusions = buildInclusions(selected?.inclusions, isUpdating);
     const eInclusions = buildInclusions(selectedVenue?.inclusions, isUpdating);
     const payload = buildPayload(
@@ -200,6 +201,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleBack = () => {
+    if (isUpdating) {
+      navigate(-1);
+    }
     onSelect({}, "default");
     clearCateringDraft();
     setForm(DEFAULT_FORM);
@@ -302,6 +306,25 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
             </div>
 
             <form onSubmit={goNext}>
+              {isUpdating && reason && (
+                <div className="border-b bg-amber-50/70 px-3 py-2.5 text-amber-950 sm:px-5 dark:bg-amber-950/20 dark:text-amber-100">
+                  <div className="flex items-start gap-2.5">
+                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-background/80 dark:border-amber-900/60 dark:bg-background/20">
+                      <AlertTriangle className="size-3.5 text-amber-700 dark:text-amber-300" />
+                    </span>
+
+                    <div className="min-w-0">
+                      <h2 className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+                        Booking Changes Required
+                      </h2>
+
+                      <p className="mt-1 text-xs font-normal leading-5">
+                        {reason}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               <StepperPanel className="min-w-0">
                 {[
                   Step1,
@@ -336,6 +359,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
                         handleMenuToggle={handleMenuToggle}
                         handleSubmit={handleSubmit}
                         updateField={updateField}
+                        isUpdating={isUpdating}
                       />
                       <Actions
                         currentStep={currentStep}

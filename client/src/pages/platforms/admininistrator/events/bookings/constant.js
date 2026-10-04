@@ -48,7 +48,6 @@ export const STATUS_TEXT = {
   pending: "text-amber-700",
   confirmed: "text-teal-700",
   setup: "text-sky-700",
-  setup: "text-sky-700",
   completed: "text-violet-700",
   cancelled: "text-rose-700",
 };

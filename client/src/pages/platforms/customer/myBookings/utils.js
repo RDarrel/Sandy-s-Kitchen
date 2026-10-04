@@ -37,6 +37,7 @@ const formatTimeRange = (time = {}) => {
 };
 
 export const getServices = (booking) => {
+  console.log("bookign", booking);
   if (!booking) {
     return [];
   }
@@ -167,10 +168,14 @@ export const getBookingAction = (booking, payment) => {
    * it can be approved.
    */
   if (status === "changes_requested") {
+    const { statusHistory = [] } = booking;
+    const reason = statusHistory.findLast(
+      ({ status }) => status === "changes_requested",
+    )?.reason;
     return {
       message:
-        booking?.changeRequest?.message ||
-        "Changes are required before your booking can be approved. Please review and update your booking.",
+        "Changes were requested. Please review and update your booking to continue.",
+      reason,
       buttonLabel: "Review & Update",
       icon: AlertTriangle,
       variant: "action-required",

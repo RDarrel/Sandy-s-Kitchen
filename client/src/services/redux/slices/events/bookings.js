@@ -57,6 +57,19 @@ export const APPROVE = createAsyncThunk(`${url}/approve`, (data, thunkAPI) => {
   }
 });
 
+export const UPDATE = createAsyncThunk(`${url}/update`, (data, thunkAPI) => {
+  try {
+    return axioKit.update(url, data);
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
 export const CALENDAR = createAsyncThunk(
   `${url}/calendar`,
   (query, thunkAPI) => {
@@ -142,13 +155,6 @@ export const GET_BOOKING_DETAILS = createAsyncThunk(
     }
   },
 );
-
-const isDateWithinRange = (date, range) => {
-  if (!date || !range?.start || !range?.end) return false;
-
-  return date >= range.start && date < range.end;
-};
-
 export const MY_BOOKINGS = createAsyncThunk(
   `${url}/my_bookings`,
   (query, thunkAPI) => {
@@ -166,13 +172,25 @@ export const MY_BOOKINGS = createAsyncThunk(
     }
   },
 );
+const isDateWithinRange = (date, range) => {
+  if (!date || !range?.start || !range?.end) return false;
 
-const updateBookingStatus = (state, status, booking) => {
-  const { eInclusions = [], cInclusions = [], payments = [], date } = booking;
+  return date >= range.start && date < range.end;
+};
+
+const updateBookingStatus = (state, statusTransaction, booking) => {
+  //status={new:"approved",old:'pending'}
+  const {
+    eInclusions = [],
+    cInclusions = [],
+    payments = [],
+    statusHistory = [],
+    date,
+  } = booking;
   const eventDate = Formatter.localDate(date);
   const calendar = { ...state.calendar };
   const schedule = { ...state.schedule };
-  const oldCollections = [...(schedule?.[status?.old] ?? [])];
+  const oldCollections = [...(schedule?.[statusTransaction?.old] ?? [])];
 
   const index = oldCollections.findIndex(({ _id }) => _id === booking?._id);
 
@@ -183,14 +201,14 @@ const updateBookingStatus = (state, status, booking) => {
   oldCollections.splice(index, 1);
 
   if (oldCollections.length === 0) {
-    delete schedule[status.old];
+    delete schedule[statusTransaction.old];
   } else {
-    schedule[status.old] = oldCollections;
+    schedule[statusTransaction.old] = oldCollections;
   }
 
   const updatedBooking = {
     ...toRemoveBooking,
-    status: status.new,
+    status: statusTransaction.new,
     ...(eInclusions?.length > 0 && {
       event: {
         ...toRemoveBooking?.event,
@@ -205,11 +223,17 @@ const updateBookingStatus = (state, status, booking) => {
       },
     }),
     ...(payments?.length > 0 && { payments }),
+    ...(statusHistory?.length > 0 && { statusHistory }),
   };
 
   state.schedule = {
     ...schedule,
-    [status.new]: [updatedBooking, ...(schedule?.[status.new] ?? [])],
+    ...(!["changes_requested"].includes(statusTransaction?.new) && {
+      [statusTransaction.new]: [
+        updatedBooking,
+        ...(schedule?.[statusTransaction.new] ?? []),
+      ],
+    }),
   };
 
   const { visibleRange, monthRange } = calendar;
@@ -228,8 +252,10 @@ const updateBookingStatus = (state, status, booking) => {
         ...days[dayIdx],
         statusCounts: {
           ...days[dayIdx].statusCounts,
-          [status.old]: (days[dayIdx].statusCounts?.[status.old] || 0) - 1,
-          [status.new]: (days[dayIdx].statusCounts?.[status.new] || 0) + 1,
+          [statusTransaction.old]:
+            (days[dayIdx].statusCounts?.[statusTransaction.old] || 0) - 1,
+          [statusTransaction.new]:
+            (days[dayIdx].statusCounts?.[statusTransaction.new] || 0) + 1,
         },
       };
     }
@@ -237,8 +263,8 @@ const updateBookingStatus = (state, status, booking) => {
       const getStatsIdx = (stats) =>
         monthly.findIndex(({ status }) => status === stats);
 
-      const oldStatusIdx = getStatsIdx(status.old);
-      const newStatusIdx = getStatsIdx(status.new);
+      const oldStatusIdx = getStatsIdx(statusTransaction.old);
+      const newStatusIdx = getStatsIdx(statusTransaction.new);
 
       if (oldStatusIdx > -1) {
         monthly[oldStatusIdx] = {
@@ -253,7 +279,7 @@ const updateBookingStatus = (state, status, booking) => {
           count: (monthly[newStatusIdx]?.count || 0) + 1,
         };
       } else {
-        monthly.push({ status: status.new, count: 1 });
+        monthly.push({ status: statusTransaction.new, count: 1 });
       }
     }
 
@@ -425,106 +451,29 @@ export const reduxSlice = createSlice({
       })
       .addCase(APPROVE.fulfilled, (state, action) => {
         const { success, data } = action.payload;
-        const { eInclusions, cInclusions, date } = data;
-        const eventDate = Formatter.localDate(date);
-        const calendar = { ...state.calendar };
-        const schedule = { ...state.schedule };
-        const pending = [...(schedule?.pending ?? [])];
-
-        const index = pending.findIndex(({ _id }) => _id === data?._id);
-
-        if (index === -1) return;
-
-        const toRemove = { ...pending[index] };
-
-        pending.splice(index, 1);
-
-        if (pending.length === 0) {
-          delete schedule.pending;
-        } else {
-          schedule.pending = pending;
-        }
-
-        const approvedBooking = {
-          ...toRemove,
-          status: "approved",
-          ...(eInclusions?.length > 0 && {
-            event: {
-              ...toRemove?.event,
-              inclusions: eInclusions,
-            },
-          }),
-
-          ...(cInclusions?.length > 0 && {
-            catering: {
-              ...toRemove?.catering,
-              inclusions: cInclusions,
-            },
-          }),
-        };
-
-        state.schedule = {
-          ...schedule,
-          approved: [approvedBooking, ...(schedule?.approved ?? [])],
-        };
-
-        const { visibleRange, monthRange } = calendar;
-
-        const isVisible = isDateWithinRange(eventDate, visibleRange);
-        const isWithinMonth = isDateWithinRange(eventDate, monthRange);
-        if (isVisible) {
-          const { days = [], overview = {} } = calendar;
-          const { monthly = [] } = overview;
-
-          const dayIdx = days.findIndex(({ start }) => start === date);
-
-          if (dayIdx > -1) {
-            days[dayIdx] = {
-              ...days[dayIdx],
-              statusCounts: {
-                ...days[dayIdx].statusCounts,
-                pending: days[dayIdx].statusCounts?.pending - 1,
-                approved: (days[dayIdx].statusCounts?.approved || 0) + 1,
-              },
-            };
-          }
-          if (isWithinMonth) {
-            const getStatsIdx = (stats) =>
-              monthly.findIndex(({ status }) => status === stats);
-
-            const monthlyPendingIdx = getStatsIdx("pending");
-            const monthlyApprovedIdx = getStatsIdx("approved");
-
-            monthly[monthlyPendingIdx] = {
-              ...monthly[monthlyPendingIdx],
-              count: (monthly[monthlyPendingIdx]?.count || 0) - 1,
-            };
-
-            if (monthlyApprovedIdx > -1) {
-              monthly[monthlyApprovedIdx] = {
-                ...monthly[monthlyApprovedIdx],
-                count: (monthly[monthlyApprovedIdx]?.count || 0) + 1,
-              };
-            } else {
-              monthly.push({ status: "approved", count: 1 });
-            }
-          }
-
-          state.calendar = {
-            ...state.calendar,
-            days,
-            overview: {
-              ...state.calendar?.overview,
-              monthly,
-            },
-          };
-        }
-
+        updateBookingStatus(state, { old: "pending", new: "approved" }, data);
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
       })
       .addCase(APPROVE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
+      })
+      .addCase(UPDATE.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(UPDATE.fulfilled, (state, action) => {
+        const { success, data, statusTransaction } = action.payload;
+        updateBookingStatus(state, statusTransaction, data);
+        state.formSubmitted = false;
+        state.message = success;
+        state.isSuccess = true;
+      })
+      .addCase(UPDATE.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;

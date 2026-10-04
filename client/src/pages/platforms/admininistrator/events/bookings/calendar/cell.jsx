@@ -12,6 +12,7 @@ const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
 
   const priorityStatus =
     visibleStatuses.find((status) => status === "pending") ||
+    visibleStatuses.find((status) => status === "changes_requested") ||
     visibleStatuses.find((status) => status === "setup") ||
     visibleStatuses.find((status) => status === "approved") ||
     visibleStatuses[0];

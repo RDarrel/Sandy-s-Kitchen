@@ -219,6 +219,8 @@ const BookingOverview = ({ booking, status, date, action }) => {
   const ActionIcon = action.icon;
 
   const iconTone = NOTICE_ICON_TONE[action.variant] || NOTICE_ICON_TONE.default;
+  const actionMessage = action?.reason?.trim() || action.message;
+  const isActionRequired = action.variant === "action-required";
 
   const canEditBooking = ["pending", "changes_requested"].includes(
     booking?.status,
@@ -234,30 +236,51 @@ const BookingOverview = ({ booking, status, date, action }) => {
   const canManageBooking = canEditBooking || canCancelBooking;
 
   const handleEdit = () => {
-    const { statusHistory: _statusHistory, terms: _terms, ...rest } = booking;
-
+    const {
+      statusHistory: _statusHistory,
+      terms: _terms,
+      bookingOrigin,
+      ...rest
+    } = booking;
     const mainDishes = groupMenusByCategory(booking?.catering?.mainDishes);
     const sideDishes = groupMenusByCategory(booking?.catering?.sideDishes);
 
-    const cateringDraft = {
-      currentStep: 1,
+    const linkMap = {
+      venue: "venues",
+      catering: "catering",
+    };
 
+    const sessionkeyMap = {
+      venue: "venueDraft",
+      catering: "cateringDraft",
+    };
+
+    const draft = {
+      currentStep: 1,
       form: {
         ...rest,
         date: booking?.date?.split("T")[0],
+        reason: action?.reason,
+        catering: {
+          ...booking?.catering,
+          item: booking?.catering?.item?._id,
+        },
+        venue: {
+          ...booking?.venue,
+          item: booking?.venue?.item?._id,
+        },
       },
-
       menuSelections: {
         main: mainDishes,
         side: sideDishes,
       },
-
-      selected: booking?.catering?.item,
+      test: "asdfasdfas",
+      selected: booking?.[bookingOrigin]?.item,
     };
 
-    sessionStorage.setItem("cateringDraft", JSON.stringify(cateringDraft));
+    sessionStorage.setItem(sessionkeyMap[bookingOrigin], JSON.stringify(draft));
 
-    navigate("/platforms/catering");
+    navigate(`/platforms/${linkMap[bookingOrigin]}`);
   };
 
   const handleCancel = () => {
@@ -325,13 +348,21 @@ const BookingOverview = ({ booking, status, date, action }) => {
       </div>
 
       {/* Current booking state */}
-      <div className="flex flex-col gap-2 border-t bg-muted/20 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-2">
+      <div className="flex flex-col gap-2 border-t bg-muted/20 px-3 py-2.5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-start gap-2">
           <ActionIcon className={`size-4 shrink-0 ${iconTone}`} />
 
-          <p className="min-w-0 text-xs font-medium leading-5">
-            {action.message}
-          </p>
+          <div className="min-w-0">
+            {isActionRequired && (
+              <p className="mb-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                Booking Changes Required
+              </p>
+            )}
+
+            <p className="min-w-0 whitespace-pre-wrap text-xs font-medium leading-5">
+              {actionMessage}
+            </p>
+          </div>
         </div>
 
         {canManageBooking && (
@@ -806,7 +837,7 @@ const PaymentSummary = ({ booking, payment, action }) => {
           )}
         </div>
 
-        {action.buttonLabel && (
+        {action.buttonLabel && booking?.status !== "changes_requested" && (
           <Button
             type="button"
             className="mt-3 h-8 w-full gap-1.5 text-xs"

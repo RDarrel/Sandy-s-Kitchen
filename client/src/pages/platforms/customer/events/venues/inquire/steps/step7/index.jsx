@@ -66,6 +66,7 @@ const Step6 = ({
   packageInfo,
   selectedMenus,
   selectedVenue,
+  isUpdating = false,
   handleSubmit = () => {},
 }) => {
   const { formSubmitted } = useSelector(({ bookings }) => bookings);
@@ -81,8 +82,12 @@ const Step6 = ({
   return (
     <div>
       <Header
-        title="Review Inquiry"
-        description="Check the details before sending your venue inquiry."
+        title={isUpdating ? "Review Changes" : "Review Inquiry"}
+        description={
+          isUpdating
+            ? "Check your updated details before submitting your changes."
+            : "Check the details before sending your venue inquiry."
+        }
       />
 
       <div className="grid gap-3 lg:grid-cols-[1fr_18rem]">
@@ -249,7 +254,7 @@ const Step6 = ({
             className="mt-4 h-9 w-full gap-1.5 text-xs"
             onClick={handleSubmit}
           >
-            Send Inquiry
+            {isUpdating ? "Submit Changes" : "Send Inquiry"}
             {formSubmitted ? (
               <Spinner formSubmitted={formSubmitted} />
             ) : (
@@ -318,9 +323,9 @@ const EstimateItem = ({ label, data }) => {
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold">{label}</span>
+        <span className="text-sm font-semibold">{label}</span>
 
-        <span className="text-xs font-bold text-foreground">
+        <span className="text-sm font-bold text-foreground">
           {Formatter.amount(data?.basePrice)}
         </span>
       </div>
@@ -407,13 +412,13 @@ const BreakdownGroup = ({ label, rows = [] }) => {
     <div className="relative py-1">
       <span className="absolute -left-[13px] top-3 h-px w-2 bg-border" />
 
-      <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
 
       <div className="mt-1 space-y-0.5">
         {rows.map((row) => (
           <div
             key={row.label}
-            className="flex items-center justify-between gap-3 text-[11px]"
+            className="flex items-center justify-between gap-3 text-xs"
           >
             <span className="ml-2 text-muted-foreground">{row.label}</span>
 
@@ -438,16 +443,14 @@ const FeeBreakdown = ({ label, quantity, rate, unit, value }) => {
 
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium text-muted-foreground">
-            {label}
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">{label}</p>
 
-          <p className="ml-2 mt-0.5 text-[11px] text-muted-foreground">
+          <p className="ml-2 mt-0.5 text-xs text-muted-foreground">
             {quantity} × {Formatter.amount(rate)} / {unit}
           </p>
         </div>
 
-        <span className="shrink-0 text-[11px] font-semibold text-foreground md:text-[12px]">
+        <span className="shrink-0 text-xs font-semibold text-foreground">
           {Formatter.amount(value)}
         </span>
       </div>
