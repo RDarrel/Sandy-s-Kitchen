@@ -47,12 +47,13 @@ const CateringList = ({ isWebsite = true, onSelect = () => {} }) => {
   const handleInquire = useCallback((item, actionType) => {
     if (!isWebsite) return onSelect(item, actionType);
     sessionStorage.setItem(
-      "inquiry",
+      "cateringDraft",
       JSON.stringify({
-        type: "catering",
-        id: item._id,
+        selected: item,
+        isAutomaticRedirect: true,
       }),
     );
+    sessionStorage.removeItem("venueDraft");
     navigate("/authentication/sign-in");
   }, []);
   return (

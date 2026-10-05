@@ -1,11 +1,10 @@
 // hooks/useVenueDraft.js
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const VENUE_DRAFT_KEY = "venueDraft";
 
 const useVenueDraft = ({
-  selected,
   form,
   setForm,
   menuSelections,
@@ -13,47 +12,47 @@ const useVenueDraft = ({
   currentStep,
   setCurrentStep,
 }) => {
+  const [selected, setSelected] = useState({});
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [reason, setReason] = useState("");
 
+  const isRestoringRef = useRef(true);
+
   // RESTORE VENUE DRAFT
   useEffect(() => {
     try {
-      const venueDraft = sessionStorage.getItem(VENUE_DRAFT_KEY);
-      const cateringReview = sessionStorage.getItem("catering-review");
+      const storedDraft = sessionStorage.getItem(VENUE_DRAFT_KEY);
 
-      if (venueDraft) {
-        const draft = JSON.parse(venueDraft);
+      if (storedDraft) {
+        const draft = JSON.parse(storedDraft);
 
         if (draft?.form) {
-          setForm({
-            ...draft.form,
-            catering: {
-              ...draft.form.catering,
-              ...(cateringReview && { item: JSON.parse(cateringReview)?._id }),
-            },
-          });
+          setForm(draft.form);
+        }
+
+        if (draft?.selected?._id) {
+          setSelected(draft.selected);
         }
 
         if (draft?.menuSelections) {
           setMenuSelections(draft.menuSelections);
         }
 
-        if (draft?.currentStep) {
+        if (draft?.currentStep != null) {
           setCurrentStep(draft.currentStep);
         }
+
         if (draft?.form?._id) {
           setIsUpdating(true);
         }
 
-        if (draft?.form?.reason) {
-          setReason(draft?.form?.reason);
+        if (draft?.reason) {
+          setReason(draft.reason);
         }
       }
     } catch (error) {
       console.error("Failed to restore venue draft:", error);
-
       sessionStorage.removeItem(VENUE_DRAFT_KEY);
     } finally {
       setIsDraftLoaded(true);
@@ -63,7 +62,13 @@ const useVenueDraft = ({
   // PERSIST VENUE DRAFT
   useEffect(() => {
     if (!isDraftLoaded) return;
-    console.log("running persis venue draft");
+
+    // Skip the first persistence cycle after restoring the draft.
+    if (isRestoringRef.current) {
+      isRestoringRef.current = false;
+      return;
+    }
+
     try {
       sessionStorage.setItem(
         VENUE_DRAFT_KEY,
@@ -72,21 +77,24 @@ const useVenueDraft = ({
           menuSelections,
           currentStep,
           selected,
+          reason,
         }),
       );
     } catch (error) {
       console.error("Failed to save venue draft:", error);
     }
-  }, [form, menuSelections, currentStep, isDraftLoaded, selected]);
+  }, [form, menuSelections, currentStep, selected, reason, isDraftLoaded]);
 
   const clearVenueDraft = () => {
     setReason("");
     setIsUpdating(false);
+    setSelected({});
     sessionStorage.removeItem(VENUE_DRAFT_KEY);
   };
 
   return {
     isDraftLoaded,
+    selected,
     isUpdating,
     reason,
     clearVenueDraft,

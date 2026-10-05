@@ -2,16 +2,28 @@ import Header from "../header";
 import { Home, Users, Eye, MapPin, Check } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { useNavigate } from "react-router-dom";
 import { useCallback } from "react";
+import { useSelector } from "react-redux";
 
 const Step4 = ({ venues, form, setForm = () => {} }) => {
+  const { isLoading } = useSelector(({ venues }) => venues);
   const navigate = useNavigate();
-  const handleView = useCallback((venue) => {
-    sessionStorage.setItem("venue-review", JSON.stringify(venue));
-    navigate("/platforms/venues?from=catering");
-  }, []);
+  const handleView = useCallback(
+    (venue) => {
+      sessionStorage.setItem(
+        "venueDraft",
+        JSON.stringify({ selected: venue, isReview: true }),
+      );
+      navigate("/platforms/venues/details");
+    },
+    [navigate],
+  );
+
+  if (isLoading) return <Step4Skeleton />;
+
   return (
     <div className="w-full min-w-0">
       <Header
@@ -40,6 +52,91 @@ const Step4 = ({ venues, form, setForm = () => {} }) => {
 };
 
 export default Step4;
+
+/* -------------------------------------------------------------------------- */
+/* SKELETON                                                                   */
+/* -------------------------------------------------------------------------- */
+
+const Step4Skeleton = () => {
+  return (
+    <div className="w-full min-w-0">
+      <Header
+        title="Venue"
+        description="Choose one of Sandy's Kitchen venues or use your own location."
+      />
+
+      <div className="grid w-full gap-2.5">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <VenueOptionSkeleton key={index} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const VenueOptionSkeleton = () => {
+  return (
+    <div className="w-full min-w-0 rounded-lg border border-border p-2.5 sm:p-3">
+      <div
+        className="
+          grid
+          min-w-0
+          grid-cols-[auto_70px_minmax(0,1fr)]
+          gap-2.5
+
+          sm:grid-cols-[auto_85px_minmax(0,1fr)_auto]
+          sm:items-center
+          sm:gap-3
+        "
+      >
+        <Skeleton className="mt-1 size-4 shrink-0 rounded-full sm:mt-0 sm:size-[17px]" />
+
+        <Skeleton
+          className="
+            h-[60px]
+            w-[70px]
+            shrink-0
+            rounded-sm
+
+            sm:h-[68px]
+            sm:w-[85px]
+          "
+        />
+
+        <div className="min-w-0">
+          <Skeleton className="h-5 w-2/3 max-w-[14rem]" />
+
+          <div className="mt-1 flex min-w-0 items-center gap-1.5">
+            <Skeleton className="size-3 shrink-0" />
+            <Skeleton className="h-4 w-full max-w-[20rem]" />
+          </div>
+
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+            <span className="inline-flex items-center gap-1">
+              <Skeleton className="size-3.5 shrink-0" />
+              <Skeleton className="h-4 w-16" />
+            </span>
+
+            <span className="inline-flex items-center gap-1">
+              <Skeleton className="size-3.5 shrink-0" />
+              <Skeleton className="h-4 w-14" />
+            </span>
+          </div>
+
+          <div className="mt-2.5 flex items-center justify-between gap-2 sm:hidden">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-7 w-20" />
+          </div>
+        </div>
+
+        <div className="hidden shrink-0 flex-col items-end justify-center gap-1.5 sm:flex">
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-7 w-20" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /* -------------------------------------------------------------------------- */
 /* VENUE OPTION                                                               */

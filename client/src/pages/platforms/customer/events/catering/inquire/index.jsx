@@ -39,7 +39,7 @@ import { SAVE } from "@/services/redux/slices/events/bookings";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-const Inquire = ({ selected = {}, onSelect = () => {} }) => {
+const CateringInquiry = ({ onSelect = () => {} }) => {
   const { collections: venueCollections = [] } = useSelector(
     ({ venues }) => venues,
   );
@@ -50,17 +50,18 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   const [menuSelections, setMenuSelections] = useState(DEFAULT_MENU_SELECTIONS);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const packageSelected = Boolean(selected?._id);
 
-  const { clearCateringDraft, isUpdating, reason } = useCateringDraft({
-    selected,
-    form,
-    setForm,
-    menuSelections,
-    setMenuSelections,
-    currentStep,
-    setCurrentStep,
-  });
+  const { clearCateringDraft, isUpdating, reason, selected } = useCateringDraft(
+    {
+      form,
+      setForm,
+      menuSelections,
+      setMenuSelections,
+      currentStep,
+      setCurrentStep,
+    },
+  );
+  const packageSelected = Boolean(selected?._id);
 
   useEffect(() => {
     dispatch(BROWSE_VENUES());
@@ -190,6 +191,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
         catering: cateringEstimate,
         venue: venueEstimate,
       },
+      "catering",
     );
     dispatch(SAVE({ ...payload, customer: auth?._id }))
       .unwrap()
@@ -201,15 +203,18 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   };
 
   const handleBack = () => {
-    if (isUpdating) {
-      navigate(-1);
-    }
     onSelect({}, "default");
     clearCateringDraft();
     setForm(DEFAULT_FORM);
     setMenuSelections(DEFAULT_MENU_SELECTIONS);
     setSteps(DEFAULT_STEPS);
     setCurrentStep(1);
+
+    if (isUpdating) {
+      navigate(`/platforms/my-bookings/${form?.reference}`);
+    } else {
+      navigate(`/platforms/catering`);
+    }
   };
 
   if (!packageSelected) {
@@ -379,4 +384,4 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   );
 };
 
-export default Inquire;
+export default CateringInquiry;

@@ -1,24 +1,54 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "./header";
 import Body from "./body";
 import Footer from "./footer";
-import { Button } from "@/components/ui/button";
 
-const Details = ({
-  isReview = false,
-  selected,
-  onSelect: handleSelect = () => {},
-  handleBackToCateringPackage = () => {},
-}) => {
-  const onSelect = (data, actionType) => {
-    if (isReview) {
-      if (actionType === "default") {
-        sessionStorage.removeItem("venue-review");
-      }
-      handleBackToCateringPackage();
+const VenueDetails = () => {
+  const [selected, setSelected] = useState({});
+  const [isReview, setIsReview] = useState(false);
+  const [isAutomaticRedirect, setIsAutomaticRedirect] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const draft = JSON.parse(sessionStorage.getItem("venueDraft") || "{}");
+    setSelected(draft?.selected);
+    setIsReview(draft?.isReview);
+    setIsAutomaticRedirect(draft?.isAutomaticRedirect);
+  }, []);
+
+  const onSelect = (actionType = "") => {
+    if (isReview && actionType === "select") {
+      const cateringDraft = JSON.parse(
+        sessionStorage.getItem("cateringDraft") || "{}",
+      );
+
+      sessionStorage.setItem(
+        "cateringDraft",
+        JSON.stringify({
+          ...cateringDraft,
+          form: {
+            ...cateringDraft?.form,
+            venue: { ...cateringDraft?.form?.venue, item: selected?._id },
+          },
+        }),
+      );
+      navigate("/platforms/catering/inquire");
+    } else if (actionType === "inquire") {
+      sessionStorage.setItem(
+        "venueDraft",
+        JSON.stringify({ selected, currentStep: 1 }),
+      );
+      navigate("/platforms/venues/inquire");
+    } else if (isAutomaticRedirect) {
+      sessionStorage.removeItem("venueDraft");
+      navigate("/platforms/venues");
     } else {
-      handleSelect(data, actionType);
+      sessionStorage.removeItem("venueDraft");
+      navigate(-1);
     }
   };
   return (
@@ -29,7 +59,7 @@ const Details = ({
           variant="ghost"
           size="sm"
           className="mb-2 h-8 gap-1.5 px-2 text-xs"
-          onClick={() => onSelect({}, "default")}
+          onClick={onSelect}
         >
           <ArrowLeft className="size-3.5" />
           {isReview ? "Back to Inquiry" : "Back to Venues"}
@@ -51,4 +81,4 @@ const Details = ({
   );
 };
 
-export default Details;
+export default VenueDetails;

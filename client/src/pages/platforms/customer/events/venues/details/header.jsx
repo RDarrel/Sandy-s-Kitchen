@@ -152,7 +152,7 @@ const Metric = ({ metric }) => {
 };
 
 const Gallery = ({ venue }) => {
-  const thumbnail = venue.images[0] || "";
+  const thumbnail = venue?.images?.length > 0 ? venue?.images[0] : "";
 
   const getImage = (image) => {
     return Cloudinary.getVenueImg(
@@ -174,7 +174,7 @@ const Gallery = ({ venue }) => {
       <div
         className={`venue-card__thumbs grid grid-cols-${venue?.images?.length - 1} gap-1`}
       >
-        {venue.images.slice(1, 4).map((image, index) => (
+        {venue?.images?.slice(1, 4).map((image, index) => (
           <img
             src={getImage(image, index + 2)}
             alt={`${venue.name} preview ${index + 2}`}

@@ -39,7 +39,7 @@ import useVenueDraft from "./useVenueDraft";
 import { SAVE } from "@/services/redux/slices/events/bookings";
 import { useNavigate } from "react-router-dom";
 
-const Inquire = ({ selected = {}, onSelect = () => {} }) => {
+const VenueInquiry = () => {
   const { collections: packages = [] } = useSelector(
     ({ cateringPackages }) => cateringPackages,
   );
@@ -53,10 +53,10 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
 
   const {
     clearVenueDraft,
+    selected,
     isUpdating = false,
     reason = "",
   } = useVenueDraft({
-    selected,
     form,
     setForm,
     menuSelections,
@@ -64,14 +64,9 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
     currentStep,
     setCurrentStep,
   });
-
   useEffect(() => {
     dispatch(BROWSE_CATERING_PACKAGES());
   }, [dispatch]);
-
-  useEffect(() => {
-    setMenuSelections(DEFAULT_MENU_SELECTIONS);
-  }, [form?.catering?.item]);
 
   useEffect(() => {
     if (form?.bookingType === "venue" || !form?.bookingType) {
@@ -189,6 +184,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
         catering: cateringEstimate,
         venue: venueEstimate,
       },
+      "venue",
     );
     dispatch(SAVE({ ...payload, customer: auth?._id }))
       .unwrap()
@@ -199,15 +195,17 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
       .catch((error) => toast.error(error?.message || error));
   };
   const handleBack = () => {
-    if (isUpdating) {
-      navigate(-1);
-    }
-    onSelect({}, "default");
     clearVenueDraft();
     setForm(DEFAULT_FORM);
     setMenuSelections(DEFAULT_MENU_SELECTIONS);
     setSteps(DEFAULT_STEPS);
     setCurrentStep(1);
+
+    if (isUpdating) {
+      navigate(`/platforms/my-bookings/${form?.reference}`);
+    } else {
+      navigate(`/platforms/venues`);
+    }
   };
   if (!selected?._id) {
     return (
@@ -217,7 +215,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
             variant="ghost"
             size="sm"
             className="mb-3 h-8 gap-1 px-2 text-xs"
-            onClick={() => onSelect({}, "default")}
+            onClick={handleBack}
           >
             <ArrowLeft className="size-3.5" />
             Back to Venues
@@ -360,6 +358,7 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
                         handleMenuToggle={handleMenuToggle}
                         updateField={updateField}
                         handleSubmit={handleSubmit}
+                        setMenuSelections={setMenuSelections}
                         isUpdating={isUpdating}
                       />
                       <Actions
@@ -378,4 +377,4 @@ const Inquire = ({ selected = {}, onSelect = () => {} }) => {
   );
 };
 
-export default Inquire;
+export default VenueInquiry;

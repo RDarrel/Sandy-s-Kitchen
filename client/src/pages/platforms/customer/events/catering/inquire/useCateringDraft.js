@@ -1,11 +1,8 @@
-// hooks/useVenueDraft.js
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const CATERING_DRAFT_KEY = "cateringDraft";
 
 const useCateringDraft = ({
-  selected,
   form,
   setForm,
   menuSelections,
@@ -14,25 +11,26 @@ const useCateringDraft = ({
   setCurrentStep,
 }) => {
   const [isDraftLoaded, setIsDraftLoaded] = useState(false);
+  const [selected, setSelected] = useState({});
   const [isUpdating, setIsUpdating] = useState(false);
   const [reason, setReason] = useState("");
+
+  const isRestoringRef = useRef(true);
+
   // RESTORE VENUE DRAFT
   useEffect(() => {
     try {
       const cateringDraft = sessionStorage.getItem(CATERING_DRAFT_KEY);
-      const venueReview = sessionStorage.getItem("venue-review");
 
       if (cateringDraft) {
         const draft = JSON.parse(cateringDraft);
 
         if (draft?.form) {
-          setForm({
-            ...draft.form,
-            venue: {
-              ...draft.form.venue,
-              ...(venueReview && { item: JSON.parse(venueReview)?._id }),
-            },
-          });
+          setForm(draft?.form);
+        }
+
+        if (draft?.selected) {
+          setSelected(draft?.selected);
         }
 
         if (draft?.menuSelections) {
@@ -64,6 +62,12 @@ const useCateringDraft = ({
   useEffect(() => {
     if (!isDraftLoaded) return;
 
+    // Skip the first persistence cycle after restoring the draft.
+    if (isRestoringRef.current) {
+      isRestoringRef.current = false;
+      return;
+    }
+
     try {
       sessionStorage.setItem(
         CATERING_DRAFT_KEY,
@@ -83,10 +87,12 @@ const useCateringDraft = ({
     sessionStorage.removeItem(CATERING_DRAFT_KEY);
     setReason("");
     setIsUpdating(false);
+    setSelected({});
   };
 
   return {
     isDraftLoaded,
+    selected,
     isUpdating,
     reason,
     clearCateringDraft,

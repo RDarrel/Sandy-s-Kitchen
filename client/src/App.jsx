@@ -18,6 +18,10 @@ import SignUp from "./pages/authentication/sign-up";
 import "./App.css";
 import Payment from "./pages/platforms/customer/myBookings/payment";
 import BookingDetails from "./pages/platforms/customer/myBookings/details";
+import CateringInquiry from "./pages/platforms/customer/events/catering/inquire";
+import CateringDetails from "./pages/platforms/customer/events/catering/details";
+import VenueInquiry from "./pages/platforms/customer/events/venues/inquire";
+import VenueDetails from "./pages/platforms/customer/events/venues/details";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -41,6 +45,16 @@ export default function App() {
       {/* <Route path="/authentication/:action" element={<Authentication />} /> */}
       <Route path="/platforms" element={<Platforms />}>
         {RouteConfig()}
+        <Route
+          path="/platforms/catering/inquire"
+          element={<CateringInquiry />}
+        />
+        <Route
+          path="/platforms/catering/details"
+          element={<CateringDetails />}
+        />
+        <Route path="/platforms/venues/inquire" element={<VenueInquiry />} />
+        <Route path="/platforms/venues/details" element={<VenueDetails />} />
         <Route
           path="/platforms/my-bookings/:reference"
           element={<BookingDetails />}

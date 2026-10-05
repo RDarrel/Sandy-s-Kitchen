@@ -246,8 +246,8 @@ const BookingOverview = ({ booking, status, date, action }) => {
     const sideDishes = groupMenusByCategory(booking?.catering?.sideDishes);
 
     const linkMap = {
-      venue: "venues",
-      catering: "catering",
+      venue: "venues/inquire",
+      catering: "catering/inquire",
     };
 
     const sessionkeyMap = {

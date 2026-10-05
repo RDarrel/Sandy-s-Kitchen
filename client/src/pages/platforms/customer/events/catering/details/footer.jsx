@@ -32,7 +32,7 @@ const Footer = ({ isReview = false, selected = {}, onSelect = () => {} }) => {
           <Button
             size="lg"
             className="shrink-0 gap-2"
-            onClick={() => onSelect(selected, isReview ? "select" : "inquire")}
+            onClick={() => onSelect(isReview ? "select" : "inquire")}
           >
             {isReview ? "Select Catering Package" : "Inquire Now"}
 

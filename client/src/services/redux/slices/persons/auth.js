@@ -212,6 +212,7 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(LOGOUT.fulfilled, (state) => {
+        sessionStorage.clear();
         state.isSuccess = true;
         state.isLoading = false;
       })

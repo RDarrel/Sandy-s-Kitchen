@@ -26,12 +26,32 @@ export default function Platforms() {
   const lastSegment = pathSegments[pathSegments.length - 1]; //
 
   useEffect(() => {
-    const inquiry = sessionStorage.getItem("inquiry");
-    if (auth?._id && inquiry) {
-      const { type } = JSON.parse(inquiry);
-      navigate(`/platforms/${type}`);
+    if (!auth?._id || auth?.role !== 6) return;
+
+    const hasCheckedDraft = sessionStorage.getItem("draftRedirectChecked");
+
+    // Already handled once in this browser tab/session.
+    if (hasCheckedDraft) return;
+
+    const catering = sessionStorage.getItem("cateringDraft");
+    const venue = sessionStorage.getItem("venueDraft");
+
+    // Mark as checked BEFORE navigating.
+    sessionStorage.setItem("draftRedirectChecked", "true");
+
+    if (catering) {
+      navigate("/platforms/catering/details", {
+        replace: true,
+      });
+      return;
     }
-  }, [auth]);
+
+    if (venue) {
+      navigate("/platforms/venues/details", {
+        replace: true,
+      });
+    }
+  }, [auth?._id, auth?.role, navigate]);
 
   return (
     <SidebarProvider>

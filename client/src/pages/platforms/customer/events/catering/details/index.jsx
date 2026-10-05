@@ -4,21 +4,50 @@ import Header from "./header";
 import Body from "./body";
 import Footer from "./footer";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-const Details = ({
-  selected,
-  isReview = false,
-  onSelect: handleSelect = () => {},
-  handleBackToVenue = () => {},
-}) => {
-  const onSelect = (data, actionType) => {
-    if (isReview) {
-      if (actionType === "default") {
-        sessionStorage.removeItem("catering-review");
-      }
-      handleBackToVenue();
+const CateringDetails = () => {
+  const [selected, setSelected] = useState({});
+  const [isReview, setIsReview] = useState(false);
+  const [isAutomaticRedirect, setIsAutomaticRedirect] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const draft = JSON.parse(sessionStorage.getItem("cateringDraft") || "{}");
+    setSelected(draft?.selected);
+    setIsReview(draft?.isReview);
+    setIsAutomaticRedirect(draft?.isAutomaticRedirect);
+  }, []);
+
+  const onSelect = (actionType = "") => {
+    if (isReview && actionType === "select") {
+      const venueDraft = JSON.parse(
+        sessionStorage.getItem("venueDraft") || "{}",
+      );
+      sessionStorage.setItem(
+        "venueDraft",
+        JSON.stringify({
+          ...venueDraft,
+          form: {
+            ...venueDraft?.form,
+            catering: { ...venueDraft?.form?.catering, item: selected?._id },
+          },
+        }),
+      );
+      navigate("/platforms/venues/inquire");
+    } else if (actionType === "inquire") {
+      sessionStorage.setItem(
+        "venueDraft",
+        JSON.stringify({ selected, currentStep: 1 }),
+      );
+      navigate("/platforms/catering/inquire");
+    } else if (isAutomaticRedirect) {
+      sessionStorage.removeItem("cateringDraft");
+      navigate("/platforms/catering");
     } else {
-      handleSelect(data, actionType);
+      sessionStorage.removeItem("cateringDraft");
+      navigate(-1);
     }
   };
   return (
@@ -29,7 +58,7 @@ const Details = ({
           variant="ghost"
           size="sm"
           className="mb-2 h-8 gap-1.5 px-2 text-xs"
-          onClick={() => onSelect({}, "default")}
+          onClick={onSelect}
         >
           <ArrowLeft className="size-3.5" />
           {isReview ? "Back to Inquiry" : "Back to Packages"}
@@ -51,4 +80,4 @@ const Details = ({
   );
 };
 
-export default Details;
+export default CateringDetails;

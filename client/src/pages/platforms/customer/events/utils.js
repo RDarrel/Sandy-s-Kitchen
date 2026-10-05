@@ -70,7 +70,12 @@ export const buildInclusions = (inclusions, isUpdating = false) => {
     amount: isUpdating ? inc?.amount : 0,
   }));
 };
-export const buildPayload = (form, menuSelections, estimate) => {
+export const buildPayload = (
+  form,
+  menuSelections,
+  estimate,
+  origin = "catering",
+) => {
   const { bookingType } = form;
   const isBoth = form?.bookingType === "both";
   const catering = {
@@ -94,6 +99,7 @@ export const buildPayload = (form, menuSelections, estimate) => {
     notes: form?.notes,
     bookingType: form?.bookingType,
     status: "pending",
+    bookingOrigin: origin,
     pricing: {
       ...(isBoth ? estimate : { [bookingType]: estimate[bookingType] }),
       total: (estimate?.catering?.total || 0) + (estimate?.venue?.total || 0),

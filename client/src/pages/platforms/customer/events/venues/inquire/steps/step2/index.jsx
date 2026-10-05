@@ -5,6 +5,7 @@ import Cloudinary from "@/services/utilities/cloudinary";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useCallback, useMemo } from "react";
+import { DEFAULT_MENU_SELECTIONS } from "../../constant";
 
 const Step4 = ({
   packages = [],
@@ -12,13 +13,17 @@ const Step4 = ({
   form,
   menuSelections,
   setForm = () => {},
+  setMenuSelections = () => {},
 }) => {
   const navigate = useNavigate();
 
   const handleView = useCallback(
     (caterPackage) => {
-      sessionStorage.setItem("catering-review", JSON.stringify(caterPackage));
-      navigate("/platforms/catering?from=venue");
+      sessionStorage.setItem(
+        "cateringDraft",
+        JSON.stringify({ selected: caterPackage, isReview: true }),
+      );
+      navigate("/platforms/catering/details");
     },
     [selected, form, menuSelections, navigate],
   );
@@ -36,7 +41,7 @@ const Step4 = ({
             key={caterPackage._id}
             caterPackage={caterPackage}
             selected={form?.catering?.item === caterPackage._id}
-            onSelect={() =>
+            onSelect={() => {
               setForm((prev) => ({
                 ...prev,
                 catering: {
@@ -46,8 +51,9 @@ const Step4 = ({
                   includedGuests: caterPackage.includedGuests,
                   basePrice: caterPackage.basePrice,
                 },
-              }))
-            }
+              }));
+              setMenuSelections(DEFAULT_MENU_SELECTIONS);
+            }}
             handleView={handleView}
           />
         ))}
