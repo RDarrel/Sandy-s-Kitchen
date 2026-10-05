@@ -20,7 +20,7 @@ const Actions = ({ currentStep, totalSteps, onBack }) => {
   }
 
   return (
-    <div className="mt-4 flex items-center justify-between border-t pt-3">
+    <div className="mt-auto flex items-center justify-between border-t pt-3">
       <Button
         type="button"
         variant="ghost"

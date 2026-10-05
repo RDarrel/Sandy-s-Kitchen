@@ -13,6 +13,11 @@ export const DEFAULT_STEPS = [
     icon: CalendarDays,
   },
   {
+    title: "Venue",
+    description: "Place setup",
+    icon: MapPin,
+  },
+  {
     title: "Main Dishes",
     description: "Food choices",
     icon: Utensils,
@@ -22,11 +27,7 @@ export const DEFAULT_STEPS = [
     description: "Food choices",
     icon: Salad,
   },
-  {
-    title: "Venue",
-    description: "Place setup",
-    icon: MapPin,
-  },
+
   {
     title: "Contact",
     description: "Your details",

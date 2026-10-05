@@ -332,12 +332,12 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
                   </div>
                 </div>
               )}
-              <StepperPanel className="min-w-0">
+              <StepperPanel className="min-w-0 h-full flex flex-col">
                 {[
                   Step1,
+                  form?.bookingType !== "catering" ? Step4 : undefined,
                   Step2,
                   Step3,
-                  form?.bookingType !== "catering" ? Step4 : undefined,
                   Step5,
                   Step6,
                 ]
@@ -345,29 +345,32 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
                   .map((Step, idx) => (
                     <StepperContent
                       value={idx + 1}
-                      className={"p-3 sm:p-5"}
+                      className="flex h-full flex-col p-3 gap-4 sm:p-5"
                       key={idx}
                     >
-                      <Step
-                        form={form}
-                        selected={selected}
-                        packageInfo={packageInfo}
-                        selectedMainCount={selectedMainCount}
-                        selectedSideCount={selectedSideCount}
-                        menuSelections={menuSelections}
-                        venues={venues}
-                        estimate={{
-                          venue: venueEstimate,
-                          catering: cateringEstimate,
-                        }}
-                        selectedMenus={selectedMenus}
-                        selectedVenue={selectedVenue}
-                        setForm={setForm}
-                        handleMenuToggle={handleMenuToggle}
-                        handleSubmit={handleSubmit}
-                        updateField={updateField}
-                        isUpdating={isUpdating}
-                      />
+                      <div>
+                        <Step
+                          form={form}
+                          selected={selected}
+                          packageInfo={packageInfo}
+                          selectedMainCount={selectedMainCount}
+                          selectedSideCount={selectedSideCount}
+                          menuSelections={menuSelections}
+                          venues={venues}
+                          estimate={{
+                            venue: venueEstimate,
+                            catering: cateringEstimate,
+                          }}
+                          selectedMenus={selectedMenus}
+                          selectedVenue={selectedVenue}
+                          isUpdating={isUpdating}
+                          setForm={setForm}
+                          handleMenuToggle={handleMenuToggle}
+                          handleSubmit={handleSubmit}
+                          updateField={updateField}
+                          setCurrentStep={setCurrentStep}
+                        />
+                      </div>
                       <Actions
                         currentStep={currentStep}
                         totalSteps={steps.length}

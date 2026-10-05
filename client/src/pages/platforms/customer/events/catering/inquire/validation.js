@@ -138,9 +138,9 @@ const step4 = (form) => {
 };
 const isValid = (currentStep, form, menuSelections, selected) => {
   if (currentStep === 1) return step1(form);
-  if (currentStep === 2) return step2(selected, menuSelections);
-  if (currentStep === 3) return step3(selected, menuSelections);
-  if (form?.bookingType === "both" && currentStep === 4) return step4(form);
+  if (currentStep === 3) return step2(selected, menuSelections);
+  if (currentStep === 4) return step3(selected, menuSelections);
+  if (form?.bookingType === "both" && currentStep === 2) return step4(form);
   return true;
 };
 

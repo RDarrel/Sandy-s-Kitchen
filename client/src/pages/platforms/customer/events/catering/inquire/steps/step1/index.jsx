@@ -211,13 +211,7 @@ const Step1 = ({
       {/* -------------------------------- */}
 
       {form.bookingType === "both" && (
-        <Section title="Venue Details">
-          <div className="mb-3 rounded-md bg-muted/40 px-3 py-2">
-            <p className="text-[11px] text-muted-foreground">
-              These details will be used for your venue reservation.
-            </p>
-          </div>
-
+        <Section title="Venue Reservation Details">
           <div className="grid gap-3 grid grid-cols-1 md:grid-cols-2">
             <Field label="Guests" required>
               <Input

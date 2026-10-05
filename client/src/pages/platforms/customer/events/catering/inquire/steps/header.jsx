@@ -4,7 +4,7 @@ const Header = ({ title, description, badge, Icon = null }) => {
   return (
     <div className="mb-4 flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <div className="flex gap-1 items-center">
+        <div className="flex gap-2 items-center">
           {Icon && <Icon className="size-4 text-primary" />}
           <h2 className="text-base font-bold tracking-tight">{title}</h2>
         </div>

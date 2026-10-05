@@ -12,6 +12,13 @@ const initialState = {
     measurement: "",
     status: "",
   },
+  availability: {
+    venues: [],
+    selectedVenue: {
+      isAvailable: true,
+      item: {},
+    },
+  },
   filtered: [],
   selected: {},
   willCreate: false,
@@ -47,6 +54,23 @@ export const BROWSE = createAsyncThunk(`${url}`, (_, thunkAPI) => {
     return thunkAPI.rejectWithValue(message);
   }
 });
+export const AVAILABLE = createAsyncThunk(
+  `${url}/available`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/available`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
 export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   try {
@@ -127,6 +151,22 @@ export const reduxSlice = createSlice({
         state.message = error.message;
         state.isLoading = false;
       })
+      .addCase(AVAILABLE.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(AVAILABLE.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.availability = data;
+        state.isLoading = false;
+      })
+      .addCase(AVAILABLE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
+
       .addCase(SAVE.pending, (state) => {
         state.formSubmitted = true;
         state.isSuccess = false;
