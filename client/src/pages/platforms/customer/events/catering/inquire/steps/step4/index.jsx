@@ -1,37 +1,59 @@
-import Header from "../header";
-import { Home, Users, Eye, MapPin, Check } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
+import { Home, Users, Eye, MapPin, Check, Clock, Pencil } from "lucide-react";
+
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Cloudinary from "@/services/utilities/cloudinary";
-import { useNavigate } from "react-router-dom";
-import { useCallback } from "react";
-import { useSelector } from "react-redux";
+import Header from "../header";
 
-const Step4 = ({ venues, form, setForm = () => {} }) => {
+/* -------------------------------------------------------------------------- */
+/* STEP 4                                                                     */
+/* -------------------------------------------------------------------------- */
+
+const Step4 = ({ venues = [], form, setForm = () => {} }) => {
   const { isLoading } = useSelector(({ venues }) => venues);
   const navigate = useNavigate();
+
   const handleView = useCallback(
     (venue) => {
       sessionStorage.setItem(
         "venueDraft",
-        JSON.stringify({ selected: venue, isReview: true }),
+        JSON.stringify({
+          selected: venue,
+          isReview: true,
+        }),
       );
+
       navigate("/platforms/venues/details");
     },
     [navigate],
   );
 
-  if (isLoading) return <Step4Skeleton />;
+  const filteredVenues = useMemo(() => {
+    const requestedPax = Number(form?.venue?.pax) || 0;
+
+    if (!requestedPax) return venues;
+
+    return venues.filter((venue) => {
+      if (venue?._id === "own-venue") return true;
+
+      return Number(venue?.capacity) >= requestedPax;
+    });
+  }, [form?.venue?.pax, venues]);
+
+  if (isLoading) {
+    return <Step4Skeleton />;
+  }
 
   return (
     <div className="w-full min-w-0">
-      <Header
-        title="Venue"
-        description="Choose one of Sandy's Kitchen venues or use your own location."
-      />
+      <VenueHeader form={form} count={venues.length} />
 
-      <div className="grid w-full gap-2.5">
+      <div className="grid w-full gap-2">
         {venues.map((venue) => (
           <VenueOption
             key={venue._id}
@@ -40,12 +62,17 @@ const Step4 = ({ venues, form, setForm = () => {} }) => {
             onSelect={() =>
               setForm((prev) => ({
                 ...prev,
-                venue: { ...prev?.venue, item: venue._id },
+                venue: {
+                  ...prev?.venue,
+                  item: venue._id,
+                },
               }))
             }
             handleView={handleView}
           />
         ))}
+
+        {!filteredVenues.length && <NoMatchingVenues />}
       </div>
     </div>
   );
@@ -54,19 +81,145 @@ const Step4 = ({ venues, form, setForm = () => {} }) => {
 export default Step4;
 
 /* -------------------------------------------------------------------------- */
-/* SKELETON                                                                   */
+/* VENUE HEADER                                                               */
+/* -------------------------------------------------------------------------- */
+
+const VenueHeader = ({ form, count = 0 }) => {
+  const pax = form?.venue?.pax;
+  const start = form?.venue?.time?.start;
+  const end = form?.venue?.time?.end;
+
+  return (
+    <div className="mb-2.5">
+      <Header
+        title={" Venue requirements"}
+        description={" Review the guest count and time needed for the venue."}
+      />
+      {/* Compact booking details */}
+
+      <div className="-mt-1 flex min-w-0 items-center rounded-md border border-border bg-card px-2 py-1">
+        <div className="flex min-w-0 flex-1 items-center overflow-hidden text-[11px] sm:text-xs">
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-sm bg-muted/40 px-1.5 py-1">
+            <Users className="size-3 text-muted-foreground sm:size-3.5" />
+
+            <span className="font-medium text-foreground">{pax || "—"}</span>
+
+            <span className="text-muted-foreground">guests</span>
+          </span>
+
+          <span className="mx-2 h-3 w-px shrink-0 bg-border" />
+
+          <span className="inline-flex min-w-0 items-center gap-1 rounded-sm bg-muted/40 px-1.5 py-1">
+            <Clock className="size-3 shrink-0 text-muted-foreground sm:size-3.5" />
+
+            <span className="truncate font-medium text-foreground">
+              {formatTime(start)} – {formatTime(end)}
+            </span>
+          </span>
+        </div>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="ml-1 h-6 shrink-0 gap-1 px-1.5 text-[11px] text-primary hover:bg-primary/5 hover:text-primary sm:h-7 sm:text-xs"
+        >
+          <Pencil className="size-3" />
+          <span className="hidden xs:inline">Change</span>
+          <span className="xs:hidden">Edit</span>
+        </Button>
+      </div>
+      <div className="mt-3 mb-2 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-foreground">
+            Available venues
+          </h3>
+
+          <p className="mt-0.5 text-xs leading-4 text-muted-foreground">
+            Select a venue that best fits your event.
+          </p>
+        </div>
+
+        <span className="mb-0.5 shrink-0 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+          {count} {count === 1 ? "venue" : "venues"}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* FORMAT TIME                                                                */
+/* -------------------------------------------------------------------------- */
+
+const formatTime = (time) => {
+  if (!time) return "—";
+
+  const [hours, minutes] = String(time).split(":").map(Number);
+
+  if (
+    !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return time;
+  }
+
+  const period = hours >= 12 ? "PM" : "AM";
+  const formattedHours = hours % 12 || 12;
+
+  return `${formattedHours}:${String(minutes).padStart(2, "0")} ${period}`;
+};
+
+/* -------------------------------------------------------------------------- */
+/* NO MATCHING VENUES                                                         */
+/* -------------------------------------------------------------------------- */
+
+const NoMatchingVenues = () => {
+  return (
+    <div className="rounded-lg border border-dashed border-border bg-muted/10 px-3 py-4 text-center">
+      <p className="text-sm font-medium text-foreground">No matching venues</p>
+
+      <p className="mx-auto mt-0.5 max-w-md text-[11px] leading-4 text-muted-foreground sm:text-xs">
+        No venues match your current guest count and schedule. Change your
+        booking details to see other options.
+      </p>
+    </div>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* STEP SKELETON                                                              */
 /* -------------------------------------------------------------------------- */
 
 const Step4Skeleton = () => {
   return (
     <div className="w-full min-w-0">
-      <Header
-        title="Venue"
-        description="Choose one of Sandy's Kitchen venues or use your own location."
-      />
+      <div className="mb-2.5">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="mt-1 h-3 w-40" />
+          </div>
 
-      <div className="grid w-full gap-2.5">
-        {Array.from({ length: 4 }).map((_, index) => (
+          <Skeleton className="h-3 w-10" />
+        </div>
+
+        <div className="mt-1.5 flex h-8 items-center justify-between rounded-md border border-border px-2">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-3 w-14" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+
+          <Skeleton className="h-5 w-12" />
+        </div>
+      </div>
+
+      <div className="grid w-full gap-2">
+        {Array.from({ length: 3 }).map((_, index) => (
           <VenueOptionSkeleton key={index} />
         ))}
       </div>
@@ -74,64 +227,30 @@ const Step4Skeleton = () => {
   );
 };
 
+/* -------------------------------------------------------------------------- */
+/* VENUE OPTION SKELETON                                                      */
+/* -------------------------------------------------------------------------- */
+
 const VenueOptionSkeleton = () => {
   return (
-    <div className="w-full min-w-0 rounded-lg border border-border p-2.5 sm:p-3">
-      <div
-        className="
-          grid
-          min-w-0
-          grid-cols-[auto_70px_minmax(0,1fr)]
-          gap-2.5
+    <div className="w-full min-w-0 rounded-lg border border-border p-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <Skeleton className="size-4 shrink-0 rounded-full" />
 
-          sm:grid-cols-[auto_85px_minmax(0,1fr)_auto]
-          sm:items-center
-          sm:gap-3
-        "
-      >
-        <Skeleton className="mt-1 size-4 shrink-0 rounded-full sm:mt-0 sm:size-[17px]" />
+        <Skeleton className="size-14 shrink-0 rounded-md sm:h-16 sm:w-20" />
 
-        <Skeleton
-          className="
-            h-[60px]
-            w-[70px]
-            shrink-0
-            rounded-sm
-
-            sm:h-[68px]
-            sm:w-[85px]
-          "
-        />
-
-        <div className="min-w-0">
-          <Skeleton className="h-5 w-2/3 max-w-[14rem]" />
-
-          <div className="mt-1 flex min-w-0 items-center gap-1.5">
-            <Skeleton className="size-3 shrink-0" />
-            <Skeleton className="h-4 w-full max-w-[20rem]" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-14" />
           </div>
 
-          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
-            <span className="inline-flex items-center gap-1">
-              <Skeleton className="size-3.5 shrink-0" />
-              <Skeleton className="h-4 w-16" />
-            </span>
+          <Skeleton className="mt-1 h-3 w-4/5" />
 
-            <span className="inline-flex items-center gap-1">
-              <Skeleton className="size-3.5 shrink-0" />
-              <Skeleton className="h-4 w-14" />
-            </span>
+          <div className="mt-1.5 flex gap-2">
+            <Skeleton className="h-3 w-14" />
+            <Skeleton className="h-3 w-20" />
           </div>
-
-          <div className="mt-2.5 flex items-center justify-between gap-2 sm:hidden">
-            <Skeleton className="h-5 w-16" />
-            <Skeleton className="h-7 w-20" />
-          </div>
-        </div>
-
-        <div className="hidden shrink-0 flex-col items-end justify-center gap-1.5 sm:flex">
-          <Skeleton className="h-5 w-20" />
-          <Skeleton className="h-7 w-20" />
         </div>
       </div>
     </div>
@@ -148,7 +267,7 @@ const VenueOption = ({
   onSelect = () => {},
   handleView = () => {},
 }) => {
-  const isOwnVenue = venue._id === "own-venue";
+  const isOwnVenue = venue?._id === "own-venue";
   const image = venue?.images?.[0];
 
   const imageUrl =
@@ -160,6 +279,7 @@ const VenueOption = ({
     <div
       role="button"
       tabIndex={0}
+      aria-pressed={selected}
       onClick={onSelect}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -168,219 +288,92 @@ const VenueOption = ({
         }
       }}
       className={`
-        group
-        w-full
-        min-w-0
-        cursor-pointer
-        rounded-lg
-        border
-        p-2.5
-        outline-none
-        transition-all
-
-        hover:border-primary/40
-        hover:bg-primary/[0.02]
-
-        focus-visible:ring-2
-        focus-visible:ring-primary/30
-
-        sm:p-3
-
+        group w-full min-w-0 cursor-pointer rounded-lg border
+        p-2 outline-none transition-colors
+        hover:border-primary/40 hover:bg-primary/[0.02]
+        focus-visible:ring-2 focus-visible:ring-primary/30
+        sm:p-2.5
         ${selected ? "border-primary bg-primary/5" : "border-border"}
       `}
     >
-      <div
-        className="
-          grid
-          min-w-0
-          grid-cols-[auto_70px_minmax(0,1fr)]
-          gap-2.5
-
-          sm:grid-cols-[auto_85px_minmax(0,1fr)_auto]
-          sm:items-center
-          sm:gap-3
-        "
-      >
-        {/* ---------------------------------------------------------------- */}
-        {/* SELECTION                                                        */}
-        {/* ---------------------------------------------------------------- */}
-
+      <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+        {/* Selection */}
         <div
-          className="
-            mt-1
-            flex
-            size-4
-            shrink-0
-            items-center
-            justify-center
-            rounded-full
-            border
-
-            sm:mt-0
-            sm:size-[17px]
-          "
+          className={`
+            flex size-4 shrink-0 items-center justify-center
+            rounded-full border
+            ${
+              selected
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border"
+            }
+          `}
         >
-          {selected && (
-            <div
-              className="
-                flex
-                size-full
-                items-center
-                justify-center
-                rounded-full
-                bg-primary
-                text-primary-foreground
-              "
-            >
-              <Check className="size-2.5 sm:size-3" />
-            </div>
-          )}
+          {selected && <Check className="size-2.5" />}
         </div>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* IMAGE                                                             */}
-        {/* ---------------------------------------------------------------- */}
-
-        <div
-          className="
-            h-[60px]
-            w-[70px]
-            shrink-0
-            overflow-hidden
-            rounded-sm
-            bg-muted
-
-            sm:h-[68px]
-            sm:w-[85px]
-          "
-        >
+        {/* Image */}
+        <div className="size-14 shrink-0 overflow-hidden rounded-md bg-muted sm:h-16 sm:w-20">
           {imageUrl ? (
             <img
               src={imageUrl}
-              alt={venue.name}
-              className="
-                h-full
-                brightness-95
-                w-full
-                object-cover
-                transition-transform
-                group-hover:scale-[1.02]
-              "
+              alt={venue?.name || "Venue"}
+              className="h-full w-full object-cover brightness-95 transition-transform group-hover:scale-[1.02]"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <Home className="size-6 text-muted-foreground/40" />
+              <Home className="size-5 text-muted-foreground/40 sm:size-6" />
             </div>
           )}
         </div>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* MAIN CONTENT                                                      */}
-        {/* ---------------------------------------------------------------- */}
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          {/* Name + price */}
+          <div className="flex min-w-0 items-start justify-between gap-2">
+            <h3 className="min-w-0 truncate text-xs font-semibold text-foreground sm:text-sm">
+              {venue?.name}
+            </h3>
 
-        <div className="min-w-0">
-          {/* NAME */}
+            <span className="shrink-0 whitespace-nowrap text-xs font-bold text-primary sm:text-sm">
+              {isOwnVenue ? "Free" : Formatter.amount(venue?.basePrice)}
+            </span>
+          </div>
 
-          <h3 className="truncate text-sm font-semibold sm:text-[14px]">
-            {venue.name}
-          </h3>
-
-          {/* ADDRESS */}
-
-          <p className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+          {/* Address */}
+          <p className="mt-0.5 flex min-w-0 items-center gap-1 text-[10px] leading-4 text-muted-foreground sm:text-xs">
             <MapPin className="size-3 shrink-0" />
 
             <span className="truncate">
-              {isOwnVenue ? "Use your own location" : venue.address}
+              {isOwnVenue ? "Use your own location" : venue?.address}
             </span>
           </p>
 
-          {/* VENUE DETAILS */}
+          {/* Bottom information */}
+          <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2 text-[10px] text-muted-foreground sm:gap-3 sm:text-xs">
+              {!isOwnVenue ? (
+                <>
+                  <span className="inline-flex shrink-0 items-center gap-1">
+                    <Users className="size-3" />
+                    {venue?.capacity}
+                  </span>
 
-          {!isOwnVenue && (
-            <div
-              className="
-                mt-2
-                flex
-                flex-wrap
-                gap-x-3
-                gap-y-1
-                text-xs
-                text-muted-foreground
-              "
-            >
-              <span className="inline-flex items-center gap-1">
-                <Users className="size-3.5 shrink-0" />
-                Up to {venue.capacity}
-              </span>
+                  <span className="inline-flex min-w-0 items-center gap-1">
+                    <Home className="size-3 shrink-0" />
 
-              <span className="inline-flex items-center gap-1">
-                <Home className="size-3.5 shrink-0" />
-                {venue.setting}
-              </span>
+                    <span className="truncate">{venue?.setting}</span>
+                  </span>
+                </>
+              ) : (
+                <span className="truncate">No additional venue charges</span>
+              )}
             </div>
-          )}
-
-          {isOwnVenue && (
-            <p className="mt-2 text-xs text-muted-foreground">
-              No additional venue charges
-            </p>
-          )}
-
-          {/* ---------------------------------------------------------------- */}
-          {/* MOBILE PRICE + BUTTON                                            */}
-          {/* ---------------------------------------------------------------- */}
-
-          <div
-            className="
-              mt-2.5
-              flex
-              items-center
-              justify-between
-              gap-2
-
-              sm:hidden
-            "
-            onClick={(event) => {
-              event.stopPropagation();
-            }}
-          >
-            <span className="text-sm font-bold text-primary">
-              {isOwnVenue ? "Free" : Formatter.amount(venue.basePrice)}
-            </span>
 
             {!isOwnVenue && (
               <DetailsButton venue={venue} handleView={handleView} />
             )}
           </div>
-        </div>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* DESKTOP PRICE + BUTTON                                            */}
-        {/* ---------------------------------------------------------------- */}
-
-        <div
-          className="
-            hidden
-            shrink-0
-            flex-col
-            items-end
-            justify-center
-            gap-1.5
-
-            sm:flex
-          "
-          onClick={(event) => {
-            event.stopPropagation();
-          }}
-        >
-          <span className="whitespace-nowrap text-sm font-bold text-primary">
-            {isOwnVenue ? "Free" : Formatter.amount(venue.basePrice)}
-          </span>
-
-          {!isOwnVenue && (
-            <DetailsButton venue={venue} handleView={handleView} />
-          )}
         </div>
       </div>
     </div>
@@ -388,7 +381,7 @@ const VenueOption = ({
 };
 
 /* -------------------------------------------------------------------------- */
-/* STATIC DETAILS BUTTON                                                      */
+/* DETAILS BUTTON                                                             */
 /* -------------------------------------------------------------------------- */
 
 const DetailsButton = ({ venue, handleView = () => {} }) => {
@@ -397,23 +390,17 @@ const DetailsButton = ({ venue, handleView = () => {} }) => {
       type="button"
       variant="ghost"
       size="sm"
-      className="
-        h-7
-        shrink-0
-        gap-1
-        px-2
-        text-xs
-        text-muted-foreground
-        hover:text-foreground
-      "
+      className="h-5 shrink-0 gap-1 px-1 text-[10px] text-muted-foreground hover:text-foreground sm:h-6 sm:px-1.5 sm:text-xs"
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
+
         handleView(venue);
       }}
     >
-      <Eye className="size-3.5" />
-      Details
+      <Eye className="size-3" />
+
+      <span className="hidden min-[380px]:inline">Details</span>
     </Button>
   );
 };
