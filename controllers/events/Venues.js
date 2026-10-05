@@ -1,4 +1,6 @@
 const Venue = require("../../models/events/Venue");
+const Booking = require("../../models/events/Booking");
+const dateToUTC = require("../../utilities/dateToUTC");
 
 const venuePopulates = [
   {
@@ -41,6 +43,101 @@ exports.update = async (req, res) => {
     res
       .status(200)
       .json({ data: updated, success: "Venue successfully updated." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.available = async (req, res) => {
+  try {
+    const {
+      date,
+      pax,
+      start,
+      end,
+      selectedVenueId = null,
+      excludeBookingId = null,
+    } = req.query;
+    const blockingStatuses = ["approved", "confirmed", "setup"];
+
+    const conflictQuery = {
+      bookingType: {
+        $in: ["venue", "both"],
+      },
+
+      status: {
+        $in: blockingStatuses,
+      },
+
+      date: {
+        $gte: dateToUTC({
+          date,
+          dateOnly: true,
+        }),
+        $lte: dateToUTC({
+          date,
+          dateOnly: true,
+        }),
+      },
+
+      "venue.time.start": {
+        $lt: end,
+      },
+
+      "venue.time.end": {
+        $gt: start,
+      },
+    };
+
+    // Ignore the booking currently being edited.
+    if (excludeBookingId) {
+      conflictQuery._id = {
+        $ne: excludeBookingId,
+      };
+    }
+
+    // Venue IDs occupied by OTHER bookings.
+    const conflictingVenueIds = await Booking.distinct(
+      "venue.item",
+      conflictQuery,
+    );
+
+    // Get currently available venues.
+    const venues = await Venue.find({
+      capacity: {
+        $gte: Number(pax),
+      },
+      _id: {
+        $nin: conflictingVenueIds,
+      },
+    })
+      .populate(venuePopulates)
+      .lean();
+
+    // Check if customer's previously selected venue
+    // is still available.
+    const selectedVenueAvailable = selectedVenueId
+      ? !conflictingVenueIds.some(
+          (venueId) => venueId.toString() === selectedVenueId.toString(),
+        )
+      : true;
+
+    let inquirySlotItem = {};
+
+    if (selectedVenueId) {
+      inquirySlotItem = await Venue.findById(selectedVenueId).lean();
+    }
+
+    res.json({
+      data: {
+        venues,
+        selectedVenue: {
+          isAvailable:
+            selectedVenueAvailable && inquirySlotItem?.capacity >= pax,
+          item: inquirySlotItem,
+        },
+      },
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
