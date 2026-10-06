@@ -60,6 +60,7 @@ const DatePicker = ({
   date = new Date(),
   setDate = () => {},
   withTime = false,
+  align = "end",
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -77,7 +78,7 @@ const DatePicker = ({
           {withTime ? formatDateTime(date) : formatDate(date)}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto overflow-hidden p-0" align="end">
+      <PopoverContent className="w-auto overflow-hidden p-0" align={align}>
         <Calendar
           mode="single"
           selected={date}

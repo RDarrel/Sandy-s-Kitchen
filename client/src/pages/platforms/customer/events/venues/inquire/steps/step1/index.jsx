@@ -5,6 +5,8 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import Section from "./section";
 import VenueOption from "./venueOption";
 import Field from "./field";
+import { TimePicker } from "@/components/reui/time-picker";
+import DatePicker from "@/components/shared/datePicker";
 
 const eventTypes = [
   "Wedding",
@@ -67,11 +69,17 @@ const Step1 = ({
           </Field>
 
           <Field label="Date" required>
-            <Input
+            {/* <Input
               type="date"
               required
               value={form?.date || ""}
               onChange={(e) => updateField("date", e.target.value)}
+            /> */}
+            <DatePicker
+              date={new Date(form?.date)}
+              required
+              align="start"
+              setDate={(value) => updateField("date", new Date(value))}
             />
           </Field>
 
@@ -108,7 +116,29 @@ const Step1 = ({
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Venue Start Time" required>
+            <Field label={"Venue Start Time"} required>
+              <TimePicker
+                required
+                value={form?.venue?.time?.start || ""}
+                onValueChange={(value) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    venue: {
+                      ...prev?.venue,
+                      time: {
+                        ...prev?.venue?.time,
+                        start: value,
+                      },
+                    },
+                  }))
+                }
+                className={"w-full"}
+                id="standup-time"
+                hourCycle={12}
+                minuteStep={15}
+              />
+            </Field>
+            {/* <Field label="Venue Start Time" required>
               <Input
                 type="time"
                 required
@@ -143,9 +173,30 @@ const Step1 = ({
                   }));
                 }}
               />
+            </Field> */}
+            <Field label={"Venue End Time"} required>
+              <TimePicker
+                required
+                value={form?.venue?.time?.end || ""}
+                onValueChange={(value) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    venue: {
+                      ...prev?.venue,
+                      time: {
+                        ...prev?.venue?.time,
+                        end: value,
+                      },
+                    },
+                  }))
+                }
+                className={"w-full"}
+                id="standup-time"
+                hourCycle={12}
+                minuteStep={15}
+              />
             </Field>
-
-            <Field label="Venue End Time" required>
+            {/* <Field label="Venue End Time" required>
               <Input
                 type="time"
                 required
@@ -162,8 +213,8 @@ const Step1 = ({
                     },
                   }))
                 }
-              />
-            </Field>
+              /> 
+            </Field>*/}
           </div>
         </div>
       </Section>
