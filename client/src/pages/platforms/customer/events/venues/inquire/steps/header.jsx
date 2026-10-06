@@ -6,7 +6,7 @@ const Header = ({ title, description, badge, Icon = null }) => {
       <div className="min-w-0">
         <div className="flex gap-1 items-center">
           {Icon && <Icon className="size-4 text-primary" />}
-          <h2 className="text-base font-bold tracking-tight">{title}</h2>
+          <h2 className="text-base font-semibold tracking-tight">{title}</h2>
         </div>
         <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
           {description}

@@ -162,10 +162,10 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
 
   const goNext = (e) => {
     e.preventDefault();
-    if (!isValid(currentStep, form, menuSelections, selected)) return;
-    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
-  };
 
+    if (!isValid(currentStep, form, menuSelections, selected)) return;
+    setCurrentStep((prev) => prev + 1);
+  };
   const goBack = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };

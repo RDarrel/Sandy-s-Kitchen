@@ -12,13 +12,7 @@ const initialState = {
     measurement: "",
     status: "",
   },
-  availability: {
-    venues: [],
-    selectedVenue: {
-      isAvailable: true,
-      item: {},
-    },
-  },
+  availableVenues: [],
   filtered: [],
   selected: {},
   willCreate: false,
@@ -158,7 +152,7 @@ export const reduxSlice = createSlice({
       })
       .addCase(AVAILABLE.fulfilled, (state, action) => {
         const { data } = action.payload;
-        state.availability = data;
+        state.availableVenues = data;
         state.isLoading = false;
       })
       .addCase(AVAILABLE.rejected, (state, action) => {

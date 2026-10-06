@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,21 +13,17 @@ import {
   TriangleAlert,
   CalendarX2,
 } from "lucide-react";
-
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import Cloudinary from "@/services/utilities/cloudinary";
-import Header from "../header";
 import { AVAILABLE } from "@/services/redux/slices/events/venues";
-import EmptyVenues from "./empty";
 
-/* -------------------------------------------------------------------------- */
-/* STEP 4                                                                     */
-/* -------------------------------------------------------------------------- */
+import Cloudinary from "@/services/utilities/cloudinary";
+import EmptyVenues from "./empty";
+import Header from "../header";
 
 const Step4 = ({ form, setForm = () => {}, setCurrentStep = () => {} }) => {
-  const { isLoading, availability } = useSelector(({ venues }) => venues);
+  const { isLoading, availableVenues } = useSelector(({ venues }) => venues);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -53,7 +49,16 @@ const Step4 = ({ form, setForm = () => {}, setCurrentStep = () => {} }) => {
         end: form?.venue?.time?.end,
         pax: form?.venue?.pax,
       }),
-    );
+    )
+      .unwrap()
+      .then(({ data }) => {
+        const selectedIsAvailable = data?.some(
+          ({ _id }) => form?.venue?.item === _id,
+        );
+        if (!selectedIsAvailable) {
+          setForm((prev) => ({ ...prev, venue: { ...prev?.venue, item: "" } }));
+        }
+      });
   }, [
     form?.venue?.time?.start,
     form?.venue?.time?.end,
@@ -61,21 +66,6 @@ const Step4 = ({ form, setForm = () => {}, setCurrentStep = () => {} }) => {
     form?.date,
     dispatch,
   ]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      const selectedIsAvailable = availability?.venues?.some(
-        ({ _id }) => form?.venue?.item === _id,
-      );
-      if (!selectedIsAvailable) {
-        setForm((prev) => ({ ...prev, venue: { ...prev?.venue, item: "" } }));
-      }
-    }
-  }, [availability?.venues, form?.venue?.item, isLoading, setForm]);
-
-  const availableVenues = useMemo(() => {
-    return availability.venues;
-  }, [availability.venues]);
 
   const handleEdit = () => {
     setCurrentStep(1);

@@ -116,6 +116,7 @@ const step3 = (selected, menuSelections) => {
     0,
   );
   const sideDishSelected = Object.values(menuSelections?.side || {}).flat();
+  console.log("sideDishmAX", sideDishMax, "selected", sideDishSelected?.length);
   if (sideDishSelected?.length < sideDishMax) {
     const remaining = sideDishMax - sideDishSelected.length;
 
@@ -138,9 +139,14 @@ const step4 = (form) => {
 };
 const isValid = (currentStep, form, menuSelections, selected) => {
   if (currentStep === 1) return step1(form);
-  if (currentStep === 3) return step2(selected, menuSelections);
-  if (currentStep === 4) return step3(selected, menuSelections);
-  if (form?.bookingType === "both" && currentStep === 2) return step4(form);
+  if (form?.bookingType === "both") {
+    if (currentStep === 2) return step4(form);
+    if (currentStep === 3) return step2(selected, menuSelections);
+    if (currentStep === 4) return step3(selected, menuSelections);
+  } else {
+    if (currentStep === 2) return step2(selected, menuSelections);
+    if (currentStep === 3) return step3(selected, menuSelections);
+  }
   return true;
 };
 

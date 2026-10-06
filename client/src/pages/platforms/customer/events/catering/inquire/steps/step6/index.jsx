@@ -14,16 +14,20 @@ import Header from "../header";
 import { useSelector } from "react-redux";
 import Spinner from "@/components/shared/spinner";
 
+/* -------------------------------- */
+/* Helpers                          */
+/* -------------------------------- */
+
 const formatTimeRange = (start, end) => {
   if (!start || !end) return "";
 
   return `${Formatter.time(start)} - ${Formatter.time(end)}`;
 };
 
-const joinMenuNames = (menus = []) => {
-  if (!menus?.length) return "";
+const getMenuNames = (menus = []) => {
+  if (!menus?.length) return [];
 
-  return menus.map(({ name }) => name).join(", ");
+  return menus.map(({ name }) => name).filter(Boolean);
 };
 
 const getInclusionName = (inclusion = {}) => {
@@ -32,18 +36,6 @@ const getInclusionName = (inclusion = {}) => {
 
 const formatInclusion = (inclusion = {}) => {
   const name = getInclusionName(inclusion);
-  const amount = Number(inclusion?.amount) || 0;
-  const unit = inclusion?.unit;
-
-  if (!amount || !unit) return name;
-
-  if (unit === "hrs") {
-    return `${name} (${amount} hr${amount > 1 ? "s" : ""})`;
-  }
-
-  if (unit === "qty") {
-    return `${name} (${amount})`;
-  }
 
   return name;
 };
@@ -60,6 +52,10 @@ const formatUnit = (value, unit) => {
   return unit;
 };
 
+/* -------------------------------- */
+/* Step 6                           */
+/* -------------------------------- */
+
 const Step6 = ({
   estimate,
   form,
@@ -70,11 +66,18 @@ const Step6 = ({
   handleSubmit = () => {},
 }) => {
   const { formSubmitted } = useSelector(({ bookings }) => bookings);
+
   const cateringTime = form?.catering?.time;
   const venueTime = form?.venue?.time;
+
   const { catering: Ecatering, venue: Evenue } = estimate || {};
-  const isBoth = form?.bookingType === "both"; //Catering & Venue
+
+  const isBoth = form?.bookingType === "both";
+
   const total = (Ecatering?.total || 0) + (Evenue?.total || 0);
+
+  console.log("Ecatering", Ecatering);
+  console.log("Venue", Evenue);
 
   return (
     <div>
@@ -89,26 +92,14 @@ const Step6 = ({
 
       <div className="grid gap-3 lg:grid-cols-[1fr_18rem]">
         <div className="space-y-3">
-          <ReviewCard
-            title="Package"
-            icon={Package}
-            items={[
-              ["Package", packageInfo?.name],
-              [
-                "Inclusions",
-                packageInfo?.inclusions
-                  ?.map((inclusion) => formatInclusion(inclusion))
-                  .join(", "),
-              ],
-            ]}
-          />
+          {/* Event */}
           <ReviewCard
             title="Event"
             icon={CalendarDays}
             items={[
               ["Type", form?.eventType],
               ["Date", Formatter.date(form?.date)],
-              ...(isBoth
+              ...(isBoth || form?.bookingType === "venue"
                 ? [["Address", selectedVenue?.address]]
                 : [
                     ["Location", form?.catering?.venue?.location],
@@ -117,28 +108,39 @@ const Step6 = ({
             ]}
           />
 
-          <ReviewCard
-            title="Catering"
-            icon={ChefHat}
-            items={[
-              ["Pax", form?.catering?.pax],
-              [
-                "Service Time",
-                formatTimeRange(cateringTime?.start, cateringTime?.end),
-              ],
-            ]}
-          />
+          {/* Catering */}
+          {(isBoth || form?.bookingType === "catering") && (
+            <ReviewCard
+              title="Catering"
+              icon={ChefHat}
+              items={[
+                ["Package", packageInfo?.name],
+                ["Pax", form?.catering?.pax],
+                [
+                  "Service Time",
+                  formatTimeRange(cateringTime?.start, cateringTime?.end),
+                ],
+                [
+                  "Inclusions",
+                  packageInfo?.inclusions?.map((inclusion) =>
+                    formatInclusion(inclusion),
+                  ),
+                  "inclusions",
+                ],
+                [
+                  "Menu",
+                  {
+                    main: getMenuNames(selectedMenus?.main),
+                    side: getMenuNames(selectedMenus?.side),
+                  },
+                  "menuSection",
+                ],
+              ]}
+            />
+          )}
 
-          <ReviewCard
-            title="Menu"
-            icon={Utensils}
-            items={[
-              ["Main Dishes", joinMenuNames(selectedMenus?.main)],
-              ["Side Dishes", joinMenuNames(selectedMenus?.side)],
-            ]}
-          />
-
-          {isBoth && (
+          {/* Venue */}
+          {(isBoth || form?.bookingType === "venue") && (
             <ReviewCard
               title="Venue"
               icon={MapPin}
@@ -149,10 +151,18 @@ const Step6 = ({
                   "Venue Usage Time",
                   formatTimeRange(venueTime?.start, venueTime?.end),
                 ],
+                [
+                  "Inclusions",
+                  selectedVenue?.inclusions?.map((inclusion) =>
+                    formatInclusion(inclusion),
+                  ),
+                  "inclusions",
+                ],
               ]}
             />
           )}
 
+          {/* Contact */}
           <ReviewCard
             title="Contact"
             icon={Phone}
@@ -167,6 +177,7 @@ const Step6 = ({
             ]}
           />
 
+          {/* Notes */}
           <ReviewCard
             title="Notes & Special Requests"
             icon={MessageSquare}
@@ -177,6 +188,7 @@ const Step6 = ({
           />
         </div>
 
+        {/* Estimate */}
         <div className="sticky top-4 h-fit rounded-lg border bg-muted/15 p-3">
           <div className="mb-3 flex items-center gap-2">
             <Package className="size-4 text-primary" />
@@ -185,13 +197,15 @@ const Step6 = ({
           </div>
 
           <div className="space-y-4">
-            {Ecatering && (
-              <EstimateItem label="Catering Package" data={Ecatering} />
-            )}
+            {Ecatering?.basePrice > 0 &&
+              (isBoth || form?.bookingType === "catering") && (
+                <EstimateItem label="Catering" data={Ecatering} />
+              )}
 
-            {Evenue?.basePrice > 0 && isBoth && (
-              <EstimateItem label="Venue" data={Evenue} />
-            )}
+            {Evenue?.basePrice > 0 &&
+              (isBoth || form?.bookingType === "venue") && (
+                <EstimateItem label="Venue" data={Evenue} />
+              )}
           </div>
 
           <div className="mt-4 border-t pt-3">
@@ -219,6 +233,7 @@ const Step6 = ({
             disabled={formSubmitted}
           >
             {isUpdating ? "Submit Changes" : "Send Inquiry"}
+
             {formSubmitted ? (
               <Spinner formSubmitted={formSubmitted} />
             ) : (
@@ -247,17 +262,123 @@ const ReviewCard = ({ title, icon: Icon, items = [] }) => {
       </div>
 
       <div className="divide-y">
-        {items.map(([label, value]) => (
-          <div
-            key={label}
-            className="grid grid-cols-[86px_minmax(0,1fr)] gap-3 px-3 py-2 text-xs sm:grid-cols-[110px_minmax(0,1fr)]"
-          >
-            <span className="text-muted-foreground">{label}</span>
+        {items.map(([label, value, type]) => {
+          if (type === "menuSection") {
+            return (
+              <MenuSection
+                key={label}
+                mainDishes={value?.main}
+                sideDishes={value?.side}
+              />
+            );
+          }
 
-            <span className="break-words font-medium">{value || "-"}</span>
-          </div>
-        ))}
+          return (
+            <div
+              key={label}
+              className="grid grid-cols-[86px_minmax(0,1fr)] gap-3 px-3 py-2 text-xs sm:grid-cols-[110px_minmax(0,1fr)]"
+            >
+              <span className="text-muted-foreground">{label}</span>
+
+              {type === "inclusions" ? (
+                <InclusionItems items={value} />
+              ) : (
+                <span className="break-words font-medium">{value || "-"}</span>
+              )}
+            </div>
+          );
+        })}
       </div>
+    </div>
+  );
+};
+
+/* -------------------------------- */
+/* Catering Menu Section            */
+/* -------------------------------- */
+
+const MenuSection = ({ mainDishes = [], sideDishes = [] }) => {
+  return (
+    <div className="px-3 py-2.5">
+      <div className="mb-2 flex items-center gap-1.5">
+        <Utensils className="size-3.5 text-primary" />
+
+        <p className="text-xs font-semibold">Menu</p>
+      </div>
+
+      <div className="space-y-2">
+        <div className="grid grid-cols-[86px_minmax(0,1fr)] gap-3 text-xs sm:grid-cols-[110px_minmax(0,1fr)]">
+          <span className="text-muted-foreground">Main Dishes</span>
+
+          <MenuItems items={mainDishes} />
+        </div>
+
+        <div className="grid grid-cols-[86px_minmax(0,1fr)] gap-3 text-xs sm:grid-cols-[110px_minmax(0,1fr)]">
+          <span className="text-muted-foreground">Side Dishes</span>
+
+          <MenuItems items={sideDishes} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* -------------------------------- */
+/* Menu Items                       */
+/* -------------------------------- */
+
+const MenuItems = ({ items = [] }) => {
+  if (!items?.length) {
+    return <span className="font-medium">-</span>;
+  }
+
+  return (
+    <div className="space-y-1">
+      {items.map((item, index) => (
+        <div
+          key={`${item}-${index}`}
+          className="flex min-w-0 items-start gap-2 font-medium leading-4"
+        >
+          <span
+            className="mt-[1px] shrink-0 text-muted-foreground/50"
+            aria-hidden="true"
+          >
+            •
+          </span>
+
+          <span className="min-w-0 break-words">{item}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+/* -------------------------------- */
+/* Inclusion Items                  */
+/* -------------------------------- */
+
+const InclusionItems = ({ items = [] }) => {
+  if (!items?.length) {
+    return <span className="font-medium">-</span>;
+  }
+
+  return (
+    <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2">
+      {items.map((item, index) => (
+        <div
+          key={`${item}-${index}`}
+          className="flex min-w-0 items-start gap-2 font-medium leading-4"
+        >
+          <span
+            className="mt-[1px] shrink-0 text-muted-foreground/50"
+            aria-hidden="true"
+          >
+            •
+          </span>
+
+          <span className="min-w-0 break-words">{item}</span>
+        </div>
+      ))}
     </div>
   );
 };

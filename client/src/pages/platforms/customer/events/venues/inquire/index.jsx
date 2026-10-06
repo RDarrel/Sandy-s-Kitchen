@@ -17,6 +17,7 @@ import { AlertTriangle, ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BROWSE as BROWSE_CATERING_PACKAGES } from "@/services/redux/slices/events/cateringPackages";
 import { Step1, Step2, Step3, Step4, Step5, Step6, Step7 } from "./steps";
+import { Step6 as Review } from "../../catering/inquire/steps";
 import {
   DEFAULT_FORM,
   DEFAULT_MENU_SELECTIONS,
@@ -304,63 +305,64 @@ const VenueInquiry = () => {
             </div>
 
             <form onSubmit={goNext}>
-              <StepperPanel className="flex h-full min-w-0 flex-col">
-                {isUpdating && reason && (
-                  <div className="border-b bg-amber-50/70 px-3 py-2.5 text-amber-950 sm:px-5 dark:bg-amber-950/20 dark:text-amber-100">
-                    <div className="flex items-start gap-2.5">
-                      <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-background/80 dark:border-amber-900/60 dark:bg-background/20">
-                        <AlertTriangle className="size-3.5 text-amber-700 dark:text-amber-300" />
-                      </span>
+              {isUpdating && reason && (
+                <div className="border-b bg-amber-50/70 px-3 py-2.5 text-amber-950 sm:px-5 dark:bg-amber-950/20 dark:text-amber-100">
+                  <div className="flex items-start gap-2.5">
+                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-background/80 dark:border-amber-900/60 dark:bg-background/20">
+                      <AlertTriangle className="size-3.5 text-amber-700 dark:text-amber-300" />
+                    </span>
 
-                      <div className="min-w-0">
-                        <h2 className="text-xs font-semibold text-amber-700 dark:text-amber-300">
-                          Booking Changes Required
-                        </h2>
+                    <div className="min-w-0">
+                      <h2 className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+                        Booking Changes Required
+                      </h2>
 
-                        <p className="mt-1 text-xs font-normal leading-5">
-                          {reason}
-                        </p>
-                      </div>
+                      <p className="mt-1 text-xs font-normal leading-5">
+                        {reason}
+                      </p>
                     </div>
                   </div>
-                )}
-
+                </div>
+              )}
+              <StepperPanel className="min-w-0 h-full flex flex-col">
                 {[
                   Step1,
                   ...(form?.bookingType === "both"
                     ? [Step2, Step3, Step4, Step5]
                     : []),
                   Step6,
-                  Step7,
+                  Review,
                 ]
                   .filter(Boolean)
                   .map((Step, idx) => (
                     <StepperContent
                       value={idx + 1}
-                      className={"flex flex-col h-full p-3 sm:p-5 gap-5"}
+                      className="flex h-full flex-col p-3 gap-4 sm:p-5"
                       key={idx}
                     >
-                      <Step
-                        form={form}
-                        selected={selected}
-                        packageInfo={packageInfo}
-                        selectedMainCount={selectedMainCount}
-                        selectedSideCount={selectedSideCount}
-                        menuSelections={menuSelections}
-                        packages={packages}
-                        estimate={{
-                          venue: venueEstimate,
-                          catering: cateringEstimate,
-                        }}
-                        selectedMenus={selectedMenus}
-                        selectedVenue={selected}
-                        setForm={setForm}
-                        handleMenuToggle={handleMenuToggle}
-                        updateField={updateField}
-                        handleSubmit={handleSubmit}
-                        setMenuSelections={setMenuSelections}
-                        isUpdating={isUpdating}
-                      />
+                      <div>
+                        <Step
+                          form={form}
+                          selected={selected}
+                          packageInfo={packageInfo}
+                          selectedMainCount={selectedMainCount}
+                          selectedSideCount={selectedSideCount}
+                          menuSelections={menuSelections}
+                          packages={packages}
+                          estimate={{
+                            venue: venueEstimate,
+                            catering: cateringEstimate,
+                          }}
+                          selectedMenus={selectedMenus}
+                          selectedVenue={selected}
+                          setForm={setForm}
+                          handleMenuToggle={handleMenuToggle}
+                          updateField={updateField}
+                          handleSubmit={handleSubmit}
+                          setMenuSelections={setMenuSelections}
+                          isUpdating={isUpdating}
+                        />
+                      </div>
                       <Actions
                         currentStep={currentStep}
                         totalSteps={steps.length}

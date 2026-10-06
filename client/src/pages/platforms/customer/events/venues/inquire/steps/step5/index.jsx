@@ -1,7 +1,6 @@
-import { MenuSelection } from "../menus";
 import { Salad } from "lucide-react";
-import Header from "../header";
-
+import { MenuSelection } from "../../../../catering/inquire/steps/menus";
+import Header from "../../../../catering/inquire/steps/header";
 const Step3 = ({
   selectedSideCount,
   packageInfo,

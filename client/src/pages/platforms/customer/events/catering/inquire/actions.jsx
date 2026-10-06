@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 const Actions = ({ currentStep, totalSteps, onBack }) => {
   if (currentStep === totalSteps) {
     return (
-      <div className="mt-4 flex items-center justify-start border-t pt-3">
+      <div className="mt-auto flex items-center justify-start border-t pt-3">
         <Button
           type="button"
           variant="ghost"
