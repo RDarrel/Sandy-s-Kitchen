@@ -50,14 +50,7 @@ exports.update = async (req, res) => {
 
 exports.available = async (req, res) => {
   try {
-    const {
-      date,
-      pax,
-      start,
-      end,
-      selectedVenueId = null,
-      excludeBookingId = null,
-    } = req.query;
+    const { date, pax, start, end, excludeBookingId = null } = req.query;
     const blockingStatuses = ["approved", "confirmed", "setup"];
 
     const conflictQuery = {
@@ -101,7 +94,6 @@ exports.available = async (req, res) => {
       "venue.item",
       conflictQuery,
     );
-
     // Get currently available venues.
     const venues = await Venue.find({
       capacity: {
@@ -114,29 +106,8 @@ exports.available = async (req, res) => {
       .populate(venuePopulates)
       .lean();
 
-    // Check if customer's previously selected venue
-    // is still available.
-    const selectedVenueAvailable = selectedVenueId
-      ? !conflictingVenueIds.some(
-          (venueId) => venueId.toString() === selectedVenueId.toString(),
-        )
-      : true;
-
-    let inquirySlotItem = {};
-
-    if (selectedVenueId) {
-      inquirySlotItem = await Venue.findById(selectedVenueId).lean();
-    }
-
     res.json({
-      data: {
-        venues,
-        selectedVenue: {
-          isAvailable:
-            selectedVenueAvailable && inquirySlotItem?.capacity >= pax,
-          item: inquirySlotItem,
-        },
-      },
+      data: venues,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
