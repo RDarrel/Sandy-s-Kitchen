@@ -78,6 +78,7 @@ const Step1 = ({
             <DatePicker
               date={new Date(form?.date)}
               required
+              withTime
               align="start"
               setDate={(value) => updateField("date", new Date(value))}
             />

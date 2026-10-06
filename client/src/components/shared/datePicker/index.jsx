@@ -8,6 +8,11 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, Clock3 } from "lucide-react";
+import {
+  TimePicker,
+  TimePickerColumns,
+  TimePickerPanel,
+} from "@/components/reui/time-picker";
 
 const formatDate = (date) =>
   date
@@ -79,53 +84,36 @@ const DatePicker = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto overflow-hidden p-0" align={align}>
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={(selectedDate) => {
-            if (!selectedDate) return;
-            setDate(
-              withTime ? mergeDateAndTime(selectedDate, date) : selectedDate,
-            );
-            if (!withTime) setOpen(false);
-          }}
-        />
-        {withTime && (
-          <div className="space-y-2 border-t px-3 py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                <Clock3 className="size-3.5" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium leading-tight text-foreground">
-                  Time
-                </p>
-                <p className="text-[11px] leading-tight text-muted-foreground">
-                  Set the exact schedule
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="time"
-                value={toTimeValue(date)}
-                onChange={(event) => {
-                  setDate(mergeTime(date, event.target.value));
-                }}
-                className="h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-2.5 text-sm tabular-nums text-foreground shadow-xs outline-none transition-colors hover:border-ring/60 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
-              />
-              <Button
-                type="button"
-                size="sm"
-                className="h-9 shrink-0 px-3"
-                onClick={() => setOpen(false)}
-              >
-                Apply
-              </Button>
-            </div>
+        <div className="flex items-center  sm:flex-row sm:items-start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={(selectedDate) => {
+              if (!selectedDate) return;
+              setDate(
+                withTime ? mergeDateAndTime(selectedDate, date) : selectedDate,
+              );
+              if (!withTime) setOpen(false);
+            }}
+          />
+          <div className="flex justify-center self-stretch max-sm:border-t max-sm:pt-4 sm:border-s sm:ps-4 mr-5">
+            <TimePicker
+              aria-label="Publish time"
+              // value={time}
+              onValueChange={(next) => {
+                /* No footer means no Clear, so `next` is never null here. */
+                if (next) setTime(next);
+              }}
+              minuteStep={15}
+              hourCycle={12}
+            >
+              <TimePickerPanel className="[--time-picker-rows:7]">
+                {/* No footer: Now would set the time but not the date. */}
+                <TimePickerColumns />
+              </TimePickerPanel>
+            </TimePicker>
           </div>
-        )}
+        </div>
       </PopoverContent>
     </Popover>
   );
