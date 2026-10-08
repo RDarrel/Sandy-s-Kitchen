@@ -238,7 +238,6 @@ const approve = async ({
 
   return booking;
 };
-
 const calendar = async ({ start, end, monthStart, monthEnd }) => {
   const timezone = "Asia/Manila";
 
@@ -290,8 +289,9 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
     const next = current.plus({ days: 1 });
 
     days.push({
-      start: current.toUTC().toJSDate(),
-      end: next.toUTC().toJSDate(),
+      start: current.startOf("day").toUTC().toJSDate(),
+      end: current.endOf("day").toUTC().toJSDate(),
+      nextStart: next.startOf("day").toUTC().toJSDate(),
     });
 
     current = next;
@@ -344,7 +344,10 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
                       {
                         $and: [
                           {
-                            $lt: ["$catering.schedule.startAt", "$$day.end"],
+                            $lt: [
+                              "$catering.schedule.startAt",
+                              "$$day.nextStart",
+                            ],
                           },
                           {
                             $gt: ["$catering.schedule.endAt", "$$day.start"],
@@ -354,7 +357,7 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
                       {
                         $and: [
                           {
-                            $lt: ["$venue.schedule.startAt", "$$day.end"],
+                            $lt: ["$venue.schedule.startAt", "$$day.nextStart"],
                           },
                           {
                             $gt: ["$venue.schedule.endAt", "$$day.start"],
@@ -405,7 +408,20 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
               _id: 0,
 
               start: "$_id",
-              end: "$_id",
+
+              end: {
+                $dateSubtract: {
+                  startDate: {
+                    $dateAdd: {
+                      startDate: "$_id",
+                      unit: "day",
+                      amount: 1,
+                    },
+                  },
+                  unit: "millisecond",
+                  amount: 1,
+                },
+              },
 
               statusCounts: {
                 $arrayToObject: "$statusCounts",
@@ -460,7 +476,6 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
 
   return result;
 };
-
 const getMyBookings = async ({ customer }) => {
   const bookings = await Booking.find({ customer })
     .populate({
