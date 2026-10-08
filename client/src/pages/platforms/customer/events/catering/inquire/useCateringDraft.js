@@ -26,6 +26,7 @@ const useCateringDraft = ({
         const draft = JSON.parse(cateringDraft);
 
         if (draft?.form) {
+          console.log("running");
           setForm(draft?.form);
         }
 

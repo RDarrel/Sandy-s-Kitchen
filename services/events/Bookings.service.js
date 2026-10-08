@@ -3,6 +3,7 @@ const Booking = require("../../models/events/Booking");
 const Equipment = require("../../models/inventory/Equipment");
 const BookingPolicy = require("../../models/events/BookingPolicy");
 const dateToUTC = require("../../utilities/dateToUTC");
+const { DateTime } = require("luxon");
 
 /*
 |--------------------------------------------------------------------------
@@ -239,11 +240,83 @@ const approve = async ({
 };
 
 const calendar = async ({ start, end, monthStart, monthEnd }) => {
+  const timezone = "Asia/Manila";
+
+  const calendarStart = dateToUTC({
+    date: start,
+    dateOnly: true,
+  });
+
+  const calendarEnd = dateToUTC({
+    date: end,
+    dateOnly: true,
+  });
+
+  const selectedMonthStart = dateToUTC({
+    date: monthStart,
+    dateOnly: true,
+  });
+
+  const selectedMonthEnd = dateToUTC({
+    date: monthEnd,
+    dateOnly: true,
+  });
+
+  if (
+    !calendarStart ||
+    !calendarEnd ||
+    !selectedMonthStart ||
+    !selectedMonthEnd
+  ) {
+    throw new Error("Invalid calendar date range.");
+  }
+
+  if (calendarStart >= calendarEnd || selectedMonthStart >= selectedMonthEnd) {
+    throw new Error("Invalid calendar date range.");
+  }
+
+  // Generate all visible calendar dates
+  const days = [];
+
+  let current = DateTime.fromJSDate(calendarStart, {
+    zone: timezone,
+  });
+
+  const last = DateTime.fromJSDate(calendarEnd, {
+    zone: timezone,
+  });
+
+  while (current < last) {
+    const next = current.plus({ days: 1 });
+
+    days.push({
+      start: current.toUTC().toJSDate(),
+      end: next.toUTC().toJSDate(),
+    });
+
+    current = next;
+  }
+
+  // Check if either service overlaps the given range
+  const scheduleMatch = (rangeStart, rangeEnd) => ({
+    $or: [
+      {
+        "catering.schedule.startAt": { $lt: rangeEnd },
+        "catering.schedule.endAt": { $gt: rangeStart },
+      },
+      {
+        "venue.schedule.startAt": { $lt: rangeEnd },
+        "venue.schedule.endAt": { $gt: rangeStart },
+      },
+    ],
+  });
+
   const [result] = await Booking.aggregate([
-    // Exclude rejected bookings from everything
     {
       $match: {
-        status: { $nin: ["rejected", "changes_requested"] },
+        status: {
+          $nin: ["rejected", "changes_requested"],
+        },
       },
     },
 
@@ -252,25 +325,58 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
         // Calendar visible range
         calendar: [
           {
-            $match: {
-              date: {
-                $gte: dateToUTC({
-                  date: start,
-                  dateOnly: true,
-                }),
-                $lt: dateToUTC({
-                  date: end,
-                  dateOnly: true,
-                }),
+            $match: scheduleMatch(calendarStart, calendarEnd),
+          },
+
+          // Create one calendar entry per matching booking per day
+          {
+            $project: {
+              status: 1,
+
+              dates: {
+                $filter: {
+                  input: {
+                    $literal: days,
+                  },
+                  as: "day",
+                  cond: {
+                    $or: [
+                      {
+                        $and: [
+                          {
+                            $lt: ["$catering.schedule.startAt", "$$day.end"],
+                          },
+                          {
+                            $gt: ["$catering.schedule.endAt", "$$day.start"],
+                          },
+                        ],
+                      },
+                      {
+                        $and: [
+                          {
+                            $lt: ["$venue.schedule.startAt", "$$day.end"],
+                          },
+                          {
+                            $gt: ["$venue.schedule.endAt", "$$day.start"],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
               },
             },
+          },
+
+          {
+            $unwind: "$dates",
           },
 
           // Count bookings per date and status
           {
             $group: {
               _id: {
-                date: "$date",
+                date: "$dates.start",
                 status: "$status",
               },
               count: {
@@ -279,7 +385,7 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
             },
           },
 
-          // Group all status counts under each date
+          // Group status counts under each date
           {
             $group: {
               _id: "$_id.date",
@@ -307,7 +413,6 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
             },
           },
 
-          // Sort by date
           {
             $sort: {
               start: 1,
@@ -315,24 +420,12 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
           },
         ],
 
-        // Exact selected month only
+        // Unique bookings active during the selected month
         monthlyOverview: [
           {
-            $match: {
-              date: {
-                $gte: dateToUTC({
-                  date: monthStart,
-                  dateOnly: true,
-                }),
-                $lt: dateToUTC({
-                  date: monthEnd,
-                  dateOnly: true,
-                }),
-              },
-            },
+            $match: scheduleMatch(selectedMonthStart, selectedMonthEnd),
           },
 
-          // Count bookings per status
           {
             $group: {
               _id: "$status",
@@ -351,21 +444,10 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
           },
         ],
 
-        // Total bookings for exact selected month
+        // Total unique bookings active during the selected month
         totalBookings: [
           {
-            $match: {
-              date: {
-                $gte: dateToUTC({
-                  date: monthStart,
-                  dateOnly: true,
-                }),
-                $lt: dateToUTC({
-                  date: monthEnd,
-                  dateOnly: true,
-                }),
-              },
-            },
+            $match: scheduleMatch(selectedMonthStart, selectedMonthEnd),
           },
 
           {
@@ -398,11 +480,28 @@ const getMyBookings = async ({ customer }) => {
 };
 
 const schedule = async ({ date }) => {
+  const dayStart = dateToUTC({
+    date,
+    dateOnly: true,
+  });
+
+  if (!dayStart) {
+    throw new Error("Invalid schedule date.");
+  }
+  const dayEnd = new Date(dayStart);
+  dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+
   const schedule = await Booking.find({
-    date: dateToUTC({
-      date,
-      dateOnly: true,
-    }),
+    $or: [
+      {
+        "catering.schedule.startAt": { $lt: dayEnd },
+        "catering.schedule.endAt": { $gt: dayStart },
+      },
+      {
+        "venue.schedule.startAt": { $lt: dayEnd },
+        "venue.schedule.endAt": { $gt: dayStart },
+      },
+    ],
 
     status: {
       $nin: ["rejected", "changes_requested"],
@@ -423,7 +522,6 @@ const schedule = async ({ date }) => {
 
   const statusOrder = [
     "pending",
-    "changes_requested",
     "approved",
     "confirmed",
     "setup",
@@ -455,7 +553,10 @@ const addUsage = (event) =>
     ?.filter(({ model }) => model === "Equipment")
     .map((inc) => ({
       ...inc,
-      usage: event?.time,
+      usage: {
+        start: event?.schedule?.startAt,
+        end: event?.schedule?.endAt,
+      },
     })) || [];
 
 const getEquipments = (booking) => {
@@ -466,30 +567,64 @@ const getEquipments = (booking) => {
 };
 
 const getEquipmentAvailability = async ({ bookingID }) => {
-  const populatedBooking = await Booking.findOne({ _id: bookingID }).lean();
+  const populatedBooking = await Booking.findById(bookingID).lean();
+
+  if (!populatedBooking) {
+    throw new Error("Booking not found.");
+  }
+
+  const pendingEquipments = getEquipments(populatedBooking);
+
+  if (!pendingEquipments.length) {
+    return {};
+  }
+
+  const pendingEquipmentIDS = [
+    ...new Set(pendingEquipments.map(({ item }) => item.toString())),
+  ];
+
+  // Find overall booking schedule boundaries
+  const schedules = [
+    populatedBooking?.venue?.schedule,
+    populatedBooking?.catering?.schedule,
+  ].filter((event) => event?.startAt && event?.endAt);
+
+  const bookingStart = new Date(
+    Math.min(...schedules.map(({ startAt }) => new Date(startAt).getTime())),
+  );
+
+  const bookingEnd = new Date(
+    Math.max(...schedules.map(({ endAt }) => new Date(endAt).getTime())),
+  );
+
+  // Find bookings with overlapping catering or venue schedules
   const conflictingBookings = await Booking.find({
     _id: { $ne: bookingID },
-
-    date: dateToUTC({
-      date: populatedBooking.date,
-      dateOnly: true,
-    }),
 
     status: {
       $in: ["approved", "confirmed", "setup"],
     },
+
+    $or: [
+      {
+        "venue.schedule.startAt": { $lt: bookingEnd },
+        "venue.schedule.endAt": { $gt: bookingStart },
+      },
+      {
+        "catering.schedule.startAt": { $lt: bookingEnd },
+        "catering.schedule.endAt": { $gt: bookingStart },
+      },
+    ],
   })
-    .select("venue.time venue.inclusions catering.time catering.inclusions")
+    .select(
+      "venue.schedule.startAt venue.schedule.endAt venue.inclusions " +
+        "catering.schedule.startAt catering.schedule.endAt catering.inclusions",
+    )
     .lean();
 
-  const reservedEquipments = conflictingBookings.flatMap((book) =>
-    getEquipments(book),
+  const reservedEquipments = conflictingBookings.flatMap((booking) =>
+    getEquipments(booking),
   );
-
-  const pendingEquipments = getEquipments(populatedBooking);
-  const pendingEquipmentIDS = [
-    ...new Set(pendingEquipments.map(({ item }) => item.toString())),
-  ];
 
   const equipments = await Equipment.find({
     _id: { $in: pendingEquipmentIDS },
@@ -497,30 +632,42 @@ const getEquipmentAvailability = async ({ bookingID }) => {
     .select("totalQty")
     .lean();
 
-  const equipmentsWithAmtUsage = pendingEquipments.map((p) => {
+  const equipmentsWithAmtUsage = pendingEquipments.map((pending) => {
+    const pendingStart = new Date(pending.usage.start).getTime();
+    const pendingEnd = new Date(pending.usage.end).getTime();
+
     const affectedEquipments = reservedEquipments.filter(
       ({ usage, item }) =>
-        usage.start < p.usage.end &&
-        usage.end > p.usage.start &&
-        item.toString() === p.item.toString(),
+        item.toString() === pending.item.toString() &&
+        new Date(usage.start).getTime() < pendingEnd &&
+        new Date(usage.end).getTime() > pendingStart,
     );
-    const getFormattedTimes = (key) => {
-      return affectedEquipments.map(({ usage, amount }) => ({
-        hour: usage[key],
-        isStart: key === "start",
-        amount,
-      }));
-    };
 
-    const times = [
-      ...getFormattedTimes("start"),
-      ...getFormattedTimes("end"),
-    ].sort((a, b) => {
-      const timeComparison = a.hour.localeCompare(b.hour);
-      // Different times → chronological order
-      if (timeComparison !== 0) return timeComparison;
+    const times = affectedEquipments.flatMap(({ usage, amount }) => {
+      const start = Math.max(new Date(usage.start).getTime(), pendingStart);
 
-      // Same time → END first, then START
+      const end = Math.min(new Date(usage.end).getTime(), pendingEnd);
+
+      return [
+        {
+          time: start,
+          isStart: true,
+          amount,
+        },
+        {
+          time: end,
+          isStart: false,
+          amount,
+        },
+      ];
+    });
+
+    times.sort((a, b) => {
+      if (a.time !== b.time) {
+        return a.time - b.time;
+      }
+
+      // End before start at the same timestamp
       if (a.isStart === b.isStart) return 0;
 
       return a.isStart ? 1 : -1;
@@ -529,36 +676,40 @@ const getEquipmentAvailability = async ({ bookingID }) => {
     let peakAmount = 0;
     let currentTotalAmount = 0;
 
-    times.forEach((element) => {
-      if (element?.isStart) {
-        currentTotalAmount += element.amount;
-      } else {
-        currentTotalAmount -= element?.amount;
-      }
+    times.forEach(({ isStart, amount }) => {
+      currentTotalAmount += isStart ? amount : -amount;
+
       peakAmount = Math.max(peakAmount, currentTotalAmount);
     });
 
-    return { ...p, totalAmt: peakAmount };
+    return {
+      ...pending,
+      totalAmt: peakAmount,
+    };
   });
 
-  const availability = equipments.map((e) => {
+  const availability = equipments.map((equipment) => {
     const totalAmtReserved = Math.max(
       0,
       ...equipmentsWithAmtUsage
-        .filter(({ item }) => e._id.toString() === item.toString())
+        .filter(({ item }) => equipment._id.toString() === item.toString())
         .map(({ totalAmt }) => totalAmt),
     );
 
     return {
-      ...e,
-      available: totalAmtReserved ? e.totalQty - totalAmtReserved : e.totalQty,
+      ...equipment,
+      available: Math.max(0, equipment.totalQty - totalAmtReserved),
     };
   });
 
   const availabilityMap = Object.fromEntries(
     availability.map(({ _id, available }) => [
       _id.toString(),
-      { catering: available, venue: available, available },
+      {
+        catering: available,
+        venue: available,
+        available,
+      },
     ]),
   );
 

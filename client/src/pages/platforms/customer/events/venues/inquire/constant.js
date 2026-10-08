@@ -17,11 +17,7 @@ export const DEFAULT_STEPS = [
     description: "Choose your package",
     icon: ChefHat,
   },
-  {
-    title: "Catering Details",
-    description: "Guests and schedule",
-    icon: UserRound,
-  },
+
   {
     title: "Main Dishes",
     description: "Food choices",
@@ -49,6 +45,11 @@ export const DEFAULT_MENU_SELECTIONS = {
   side: {},
 };
 
+export const DEFAULT_SCHEDULE = {
+  startAt: null,
+  endAt: null,
+};
+
 export const DEFAULT_FORM = {
   contact: {
     name: "",
@@ -65,19 +66,13 @@ export const DEFAULT_FORM = {
       address: null,
       location: null,
     },
-    mainCourses: [],
+    mainDishes: [],
     sideDishes: [],
-    time: {
-      start: null,
-      end: null,
-    },
+    schedule: DEFAULT_SCHEDULE,
   },
   venue: {
     pax: 0,
-    time: {
-      start: null,
-      end: null,
-    },
+    schedule: DEFAULT_SCHEDULE,
   },
   notes: null,
 };

@@ -37,27 +37,11 @@ const formatTimeRange = (time = {}) => {
 };
 
 export const getServices = (booking) => {
-  console.log("bookign", booking);
   if (!booking) {
     return [];
   }
 
   const services = [];
-
-  if (booking.bookingType === "catering" || booking.bookingType === "both") {
-    services.push({
-      type: "catering",
-
-      name: booking?.catering?.item?.name || "Catering package",
-
-      pax: Number(booking?.catering?.pax || 0),
-
-      time: formatTimeRange(booking?.catering?.time),
-
-      location: booking?.catering?.venue?.location || "-",
-      address: booking?.catering?.venue?.address,
-    });
-  }
 
   if (booking.bookingType === "venue" || booking.bookingType === "both") {
     services.push({
@@ -67,9 +51,24 @@ export const getServices = (booking) => {
 
       pax: Number(booking?.venue?.pax || 0),
 
-      time: formatTimeRange(booking?.venue?.time),
+      time: Formatter.bookingDateRange(booking?.venue?.schedule),
 
       location: booking?.venue?.item?.address || "-",
+    });
+  }
+
+  if (booking.bookingType === "catering" || booking.bookingType === "both") {
+    services.push({
+      type: "catering",
+
+      name: booking?.catering?.item?.name || "Catering package",
+
+      pax: Number(booking?.catering?.pax || 0),
+
+      time: Formatter.bookingDateRange(booking?.catering?.schedule),
+
+      location: booking?.catering?.venue?.location || "-",
+      address: booking?.catering?.venue?.address,
     });
   }
 

@@ -1,4 +1,4 @@
-const format = (date, withTime = false) => {
+const date = (date, withTime = false) => {
   const options = {
     month: "short",
     day: "2-digit",
@@ -13,4 +13,4 @@ const format = (date, withTime = false) => {
   return new Date(date).toLocaleDateString("en-US", options);
 };
 
-export default format;
+export default date;

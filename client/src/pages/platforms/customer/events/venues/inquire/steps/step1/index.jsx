@@ -1,12 +1,12 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup } from "@/components/ui/radio-group";
-
 import Section from "./section";
 import VenueOption from "./venueOption";
 import Field from "./field";
-import { TimePicker } from "@/components/reui/time-picker";
+import VenueDatePicker from "./datePicker";
 import DatePicker from "@/components/shared/datePicker";
+import { addHours, subHours } from "date-fns";
 
 const eventTypes = [
   "Wedding",
@@ -25,11 +25,27 @@ const eventTypes = [
 
 const Step1 = ({
   form = {},
-  selected,
+  selected = {},
   updateField = () => {},
   setForm = () => {},
 }) => {
   const selectedVenue = form?.venue || {};
+
+  const handleDateChange = (field, date, isStartDate = false) =>
+    setForm((prev) => ({
+      ...prev,
+      [field]: {
+        ...prev[field],
+        schedule: {
+          ...prev[field]?.schedule,
+          [isStartDate ? "startAt" : "endAt"]: date ? new Date(date) : date,
+        },
+      },
+    }));
+
+  const isDisabledCateringDate = Boolean(
+    !form?.venue?.schedule?.startAt || !form?.venue?.schedule?.endAt,
+  );
 
   return (
     <div className="space-y-5">
@@ -68,22 +84,6 @@ const Step1 = ({
             </select>
           </Field>
 
-          <Field label="Date" required>
-            {/* <Input
-              type="date"
-              required
-              value={form?.date || ""}
-              onChange={(e) => updateField("date", e.target.value)}
-            /> */}
-            <DatePicker
-              date={new Date(form?.date)}
-              required
-              withTime
-              align="start"
-              setDate={(value) => updateField("date", new Date(value))}
-            />
-          </Field>
-
           <Field
             label="Guests"
             required
@@ -116,107 +116,48 @@ const Step1 = ({
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label={"Venue Start Time"} required>
-              <TimePicker
-                required
-                value={form?.venue?.time?.start || ""}
-                onValueChange={(value) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    venue: {
-                      ...prev?.venue,
-                      time: {
-                        ...prev?.venue?.time,
-                        start: value,
-                      },
-                    },
-                  }))
-                }
-                className={"w-full"}
-                id="standup-time"
-                hourCycle={12}
-                minuteStep={15}
-              />
-            </Field>
-            {/* <Field label="Venue Start Time" required>
-              <Input
-                type="time"
-                required
-                value={form?.venue?.time?.start || ""}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    venue: {
-                      ...prev?.venue,
-                      time: {
-                        ...prev?.venue?.time,
-                        start: e.target.value,
-                      },
-                    },
-                  }))
-                }
-                onBlur={(e) => {
-                  const value = e.target.value;
-                  if (!value || form?.venue?.time?.end) return;
-                  const [hour, minute] = value.split(":");
-                  const endHour = (Number(hour) + selected?.duration?.max) % 24;
-
-                  setForm((prev) => ({
-                    ...prev,
-                    venue: {
-                      ...prev.venue,
-                      time: {
-                        ...prev?.venue?.time,
-                        end: `${String(endHour).padStart(2, "0")}:${minute}`,
-                      },
-                    },
-                  }));
-                }}
-              />
-            </Field> */}
-            <Field label={"Venue End Time"} required>
-              <TimePicker
-                required
-                value={form?.venue?.time?.end || ""}
-                onValueChange={(value) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    venue: {
-                      ...prev?.venue,
-                      time: {
-                        ...prev?.venue?.time,
-                        end: value,
-                      },
-                    },
-                  }))
-                }
-                className={"w-full"}
-                id="standup-time"
-                hourCycle={12}
-                minuteStep={15}
-              />
-            </Field>
-            {/* <Field label="Venue End Time" required>
-              <Input
-                type="time"
-                required
-                value={form?.venue?.time?.end || ""}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    venue: {
-                      ...prev?.venue,
-                      time: {
-                        ...prev?.venue?.time,
-                        end: e.target.value,
-                      },
-                    },
-                  }))
-                }
-              /> 
-            </Field>*/}
-          </div>
+          <Field label="Start Date & Time" required>
+            <VenueDatePicker
+              date={
+                form?.venue?.schedule?.startAt
+                  ? new Date(form.venue?.schedule?.startAt)
+                  : null
+              }
+              required
+              withTime
+              venueId={selected?._id}
+              align="center"
+              type="start"
+              setDate={(value) => {
+                handleDateChange("venue", value, true);
+                handleDateChange("catering", value, true);
+                handleDateChange("venue", null);
+              }}
+            />
+          </Field>
+          <Field label="End Date & Time" required>
+            <VenueDatePicker
+              date={
+                form?.venue?.schedule?.endAt
+                  ? new Date(form?.venue?.schedule?.endAt)
+                  : null
+              }
+              required
+              type="end"
+              withTime
+              venueId={selected?._id}
+              startAt={
+                form?.venue?.schedule?.startAt
+                  ? new Date(form.venue?.schedule?.startAt)
+                  : null
+              }
+              align="center"
+              setDate={(value) => {
+                handleDateChange("venue", value);
+                handleDateChange("catering", value);
+              }}
+            />
+          </Field>
         </div>
       </Section>
 
@@ -255,7 +196,89 @@ const Step1 = ({
           />
         </RadioGroup>
       </Section>
+      {form?.bookingType === "both" && (
+        <Section title="Catering Reservation Details">
+          <div className="grid gap-3 grid-cols-1 md:grid-cols-3 ">
+            <Field
+              label="Guests"
+              required
+              description={
+                selectedVenue?.capacity
+                  ? `Maximum capacity: ${selectedVenue.capacity} guests`
+                  : undefined
+              }
+            >
+              <Input
+                type="number"
+                min={1}
+                max={selectedVenue?.capacity}
+                value={form?.catering?.pax || ""}
+                required
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    catering: {
+                      ...prev?.catering,
+                      pax: Number(e.target.value),
+                    },
+                  }))
+                }
+                placeholder={
+                  selectedVenue?.capacity
+                    ? `Up to ${selectedVenue.capacity} guests`
+                    : "Guests"
+                }
+              />
+            </Field>
 
+            <Field label="Start Date & Time" required>
+              <DatePicker
+                disabled={isDisabledCateringDate}
+                date={
+                  form?.catering?.schedule?.startAt
+                    ? new Date(form.catering?.schedule?.startAt)
+                    : null
+                }
+                min={new Date(form?.venue?.schedule?.startAt)}
+                max={
+                  form?.venue?.schedule?.endAt
+                    ? subHours(new Date(form.venue.schedule?.endAt), 1)
+                    : null
+                }
+                highlightToday={false}
+                required
+                withTime
+                align="center"
+                setDate={(value) => {
+                  handleDateChange("catering", value, true);
+                  handleDateChange("catering", addHours(new Date(value), 1));
+                }}
+              />
+            </Field>
+            <Field label="End Date & Time" required>
+              <DatePicker
+                disabled={isDisabledCateringDate}
+                date={
+                  form?.catering?.schedule?.endAt
+                    ? new Date(form.catering?.schedule?.endAt)
+                    : null
+                }
+                min={
+                  form?.venue?.schedule?.startAt
+                    ? addHours(new Date(form.venue.schedule?.startAt), 1)
+                    : undefined
+                }
+                max={new Date(form?.venue?.schedule?.endAt)}
+                highlightToday={false}
+                required
+                withTime
+                align="center"
+                setDate={(value) => handleDateChange("catering", value)}
+              />
+            </Field>
+          </div>
+        </Section>
+      )}
       {/* -------------------------------- */}
       {/* Notes                            */}
       {/* -------------------------------- */}

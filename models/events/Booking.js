@@ -60,14 +60,9 @@ const cateringDetailsSchema = new mongoose.Schema(
       min: 1,
     },
 
-    time: {
-      start: {
-        type: String,
-      },
-
-      end: {
-        type: String,
-      },
+    schedule: {
+      startAt: Date,
+      endAt: Date,
     },
 
     // For own venue only
@@ -117,15 +112,11 @@ const venueDetailsSchema = new mongoose.Schema(
       min: 1,
     },
 
-    time: {
-      start: {
-        type: String,
-      },
-
-      end: {
-        type: String,
-      },
+    schedule: {
+      startAt: Date,
+      endAt: Date,
     },
+
     inclusions: {
       type: [inclusionSchema],
     },
@@ -331,7 +322,6 @@ const bookingSchema = new mongoose.Schema(
 
     date: {
       type: Date,
-      required: true,
     },
 
     catering: {
@@ -399,7 +389,23 @@ const bookingSchema = new mongoose.Schema(
   },
 );
 
+const getBookingDate = (booking) => {
+  const startDates = [
+    booking?.catering?.schedule?.startAt,
+    booking?.venue?.schedule?.startAt,
+  ]
+    .filter(Boolean)
+    .map((date) => new Date(date))
+    .filter((date) => !Number.isNaN(date.getTime()));
+
+  if (!startDates.length) return null;
+
+  return new Date(Math.min(...startDates.map((date) => date.getTime())));
+};
+
 bookingSchema.pre("save", async function () {
+  this.date = getBookingDate(this);
+
   if (!this.isNew || this.reference) return;
 
   const year = new Date().getFullYear();

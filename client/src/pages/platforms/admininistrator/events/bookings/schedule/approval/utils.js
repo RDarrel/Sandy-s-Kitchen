@@ -16,7 +16,7 @@ export const getServiceRows = (booking) => {
 
       pax: booking?.venue?.pax || 0,
 
-      time: booking?.venue?.time,
+      time: booking?.venue?.schedule,
 
       label: "Venue",
 
@@ -43,7 +43,7 @@ export const getServiceRows = (booking) => {
 
       pax: booking?.catering?.pax || 0,
 
-      time: booking?.catering?.time,
+      time: booking?.catering?.schedule,
 
       label: "Catering",
 
@@ -200,57 +200,91 @@ export const getResourceRequirement = (inclusion) =>
 export const buildInclusions = (inclusions) =>
   inclusions.map((inc) => ({ ...inc, item: inc?.item?._id }));
 
-const formattedVenueDate = (date, time) =>
-  new Date(`${date.slice(0, 10)}T${time}:00`);
+export const getConflictingVenues = (booking, bookings = []) => {
+  const defaultResult = {
+    hasConflicts: false,
+    conflicts: [],
+    totalConflicts: 0,
+  };
 
-export const getConflictingVenues = (booking, bookings) => {
-  const { venue = {} } = booking;
-  const { time } = venue;
+  if (!["venue", "both"].includes(booking?.bookingType)) {
+    return defaultResult;
+  }
 
-  const defaultResult = { hasConflicts: false, conflicts: [] };
+  const { startAt, endAt } = booking?.venue?.schedule || {};
 
-  if (booking?.bookingType === "catering") return defaultResult;
+  if (!startAt || !endAt) {
+    return defaultResult;
+  }
 
-  const bookingWithVenues = bookings.filter(({ bookingType }) =>
-    ["both", "venue"].includes(bookingType),
-  );
+  const pendingStart = new Date(startAt).getTime();
+  const pendingEnd = new Date(endAt).getTime();
 
-  if (bookingWithVenues.length === 0) return defaultResult;
+  if (
+    !Number.isFinite(pendingStart) ||
+    !Number.isFinite(pendingEnd) ||
+    pendingStart >= pendingEnd
+  ) {
+    return defaultResult;
+  }
 
-  const conflicts = bookingWithVenues.filter(({ venue: existVenue }) => {
-    const { time: existTime } = existVenue;
-    return existTime?.start < time?.end && existTime.end > time?.start;
-  });
+  const conflicts = bookings
+    .filter((existingBooking) => {
+      if (!["venue", "both"].includes(existingBooking?.bookingType)) {
+        return false;
+      }
 
-  if (conflicts.length === 0) return defaultResult;
+      // Don't compare the booking with itself.
+      if (
+        booking?._id &&
+        existingBooking?._id &&
+        String(booking._id) === String(existingBooking._id)
+      ) {
+        return false;
+      }
 
-  const pendingStart = formattedVenueDate(booking?.date, time?.start);
-  const pendingEnd = formattedVenueDate(booking?.date, time?.end);
+      const existingSchedule = existingBooking?.venue?.schedule;
 
-  const formattedConflicts = conflicts.map(({ venue, date, ...rest }) => {
-    const bookingStart = formattedVenueDate(date, venue?.time?.start);
-    const bookingEnd = formattedVenueDate(date, venue?.time?.end);
+      if (!existingSchedule?.startAt || !existingSchedule?.endAt) {
+        return false;
+      }
 
-    const overlapStart = new Date(
-      Math.max(bookingStart.getTime(), pendingStart.getTime()),
-    );
+      const existingStart = new Date(existingSchedule.startAt).getTime();
+      const existingEnd = new Date(existingSchedule.endAt).getTime();
 
-    const overlapEnd = new Date(
-      Math.min(bookingEnd.getTime(), pendingEnd.getTime()),
-    );
+      if (
+        !Number.isFinite(existingStart) ||
+        !Number.isFinite(existingEnd) ||
+        existingStart >= existingEnd
+      ) {
+        return false;
+      }
 
-    return {
-      ...rest,
-      venue,
-      date,
-      overlap: { start: overlapStart, end: overlapEnd },
-    };
-  });
+      // Two schedules conflict when their time ranges overlap.
+      return existingStart < pendingEnd && existingEnd > pendingStart;
+    })
+    .map((existingBooking) => {
+      const existingStart = new Date(
+        existingBooking?.venue?.schedule?.startAt,
+      ).getTime();
+
+      const existingEnd = new Date(
+        existingBooking?.venue.schedule?.endAt,
+      ).getTime();
+
+      return {
+        ...existingBooking,
+        overlap: {
+          startAt: new Date(Math.max(existingStart, pendingStart)),
+          endAt: new Date(Math.min(existingEnd, pendingEnd)),
+        },
+      };
+    });
 
   return {
-    hasConflicts: true,
-    conflicts: formattedConflicts,
-    totalConflicts: formattedConflicts.length,
+    hasConflicts: conflicts.length > 0,
+    conflicts,
+    totalConflicts: conflicts.length,
   };
 };
 
@@ -258,7 +292,7 @@ export const hasCateringVenueOverlap = (booking) => {
   const { catering, venue, bookingType } = booking;
   if (bookingType !== "both") return false;
   return (
-    venue?.time.start < catering?.time.end &&
-    venue.time?.end > catering.time?.start
+    venue?.schedule?.startAt < catering?.schedule?.endAt &&
+    venue.schedule?.endAt > catering.schedule?.startAt
   );
 };

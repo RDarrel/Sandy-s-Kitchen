@@ -42,11 +42,12 @@ const Step4 = ({ form, setForm = () => {}, setCurrentStep = () => {} }) => {
     [navigate],
   );
   useEffect(() => {
+    const startAt = form?.venue?.schedule?.startAt;
+    const endAt = form?.venue?.schedule?.endAt;
     dispatch(
       AVAILABLE({
-        date: Formatter.localDate(new Date(form?.date)),
-        start: form?.venue?.time?.start,
-        end: form?.venue?.time?.end,
+        start: startAt ? new Date(startAt).toISOString() : undefined,
+        end: endAt ? new Date(endAt).toISOString() : undefined,
         pax: form?.venue?.pax,
       }),
     )
@@ -126,8 +127,6 @@ export default Step4;
 
 const VenueHeader = ({ form, handleEdit }) => {
   const pax = form?.venue?.pax;
-  const start = form?.venue?.time?.start;
-  const end = form?.venue?.time?.end;
 
   return (
     <div>
@@ -153,7 +152,7 @@ const VenueHeader = ({ form, handleEdit }) => {
             <Clock className="size-3 shrink-0 text-muted-foreground sm:size-3.5" />
 
             <span className="truncate font-medium text-foreground">
-              {formatTime(start)} – {formatTime(end)}
+              {Formatter.bookingDateRange(form?.venue?.schedule)}
             </span>
           </span>
         </div>
@@ -230,52 +229,6 @@ const AvailableVenuesHeader = ({ count = 0, isLoading = false }) => {
 /* -------------------------------------------------------------------------- */
 /* FORMAT TIME                                                                */
 /* -------------------------------------------------------------------------- */
-
-const formatTime = (time) => {
-  if (!time) return "—";
-
-  const [hours, minutes] = String(time).split(":").map(Number);
-
-  if (
-    !Number.isInteger(hours) ||
-    !Number.isInteger(minutes) ||
-    hours < 0 ||
-    hours > 23 ||
-    minutes < 0 ||
-    minutes > 59
-  ) {
-    return time;
-  }
-
-  const period = hours >= 12 ? "PM" : "AM";
-  const formattedHours = hours % 12 || 12;
-
-  return `${formattedHours}:${String(minutes).padStart(2, "0")} ${period}`;
-};
-
-/* -------------------------------------------------------------------------- */
-/* NO MATCHING VENUES                                                         */
-/* -------------------------------------------------------------------------- */
-
-const NoMatchingVenues = () => {
-  return (
-    <div className="rounded-lg border border-dashed border-border bg-muted/10 px-4 py-5">
-      <div className="mx-auto flex max-w-md flex-col items-center text-center">
-        <div className="flex size-8 items-center justify-center rounded-full border bg-background">
-          <CalendarX2 className="size-3.5 text-muted-foreground" />
-        </div>
-
-        <p className="mt-2 text-sm font-semibold text-foreground">
-          No venues available
-        </p>
-
-        <p className="mt-0.5 text-xs leading-4 text-muted-foreground">
-          Try changing your guest count or schedule to see other options.
-        </p>
-      </div>
-    </div>
-  );
-};
 
 /* -------------------------------------------------------------------------- */
 /* STEP SKELETON                                                              */

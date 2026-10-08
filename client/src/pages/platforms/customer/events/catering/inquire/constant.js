@@ -44,6 +44,11 @@ export const DEFAULT_MENU_SELECTIONS = {
   side: {},
 };
 
+const SCHEDULE_DEFAULT = {
+  startAt: null,
+  endAt: null,
+};
+
 export const DEFAULT_FORM = {
   contact: {
     name: "",
@@ -62,17 +67,11 @@ export const DEFAULT_FORM = {
     },
     mainCourses: [],
     sideDishes: [],
-    time: {
-      start: null,
-      end: null,
-    },
+    schedule: SCHEDULE_DEFAULT,
   },
   venue: {
     pax: 0,
-    time: {
-      start: null,
-      end: null,
-    },
+    schedule: SCHEDULE_DEFAULT,
   },
   notes: null,
 };

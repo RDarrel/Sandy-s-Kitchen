@@ -6,27 +6,36 @@ const dateToUTC = ({
   endOfDay = false,
   dateOnly = false,
 }) => {
+  if (!date) return null;
+
   let dt;
 
   if (date instanceof Date) {
     dt = DateTime.fromJSDate(date, {
-      zone: dateOnly ? "UTC" : timezone,
+      zone: timezone,
     });
   } else {
-    if (dateOnly) {
-      dt = DateTime.fromISO(date, { zone: "UTC" });
-    } else {
-      dt = DateTime.fromISO(date, { zone: timezone });
-    }
+    dt = DateTime.fromISO(date, {
+      zone: timezone,
+    });
 
     if (!dt.isValid) {
       dt = DateTime.fromFormat(date, "MM/dd/yyyy", {
-        zone: dateOnly ? "UTC" : timezone,
+        zone: timezone,
       });
     }
   }
 
-  return endOfDay ? dt.endOf("day").toJSDate() : dt.startOf("day").toJSDate();
+  if (!dt.isValid) {
+    return null;
+  }
+
+  // Only adjust the time for date-only operations
+  if (dateOnly) {
+    dt = endOfDay ? dt.endOf("day") : dt.startOf("day");
+  }
+
+  return dt.toUTC().toJSDate();
 };
 
 module.exports = dateToUTC;

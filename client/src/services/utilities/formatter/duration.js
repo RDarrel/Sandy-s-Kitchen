@@ -1,14 +1,18 @@
-const duration = (start, end, isNumber = false) => {
-  if (!start || !end) return isNumber ? 0 : "";
+import { differenceInMinutes } from "date-fns";
 
-  const [startHour, startMinute] = start.split(":").map(Number);
-  const [endHour, endMinute] = end.split(":").map(Number);
+const duration = (startAt, endAt, isNumber = false) => {
+  if (!startAt || !endAt) return isNumber ? 0 : "";
 
-  const startMinutes = startHour * 60 + startMinute;
-  const endMinutes = endHour * 60 + endMinute;
+  const start = new Date(startAt);
+  const end = new Date(endAt);
 
-  const durationMinutes = endMinutes - startMinutes;
-  const hours = durationMinutes / 60;
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return isNumber ? 0 : "";
+  }
+
+  const durationMinutes = differenceInMinutes(end, start);
+
+  const hours = Math.max(0, durationMinutes / 60);
 
   if (isNumber) {
     return hours;

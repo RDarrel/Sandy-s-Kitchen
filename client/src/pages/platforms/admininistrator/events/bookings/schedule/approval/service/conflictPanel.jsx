@@ -137,8 +137,7 @@ const ConflictBooking = ({ conflict, showDivider = false }) => {
           </div>
 
           <p className="mt-1 whitespace-nowrap text-[11px] font-semibold">
-            {Formatter.time(conflict.venue?.time.start)} -{" "}
-            {Formatter.time(conflict.venue?.time.end)}
+            {Formatter?.bookingDateRange(conflict?.venue?.schedule)}
           </p>
         </div>
 
@@ -150,8 +149,7 @@ const ConflictBooking = ({ conflict, showDivider = false }) => {
           </div>
 
           <p className="mt-1 whitespace-nowrap text-[11px] font-semibold text-destructive">
-            {Formatter.time(conflict.overlap.start)} -{" "}
-            {Formatter.time(conflict.overlap.end)}
+            {Formatter?.bookingDateRange(conflict?.overlap?.schedule)}
           </p>
         </div>
       </div>

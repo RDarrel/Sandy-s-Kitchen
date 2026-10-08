@@ -18,10 +18,11 @@ import Spinner from "@/components/shared/spinner";
 /* Helpers                          */
 /* -------------------------------- */
 
-const formatTimeRange = (start, end) => {
-  if (!start || !end) return "";
+const formatTimeRange = (obj = {}) => {
+  const { startAt, endAt } = obj;
+  if (!startAt || !endAt) return "";
 
-  return `${Formatter.time(start)} - ${Formatter.time(end)}`;
+  return `${Formatter.date(startAt, true)} - ${Formatter.date(endAt, true)}`;
 };
 
 const getMenuNames = (menus = []) => {
@@ -76,9 +77,6 @@ const Step6 = ({
 
   const total = (Ecatering?.total || 0) + (Evenue?.total || 0);
 
-  console.log("Ecatering", Ecatering);
-  console.log("Venue", Evenue);
-
   return (
     <div>
       <Header
@@ -108,6 +106,29 @@ const Step6 = ({
             ]}
           />
 
+          {/* Venue */}
+          {(isBoth || form?.bookingType === "venue") && (
+            <ReviewCard
+              title="Venue"
+              icon={MapPin}
+              items={[
+                ["Venue", selectedVenue?.name],
+                ["Pax", form?.venue?.pax],
+                [
+                  "Reservation Schedule",
+                  Formatter?.bookingDateRange(form?.venue?.schedule),
+                ],
+                [
+                  "Inclusions",
+                  selectedVenue?.inclusions?.map((inclusion) =>
+                    formatInclusion(inclusion),
+                  ),
+                  "inclusions",
+                ],
+              ]}
+            />
+          )}
+
           {/* Catering */}
           {(isBoth || form?.bookingType === "catering") && (
             <ReviewCard
@@ -117,8 +138,8 @@ const Step6 = ({
                 ["Package", packageInfo?.name],
                 ["Pax", form?.catering?.pax],
                 [
-                  "Service Time",
-                  formatTimeRange(cateringTime?.start, cateringTime?.end),
+                  "Service Schedule",
+                  Formatter.bookingDateRange(form?.catering?.schedule),
                 ],
                 [
                   "Inclusions",
@@ -134,29 +155,6 @@ const Step6 = ({
                     side: getMenuNames(selectedMenus?.side),
                   },
                   "menuSection",
-                ],
-              ]}
-            />
-          )}
-
-          {/* Venue */}
-          {(isBoth || form?.bookingType === "venue") && (
-            <ReviewCard
-              title="Venue"
-              icon={MapPin}
-              items={[
-                ["Venue", selectedVenue?.name],
-                ["Pax", form?.venue?.pax],
-                [
-                  "Venue Usage Time",
-                  formatTimeRange(venueTime?.start, venueTime?.end),
-                ],
-                [
-                  "Inclusions",
-                  selectedVenue?.inclusions?.map((inclusion) =>
-                    formatInclusion(inclusion),
-                  ),
-                  "inclusions",
                 ],
               ]}
             />

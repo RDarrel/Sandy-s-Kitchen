@@ -71,7 +71,7 @@ const VenueInquiry = () => {
 
   useEffect(() => {
     if (form?.bookingType === "venue" || !form?.bookingType) {
-      setSteps([DEFAULT_STEPS[0], DEFAULT_STEPS[5], DEFAULT_STEPS[6]]);
+      setSteps([DEFAULT_STEPS[0], DEFAULT_STEPS[4], DEFAULT_STEPS[5]]);
     } else {
       setSteps(DEFAULT_STEPS);
     }
@@ -92,7 +92,7 @@ const VenueInquiry = () => {
     return computeEstimated({
       basePrice: packageInfo.basePrice,
       maxHours: packageInfo?.includedHours,
-      time: form?.catering?.time,
+      schedule: form?.catering?.schedule,
       addFee: {
         hour: packageInfo?.addPricePerHour,
         pax: packageInfo?.addPricePerGuest,
@@ -108,7 +108,7 @@ const VenueInquiry = () => {
     return computeEstimated({
       basePrice: selected.basePrice,
       maxHours: selected?.duration?.max,
-      time: form?.venue?.time,
+      schedule: form?.venue?.schedule,
       addFee: {
         hour: selected?.additionalCharges?.perHour,
         pax: selected?.additionalCharges?.perPax,
@@ -328,7 +328,7 @@ const VenueInquiry = () => {
                 {[
                   Step1,
                   ...(form?.bookingType === "both"
-                    ? [Step2, Step3, Step4, Step5]
+                    ? [Step2, Step4, Step5]
                     : []),
                   Step6,
                   Review,

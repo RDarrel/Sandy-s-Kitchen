@@ -8,14 +8,18 @@ import Actions from "./actions";
 const Booking = ({ booking, handleAction }) => {
   const service = SERVICE_BADGES[booking.bookingType];
   const isBoth = booking.bookingType === "both";
-  const isCateringOnly = !isBoth && booking?.bookingType === "catering";
+  const isCateringOnly = booking.bookingType === "catering";
+
   const getLocation = () => {
-    if (isBoth || booking.bookingType === "venue")
+    if (isBoth || booking.bookingType === "venue") {
       return booking?.venue?.item?.address;
+    }
+
     return booking?.catering?.venue?.location;
   };
 
   const LocationIcon = isCateringOnly ? Building2 : MapPin;
+
   return (
     <div className="overflow-hidden rounded-md border bg-background shadow-xs">
       <div className="flex items-start justify-between gap-2 px-2.5 pt-2.5">
@@ -33,12 +37,14 @@ const Booking = ({ booking, handleAction }) => {
           variant="outline"
           className={`mt-0.5 shrink-0 text-[10px] ${service?.className}`}
         >
-          {service.label}
+          {service?.label}
         </Badge>
       </div>
 
-      <div className="grid gap-1.5 px-2.5 py-2 text-xs text-muted-foreground">
+      <div className="grid gap-2 px-2.5 py-2 text-xs text-muted-foreground">
         <Time booking={booking} />
+
+        {isBoth && <div className="border-t border-border/60" />}
 
         <div className="grid gap-1.5">
           <InfoLine
@@ -47,7 +53,8 @@ const Booking = ({ booking, handleAction }) => {
             }
             value={getLocation()}
           />
-          {!isBoth && booking?.bookingType === "catering" && (
+
+          {isCateringOnly && (
             <InfoLine
               icon={
                 <MapPin className="size-3.5 shrink-0 text-muted-foreground" />
@@ -68,79 +75,80 @@ const Booking = ({ booking, handleAction }) => {
 export default Booking;
 
 const InfoLine = ({ icon, value }) => (
-  <span className="flex min-w-0 items-center gap-2">
+  <div className="flex min-w-0 items-center gap-2">
     {icon}
 
-    <span className="truncate font-medium text-foreground">{value}</span>
-  </span>
+    <span className="min-w-0 truncate font-medium text-foreground">
+      {value || "—"}
+    </span>
+  </div>
 );
 
 const Time = ({ booking }) => {
-  const { bookingType, catering, venue } = booking;
+  const { bookingType, catering, venue, status } = booking;
   const isBoth = bookingType === "both";
-  const time = booking[bookingType]?.time || {};
 
   if (isBoth) {
     return (
-      <div className="grid gap-1 rounded-md border bg-muted/15 p-1.5">
+      <div className="grid gap-2">
         <ServiceTimeRow
-          icon={
-            <Building2
-              className={`size-3.5 shrink-0 ${STATUS_TEXT[booking.status]}`}
-            />
-          }
+          icon={<Building2 className={`size-3.5 ${STATUS_TEXT[status]}`} />}
           label="Venue"
           pax={venue?.pax}
-          time={venue?.time}
+          schedule={venue?.schedule}
         />
 
+        <div className="border-t border-border/60" />
+
         <ServiceTimeRow
-          icon={
-            <Utensils
-              className={`size-3.5 shrink-0 ${STATUS_TEXT[booking.status]}`}
-            />
-          }
+          icon={<Utensils className={`size-3.5 ${STATUS_TEXT[status]}`} />}
           label="Catering"
           pax={catering?.pax}
-          time={catering?.time}
+          schedule={catering?.schedule}
         />
       </div>
     );
   }
 
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="flex min-w-0 items-center gap-2">
-        <Clock3
-          className={`size-3.5 shrink-0 ${STATUS_TEXT[booking.status]}`}
-        />
+  const currentService = booking?.[bookingType];
 
-        <span className="truncate font-medium text-foreground">
-          {Formatter.time(time.start)} - {Formatter.time(time.end)}
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <Clock3 className={`size-3.5 shrink-0 ${STATUS_TEXT[status]}`} />
+
+        <span className="min-w-0 truncate font-medium text-foreground">
+          {Formatter.bookingDateRange(currentService?.schedule)}
         </span>
-      </span>
+      </div>
 
       <span className="flex shrink-0 items-center gap-1 font-medium text-foreground">
         <UsersRound className="size-3.5 text-muted-foreground" />
-        {booking[bookingType]?.pax} pax
+        {currentService?.pax ?? "—"} pax
       </span>
     </div>
   );
 };
 
-const ServiceTimeRow = ({ icon, label, pax, time }) => (
-  <div className="grid min-w-0 grid-cols-[auto_4.25rem_minmax(0,1fr)_auto] items-center gap-2">
-    {icon}
+const ServiceTimeRow = ({ icon, label, pax, schedule }) => (
+  <div className="min-w-0">
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="shrink-0">{icon}</span>
 
-    <span className="text-muted-foreground">{label}</span>
+        <span className="font-medium text-foreground">{label}</span>
+      </div>
 
-    <span className="truncate font-medium text-foreground">
-      {Formatter.time(time?.start)} - {Formatter.time(time?.end)}
-    </span>
+      <span className="flex shrink-0 items-center gap-1 font-medium text-foreground">
+        <UsersRound className="size-3.5 text-muted-foreground" />
+        {pax ?? "—"} pax
+      </span>
+    </div>
 
-    <span className="flex shrink-0 items-center gap-1 font-medium text-foreground">
-      <UsersRound className="size-3.5" />
-      {pax} pax
-    </span>
+    <div className="mt-0.5 pl-[22px]">
+      <span className="block whitespace-normal font-medium leading-4 text-foreground">
+        {Formatter.bookingDateRange(schedule)}
+      </span>
+    </div>
   </div>
 );

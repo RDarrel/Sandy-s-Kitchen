@@ -94,7 +94,7 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
     return computeEstimated({
       basePrice: packageInfo.basePrice,
       maxHours: packageInfo?.includedHours,
-      time: form?.catering?.time,
+      schedule: form?.catering?.schedule,
       addFee: {
         hour: packageInfo?.addPricePerHour,
         pax: packageInfo?.addPricePerGuest,
@@ -110,7 +110,7 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
     return computeEstimated({
       basePrice: selectedVenue.basePrice,
       maxHours: selectedVenue?.duration?.max,
-      time: form?.venue?.time,
+      schedule: form?.venue?.schedule,
       addFee: {
         hour: selectedVenue?.additionalCharges?.perHour,
         pax: selectedVenue?.additionalCharges?.perPax,

@@ -13,6 +13,8 @@ const initialState = {
     status: "",
   },
   availableVenues: [],
+  reservedSchedules: [],
+  validUntil: null, // For end date & time of venue reservation
   filtered: [],
   selected: {},
   willCreate: false,
@@ -53,6 +55,41 @@ export const AVAILABLE = createAsyncThunk(
   (query, thunkAPI) => {
     try {
       return axioKit.universal(`${url}/available`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+export const GET_RESERVED_SCHEDULES = createAsyncThunk(
+  `${url}/availability/start`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/availability/start`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+export const GET_AVAILABLE_UNTIL = createAsyncThunk(
+  `${url}/availability/until`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/availability/until`, query);
     } catch (error) {
       const message =
         (error.response &&
@@ -160,7 +197,36 @@ export const reduxSlice = createSlice({
         state.message = error.message;
         state.isLoading = false;
       })
-
+      .addCase(GET_RESERVED_SCHEDULES.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(GET_RESERVED_SCHEDULES.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.reservedSchedules = data;
+        state.isLoading = false;
+      })
+      .addCase(GET_RESERVED_SCHEDULES.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
+      .addCase(GET_AVAILABLE_UNTIL.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(GET_AVAILABLE_UNTIL.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.validUntil = data;
+        state.isLoading = false;
+      })
+      .addCase(GET_AVAILABLE_UNTIL.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
       .addCase(SAVE.pending, (state) => {
         state.formSubmitted = true;
         state.isSuccess = false;

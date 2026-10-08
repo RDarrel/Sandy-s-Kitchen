@@ -142,9 +142,7 @@ const ServicePanel = ({ item, isBoth }) => {
     >
       <DetailPill
         icon={<Clock3 className="size-3.5" />}
-        value={`${Formatter.time(item?.time?.start)} - ${Formatter.time(
-          item?.time?.end,
-        )}`}
+        value={Formatter?.bookingDateRange(item?.time)}
       />
 
       {isCateringOnly && (

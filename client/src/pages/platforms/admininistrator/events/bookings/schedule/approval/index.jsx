@@ -332,7 +332,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
               >
                 <Metric
                   icon={<CalendarDays className="size-3.5" />}
-                  label="Date"
+                  label="Starts"
                   value={formatDate(booking?.date)}
                 />
 

@@ -3,19 +3,33 @@ import { Users, Clock, Eye, Check, Beef, Salad, Utensils } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
-import { useCallback, useMemo } from "react";
+import { createElement, useCallback, useMemo } from "react";
 import { DEFAULT_MENU_SELECTIONS } from "../../constant";
+import { useSelector } from "react-redux";
 
 const Step4 = ({
   packages = [],
-  selected,
   form,
-  menuSelections,
   setForm = () => {},
   setMenuSelections = () => {},
 }) => {
+  const { isLoading } = useSelector(({ cateringPackages }) => cateringPackages);
   const navigate = useNavigate();
+
+  const sortedPackages = useMemo(() => {
+    const requestedPax = Number(form?.catering?.pax);
+
+    if (!requestedPax || !packages.length) return packages;
+
+    return [...packages].sort((a, b) => {
+      const diffA = Math.abs(a.includedGuests - requestedPax);
+      const diffB = Math.abs(b.includedGuests - requestedPax);
+
+      return diffA - diffB;
+    });
+  }, [packages, form?.catering?.pax]);
 
   const handleView = useCallback(
     (caterPackage) => {
@@ -25,7 +39,7 @@ const Step4 = ({
       );
       navigate("/platforms/catering/details");
     },
-    [selected, form, menuSelections, navigate],
+    [navigate],
   );
 
   return (
@@ -36,33 +50,163 @@ const Step4 = ({
       />
 
       <div className="grid w-full gap-2.5">
-        {packages.map((caterPackage) => (
-          <PackageOption
-            key={caterPackage._id}
-            caterPackage={caterPackage}
-            selected={form?.catering?.item === caterPackage._id}
-            onSelect={() => {
-              setForm((prev) => ({
-                ...prev,
-                catering: {
-                  ...prev?.catering,
-                  item: caterPackage._id,
-                  packageName: caterPackage.name,
-                  includedGuests: caterPackage.includedGuests,
-                  basePrice: caterPackage.basePrice,
-                },
-              }));
-              setMenuSelections(DEFAULT_MENU_SELECTIONS);
-            }}
-            handleView={handleView}
-          />
-        ))}
+        {isLoading
+          ? Array.from({ length: 3 }).map((_, index) => (
+              <PackageOptionSkeleton key={index} />
+            ))
+          : sortedPackages.map((caterPackage) => (
+              <PackageOption
+                key={caterPackage._id}
+                caterPackage={caterPackage}
+                selected={form?.catering?.item === caterPackage._id}
+                onSelect={() => {
+                  setForm((prev) => ({
+                    ...prev,
+                    catering: {
+                      ...prev?.catering,
+                      item: caterPackage._id,
+                      packageName: caterPackage.name,
+                      includedGuests: caterPackage.includedGuests,
+                      basePrice: caterPackage.basePrice,
+                    },
+                  }));
+                  setMenuSelections(DEFAULT_MENU_SELECTIONS);
+                }}
+                handleView={handleView}
+              />
+            ))}
       </div>
     </div>
   );
 };
 
 export default Step4;
+
+const PackageOptionSkeleton = () => {
+  return (
+    <div
+      className="
+        w-full
+        min-w-0
+        rounded-lg
+        border
+        border-border
+        bg-background
+        p-2.5
+        sm:p-3.5
+      "
+    >
+      {/* =========================================================
+          MOBILE LAYOUT
+          ========================================================= */}
+      <div className="sm:hidden">
+        <div className="flex min-w-0 gap-2.5">
+          <Skeleton className="mt-1 size-4 shrink-0 rounded-full" />
+
+          <Skeleton className="h-[72px] w-[88px] shrink-0 rounded-md" />
+
+          <div className="min-w-0 flex-1">
+            <Skeleton className="h-[18px] w-3/4" />
+
+            <div className="mt-2 grid gap-1">
+              <FeatureSkeleton />
+              <FeatureSkeleton className="w-28" />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2 border-t pt-2.5">
+          <MetricSkeleton />
+          <MetricSkeleton />
+          <MetricSkeleton />
+        </div>
+
+        <div className="mt-2.5 flex items-center justify-between gap-2 border-t pt-2.5">
+          <div className="min-w-0 flex-1">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="mt-1 h-2.5 w-16" />
+          </div>
+
+          <Skeleton className="h-7 w-[102px] shrink-0 rounded-md" />
+        </div>
+      </div>
+
+      {/* =========================================================
+          DESKTOP LAYOUT
+          ========================================================= */}
+      <div
+        className="
+          hidden
+          min-w-0
+          grid-cols-[auto_90px_minmax(0,1fr)_auto]
+          gap-3
+          sm:grid
+          sm:items-center
+        "
+      >
+        <Skeleton className="size-[17px] shrink-0 rounded-full" />
+
+        <Skeleton className="h-[76px] w-[90px] shrink-0 rounded-sm" />
+
+        <div className="min-w-0">
+          <Skeleton className="h-[18px] w-2/5" />
+
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <FeatureSkeleton />
+            <FeatureSkeleton className="w-28" />
+          </div>
+
+          <div className="mt-2.5 flex flex-wrap items-start gap-x-6 gap-y-2">
+            <MetricSkeleton desktop />
+            <MetricSkeleton desktop />
+            <MetricSkeleton desktop />
+          </div>
+        </div>
+
+        <div className="flex shrink-0 flex-col items-end justify-center gap-1.5">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-2.5 w-16" />
+          <Skeleton className="h-7 w-[102px] rounded-md" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FeatureSkeleton = ({ className = "" }) => {
+  return (
+    <span className="inline-flex min-w-0 items-center gap-1.5">
+      <Skeleton className="size-3 shrink-0 rounded-full" />
+      <Skeleton className={`h-3 w-24 ${className}`} />
+    </span>
+  );
+};
+
+const MetricSkeleton = ({ desktop = false }) => {
+  if (desktop) {
+    return (
+      <div className="flex min-w-0 flex-col">
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="size-3 shrink-0 rounded-full" />
+          <Skeleton className="h-2.5 w-20" />
+        </div>
+
+        <Skeleton className="mt-1 h-3 w-12" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-w-0">
+      <div className="flex items-center gap-1">
+        <Skeleton className="size-3 shrink-0 rounded-full" />
+        <Skeleton className="h-2.5 w-20" />
+      </div>
+
+      <Skeleton className="mt-1 h-3 w-12" />
+    </div>
+  );
+};
 
 const PackageOption = ({
   caterPackage,
@@ -420,7 +564,7 @@ const Feature = ({ icon: Icon, value, label }) => {
 
   return (
     <span className="inline-flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground sm:text-xs">
-      <Icon className="size-3 shrink-0 text-primary" />
+      {createElement(Icon, { className: "size-3 shrink-0 text-primary" })}
 
       <span className="whitespace-nowrap">
         <span className="font-bold text-foreground">{value}</span> {label}
@@ -439,7 +583,8 @@ const PackageMetric = ({ icon: Icon, label, value, desktop = false }) => {
       <div className="flex min-w-0 flex-col">
         {/* LABEL */}
         <div className="flex items-center gap-1.5">
-          {Icon && <Icon className="size-3 shrink-0 text-primary" />}
+          {Icon &&
+            createElement(Icon, { className: "size-3 shrink-0 text-primary" })}
 
           <span className="whitespace-nowrap text-[10px] font-medium leading-none text-muted-foreground">
             {label}
@@ -458,7 +603,8 @@ const PackageMetric = ({ icon: Icon, label, value, desktop = false }) => {
     <div className="min-w-0">
       {/* LABEL */}
       <div className="flex items-center gap-1">
-        {Icon && <Icon className="size-3 shrink-0 text-primary" />}
+        {Icon &&
+          createElement(Icon, { className: "size-3 shrink-0 text-primary" })}
 
         <p className="whitespace-nowrap text-[9px] font-medium leading-none text-muted-foreground">
           {label}

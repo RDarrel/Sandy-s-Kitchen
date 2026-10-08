@@ -4,6 +4,8 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import Section from "./section";
 import VenueOption from "./venueOption";
 import Field from "./field";
+import DatePicker from "@/components/shared/datePicker";
+import { addHours, differenceInMinutes, subHours } from "date-fns";
 
 const eventTypes = [
   "Wedding",
@@ -27,6 +29,23 @@ const Step1 = ({
   setForm = () => {},
 }) => {
   const cateringGuests = Number(form.guestCount) || 0;
+
+  const handleDateChange = (field, date, isStartDate = false) =>
+    setForm((prev) => ({
+      ...prev,
+      [field]: {
+        ...prev[field],
+        schedule: {
+          ...prev[field]?.schedule,
+          [isStartDate ? "startAt" : "endAt"]: date ? new Date(date) : date,
+        },
+      },
+    }));
+
+  const getBookingDate = (serviceType, scheduleField) => {
+    const date = form?.[serviceType]?.schedule?.[scheduleField];
+    return date ? new Date(date) : null;
+  };
 
   return (
     <div className="space-y-5">
@@ -66,21 +85,6 @@ const Step1 = ({
               ))}
             </select>
           </Field>
-
-          <Field label="Date" required>
-            <Input
-              type="date"
-              required
-              value={form?.date || ""}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  date: e.target.value,
-                }))
-              }
-            />
-          </Field>
-
           <Field label="Guests" required>
             <Input
               type="number"
@@ -95,68 +99,51 @@ const Step1 = ({
               placeholder={`Up to ${packageInfo.includedGuests} guests`}
             />
           </Field>
+          <Field label="Start Date & Time" required>
+            <DatePicker
+              date={getBookingDate("catering", "startAt")}
+              setDate={(value) => {
+                const cateringStart = new Date(value);
+                const cateringEnd = getBookingDate("catering", "endAt");
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Catering Start" required>
-              <Input
-                type="time"
-                required
-                value={form?.catering?.time?.start || ""}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    catering: {
-                      ...prev.catering,
-                      time: {
-                        ...prev?.catering?.time,
-                        start: e.target.value,
-                      },
-                    },
-                  }))
+                handleDateChange("catering", cateringStart, true);
+
+                if (
+                  !cateringEnd ||
+                  differenceInMinutes(cateringEnd, cateringStart) < 60
+                ) {
+                  handleDateChange(
+                    "catering",
+                    addHours(cateringStart, 1),
+                    false,
+                  );
                 }
-                onBlur={(e) => {
-                  const value = e.target.value;
-
-                  if (!value || form?.catering?.time?.end) return;
-
-                  const [hour, minute] = value.split(":");
-                  const endHour =
-                    (Number(hour) + packageInfo?.includedHours) % 24;
-
-                  setForm((prev) => ({
-                    ...prev,
-                    catering: {
-                      ...prev.catering,
-                      time: {
-                        ...prev?.catering?.time,
-                        end: `${String(endHour).padStart(2, "0")}:${minute}`,
-                      },
-                    },
-                  }));
-                }}
-              />
-            </Field>
-
-            <Field label="Catering End" required>
-              <Input
-                type="time"
-                required
-                value={form?.catering?.time?.end || ""}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    catering: {
-                      ...prev.catering,
-                      time: {
-                        ...prev?.catering?.time,
-                        end: e.target.value,
-                      },
-                    },
-                  }))
-                }
-              />
-            </Field>
-          </div>
+              }}
+              highlightToday={false}
+              min={new Date()}
+              withTime
+              required
+              align="center"
+            />
+          </Field>
+          <Field label="End Date & Time" required>
+            <DatePicker
+              date={getBookingDate("catering", "endAt")}
+              setDate={(value) => {
+                handleDateChange("catering", value);
+              }}
+              highlightToday={false}
+              disabled={!getBookingDate("catering", "startAt")}
+              min={
+                getBookingDate("catering", "startAt")
+                  ? addHours(getBookingDate("catering", "startAt"), 1)
+                  : undefined
+              }
+              withTime
+              required
+              align="center"
+            />
+          </Field>
         </div>
       </Section>
 
@@ -212,7 +199,7 @@ const Step1 = ({
 
       {form.bookingType === "both" && (
         <Section title="Venue Reservation Details">
-          <div className="grid gap-3 grid grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-3 grid grid-cols-1 md:grid-cols-3">
             <Field label="Guests" required>
               <Input
                 type="number"
@@ -230,45 +217,49 @@ const Step1 = ({
                 placeholder={cateringGuests ? `${cateringGuests}+` : "Guests"}
               />
             </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Start Time" required>
-                <Input
-                  type="time"
-                  value={form.venue?.time?.start || ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      venue: {
-                        ...prev?.venue,
-                        time: {
-                          ...prev?.venue?.time,
-                          start: e.target.value,
-                        },
-                      },
-                    }))
-                  }
-                />
-              </Field>
+            <Field label="Start Date & Time" required>
+              <DatePicker
+                date={getBookingDate("venue", "startAt")}
+                hideCalendarOnSameDay={false}
+                min={new Date()}
+                setDate={(value) => {
+                  const venueStart = new Date(value);
+                  const venueEnd = getBookingDate("venue", "endAt");
 
-              <Field label="End Time" required>
-                <Input
-                  type="time"
-                  value={form.venue?.time?.end || ""}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      venue: {
-                        ...prev?.venue,
-                        time: {
-                          ...prev?.venue?.time,
-                          end: e.target.value,
-                        },
-                      },
-                    }))
+                  handleDateChange("venue", venueStart, true);
+
+                  if (
+                    !venueEnd ||
+                    differenceInMinutes(venueEnd, venueStart) < 60
+                  ) {
+                    handleDateChange("venue", addHours(venueStart, 1), false);
                   }
-                />
-              </Field>
-            </div>
+                }}
+                highlightToday={false}
+                withTime
+                required
+                align="center"
+              />
+            </Field>
+            <Field label="End Date & Time" required>
+              <DatePicker
+                date={getBookingDate("venue", "endAt")}
+                hideCalendarOnSameDay={false}
+                setDate={(value) => {
+                  handleDateChange("venue", value);
+                }}
+                highlightToday={false}
+                disabled={!getBookingDate("venue", "startAt")}
+                min={
+                  getBookingDate("venue", "startAt")
+                    ? addHours(getBookingDate("venue", "startAt"), 1)
+                    : null
+                }
+                withTime
+                required
+                align="center"
+              />
+            </Field>
           </div>
         </Section>
       )}

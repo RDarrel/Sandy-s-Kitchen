@@ -4,7 +4,7 @@ import { toast } from "sonner";
 export const computeEstimated = ({
   basePrice,
   maxHours,
-  time = {},
+  schedule = {},
   addFee = {},
   pax = {},
 }) => {
@@ -14,7 +14,7 @@ export const computeEstimated = ({
   const extraGuestFee = extraGuests * paxRate;
   const extraHours = Math.max(
     0,
-    Formatter.duration(time?.start, time?.end, true) - maxHours,
+    Formatter.duration(schedule?.startAt, schedule?.endAt, true) - maxHours,
   );
   const extraHourFee = Math.round(extraHours * hourRate);
 
@@ -29,7 +29,9 @@ export const computeEstimated = ({
     },
     duration: {
       included: maxHours,
-      booked: Math.round(Formatter.duration(time?.start, time?.end, true)),
+      booked: Math.round(
+        Formatter.duration(schedule?.startAt, schedule?.endAt, true),
+      ),
       extra: Math.round(extraHours),
       rate: hourRate,
       charge: extraHourFee,
@@ -94,7 +96,6 @@ export const buildPayload = (
       ? { venue: form?.venue, catering }
       : { [bookingType]: _form[bookingType] }),
     contact: form?.contact,
-    date: form?.date,
     eventType: form?.eventType,
     notes: form?.notes,
     bookingType: form?.bookingType,

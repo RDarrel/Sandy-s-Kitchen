@@ -320,7 +320,7 @@ const BookingOverview = ({ booking, status, date, action }) => {
 
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
               <span>
-                {date.weekday}, {formatDate(booking?.date)}
+                Starts {date.weekday}, {formatDate(booking?.date)}
               </span>
 
               <span className="size-1 rounded-full bg-border" />

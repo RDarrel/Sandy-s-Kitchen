@@ -1,16 +1,43 @@
-import { Formatter } from "@/services/utilities";
+import { format, isSameYear, isValid as isValidDate } from "date-fns";
+import { createElement } from "react";
 import { toast } from "sonner";
 
-const toMinutes = (time) => {
-  const [hour, minute] = time.split(":").map(Number);
-  return hour * 60 + minute;
+const formatScheduleDate = (value) => {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (!isValidDate(date)) return "—";
+
+  const dateFormat = isSameYear(date, new Date())
+    ? "MMM d, h:mm a"
+    : "MMM d, yyyy, h:mm a";
+
+  return format(date, dateFormat);
+};
+const showScheduleError = (title, message, date) => {
+  toast.error(title, {
+    description: createElement(
+      "span",
+      null,
+      message + " ",
+      createElement(
+        "strong",
+        {
+          style: { fontWeight: 600 },
+        },
+        formatScheduleDate(date),
+      ),
+      ".",
+    ),
+    duration: 6000,
+  });
 };
 
 const step1 = (form) => {
   const { bookingType = "", catering = {}, venue = {} } = form;
-
-  const { time: venueTime = {} } = venue;
-  const { time: cateringTime = {} } = catering;
+  const venueSchedule = venue?.schedule ?? {};
+  const cateringSchedule = catering?.schedule ?? {};
 
   // Validate booking type
   if (!bookingType) {
@@ -21,67 +48,36 @@ const step1 = (form) => {
     return false;
   }
 
-  // Validate catering time
-  if (cateringTime?.start && cateringTime?.end) {
-    const cateringStart = toMinutes(cateringTime.start);
-    const cateringEnd = toMinutes(cateringTime.end);
-
-    if (cateringStart >= cateringEnd) {
-      toast.error("Invalid catering time", {
-        description: `Catering starts at ${Formatter.time(cateringTime.start)} and ends at ${Formatter.time(cateringTime.end)}. The start time must be earlier than the end time.`,
-        duration: 6000,
-      });
-      return false;
-    }
-  }
-
   // Catering only
   if (bookingType === "catering") {
     return true;
   }
 
-  // Validate venue time
-  if (venueTime?.start && venueTime?.end) {
-    const venueStart = toMinutes(venueTime.start);
-    const venueEnd = toMinutes(venueTime.end);
-
-    if (venueStart >= venueEnd) {
-      toast.error("Invalid venue time", {
-        description: `Venue starts at ${Formatter.time(venueTime.start)} and ends at ${Formatter.time(venueTime.end)}. The start time must be earlier than the end time.`,
-        duration: 6000,
-      });
-      return false;
-    }
-  }
-
-  // Validate catering time against venue time
   if (
-    venueTime?.start &&
-    venueTime?.end &&
-    cateringTime?.start &&
-    cateringTime?.end
+    venueSchedule?.startAt &&
+    venueSchedule?.endAt &&
+    cateringSchedule?.startAt &&
+    cateringSchedule?.endAt
   ) {
-    const venueStart = toMinutes(venueTime.start);
-    const venueEnd = toMinutes(venueTime.end);
+    // Catering cannot start before the venue
+    if (new Date(cateringSchedule.startAt) < new Date(venueSchedule.startAt)) {
+      showScheduleError(
+        "Catering starts too early",
+        "Catering must start on or after",
+        venueSchedule.startAt,
+      );
 
-    const cateringStart = toMinutes(cateringTime.start);
-    const cateringEnd = toMinutes(cateringTime.end);
-
-    // Catering cannot start before venue
-    if (cateringStart < venueStart) {
-      toast.error("Catering time conflicts with venue time", {
-        description: `Catering starts at ${Formatter.time(cateringTime.start)}, but the venue is only available from ${Formatter.time(venueTime.start)}. Please adjust the catering start time.`,
-        duration: 6000,
-      });
       return false;
     }
 
-    // Catering cannot end after venue
-    if (cateringEnd > venueEnd) {
-      toast.error("Catering time conflicts with venue time", {
-        description: `Catering ends at ${Formatter.time(cateringTime.end)}, but the venue is only available until ${Formatter.time(venueTime.end)}. Please adjust the catering end time.`,
-        duration: 6000,
-      });
+    // Catering cannot end after the venue
+    if (new Date(cateringSchedule.endAt) > new Date(venueSchedule.endAt)) {
+      showScheduleError(
+        "Catering ends too late",
+        "Catering must end on or before",
+        venueSchedule.endAt,
+      );
+
       return false;
     }
   }

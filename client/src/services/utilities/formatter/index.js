@@ -6,6 +6,7 @@ import packageIncluded from "./packageIncluded";
 import duration from "./duration";
 import preferredContact from "./preferredContact";
 import localDate from "./localDate";
+import bookingDateRange from "./bookingDateRange";
 const Formatter = {
   amount,
   date,
@@ -15,6 +16,7 @@ const Formatter = {
   duration,
   preferredContact,
   localDate,
+  bookingDateRange,
 };
 
 export default Formatter;
