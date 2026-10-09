@@ -321,6 +321,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
               <div className="space-y-3">
                 <BookingSummary
                   booking={booking}
+                  isViewOnly={isViewOnly}
                   customerName={customerName}
                   isCombinedBooking={isCombinedBooking}
                   payment={payment}

@@ -1,4 +1,4 @@
-import { Formatter } from "@/services/utilities";
+import { Formatter, fullName } from "@/services/utilities";
 import { CheckCircle2, Clock3, MessageSquareText, XCircle } from "lucide-react";
 import { formatPaymentType } from "./utils";
 
@@ -105,7 +105,14 @@ const PaymentSlip = ({
         <Row label="Submitted">{Formatter.date(payment?.createdAt, true)}</Row>
 
         {payment?.reviewedAt && (
-          <Row label="Reviewed">{Formatter.date(payment.reviewedAt, true)}</Row>
+          <>
+            <Row label="Reviewed">
+              {Formatter.date(payment.reviewedAt, true)}
+            </Row>
+            <Row label="Reviewed by">
+              {fullName(payment?.reviewedBy?.fullName)}
+            </Row>
+          </>
         )}
       </SlipRows>
 

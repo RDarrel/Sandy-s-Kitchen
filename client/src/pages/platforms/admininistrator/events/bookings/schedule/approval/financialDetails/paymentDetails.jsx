@@ -15,14 +15,9 @@ import PaymentSlip from "./paymentSlip";
 import Proof from "./proof";
 
 const PaymentDetails = ({ isOpen, setIsOpen, booking, payment }) => {
-  const totalAmount = toAmount(
-    payment?.snapshot?.bookingTotal ?? booking?.pricing?.total,
-  );
+  const totalAmount = toAmount(payment?.snapshot?.bookingTotal);
   const paymentAmount = toAmount(payment?.amount);
-  const verifiedBeforePayment = getVerifiedAmountBeforePayment(
-    booking,
-    payment,
-  );
+  const verifiedBeforePayment = payment?.snapshot?.verifiedSoFar;
   const balanceBeforePayment = Math.max(totalAmount - verifiedBeforePayment, 0);
   const appliedAmount = payment?.status === "verified" ? paymentAmount : 0;
   const balanceAfterPayment = Math.max(balanceBeforePayment - appliedAmount, 0);
@@ -75,7 +70,7 @@ const PaymentDetails = ({ isOpen, setIsOpen, booking, payment }) => {
               balanceAfterPayment={balanceAfterPayment}
               projectedBalance={projectedBalance}
               totalAmount={totalAmount}
-              verifiedAmount={verifiedBeforePayment + appliedAmount}
+              verifiedAmount={verifiedBeforePayment}
             />
           </div>
         </div>

@@ -4,8 +4,10 @@ import { Metric } from "./components";
 import { STATUS_STYLES } from "../../constant";
 import { Formatter } from "@/services/utilities";
 import { formatDate, getTotalPax } from "./utils";
+import { cn } from "@/lib/utils";
 const BookingSummary = ({
   booking,
+  isViewOnly = false,
   customerName,
   isCombinedBooking,
   payment,
@@ -38,10 +40,19 @@ const BookingSummary = ({
         </div>
       </div>
 
-      <div
+      {/* <div
         className={`mt-3 grid grid-cols-2 gap-1.5 ${
           isCombinedBooking ? "md:grid-cols-5" : "md:grid-cols-4"
         }`}
+      > */}
+      <div
+        className={cn("mt-3 grid grid-cols-2 gap-1.5", {
+          "md:grid-cols-5": isCombinedBooking && !isViewOnly,
+          "md:grid-cols-4":
+            (isCombinedBooking && isViewOnly) ||
+            (!isCombinedBooking && !isViewOnly),
+          "md:grid-cols-3": !isCombinedBooking && isViewOnly,
+        })}
       >
         <Metric
           icon={<CalendarDays className="size-3.5" />}
@@ -71,12 +82,13 @@ const BookingSummary = ({
           />
         )}
 
-        <Metric
-          icon={<Wallet className="size-3.5" />}
-          label="Estimate"
-          value={Formatter.amount(payment.total)}
-        />
-
+        {!isViewOnly && (
+          <Metric
+            icon={<Wallet className="size-3.5" />}
+            label="Estimate"
+            value={Formatter.amount(payment.total)}
+          />
+        )}
         <Metric
           icon={<CheckCircle2 className="size-3.5" />}
           label="Type"

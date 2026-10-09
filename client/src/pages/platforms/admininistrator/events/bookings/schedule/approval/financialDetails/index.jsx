@@ -1,10 +1,4 @@
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Frame, FrameHeader, FramePanel } from "@/components/reui/frame";
 import {
   Timeline,
@@ -228,25 +222,25 @@ const PaymentHistoryTimeline = ({ payments = [], onViewPayment }) => (
             </div>
 
             {onViewPayment && (
-              <TooltipProvider delayDuration={150}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className="size-6 shrink-0 rounded-md"
-                      onClick={() => onViewPayment(payment)}
-                    >
-                      <ArrowUpRight className="size-3.5" />
-                    </Button>
-                  </TooltipTrigger>
+              // <TooltipProvider delayDuration={150}>
+              //   <Tooltip>
+              //     <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-6 shrink-0 rounded-md"
+                onClick={() => onViewPayment(payment)}
+              >
+                <ArrowUpRight className="size-3.5" />
+              </Button>
+              //     </TooltipTrigger>
 
-                  <TooltipContent side="left">
-                    View payment details
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              //     <TooltipContent side="left">
+              //       View payment details
+              //     </TooltipContent>
+              //   </Tooltip>
+              // </TooltipProvider>
             )}
           </div>
 
