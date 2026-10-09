@@ -32,11 +32,21 @@ exports.update = async (req, res) => {
         },
       });
     }
-    const updated = await Payment.findByIdAndUpdate(req.body._id, req.body, {
-      returnDocument: "after",
-    })
-      .populate("method", "name")
-      .populate("reviewedBy", "fullName");
+
+    let updated;
+
+    if (req.body._id) {
+      updated = await Payment.findByIdAndUpdate(req.body._id, req.body, {
+        returnDocument: "after",
+      });
+    } else {
+      updated = await Payment.create(req.body);
+    }
+
+    await updated.populate([
+      { path: "method", select: "name" },
+      { path: "reviewedBy", select: "fullName" },
+    ]);
     res
       .status(201)
       .json({ data: updated, success: "Payment updated successfully." });
