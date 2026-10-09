@@ -121,6 +121,7 @@ const attachPaymentsToBookings = async ({ bookings }) => {
     },
   })
     .populate("method", "name")
+    .populate("reviewedBy", "fullName")
     .sort({
       paidAt: -1,
     })

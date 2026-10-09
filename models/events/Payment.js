@@ -63,7 +63,7 @@ const paymentSchema = new mongoose.Schema(
 
     reviewedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Users",
       default: null,
     },
 

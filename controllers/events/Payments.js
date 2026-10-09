@@ -34,7 +34,9 @@ exports.update = async (req, res) => {
     }
     const updated = await Payment.findByIdAndUpdate(req.body._id, req.body, {
       returnDocument: "after",
-    }).populate("method", "name");
+    })
+      .populate("method", "name")
+      .populate("reviewedBy", "fullName");
     res
       .status(201)
       .json({ data: updated, success: "Payment updated successfully." });
