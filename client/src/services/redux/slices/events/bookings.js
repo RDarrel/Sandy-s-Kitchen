@@ -172,23 +172,14 @@ export const MY_BOOKINGS = createAsyncThunk(
     }
   },
 );
-const isDateWithinRange = (date, range) => {
-  if (!date || !range?.start || !range?.end) return false;
 
-  return date >= range.start && date < range.end;
-};
-
-const updateBookingStatus = (state, statusTransaction, booking) => {
-  //status={new:"approved",old:'pending'}
+const updateSchedule = (state, statusTransaction, booking) => {
   const {
     eInclusions = [],
     cInclusions = [],
     payments = [],
     statusHistory = [],
-    date,
   } = booking;
-  const eventDate = Formatter.localDate(date);
-  const calendar = { ...state.calendar };
   const schedule = { ...state.schedule };
   const oldCollections = [...(schedule?.[statusTransaction?.old] ?? [])];
 
@@ -236,29 +227,84 @@ const updateBookingStatus = (state, statusTransaction, booking) => {
     }),
   };
 
+  return toRemoveBooking;
+};
+
+const isDateWithinRange = (booking, range) => {
+  if (
+    !booking?.startAt ||
+    !booking?.endAt ||
+    !range?.startAt ||
+    !range?.endAt
+  ) {
+    return false;
+  }
+
+  return (
+    new Date(booking.startAt) <= new Date(range.endAt) &&
+    new Date(booking.endAt) > new Date(range.startAt)
+  );
+};
+
+const getBookingRange = (booking) => {
+  const { bookingType = "", date, venue = {} } = booking || {};
+  let startAt = new Date(date);
+  let endAt = null;
+
+  if (bookingType === "both") {
+    endAt = venue?.schedule?.endAt;
+  } else {
+    endAt = booking?.[bookingType]?.schedule?.endAt;
+  }
+  return { startAt, endAt: endAt ? new Date(endAt) : null };
+};
+
+const updateBookingStatus = (state, statusTransaction, booking) => {
+  //status={new:"approved",old:'pending'}
+  const calendar = { ...state.calendar };
+  const updatedBooking = updateSchedule(state, statusTransaction, booking);
+
+  console.log("updatedBooking", updatedBooking);
+  if (!updatedBooking) return;
+
+  const bookingRange = getBookingRange(updatedBooking);
+
   const { visibleRange, monthRange } = calendar;
 
-  const isVisible = isDateWithinRange(eventDate, visibleRange);
-  const isWithinMonth = isDateWithinRange(eventDate, monthRange);
-
+  const isVisible = isDateWithinRange(bookingRange, visibleRange);
+  const isWithinMonth = isDateWithinRange(bookingRange, monthRange);
+  console.log("isVisible", isVisible);
+  console.log("isWithinMonth", isWithinMonth);
   if (isVisible) {
     const { days = [], overview = {} } = calendar;
     const { monthly = [] } = overview;
 
-    const dayIdx = days.findIndex(({ start }) => start === date);
+    const updatedDays = days.map((day) => {
+      console.log("bookingRange", JSON.parse(JSON.stringify(bookingRange)));
+      console.log("day", JSON.parse(JSON.stringify(day)));
+      const isAffected = isDateWithinRange(bookingRange, {
+        startAt: day?.start,
+        endAt: day?.end,
+      });
+      console.log("isAffected", isAffected);
+      if (!isAffected) return day;
 
-    if (dayIdx > -1) {
-      days[dayIdx] = {
-        ...days[dayIdx],
+      return {
+        ...day,
         statusCounts: {
-          ...days[dayIdx].statusCounts,
-          [statusTransaction.old]:
-            (days[dayIdx].statusCounts?.[statusTransaction.old] || 0) - 1,
+          ...day.statusCounts,
+          [statusTransaction.old]: Math.max(
+            (day.statusCounts?.[statusTransaction.old] || 0) - 1,
+            0,
+          ),
           [statusTransaction.new]:
-            (days[dayIdx].statusCounts?.[statusTransaction.new] || 0) + 1,
+            (day.statusCounts?.[statusTransaction.new] || 0) + 1,
         },
       };
-    }
+    });
+
+    console.log("updateDays", JSON.parse(JSON.stringify(updatedDays)));
+
     if (isWithinMonth) {
       const getStatsIdx = (stats) =>
         monthly.findIndex(({ status }) => status === stats);
@@ -285,7 +331,7 @@ const updateBookingStatus = (state, statusTransaction, booking) => {
 
     state.calendar = {
       ...state.calendar,
-      days,
+      days: updatedDays,
       overview: {
         ...state.calendar?.overview,
         monthly,

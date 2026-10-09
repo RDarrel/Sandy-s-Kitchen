@@ -37,12 +37,12 @@ const Inclusions = ({
           {sortedItems.map((inclusion, index) => {
             const resourceAvailability =
               equipAvailability?.[inclusion?.item?._id] || {};
-
+            console.log("resourceAvailability", resourceAvailability);
             return (
               <Allocation
                 key={inclusion?.item?._id || `${label}-${index}`}
                 inclusion={inclusion}
-                available={resourceAvailability?.[serviceType] || 0}
+                available={resourceAvailability?.[inclusion?.source] || 0}
                 resourceAvailability={resourceAvailability}
                 serviceType={serviceType}
                 isSharedAvailability={isSharedAvailability}
@@ -71,19 +71,23 @@ const Allocation = memo(
     isSharedAvailability = false,
     isLoadingEquipAvailability = false,
   }) => {
+    const { source } = inclusion;
     const needsInput = requiresResourceInput(inclusion);
     const isEquipment = inclusion?.model === "Equipment";
-    const amount = Number(inclusion?.amount || 0);
+    const amount = Number(resourceAvailability[`${source}Allocation`] || 0);
+
     const hasAvailabilityRecord =
       "available" in resourceAvailability ||
       serviceType in resourceAvailability;
     const totalAvailable = Number(
       resourceAvailability?.available ?? available ?? 0,
     );
+
     const otherServiceType = serviceType === "venue" ? "catering" : "venue";
     const otherAllocation = isSharedAvailability
       ? Number(resourceAvailability?.[`${otherServiceType}Allocation`] || 0)
       : 0;
+
     const maxAllowed = Math.max(totalAvailable - otherAllocation, 0);
     const shouldShowAvailabilitySkeleton =
       isEquipment && isLoadingEquipAvailability;
@@ -135,11 +139,18 @@ const Allocation = memo(
               )}
 
               <span className="truncate">
-                {isEquipment
-                  ? hasAvailabilityWarning
-                    ? availabilityMessage
-                    : `${inclusion?.model || "Equipment"} / ${available} available`
-                  : inclusion?.model || "Item"}
+                {isEquipment ? (
+                  hasAvailabilityWarning ? (
+                    availabilityMessage
+                  ) : (
+                    <>
+                      {inclusion?.label || "Equipment"} •{" "}
+                      <span className="font-medium">{available}</span> available
+                    </>
+                  )
+                ) : (
+                  inclusion?.model || "Item"
+                )}
               </span>
             </p>
           )}
@@ -160,7 +171,7 @@ const Allocation = memo(
                 required
                 onChange={({ target }) =>
                   handleInclusionAmountChange(
-                    serviceType,
+                    inclusion?.source,
                     inclusion?.item?._id,
                     Number(target.value),
                   )

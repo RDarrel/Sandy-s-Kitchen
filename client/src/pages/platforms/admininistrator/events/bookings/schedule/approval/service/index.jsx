@@ -1,21 +1,23 @@
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Building2, Clock3, MapPin } from "lucide-react";
+import {
+  AlertTriangle,
+  Building2,
+  CheckCircle2,
+  Clock3,
+  MapPin,
+} from "lucide-react";
 import { Formatter } from "@/services/utilities";
 import { formatItemName } from "../utils";
-import Inclusions from "../inclusions";
 import { EmptyPanel, SectionTitle } from "../components";
+import { useMemo } from "react";
 
-const Service = ({
-  item,
-  equipAvailability,
-  conflicts = [],
-  isBoth = false,
-  isSharedAvailability = false,
-  isLoadingEquipAvailability = false,
-  handleInclusionAmountChange = () => {},
-}) => {
+const Service = ({ item, conflicts = [], isBoth = false }) => {
   const hasConflict = conflicts.length > 0;
   const Icon = item.icon;
+  const services = useMemo(() => {
+    return (item?.inclusions || []).filter(({ model }) => model === "Services");
+  }, [item.inclusions]);
+
   return (
     <div className="relative overflow-visible">
       <section
@@ -85,17 +87,11 @@ const Service = ({
             </ServiceSection>
           )}
 
-          <ServiceSection title="Resources" count={item.inclusions.length}>
-            <Inclusions
-              label={item.label}
-              serviceType={item?.type}
-              items={item.inclusions}
-              equipAvailability={equipAvailability}
-              isSharedAvailability={isSharedAvailability}
-              isLoadingEquipAvailability={isLoadingEquipAvailability}
-              handleInclusionAmountChange={handleInclusionAmountChange}
-            />
-          </ServiceSection>
+          {services?.length > 0 && (
+            <ServiceSection title="Included Services" count={services.length}>
+              <IncludedServicesPanel items={services} />
+            </ServiceSection>
+          )}
 
           {item.pricing && (
             <ServiceSection title="Pricing">
@@ -194,6 +190,35 @@ const MenuPanel = ({ title, items }) => (
     )}
   </section>
 );
+
+const IncludedServicesPanel = ({ items = [] }) => {
+  if (!items.length) {
+    return <EmptyPanel label="No services included" />;
+  }
+
+  return (
+    <div className="grid gap-1.5 md:grid-cols-2">
+      {items.map((service, index) => (
+        <div
+          key={
+            service?.item?._id || `${formatItemName(service?.item)}-${index}`
+          }
+          className="flex min-w-0 items-center gap-2 rounded-md border bg-muted/10 px-2.5 py-2"
+        >
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-md border bg-background text-primary">
+            <CheckCircle2 className="size-3.5" />
+          </span>
+
+          <div className="min-w-0">
+            <p className="truncate text-xs font-semibold text-foreground">
+              {formatItemName(service?.item)}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export const PricePanel = ({ label, pricing }) => {
   const rows = getPricingRows(pricing);

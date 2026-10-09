@@ -55,6 +55,7 @@ import {
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
 import ConflictPanel from "./service/conflictPanel";
+import Inclusions from "./inclusions";
 
 const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
   const { auth } = useSelector(({ auth }) => auth);
@@ -65,10 +66,9 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
     isLoadingEquipAvailability,
   } = useSelector(({ bookings }) => bookings);
   const [booking, setBooking] = useState({});
-  const [equipAvailability, setEquipAvailability] = useState({
-    catering: [],
-    venue: [],
-  });
+  const [equipAvailability, setEquipAvailability] = useState({});
+  // const [equipmentAllocations, setEquipmentAllocations] = useState([]);
+  const [isEquipmentSufficient, setHasSufficientEquipment] = useState(false);
   const [changeRequestOpen, setChangeRequestOpen] = useState(false);
   const [changeRequestReason, setChangeRequestReason] = useState("");
   const [changeRequestError, setChangeRequestError] = useState("");
@@ -81,11 +81,60 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
     }
   }, [isOpen, selected, dispatch]);
 
+  const equipmentAllocations = useMemo(() => {
+    if (!isOpen) return [];
+    const getEquipments = (inclusions = []) =>
+      inclusions?.filter(({ model }) => model === "Equipment") || [];
+
+    const { bookingType = "both", catering = {}, venue = {} } = selected;
+
+    const venueEquipments = getEquipments(venue?.inclusions);
+    const cateringEquipments = getEquipments(catering?.inclusions);
+    let equipments = [];
+
+    if (bookingType === "both") {
+      venueEquipments.forEach((element) => {
+        equipments.push({
+          ...element,
+          source: "venue",
+          label: "Venue + Catering",
+        });
+      });
+
+      cateringEquipments.forEach((element) => {
+        const isExist = equipments.some(
+          ({ item }) => item?._id === element?.item?._id,
+        );
+
+        if (!isExist) {
+          equipments.push({
+            ...element,
+            source: "catering",
+            label: "Catering",
+          });
+        }
+      });
+    }
+
+    return equipments;
+  }, [booking, isOpen]);
+
   useEffect(() => {
     if (!isLoadingEquipAvailability && isOpen && selected?._id) {
       setEquipAvailability(availability);
     }
   }, [availability, isLoadingEquipAvailability, isOpen, selected]);
+
+  useEffect(() => {
+    if (isOpen && !isLoadingEquipAvailability) {
+      const isEquipmentSufficient = Object.values(equipAvailability)?.every(
+        ({ available, cateringAllocation = 0, venueAllocation = 0 }) => {
+          return cateringAllocation + venueAllocation <= available && available;
+        },
+      );
+      setHasSufficientEquipment(isEquipmentSufficient);
+    }
+  }, [equipAvailability, isOpen, isLoadingEquipAvailability]);
 
   const service = SERVICE_BADGES[booking?.bookingType] || {
     label: "Booking",
@@ -185,6 +234,9 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const handleInclusionAmountChange = useCallback(
     (serviceType, itemID, amount) => {
+      console.log("serviceType", serviceType);
+      console.log("itemID", itemID);
+      console.log("amount", amount);
       setBooking((prev) => {
         const inclusions = [...(prev[serviceType]?.inclusions || [])];
 
@@ -250,6 +302,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
     },
     [availability, isCateringVenueOverlapping],
   );
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
@@ -399,6 +452,25 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
                   conflicts={conflicts}
                 />
               )}
+            </section>
+            <section className="overflow-hidden rounded-md border bg-background">
+              <div className="border-b bg-muted/10 px-3 py-2.5">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Equipment Allocations
+                </h3>
+
+                <p className="text-[10px] leading-4 text-muted-foreground">
+                  Allocate the equipment required for this booking.
+                </p>
+              </div>
+
+              <div className="p-3">
+                <Inclusions
+                  items={equipmentAllocations}
+                  equipAvailability={equipAvailability}
+                  handleInclusionAmountChange={handleInclusionAmountChange}
+                />
+              </div>
             </section>
 
             {/* Booking Estimate */}
