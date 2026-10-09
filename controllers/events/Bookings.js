@@ -1,5 +1,6 @@
 const Booking = require("../../models/events/Booking");
 const BookingService = require("../../services/events/Bookings.service");
+const dateToUTC = require("../../utilities/dateToUTC");
 
 exports.save = async (req, res) => {
   try {
@@ -60,12 +61,26 @@ exports.calendar = async (req, res) => {
           totalCount: result.totalBookings[0]?.count || 0,
         },
         visibleRange: {
-          start,
-          end,
+          startAt: dateToUTC({
+            date: start,
+            dateOnly: true,
+          }),
+          endAt: dateToUTC({
+            date: end,
+            dateOnly: true,
+            endOfDay: true,
+          }),
         },
         monthRange: {
-          start: monthStart,
-          end: monthEnd,
+          startAt: dateToUTC({
+            date: monthStart,
+            dateOnly: true,
+          }),
+          endAt: dateToUTC({
+            date: monthEnd,
+            dateOnly: true,
+            endOfDay: true,
+          }),
         },
       },
     });
