@@ -37,7 +37,6 @@ const Inclusions = ({
           {sortedItems.map((inclusion, index) => {
             const resourceAvailability =
               equipAvailability?.[inclusion?.item?._id] || {};
-            console.log("resourceAvailability", resourceAvailability);
             return (
               <Allocation
                 key={inclusion?.item?._id || `${label}-${index}`}

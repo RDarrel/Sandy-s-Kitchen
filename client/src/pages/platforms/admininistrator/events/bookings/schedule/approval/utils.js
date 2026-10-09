@@ -1,4 +1,5 @@
 import { Formatter } from "@/services/utilities";
+import { capitalize } from "lodash";
 import { Building2, Sparkles, Utensils } from "lucide-react";
 export const getServiceRows = (booking) => {
   const rows = [];
@@ -200,14 +201,14 @@ export const getResourceRequirement = (inclusion) =>
 export const buildInclusions = (inclusions) =>
   inclusions.map((inc) => ({ ...inc, item: inc?.item?._id }));
 
-export const getConflictingVenues = (booking, bookings = []) => {
+export const getConflictingVenues = (booking, bookings = [], mode = "view") => {
   const defaultResult = {
     hasConflicts: false,
     conflicts: [],
     totalConflicts: 0,
   };
 
-  if (!["venue", "both"].includes(booking?.bookingType)) {
+  if (!["venue", "both"].includes(booking?.bookingType) || mode === "view") {
     return defaultResult;
   }
 
@@ -295,4 +296,52 @@ export const hasCateringVenueOverlap = (booking) => {
     venue?.schedule?.startAt < catering?.schedule?.endAt &&
     venue.schedule?.endAt > catering.schedule?.startAt
   );
+};
+
+export const getEquipmentAllocations = (booking = {}) => {
+  const getEquipments = (inclusions = []) =>
+    (inclusions || []).filter(({ model }) => model === "Equipment");
+
+  const { bookingType, catering = {}, venue = {} } = booking || {};
+
+  const equipmentMap = {
+    venue: getEquipments(venue?.inclusions),
+    catering: getEquipments(catering?.inclusions),
+  };
+
+  if (bookingType !== "both") {
+    return (equipmentMap[bookingType] || []).map((equipment) => ({
+      ...equipment,
+      source: bookingType,
+      label: capitalize(bookingType),
+    }));
+  }
+
+  const venueEquipmentIds = new Set(
+    equipmentMap.venue.map(({ item }) => String(item?._id)),
+  );
+
+  const cateringEquipmentIds = new Set(
+    equipmentMap.catering.map(({ item }) => String(item?._id)),
+  );
+
+  const venueEquipments = equipmentMap.venue.map((equipment) => {
+    const isShared = cateringEquipmentIds.has(String(equipment?.item?._id));
+
+    return {
+      ...equipment,
+      source: "venue",
+      label: isShared ? "Venue + Catering" : "Venue",
+    };
+  });
+
+  const cateringEquipments = equipmentMap.catering
+    .filter(({ item }) => !venueEquipmentIds.has(String(item?._id)))
+    .map((equipment) => ({
+      ...equipment,
+      source: "catering",
+      label: "Catering",
+    }));
+
+  return [...venueEquipments, ...cateringEquipments];
 };

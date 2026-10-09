@@ -1,16 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -18,31 +8,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Formatter, fullName } from "@/services/utilities";
-import {
-  AlertTriangle,
-  CalendarDays,
-  CheckCircle2,
-  Mail,
-  MessageSquareText,
-  Phone,
-  ReceiptText,
-  StickyNote,
-  UsersRound,
-  Wallet,
-} from "lucide-react";
-import { SERVICE_BADGES, STATUS_STYLES } from "../../constant";
+import { fullName } from "@/services/utilities";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { SERVICE_BADGES } from "../../constant";
 import {
   buildInclusions,
-  formatDate,
   getConflictingVenues,
+  getEquipmentAllocations,
   getPaymentSummary,
   getServiceRows,
-  getTotalPax,
   hasCateringVenueOverlap,
 } from "./utils";
-import { Metric } from "./components";
 import Service from "./service";
 import { DIALOG_CONTENT_CLASSNAME } from "./constant";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -56,8 +32,15 @@ import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
 import ConflictPanel from "./service/conflictPanel";
 import Inclusions from "./inclusions";
+import Estimate from "./estimate";
+import CustomerDetails from "./customerDetails";
+import BookingSummary from "./bookingSummary";
+import RequestChanges from "./requestChanges";
+import WarningMsg from "./warningMsg";
+import FinancialDetails from "./financialDetails";
+import { cn } from "@/lib/utils";
 
-const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
+const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
   const { auth } = useSelector(({ auth }) => auth);
   const {
     formSubmitted,
@@ -74,6 +57,8 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
   const [changeRequestError, setChangeRequestError] = useState("");
   const dispatch = useDispatch();
 
+  const isViewOnly = mode === "view";
+
   useEffect(() => {
     if (isOpen) {
       setBooking(selected);
@@ -83,40 +68,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const equipmentAllocations = useMemo(() => {
     if (!isOpen) return [];
-    const getEquipments = (inclusions = []) =>
-      inclusions?.filter(({ model }) => model === "Equipment") || [];
-
-    const { bookingType = "both", catering = {}, venue = {} } = selected;
-
-    const venueEquipments = getEquipments(venue?.inclusions);
-    const cateringEquipments = getEquipments(catering?.inclusions);
-    let equipments = [];
-
-    if (bookingType === "both") {
-      venueEquipments.forEach((element) => {
-        equipments.push({
-          ...element,
-          source: "venue",
-          label: "Venue + Catering",
-        });
-      });
-
-      cateringEquipments.forEach((element) => {
-        const isExist = equipments.some(
-          ({ item }) => item?._id === element?.item?._id,
-        );
-
-        if (!isExist) {
-          equipments.push({
-            ...element,
-            source: "catering",
-            label: "Catering",
-          });
-        }
-      });
-    }
-
-    return equipments;
+    return getEquipmentAllocations(booking);
   }, [booking, isOpen]);
 
   useEffect(() => {
@@ -151,8 +103,12 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const { hasConflicts, conflicts, totalConflicts } = useMemo(() => {
     const { approved = [], confirmed = [], setup = [] } = schedule;
-    return getConflictingVenues(booking, [...approved, ...confirmed, ...setup]);
-  }, [booking, schedule]);
+    return getConflictingVenues(
+      booking,
+      [...approved, ...confirmed, ...setup],
+      mode,
+    );
+  }, [booking, schedule, mode]);
 
   const payment = getPaymentSummary(booking);
 
@@ -234,9 +190,6 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const handleInclusionAmountChange = useCallback(
     (serviceType, itemID, amount) => {
-      console.log("serviceType", serviceType);
-      console.log("itemID", itemID);
-      console.log("amount", amount);
       setBooking((prev) => {
         const inclusions = [...(prev[serviceType]?.inclusions || [])];
 
@@ -306,13 +259,15 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className={`${DIALOG_CONTENT_CLASSNAME}
-          ${
-            hasConflicts
+        className={cn(
+          !isViewOnly && DIALOG_CONTENT_CLASSNAME,
+
+          isViewOnly
+            ? "sm:max-w-2xl xl:w-[820px] xl:max-w-[820px]"
+            : hasConflicts
               ? "xl:grid xl:w-fit xl:max-w-none xl:grid-cols-[790px_310px] xl:gap-6 [&>button]:xl:right-[320px]"
-              : "xl:w-[820px] xl:max-w-[820px]"
-          }
-        `}
+              : "xl:w-[820px] xl:max-w-[820px]",
+        )}
       >
         <div className="w-full overflow-visible rounded-lg border bg-background shadow-lg xl:w-[820px]">
           <DialogHeader className="border-b px-4 py-3">
@@ -320,7 +275,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <DialogTitle className="truncate text-base">
-                    Approve Booking
+                    {isViewOnly ? "Booking Details" : "Approve Booking"}
                   </DialogTitle>
 
                   {hasConflicts && (
@@ -336,9 +291,11 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
                 </div>
 
                 <DialogDescription>
-                  {hasConflicts
-                    ? "Review the detected schedule conflicts before approval."
-                    : "Review request details and allocations before approval."}
+                  {isViewOnly
+                    ? "View booking information, inclusions, and equipment allocations."
+                    : hasConflicts
+                      ? "Review the detected schedule conflicts before approval."
+                      : "Review request details and allocations before approval."}
                 </DialogDescription>
               </div>
             </div>
@@ -349,420 +306,135 @@ const Approval = ({ isOpen, setIsOpen, selected = {} }) => {
             onSubmit={handleSubmit}
             className="space-y-3 p-4"
           >
-            {/* Booking Summary */}
-            <section className="rounded-md border bg-muted/15 p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">
-                    {booking?.eventType || "Event booking"}
-                  </p>
-
-                  <p className="truncate text-xs text-muted-foreground">
-                    {customerName}
-                  </p>
-                </div>
-
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className="max-w-[140px] truncate text-xs font-semibold text-muted-foreground">
-                    {booking?.reference || "-"}
-                  </span>
-
-                  <Badge
-                    variant="outline"
-                    className={`capitalize ${
-                      STATUS_STYLES[booking?.status] || ""
-                    }`}
-                  >
-                    {booking?.status || "pending"}
-                  </Badge>
-                </div>
-              </div>
-
-              <div
-                className={`mt-3 grid grid-cols-2 gap-1.5 ${
-                  isCombinedBooking ? "md:grid-cols-5" : "md:grid-cols-4"
-                }`}
-              >
-                <Metric
-                  icon={<CalendarDays className="size-3.5" />}
-                  label="Starts"
-                  value={formatDate(booking?.date)}
+            <div
+              className={cn("grid", isViewOnly ? "grid-cols-2" : "gridcols-1")}
+            >
+              <div className="space-y-3">
+                <BookingSummary
+                  booking={booking}
+                  customerName={customerName}
+                  isCombinedBooking={isCombinedBooking}
+                  payment={payment}
+                  service={service}
                 />
 
-                {isCombinedBooking ? (
-                  <>
-                    <Metric
-                      icon={<UsersRound className="size-3.5" />}
-                      label="Catering Pax"
-                      value={booking?.catering?.pax || 0}
+                {/* Customer Details */}
+                <CustomerDetails
+                  booking={booking}
+                  customerName={customerName}
+                />
+
+                {/* Services */}
+                <section className="relative overflow-visible">
+                  <div className="grid gap-3">
+                    {services.map((item) => (
+                      <Service
+                        key={item.type}
+                        item={item}
+                        hasConflicts={hasConflicts}
+                        conflicts={conflicts}
+                        isBoth={isCombinedBooking}
+                        handleInclusionAmountChange={
+                          handleInclusionAmountChange
+                        }
+                        equipAvailability={equipAvailability}
+                        isSharedAvailability={isCateringVenueOverlapping}
+                        isLoadingEquipAvailability={isLoadingEquipAvailability}
+                      />
+                    ))}
+                  </div>
+
+                  {hasConflicts && conflictService && (
+                    <ConflictPanel
+                      service={conflictService}
+                      conflicts={conflicts}
                     />
+                  )}
+                </section>
+                <section className="overflow-hidden rounded-md border bg-background">
+                  <div className="border-b bg-muted/10 px-3 py-2.5">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      Equipment Allocations
+                    </h3>
 
-                    <Metric
-                      icon={<UsersRound className="size-3.5" />}
-                      label="Venue Pax"
-                      value={booking?.venue?.pax || 0}
+                    <p className="text-[10px] leading-4 text-muted-foreground">
+                      Allocate the equipment required for this booking.
+                    </p>
+                  </div>
+
+                  <div className="p-3">
+                    <Inclusions
+                      items={equipmentAllocations}
+                      equipAvailability={equipAvailability}
+                      handleInclusionAmountChange={handleInclusionAmountChange}
                     />
-                  </>
-                ) : (
-                  <Metric
-                    icon={<UsersRound className="size-3.5" />}
-                    label="Pax"
-                    value={getTotalPax(booking)}
-                  />
-                )}
+                  </div>
+                </section>
 
-                <Metric
-                  icon={<Wallet className="size-3.5" />}
-                  label="Estimate"
-                  value={Formatter.amount(payment.total)}
-                />
-
-                <Metric
-                  icon={<CheckCircle2 className="size-3.5" />}
-                  label="Type"
-                  value={service.label}
-                />
+                {!isViewOnly && <Estimate booking={booking} />}
               </div>
-            </section>
-
-            {/* Customer Details */}
-            <CustomerDetails booking={booking} customerName={customerName} />
-
-            {/* Services */}
-            <section className="relative overflow-visible">
-              <div className="grid gap-3">
-                {services.map((item) => (
-                  <Service
-                    key={item.type}
-                    item={item}
-                    hasConflicts={hasConflicts}
-                    conflicts={conflicts}
-                    isBoth={isCombinedBooking}
-                    handleInclusionAmountChange={handleInclusionAmountChange}
-                    equipAvailability={equipAvailability}
-                    isSharedAvailability={isCateringVenueOverlapping}
-                    isLoadingEquipAvailability={isLoadingEquipAvailability}
-                  />
-                ))}
-              </div>
-
-              {hasConflicts && conflictService && (
-                <ConflictPanel
-                  service={conflictService}
-                  conflicts={conflicts}
-                />
-              )}
-            </section>
-            <section className="overflow-hidden rounded-md border bg-background">
-              <div className="border-b bg-muted/10 px-3 py-2.5">
-                <h3 className="text-sm font-semibold text-foreground">
-                  Equipment Allocations
-                </h3>
-
-                <p className="text-[10px] leading-4 text-muted-foreground">
-                  Allocate the equipment required for this booking.
-                </p>
-              </div>
-
-              <div className="p-3">
-                <Inclusions
-                  items={equipmentAllocations}
-                  equipAvailability={equipAvailability}
-                  handleInclusionAmountChange={handleInclusionAmountChange}
-                />
-              </div>
-            </section>
-
-            {/* Booking Estimate */}
-            <BookingEstimate booking={booking} />
+              <FinancialDetails />
+            </div>
           </form>
 
           {/* Footer */}
           <DialogFooter className="border-t bg-muted/10 px-4 py-3">
-            {hasConflicts && (
-              <div className="mr-auto flex items-center gap-1.5 text-xs text-destructive">
-                <AlertTriangle className="size-3.5 shrink-0" />
-
-                <span>
-                  This booking cannot be approved due to a schedule
-                  conflict.{" "}
-                </span>
-              </div>
-            )}
-
+            <WarningMsg
+              hasConflicts={hasConflicts}
+              isEquipmentSufficient={isEquipmentSufficient}
+            />
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsOpen(false)}
             >
-              Cancel
+              {isViewOnly ? "Close" : "Cancel"}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800"
-              onClick={() => {
-                setChangeRequestReason("");
-                setChangeRequestError("");
-                setChangeRequestOpen(true);
-              }}
-              disabled={formSubmitted}
-            >
-              Request Changes
-            </Button>
-            <Button
-              type="submit"
-              form="approval-form"
-              disabled={
-                hasConflicts || formSubmitted || isLoadingEquipAvailability
-              }
-            >
-              <CheckCircle2 className="size-4" />
-              Approve Booking <Spinner formSubmitted={formSubmitted} />
-            </Button>
+            {!isViewOnly && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800"
+                  onClick={() => {
+                    setChangeRequestReason("");
+                    setChangeRequestError("");
+                    setChangeRequestOpen(true);
+                  }}
+                  disabled={formSubmitted}
+                >
+                  Request Changes
+                </Button>
+                <Button
+                  type="submit"
+                  form="approval-form"
+                  disabled={
+                    hasConflicts ||
+                    formSubmitted ||
+                    isLoadingEquipAvailability ||
+                    !isEquipmentSufficient
+                  }
+                >
+                  <CheckCircle2 className="size-4" />
+                  Approve Booking <Spinner formSubmitted={formSubmitted} />
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </div>
       </DialogContent>
-
-      <AlertDialog
-        open={changeRequestOpen}
-        onOpenChange={(open) => {
-          setChangeRequestOpen(open);
-          if (!open) {
-            setChangeRequestReason("");
-            setChangeRequestError("");
-          }
-        }}
-      >
-        <AlertDialogContent
-          className={`max-w-md ${hasConflicts ? "xl:left-[calc(50%-167px)]" : ""}`}
-        >
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="size-5 text-amber-600" />
-              Request changes
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Provide the reason the customer needs to address before this
-              booking can be approved.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <div className="space-y-2">
-            <Textarea
-              value={changeRequestReason}
-              onChange={(e) => {
-                setChangeRequestReason(e.target.value);
-                if (e.target.value.trim()) setChangeRequestError("");
-              }}
-              placeholder="Enter the required changes..."
-              className="min-h-28"
-              disabled={formSubmitted}
-            />
-
-            {changeRequestError && (
-              <p className="text-xs font-medium text-destructive">
-                {changeRequestError}
-              </p>
-            )}
-          </div>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={formSubmitted}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleRequestChanges();
-              }}
-              disabled={!changeRequestReason || formSubmitted}
-            >
-              Submit Request
-              <Spinner formSubmitted={formSubmitted} />
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <RequestChanges
+        hasConflicts={hasConflicts}
+        changeRequestOpen={changeRequestOpen}
+        changeRequestError={changeRequestError}
+        changeRequestReason={changeRequestReason}
+        setChangeRequestOpen={setChangeRequestOpen}
+        setChangeRequestReason={setChangeRequestReason}
+        setChangeRequestError={setChangeRequestError}
+        handleRequestChanges={handleRequestChanges}
+      />
     </Dialog>
   );
 };
-
-const CustomerDetails = ({ booking, customerName }) => {
-  const preferredContact = Formatter.preferredContact(
-    booking?.contact?.preferredContact,
-  );
-
-  const hasSpecialRequest = Boolean(booking?.contact?.specialRequests?.trim());
-
-  const hasNotes = Boolean(booking?.notes?.trim());
-
-  return (
-    <section className="overflow-hidden rounded-md border bg-background">
-      {/* Contact */}
-      <div className="p-3">
-        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Contact details
-          </h3>
-
-          {preferredContact && (
-            <span className="rounded-md bg-muted/50 px-2 py-1 text-[10px] text-muted-foreground">
-              Preferred:{" "}
-              <span className="font-medium text-foreground">
-                {preferredContact}
-              </span>
-            </span>
-          )}
-        </div>
-
-        <div className="grid gap-1.5 sm:grid-cols-3">
-          <ContactDetail
-            icon={<UsersRound className="size-3.5" />}
-            label="Name"
-            value={customerName}
-          />
-
-          <ContactDetail
-            icon={<Phone className="size-3.5" />}
-            label="Phone"
-            value={booking?.contact?.phone}
-          />
-
-          <ContactDetail
-            icon={<Mail className="size-3.5" />}
-            label="Email"
-            value={booking?.contact?.email}
-          />
-        </div>
-      </div>
-
-      {/* Request Details */}
-      {(hasSpecialRequest || hasNotes) && (
-        <div className="border-t bg-muted/5 p-3">
-          <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Request details
-          </h3>
-
-          <div
-            className={`grid gap-2 ${
-              hasSpecialRequest && hasNotes ? "md:grid-cols-2" : "grid-cols-1"
-            }`}
-          >
-            {hasSpecialRequest && (
-              <RequestDetail
-                icon={<MessageSquareText className="size-3.5" />}
-                label="Special request"
-                value={booking?.contact?.specialRequests}
-              />
-            )}
-
-            {hasNotes && (
-              <RequestDetail
-                icon={<StickyNote className="size-3.5" />}
-                label="Notes"
-                value={booking?.notes}
-              />
-            )}
-          </div>
-        </div>
-      )}
-    </section>
-  );
-};
-
-const BookingEstimate = ({ booking }) => {
-  const isCombinedBooking = booking?.bookingType === "both";
-
-  const cateringTotal = Number(booking?.pricing?.catering?.total || 0);
-
-  const venueTotal = Number(booking?.pricing?.venue?.total || 0);
-
-  const estimatedTotal = Number(booking?.pricing?.total || 0);
-
-  return (
-    <section className="overflow-hidden rounded-md border bg-background">
-      <div className="flex items-center gap-2 border-b bg-muted/10 px-3 py-2.5">
-        <div className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
-          <ReceiptText className="size-3.5" />
-        </div>
-
-        <div className="min-w-0">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
-            Booking estimate
-          </h3>
-
-          <p className="text-[10px] leading-4 text-muted-foreground">
-            Based on the submitted inquiry.
-          </p>
-        </div>
-      </div>
-
-      <div className="p-3">
-        {isCombinedBooking && (
-          <div className="mb-3 grid gap-2 sm:grid-cols-2">
-            <EstimateServiceCard label="Catering" value={cateringTotal} />
-
-            <EstimateServiceCard label="Venue" value={venueTotal} />
-          </div>
-        )}
-
-        <div
-          className={`flex items-center justify-between gap-4 ${
-            isCombinedBooking ? "border-t pt-3" : ""
-          }`}
-        >
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground">
-              Estimated total
-            </p>
-
-            <p className="mt-0.5 text-[10px] text-muted-foreground">
-              Subject to approval
-            </p>
-          </div>
-
-          <span className="shrink-0 text-lg font-semibold tabular-nums text-foreground">
-            {Formatter.amount(estimatedTotal)}
-          </span>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const EstimateServiceCard = ({ label, value }) => (
-  <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/10 px-3 py-2">
-    <span className="text-xs font-medium text-muted-foreground">{label}</span>
-
-    <span className="text-sm font-semibold tabular-nums text-foreground">
-      {Formatter.amount(value)}
-    </span>
-  </div>
-);
-
-const ContactDetail = ({ icon, label, value }) => (
-  <div className="flex min-w-0 items-center gap-2 rounded-md border px-2.5 py-2">
-    <span className="shrink-0 text-muted-foreground">{icon}</span>
-
-    <div className="min-w-0">
-      <p className="text-[10px] leading-3 text-muted-foreground">{label}</p>
-
-      <p className="mt-0.5 truncate text-xs font-medium text-foreground">
-        {value || "-"}
-      </p>
-    </div>
-  </div>
-);
-const RequestDetail = ({ icon, label, value }) => (
-  <div className="min-w-0 rounded-md border bg-background p-2.5">
-    <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-      {icon}
-      <span>{label}</span>
-    </div>
-
-    <p className="line-clamp-3 text-xs leading-5 text-foreground">{value}</p>
-  </div>
-);
 
 export default Approval;

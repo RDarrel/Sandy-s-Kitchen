@@ -22,6 +22,7 @@ const Schedule = ({ selectedDate }) => {
     ({ bookings }) => bookings,
   );
   const [activeStatus, setActiveStatus] = useState("all");
+  const [approvalModalMode, setApprovalModalMode] = useState("approve");
   const [schedModal, setSchedModal] = useState({
     approval: false,
     reviewPayment: false,
@@ -57,9 +58,16 @@ const Schedule = ({ selectedDate }) => {
     setActiveStatus("all");
   }, [selectedDate]);
 
-  const handleAction = useCallback((booking, action) => {
+  const handleAction = useCallback((booking, _action) => {
+    const action = _action === "view" ? "approval" : _action;
     setSchedModal((prev) => ({ ...prev, [action]: !prev[action] }));
     setSelected(booking);
+
+    if (_action === "view") {
+      setApprovalModalMode("view");
+    } else {
+      setApprovalModalMode("approval");
+    }
   }, []);
 
   if (isLoading) {
@@ -167,6 +175,7 @@ const Schedule = ({ selectedDate }) => {
         isOpen={schedModal?.approval}
         setIsOpen={() => handleAction({}, "approval")}
         selected={selected}
+        mode={approvalModalMode}
       />
       <ReviewPayment
         isOpen={schedModal?.reviewPayment}

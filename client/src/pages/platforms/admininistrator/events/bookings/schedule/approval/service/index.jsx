@@ -12,7 +12,7 @@ import { EmptyPanel, SectionTitle } from "../components";
 import { useMemo } from "react";
 
 const Service = ({ item, conflicts = [], isBoth = false }) => {
-  const hasConflict = conflicts.length > 0;
+  const hasConflict = conflicts.length > 0 && item?.label === "Venue";
   const Icon = item.icon;
   const services = useMemo(() => {
     return (item?.inclusions || []).filter(({ model }) => model === "Services");
