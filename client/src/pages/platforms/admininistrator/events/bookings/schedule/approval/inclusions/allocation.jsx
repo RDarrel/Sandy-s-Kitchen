@@ -1,64 +1,13 @@
+import { memo } from "react";
 import { capitalize } from "lodash";
 import {
   formatItemName,
   getResourceUnit,
   requiresResourceInput,
-} from "./utils";
+} from "../utils";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
-import { EmptyPanel } from "./components";
-import { memo } from "react";
-
-const Inclusions = ({
-  label,
-  serviceType = "",
-  items,
-  equipAvailability = { venue: 0, catering: 0 },
-  isSharedAvailability = false,
-  isLoadingEquipAvailability = false,
-  handleInclusionAmountChange = () => {},
-}) => {
-  const sortedItems = [...(items || [])].sort((first, second) => {
-    const firstRequiresInput = requiresResourceInput(first);
-    const secondRequiresInput = requiresResourceInput(second);
-
-    if (firstRequiresInput === secondRequiresInput) {
-      return 0;
-    }
-
-    return firstRequiresInput ? -1 : 1;
-  });
-
-  return (
-    <div>
-      {sortedItems.length > 0 ? (
-        <div className="grid gap-1.5 md:grid-cols-2">
-          {sortedItems.map((inclusion, index) => {
-            const resourceAvailability =
-              equipAvailability?.[inclusion?.item?._id] || {};
-            return (
-              <Allocation
-                key={inclusion?.item?._id || `${label}-${index}`}
-                inclusion={inclusion}
-                available={resourceAvailability?.[inclusion?.source] || 0}
-                resourceAvailability={resourceAvailability}
-                serviceType={serviceType}
-                isSharedAvailability={isSharedAvailability}
-                isLoadingEquipAvailability={isLoadingEquipAvailability}
-                handleInclusionAmountChange={handleInclusionAmountChange}
-              />
-            );
-          })}
-        </div>
-      ) : (
-        <EmptyPanel label="No resources listed" />
-      )}
-    </div>
-  );
-};
-
-export default memo(Inclusions);
+import { AlertTriangle } from "lucide-react";
 
 const Allocation = memo(
   ({
@@ -185,14 +134,9 @@ const Allocation = memo(
             </label>
           </div>
         )}
-
-        {!needsInput && (
-          <span className="inline-flex items-center gap-1 rounded-md border bg-background px-2 py-1 text-[11px] font-medium text-muted-foreground">
-            <CheckCircle2 className="size-3 text-primary" />
-            Included
-          </span>
-        )}
       </div>
     );
   },
 );
+
+export default Allocation;

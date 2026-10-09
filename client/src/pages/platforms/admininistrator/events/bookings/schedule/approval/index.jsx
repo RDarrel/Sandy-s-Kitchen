@@ -260,16 +260,20 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
         className={cn(
-          !isViewOnly && DIALOG_CONTENT_CLASSNAME,
-
+          DIALOG_CONTENT_CLASSNAME,
           isViewOnly
-            ? "sm:max-w-2xl xl:w-[820px] xl:max-w-[820px]"
+            ? "xl:w-[1080px] xl:max-w-[1080px]"
             : hasConflicts
               ? "xl:grid xl:w-fit xl:max-w-none xl:grid-cols-[790px_310px] xl:gap-6 [&>button]:xl:right-[320px]"
               : "xl:w-[820px] xl:max-w-[820px]",
         )}
       >
-        <div className="w-full overflow-visible rounded-lg border bg-background shadow-lg xl:w-[820px]">
+        <div
+          className={cn(
+            "w-full overflow-visible rounded-lg border bg-background shadow-lg",
+            isViewOnly ? "xl:w-[1080px]" : "xl:w-[820px]",
+          )}
+        >
           <DialogHeader className="border-b px-4 py-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -307,7 +311,12 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
             className="space-y-3 p-4"
           >
             <div
-              className={cn("grid", isViewOnly ? "grid-cols-2" : "gridcols-1")}
+              className={cn(
+                "grid gap-3",
+                isViewOnly
+                  ? "xl:grid-cols-[minmax(0,1fr)_300px]"
+                  : "grid-cols-1",
+              )}
             >
               <div className="space-y-3">
                 <BookingSummary
@@ -330,6 +339,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                     {services.map((item) => (
                       <Service
                         key={item.type}
+                        isViewOnly={isViewOnly}
                         item={item}
                         hasConflicts={hasConflicts}
                         conflicts={conflicts}
@@ -351,29 +361,23 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                     />
                   )}
                 </section>
-                <section className="overflow-hidden rounded-md border bg-background">
-                  <div className="border-b bg-muted/10 px-3 py-2.5">
-                    <h3 className="text-sm font-semibold text-foreground">
-                      Equipment Allocations
-                    </h3>
 
-                    <p className="text-[10px] leading-4 text-muted-foreground">
-                      Allocate the equipment required for this booking.
-                    </p>
-                  </div>
-
-                  <div className="p-3">
-                    <Inclusions
-                      items={equipmentAllocations}
-                      equipAvailability={equipAvailability}
-                      handleInclusionAmountChange={handleInclusionAmountChange}
-                    />
-                  </div>
-                </section>
+                <Inclusions
+                  items={equipmentAllocations}
+                  booking={booking}
+                  equipAvailability={equipAvailability}
+                  isViewOnly={isViewOnly}
+                  handleInclusionAmountChange={handleInclusionAmountChange}
+                />
 
                 {!isViewOnly && <Estimate booking={booking} />}
               </div>
-              <FinancialDetails />
+
+              {isViewOnly && (
+                <div className="self-start xl:sticky xl:top-3">
+                  <FinancialDetails booking={booking} payment={payment} />
+                </div>
+              )}
             </div>
           </form>
 

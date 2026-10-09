@@ -11,7 +11,12 @@ import { formatItemName } from "../utils";
 import { EmptyPanel, SectionTitle } from "../components";
 import { useMemo } from "react";
 
-const Service = ({ item, conflicts = [], isBoth = false }) => {
+const Service = ({
+  item,
+  conflicts = [],
+  isBoth = false,
+  isViewOnly = false,
+}) => {
   const hasConflict = conflicts.length > 0 && item?.label === "Venue";
   const Icon = item.icon;
   const services = useMemo(() => {
@@ -93,7 +98,7 @@ const Service = ({ item, conflicts = [], isBoth = false }) => {
             </ServiceSection>
           )}
 
-          {item.pricing && (
+          {item.pricing && !isViewOnly && (
             <ServiceSection title="Pricing">
               <PricePanel label={item.label} pricing={item.pricing} />
             </ServiceSection>
