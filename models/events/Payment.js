@@ -47,6 +47,10 @@ const paymentSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    origin: {
+      type: String,
+      default: "online",
+    },
     snapshot: {
       bookingTotal: {
         type: Number,
