@@ -72,7 +72,6 @@ const ReviewPayment = ({ isOpen, setIsOpen, selected: booking = {} }) => {
             CONFIRM_BOOKING({
               data,
               bookingStatus: booking?.status,
-              date: booking?.date,
             }),
           );
           toast.success("Payment verified and booking confirmed.");

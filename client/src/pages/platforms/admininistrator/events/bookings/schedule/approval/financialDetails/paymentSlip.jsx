@@ -94,13 +94,15 @@ const PaymentSlip = ({
 
         <Row label="Type">{formatPaymentType(payment?.type)}</Row>
 
-        <Row label="Transaction reference">
-          <span className="flex min-w-0 items-start justify-end gap-1">
-            <span className="select-all break-all font-mono font-semibold">
-              {payment?.reference || "-"}
+        {payment?.reference && (
+          <Row label="Transaction reference">
+            <span className="flex min-w-0 items-start justify-end gap-1">
+              <span className="select-all break-all font-mono font-semibold">
+                {payment?.reference || "-"}
+              </span>
             </span>
-          </span>
-        </Row>
+          </Row>
+        )}
 
         <Row label="Submitted">{Formatter.date(payment?.createdAt, true)}</Row>
 
@@ -119,9 +121,11 @@ const PaymentSlip = ({
       <SlipRows>
         <Row label="Booking total">{Formatter.amount(totalAmount)}</Row>
 
-        <Row label="Verified before this payment">
-          {Formatter.amount(verifiedAmount)}
-        </Row>
+        {verifiedAmount > 0 && (
+          <Row label="Verified before this payment">
+            {Formatter.amount(verifiedAmount)}
+          </Row>
+        )}
 
         <Row label="This payment">{Formatter.amount(paymentAmount)}</Row>
 

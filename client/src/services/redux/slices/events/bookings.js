@@ -366,19 +366,31 @@ export const reduxSlice = createSlice({
     },
 
     CONFIRM_BOOKING: (state, { payload }) => {
-      const { bookingStatus, data, date } = payload;
+      const { bookingStatus, data } = payload;
       const collections = [...(state.schedule[bookingStatus] || [])];
+
       const booking = collections.find(({ _id }) => _id === data?.booking);
 
       const payments = [...(booking?.payments || [])];
       const paymentIdx = payments.findIndex(({ _id }) => _id === data?._id);
-      payments[paymentIdx] = data;
+      if (paymentIdx > -1) {
+        payments[paymentIdx] = data;
+      } else {
+        payments.unshift(data);
+      }
 
-      updateBookingStatus(
-        state,
-        { old: "approved", new: "confirmed" },
-        { _id: data?.booking, payments, date },
-      );
+      if (booking) {
+        updateBookingStatus(
+          state,
+          { old: "approved", new: "confirmed" },
+          {
+            _id: booking?._id,
+            payments,
+            catering: booking?.catering,
+            venue: booking?.venue,
+          },
+        );
+      }
     },
   },
   extraReducers: (builder) => {
