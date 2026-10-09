@@ -31,6 +31,7 @@ const PaymentDetails = ({ isOpen, setIsOpen, booking, payment }) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
+        overlayClassName="!bg-black/40"
         className={cn(
           "flex w-[calc(100%-1.5rem)] flex-col gap-0 p-0",
           proofSrc ? "sm:max-w-[850px]" : "sm:max-w-[440px]",

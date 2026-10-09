@@ -16,7 +16,7 @@ const STATUS_META = {
 
   pending: {
     label: "Pending",
-    message: "Awaiting verification",
+    message: "Pending verification",
     icon: Clock3,
     dotClassName: "bg-amber-500",
     textClassName: "text-amber-700 dark:text-amber-400",
@@ -247,6 +247,6 @@ const getFooterMessage = (payment) => {
   }
 
   return isDownPayment
-    ? "Once verified, this down payment will confirm the booking."
-    : "Once verified, this payment will be applied to the booking balance.";
+    ? "Verifying this down payment will confirm the booking."
+    : "Verifying this payment will apply it to the booking balance.";
 };
