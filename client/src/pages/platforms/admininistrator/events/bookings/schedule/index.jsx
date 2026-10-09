@@ -16,6 +16,7 @@ import { SCHEDULE } from "@/services/redux/slices/events/bookings";
 import { Formatter } from "@/services/utilities";
 import Approval from "./approval";
 import ReviewPayment from "./reviewPayment";
+import RecordPayment from "./recordPayment";
 
 const Schedule = ({ selectedDate }) => {
   const { isLoadingSchedule: isLoading, schedule = {} } = useSelector(
@@ -27,6 +28,7 @@ const Schedule = ({ selectedDate }) => {
     approval: false,
     reviewPayment: false,
     view: false,
+    recordPayment: false,
   });
   const [selected, setSelected] = useState({});
   const dispatch = useDispatch();
@@ -180,6 +182,11 @@ const Schedule = ({ selectedDate }) => {
       <ReviewPayment
         isOpen={schedModal?.reviewPayment}
         setIsOpen={() => handleAction({}, "reviewPayment")}
+        selected={selected}
+      />
+      <RecordPayment
+        isOpen={schedModal?.recordPayment}
+        setIsOpen={() => handleAction({}, "recordPayment")}
         selected={selected}
       />
     </>

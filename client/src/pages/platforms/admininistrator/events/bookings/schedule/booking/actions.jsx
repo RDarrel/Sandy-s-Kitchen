@@ -49,7 +49,7 @@ const Actions = ({ booking, handleAction = () => {} }) => {
         </>
       ) : (
         <>
-          {hasToReview && (
+          {hasToReview ? (
             <Button
               type="button"
               onClick={() => handleAction(booking, "reviewPayment")}
@@ -62,6 +62,16 @@ const Actions = ({ booking, handleAction = () => {} }) => {
               }
             >
               Review Payment
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => handleAction(booking, "recordPayment")}
+              size="sm"
+              variant="outline"
+              className="h-7 px-2 hover:bg-accent/40 hover:text-accent-foreground"
+            >
+              Record Payment
             </Button>
           )}
 
