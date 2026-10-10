@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Formatter, fullName } from "@/services/utilities";
 import { UsersRound, MapPin, Clock3, Utensils, Building2 } from "lucide-react";
@@ -5,7 +6,7 @@ import { SERVICE_BADGES, STATUS_TEXT } from "../../constant";
 import PaymentSummary from "./payment";
 import Actions from "./actions";
 
-const Booking = ({ booking, handleAction }) => {
+const Booking = forwardRef(({ booking, handleAction, isHighlighted }, ref) => {
   const service = SERVICE_BADGES[booking.bookingType];
   const isBoth = booking.bookingType === "both";
   const isCateringOnly = booking.bookingType === "catering";
@@ -21,7 +22,14 @@ const Booking = ({ booking, handleAction }) => {
   const LocationIcon = isCateringOnly ? Building2 : MapPin;
 
   return (
-    <div className="overflow-hidden rounded-md border bg-background shadow-xs">
+    <div
+      ref={ref}
+      className={`overflow-hidden rounded-md border bg-background shadow-xs transition-all duration-500 ${
+        isHighlighted
+          ? "animate-pulse border-primary/70 bg-primary/5 ring-2 ring-primary/35 ring-offset-2 ring-offset-background [animation-duration:1.2s]"
+          : ""
+      }`}
+    >
       <div className="flex items-start justify-between gap-2 px-2.5 pt-2.5">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold leading-5">
@@ -70,7 +78,9 @@ const Booking = ({ booking, handleAction }) => {
       <Actions handleAction={handleAction} booking={booking} />
     </div>
   );
-};
+});
+
+Booking.displayName = "Booking";
 
 export default Booking;
 

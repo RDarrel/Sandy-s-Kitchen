@@ -1,5 +1,4 @@
-import { useState } from "react";
-
+import { useCallback, useState } from "react";
 import Schedule from "./schedule";
 import Calendar from "./calendar";
 
@@ -7,6 +6,7 @@ function Bookings() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [bookingSearch, setBookingSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [highlightedBookingId, setHighlightedBookingId] = useState(null);
   const isLoadingBookings = false;
 
   const selectDate = (date) => {
@@ -14,9 +14,17 @@ function Bookings() {
   };
 
   const handleSearchResultClick = (booking) => {
+    setHighlightedBookingId(booking._id || booking.id);
     setSelectedDate(new Date(booking.date));
-    setSearchOpen(false);
   };
+
+  const handleHighlightReady = useCallback(() => {
+    setSearchOpen(false);
+  }, []);
+
+  const handleHighlightComplete = useCallback(() => {
+    setHighlightedBookingId(null);
+  }, []);
 
   return (
     <div className="w-full p-4">
@@ -27,6 +35,7 @@ function Bookings() {
           selectDate={selectDate}
           searchOpen={searchOpen}
           bookingSearch={bookingSearch}
+          highlightedBookingId={highlightedBookingId}
           handleSearchResultClick={handleSearchResultClick}
           setBookingSearch={setBookingSearch}
           setSearchOpen={setSearchOpen}
@@ -34,7 +43,12 @@ function Bookings() {
         />
 
         {/* Selected date bookings */}
-        <Schedule selectedDate={selectedDate} />
+        <Schedule
+          selectedDate={selectedDate}
+          highlightedBookingId={highlightedBookingId}
+          onHighlightReady={handleHighlightReady}
+          onHighlightComplete={handleHighlightComplete}
+        />
       </div>
     </div>
   );

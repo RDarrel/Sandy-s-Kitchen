@@ -22,6 +22,7 @@ const Header = ({
   searchOpen,
   setSearchOpen,
   bookingSearch,
+  highlightedBookingId,
   setBookingSearch,
   bookingSearchResults,
   handleSearchResultClick,
@@ -82,6 +83,7 @@ const Header = ({
             searchOpen={searchOpen}
             setSearchOpen={setSearchOpen}
             bookingSearch={bookingSearch}
+            highlightedBookingId={highlightedBookingId}
             setBookingSearch={setBookingSearch}
             bookingSearchResults={bookingSearchResults}
             handleSearchResultClick={handleSearchResultClick}

@@ -7,10 +7,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { STATUS_LABELS, STATUS_DOTS } from "../../../constant";
-import { Search, X } from "lucide-react";
+import { Loader2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SEARCH } from "@/services/redux/slices/events/bookings";
 import { fullName } from "@/services/utilities";
 import { capitalize } from "lodash";
@@ -65,15 +65,19 @@ const SearchResultsSkeleton = () => (
 
 const SearchCustomer = ({
   searchOpen,
+  highlightedBookingId,
   handleSearchResultClick = () => {},
   setSearchOpen = () => {},
 }) => {
-  const { isLoadingSearch, searchResults = [] } = useSelector(
-    ({ bookings }) => bookings,
-  );
+  const {
+    isLoadingSearch,
+    isLoadingSchedule,
+    searchResults = [],
+  } = useSelector(({ bookings }) => bookings);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const inputRef = useRef(null);
 
   const dispatch = useDispatch();
 
@@ -86,10 +90,26 @@ const SearchCustomer = ({
   }, [search]);
 
   useEffect(() => {
+    if (!isLoadingSchedule && !highlightedBookingId) {
+      setSearch("");
+    }
+  }, [isLoadingSchedule, highlightedBookingId]);
+
+  useEffect(() => {
     if (!searchOpen || !debouncedSearch) return;
 
     dispatch(SEARCH({ search: debouncedSearch }));
   }, [debouncedSearch, searchOpen, dispatch]);
+
+  useEffect(() => {
+    if (!searchOpen) return undefined;
+
+    const timeoutId = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 200);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchOpen]);
 
   const handleSearch = (query) => {
     setSearch(query);
@@ -121,6 +141,7 @@ const SearchCustomer = ({
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
 
           <Input
+            ref={inputRef}
             type="search"
             value={search}
             onChange={(event) => handleSearch(event.target.value)}
@@ -147,59 +168,82 @@ const SearchCustomer = ({
 
                   {/* Results */}
                   <div className="max-h-72 divide-y overflow-y-auto">
-                    {searchResults.map((booking) => (
-                      <button
-                        key={booking._id || booking.id}
-                        type="button"
-                        onClick={() => handleSearchResultClick(booking)}
-                        className="flex w-full min-w-0 items-start gap-2.5 px-3 py-3 text-left transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
-                      >
-                        {/* Status indicator */}
-                        <span
-                          aria-hidden="true"
-                          className={`mt-1.5 size-1.5 shrink-0 rounded-full ${
-                            STATUS_DOTS[booking.status] || "bg-muted-foreground"
+                    {searchResults.map((booking) => {
+                      const bookingId = booking._id || booking.id;
+                      const isSelected = bookingId === highlightedBookingId;
+                      const isLoadingSelected =
+                        isSelected &&
+                        (isLoadingSchedule || highlightedBookingId);
+                      const hasSelectedBooking = Boolean(highlightedBookingId);
+
+                      return (
+                        <button
+                          key={bookingId}
+                          type="button"
+                          onClick={() => handleSearchResultClick(booking)}
+                          disabled={hasSelectedBooking}
+                          className={`flex w-full min-w-0 items-start gap-2.5 px-3 py-3 text-left transition-colors focus-visible:bg-muted/50 focus-visible:outline-none disabled:cursor-wait ${
+                            isSelected
+                              ? "bg-primary/5"
+                              : "hover:bg-muted/50 disabled:opacity-60"
                           }`}
-                        />
+                        >
+                          {/* Status indicator */}
+                          <span
+                            aria-hidden="true"
+                            className={`mt-1.5 size-1.5 shrink-0 rounded-full ${
+                              STATUS_DOTS[booking.status] ||
+                              "bg-muted-foreground"
+                            }`}
+                          />
 
-                        {/* Booking information */}
-                        <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1">
-                          {/* Customer name */}
-                          <span className="min-w-0 truncate text-[13px] font-semibold leading-4 text-foreground">
-                            {fullName(booking.customer?.fullName)}
-                          </span>
-
-                          {/* Event date */}
-                          <span className="shrink-0 text-right text-[11px] tabular-nums leading-4 text-muted-foreground">
-                            {format(new Date(booking.date), "MMM d, h:mm a")}
-                          </span>
-
-                          {/* Booking reference */}
-                          <span className="min-w-0 truncate font-mono text-[10px] leading-3 text-muted-foreground">
-                            {booking.reference || "—"}
-                          </span>
-
-                          {/* Booking type */}
-                          <span className="max-w-28 truncate text-right text-[11px] leading-3 text-muted-foreground">
-                            {booking.bookingType === "both"
-                              ? "Venue + Catering"
-                              : capitalize(booking.bookingType)}
-                          </span>
-
-                          {/* Event name */}
-                          <span className="min-w-0 truncate text-[11px] leading-4 text-muted-foreground">
-                            {booking.eventType}
-                          </span>
-
-                          {/* Booking status */}
-                          <span className="mt-0.5 flex justify-end">
-                            <span className="inline-flex items-center rounded-sm border bg-muted/30 px-1.5 py-0.5 text-[10px] font-medium capitalize leading-none text-muted-foreground">
-                              {STATUS_LABELS[booking.status] || booking.status}
+                          {/* Booking information */}
+                          <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1">
+                            {/* Customer name */}
+                            <span className="min-w-0 truncate text-[13px] font-semibold leading-4 text-foreground">
+                              {fullName(booking.customer?.fullName)}
                             </span>
-                          </span>
-                        </div>
-                      </button>
-                    ))}
+
+                            {/* Event date */}
+                            <span className="shrink-0 text-right text-[11px] tabular-nums leading-4 text-muted-foreground">
+                              {format(new Date(booking.date), "MMM d, h:mm a")}
+                            </span>
+
+                            {/* Booking reference */}
+                            <span className="min-w-0 truncate font-mono text-[10px] leading-3 text-muted-foreground">
+                              {booking.reference || "--"}
+                            </span>
+
+                            {/* Booking type */}
+                            <span className="max-w-28 truncate text-right text-[11px] leading-3 text-muted-foreground">
+                              {booking.bookingType === "both"
+                                ? "Venue + Catering"
+                                : capitalize(booking.bookingType)}
+                            </span>
+
+                            {/* Event name */}
+                            <span className="min-w-0 truncate text-[11px] leading-4 text-muted-foreground">
+                              {booking.eventType}
+                            </span>
+
+                            {/* Booking status */}
+                            <span className="mt-0.5 flex justify-end">
+                              {isLoadingSelected ? (
+                                <span className="inline-flex items-center gap-1 rounded-sm border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary">
+                                  <Loader2 className="size-3 animate-spin" />
+                                  Loading
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center rounded-sm border bg-muted/30 px-1.5 py-0.5 text-[10px] font-medium capitalize leading-none text-muted-foreground">
+                                  {STATUS_LABELS[booking.status] ||
+                                    booking.status}
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (

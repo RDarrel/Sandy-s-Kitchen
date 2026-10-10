@@ -15,6 +15,7 @@ const Calendar = ({
   bookingSearchResults,
   searchOpen,
   bookingSearch,
+  highlightedBookingId,
   handleSearchResultClick,
   setBookingSearch,
   setSearchOpen,
@@ -112,6 +113,7 @@ const Calendar = ({
             selectDate={selectDate}
             setSearchOpen={setSearchOpen}
             bookingSearch={bookingSearch}
+            highlightedBookingId={highlightedBookingId}
             setBookingSearch={setBookingSearch}
             bookingSearchResults={bookingSearchResults}
             handleSearchResultClick={handleSearchResultClick}

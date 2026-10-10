@@ -11,14 +11,19 @@ import EmptySchedule from "./emptySchedule";
 import Booking from "./booking";
 import ScheduleSkeleton from "./skeleton";
 import { useDispatch, useSelector } from "react-redux";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SCHEDULE } from "@/services/redux/slices/events/bookings";
 import { Formatter } from "@/services/utilities";
 import Approval from "./approval";
 import ReviewPayment from "./reviewPayment";
 import RecordPayment from "./recordPayment";
 
-const Schedule = ({ selectedDate }) => {
+const Schedule = ({
+  selectedDate,
+  highlightedBookingId,
+  onHighlightReady = () => {},
+  onHighlightComplete = () => {},
+}) => {
   const { isLoadingSchedule: isLoading, schedule = {} } = useSelector(
     ({ bookings }) => bookings,
   );
@@ -31,9 +36,12 @@ const Schedule = ({ selectedDate }) => {
     recordPayment: false,
   });
   const [selected, setSelected] = useState({});
+  const [activeHighlightId, setActiveHighlightId] = useState(null);
   const dispatch = useDispatch();
+  const bookingRefs = useRef({});
+  const highlightTimeoutRef = useRef(null);
 
-  const { filtered, count, statusHeader } = useMemo(() => {
+  const { filtered, count, statusHeader, bookingsArray } = useMemo(() => {
     const bookings =
       activeStatus === "all"
         ? schedule
@@ -42,6 +50,7 @@ const Schedule = ({ selectedDate }) => {
     return {
       filtered: bookings,
       count: bookingsArray?.length,
+      bookingsArray,
       statusHeader: { all: bookingsArray, ...schedule },
     };
   }, [activeStatus, schedule]);
@@ -70,6 +79,51 @@ const Schedule = ({ selectedDate }) => {
     } else {
       setApprovalModalMode("approval");
     }
+  }, []);
+
+  useEffect(() => {
+    if (isLoading || !highlightedBookingId) return undefined;
+
+    const targetExists = bookingsArray.some(
+      (booking) => (booking._id || booking.id) === highlightedBookingId,
+    );
+
+    if (!targetExists) return undefined;
+
+    const animationFrameId = requestAnimationFrame(() => {
+      const target = bookingRefs.current[highlightedBookingId];
+
+      if (!target) return;
+
+      clearTimeout(highlightTimeoutRef.current);
+      setActiveHighlightId(highlightedBookingId);
+      onHighlightReady();
+      onHighlightComplete();
+
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      highlightTimeoutRef.current = setTimeout(() => {
+        setActiveHighlightId(null);
+      }, 1200);
+    });
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [
+    activeStatus,
+    bookingsArray,
+    highlightedBookingId,
+    isLoading,
+    onHighlightComplete,
+    onHighlightReady,
+  ]);
+
+  useEffect(() => {
+    return () => clearTimeout(highlightTimeoutRef.current);
   }, []);
 
   if (isLoading) {
@@ -159,8 +213,14 @@ const Schedule = ({ selectedDate }) => {
                     {bookings.map((booking) => (
                       <Booking
                         key={booking._id}
+                        ref={(node) => {
+                          bookingRefs.current[booking._id || booking.id] = node;
+                        }}
                         booking={booking}
                         handleAction={handleAction}
+                        isHighlighted={
+                          (booking._id || booking.id) === activeHighlightId
+                        }
                       />
                     ))}
                   </div>
