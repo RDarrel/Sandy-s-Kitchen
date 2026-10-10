@@ -1,5 +1,6 @@
 const Venue = require("../../models/events/Venue");
 const Booking = require("../../models/events/Booking");
+const VenueService = require("../../services/events/Venue.service.js");
 const dateToUTC = require("../../utilities/dateToUTC");
 
 const venuePopulates = [
@@ -283,6 +284,20 @@ exports.getAvailableUntil = async (req, res) => {
 
     return res.json({
       data: nextBooking?.venue?.schedule?.startAt ?? null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+exports.search = async (req, res) => {
+  try {
+    const venues = await VenueService.search(req.query);
+    return res.status(200).json({
+      success: true,
+      data: venues,
     });
   } catch (error) {
     return res.status(500).json({

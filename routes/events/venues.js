@@ -7,12 +7,14 @@ const router = require("express").Router(),
     available,
     getReservedSchedules,
     getAvailableUntil,
+    search,
   } = require("../../controllers/events/Venues"),
   { validate } = require("../../middleware/jwt");
 
 router
   .post("/save", validate, save)
   .get("/browse", browse)
+  .get("/search", search)
   .get("/available", available)
   .get("/availability/start", getReservedSchedules)
   .get("/availability/until", getAvailableUntil)

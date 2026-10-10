@@ -50,6 +50,23 @@ export const BROWSE = createAsyncThunk(`${url}`, (_, thunkAPI) => {
     return thunkAPI.rejectWithValue(message);
   }
 });
+export const SEARCH_VENUES = createAsyncThunk(
+  `${url}/searchVenues`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/search`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 export const AVAILABLE = createAsyncThunk(
   `${url}/available`,
   (query, thunkAPI) => {
@@ -182,6 +199,23 @@ export const reduxSlice = createSlice({
         state.message = error.message;
         state.isLoading = false;
       })
+
+      .addCase(SEARCH_VENUES.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(SEARCH_VENUES.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.collections = state.filtered = data;
+        state.isLoading = false;
+      })
+      .addCase(SEARCH_VENUES.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
+
       .addCase(AVAILABLE.pending, (state) => {
         state.isLoading = true;
         state.isSuccess = false;
