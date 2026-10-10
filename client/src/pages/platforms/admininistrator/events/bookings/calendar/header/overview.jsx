@@ -3,7 +3,7 @@ import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../../constant";
 import { Formatter } from "@/services/utilities";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const Monthly = ({ monthlySummary, isLoading }) => {
+export const Monthly = ({ overview, isLoading }) => {
   if (isLoading) {
     return (
       <div className="flex min-h-8 min-w-0 flex-col gap-2 border-t border-border/50 pt-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -32,12 +32,12 @@ export const Monthly = ({ monthlySummary, isLoading }) => {
         <CalendarCheck className="size-3.5 text-muted-foreground" />
         <span className="text-xs text-muted-foreground">Total bookings</span>
         <span className="rounded-sm bg-muted px-1.5 py-0.5 text-xs font-semibold leading-none tabular-nums text-foreground">
-          {monthlySummary.total}
+          {overview.totalBookings}
         </span>
       </div>
 
       <div className="flex min-w-0 flex-wrap items-center justify-start gap-x-3 gap-y-1 sm:justify-end">
-        {STATUS_ORDER.filter((status) => monthlySummary.statuses[status]).map(
+        {STATUS_ORDER.filter((status) => overview?.statuses?.[status]).map(
           (status) => (
             <div key={status} className="inline-flex items-center gap-1.5">
               <span
@@ -50,7 +50,7 @@ export const Monthly = ({ monthlySummary, isLoading }) => {
               </span>
 
               <span className="text-xs font-semibold tabular-nums text-foreground">
-                {monthlySummary.statuses[status]}
+                {overview.statuses[status]}
               </span>
             </div>
           ),
@@ -60,7 +60,7 @@ export const Monthly = ({ monthlySummary, isLoading }) => {
   );
 };
 
-export const Financial = ({ monthlySummary, isLoading }) => {
+export const Financial = ({ monthlySummary, isLoading, overview }) => {
   if (isLoading) {
     return (
       <div className="flex w-full shrink-0 items-center gap-2 rounded-md border bg-background/70 px-2 py-1.5 sm:w-auto sm:gap-3 sm:border-0 sm:bg-transparent sm:p-0">
@@ -95,10 +95,10 @@ export const Financial = ({ monthlySummary, isLoading }) => {
     <div className="flex w-full shrink-0 items-center gap-2 rounded-md border bg-background/70 px-2 py-1.5 sm:w-auto sm:gap-3 sm:border-0 sm:bg-transparent sm:p-0">
       <div className="min-w-0 flex-1 text-center sm:min-w-20 sm:flex-none sm:text-right">
         <p className="text-[9px] font-medium uppercase leading-[11px] tracking-wide text-muted-foreground">
-          Confirmed
+          Booking Value
         </p>
         <p className="mt-0.5 text-sm font-semibold leading-5 tabular-nums text-foreground">
-          {Formatter.amount(monthlySummary.confirmed)}
+          {Formatter.amount(overview?.financial?.totalValue || 0)}
         </p>
       </div>
 
@@ -109,7 +109,7 @@ export const Financial = ({ monthlySummary, isLoading }) => {
           Received
         </p>
         <p className="mt-0.5 text-sm font-semibold leading-5 tabular-nums text-foreground">
-          {Formatter.amount(monthlySummary.received)}
+          {Formatter.amount(overview?.financial?.received || 0)}
         </p>
       </div>
 
@@ -120,7 +120,13 @@ export const Financial = ({ monthlySummary, isLoading }) => {
           To Collect
         </p>
         <p className="mt-0.5 text-sm font-semibold leading-5 tabular-nums text-foreground">
-          {Formatter.amount(monthlySummary.toCollect)}
+          {Formatter.amount(
+            Math.max(
+              0,
+              (overview?.financial?.totalValue || 0) -
+                (overview?.financial?.received || 0),
+            ),
+          )}
         </p>
       </div>
     </div>

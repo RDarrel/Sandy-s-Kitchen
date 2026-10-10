@@ -117,11 +117,18 @@ const RecordPayment = ({ isOpen, setIsOpen, selected = {} }) => {
             CONFIRM_BOOKING({
               data,
               bookingStatus: selected?.status,
+              amountReceived: data?.amount,
             }),
           );
           toast.success("Payment recorded and booking confirmed successfully.");
         } else {
-          dispatch(UPDATE_PAYMENT({ data, bookingStatus: selected?.status }));
+          dispatch(
+            UPDATE_PAYMENT({
+              data,
+              bookingStatus: selected?.status,
+              amountReceived: data?.amount,
+            }),
+          );
           toast.success("Payment recorded successfully.");
         }
         setIsOpen(false);

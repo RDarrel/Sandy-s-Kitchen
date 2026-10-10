@@ -184,75 +184,68 @@ const PaymentHistory = ({ booking, payments = [] }) => {
 };
 
 const PaymentHistoryTimeline = ({ payments = [], onViewPayment }) => (
-  <Timeline defaultValue={payments.length} className="gap-0">
-    {payments.map((payment, index) => (
-      <TimelineItem
-        key={payment?._id || index}
-        step={index + 1}
-        className="group-data-[orientation=vertical]/timeline:ms-7 group-data-[orientation=vertical]/timeline:not-last:pb-4"
-      >
-        <TimelineHeader>
-          <TimelineSeparator className="bg-border! group-data-[orientation=vertical]/timeline:-left-5 group-data-[orientation=vertical]/timeline:h-[calc(100%-1.25rem)] group-data-[orientation=vertical]/timeline:w-px group-data-[orientation=vertical]/timeline:translate-y-5" />
+  <div className="payment-timeline-scroll max-h-72 overflow-y-auto pr-2 pl-0.5">
+    <Timeline defaultValue={payments.length} className="gap-0">
+      {payments.map((payment, index) => (
+        <TimelineItem
+          key={payment?._id || index}
+          step={index + 1}
+          className="group-data-[orientation=vertical]/timeline:ms-7 group-data-[orientation=vertical]/timeline:not-last:pb-4"
+        >
+          <TimelineHeader>
+            <TimelineSeparator className="bg-border! group-data-[orientation=vertical]/timeline:-left-5 group-data-[orientation=vertical]/timeline:h-[calc(100%-1.25rem)] group-data-[orientation=vertical]/timeline:w-px group-data-[orientation=vertical]/timeline:translate-y-5" />
 
-          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
-            <div className="min-w-0">
-              <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                <TimelineTitle className="min-w-fit text-[13px] font-semibold">
-                  {Formatter.amount(payment?.amount)}
-                </TimelineTitle>
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+              <div className="min-w-0">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                  <TimelineTitle className="min-w-fit text-[13px] font-semibold">
+                    {Formatter.amount(payment?.amount)}
+                  </TimelineTitle>
 
-                <PaymentStatus status={payment?.status} />
+                  <PaymentStatus status={payment?.status} />
+                </div>
+
+                <TimelineContent className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1 text-xs">
+                  <span className="min-w-0 truncate">
+                    {getPaymentMethodName(payment)}
+                  </span>
+
+                  <span className="text-muted-foreground/60">·</span>
+
+                  <span className="shrink-0">
+                    {capitalizeText(
+                      payment?.type === "deposit"
+                        ? "Down Payment"
+                        : payment?.type,
+                    )}
+                  </span>
+                </TimelineContent>
               </div>
 
-              <TimelineContent className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1 text-xs">
-                <span className="min-w-0 truncate">
-                  {getPaymentMethodName(payment)}
-                </span>
-
-                <span className="text-muted-foreground/60">·</span>
-
-                <span className="shrink-0">
-                  {capitalizeText(
-                    payment?.type === "deposit"
-                      ? "Down Payment"
-                      : payment?.type,
-                  )}
-                </span>
-              </TimelineContent>
+              {onViewPayment && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="size-6 shrink-0 rounded-md"
+                  onClick={() => onViewPayment(payment)}
+                  aria-label="View payment details"
+                >
+                  <ArrowUpRight className="size-3.5" />
+                </Button>
+              )}
             </div>
 
-            {onViewPayment && (
-              // <TooltipProvider delayDuration={150}>
-              //   <Tooltip>
-              //     <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="size-6 shrink-0 rounded-md"
-                onClick={() => onViewPayment(payment)}
-              >
-                <ArrowUpRight className="size-3.5" />
-              </Button>
-              //     </TooltipTrigger>
+            <PaymentTimelineIndicator status={payment?.status} />
+          </TimelineHeader>
 
-              //     <TooltipContent side="left">
-              //       View payment details
-              //     </TooltipContent>
-              //   </Tooltip>
-              // </TooltipProvider>
-            )}
-          </div>
-
-          <PaymentTimelineIndicator status={payment?.status} />
-        </TimelineHeader>
-
-        <TimelineDate className="mb-0 mt-1 text-[11px]">
-          {formatDateTime(payment?.paidAt || payment?.createdAt)}
-        </TimelineDate>
-      </TimelineItem>
-    ))}
-  </Timeline>
+          <TimelineDate className="mb-0 mt-1 text-[11px]">
+            {formatDateTime(payment?.paidAt || payment?.createdAt)}
+          </TimelineDate>
+        </TimelineItem>
+      ))}
+    </Timeline>
+  </div>
 );
 
 const TermsSummary = ({ terms }) => (

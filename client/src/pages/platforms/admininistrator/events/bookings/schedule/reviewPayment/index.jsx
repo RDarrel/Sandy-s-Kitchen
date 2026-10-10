@@ -67,16 +67,24 @@ const ReviewPayment = ({ isOpen, setIsOpen, selected: booking = {} }) => {
     )
       .unwrap()
       .then(({ data }) => {
+        const amountReceived = data?.amount;
         if (willConfirmBooking) {
           dispatch(
             CONFIRM_BOOKING({
               data,
               bookingStatus: booking?.status,
+              amountReceived,
             }),
           );
           toast.success("Payment verified and booking confirmed.");
         } else {
-          dispatch(UPDATE_PAYMENT({ data, bookingStatus: booking?.status }));
+          dispatch(
+            UPDATE_PAYMENT({
+              data,
+              bookingStatus: booking?.status,
+              amountReceived,
+            }),
+          );
           toast.success("Payment verified successfully.");
         }
         setIsOpen(false);

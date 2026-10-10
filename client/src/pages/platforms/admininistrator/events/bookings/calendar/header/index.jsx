@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Financial, Monthly } from "./overview";
 import { Search } from "lucide-react";
 import SearchCustomer from "./search";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { SCHEDULE } from "@/services/redux/slices/events/bookings";
 import { Formatter } from "@/services/utilities";
 
@@ -29,6 +29,8 @@ const Header = ({
   selectDate,
   isLoading,
 }) => {
+  const { calendar } = useSelector(({ bookings }) => bookings);
+  const { overview = {} } = calendar || {};
   const dispatch = useDispatch();
   return (
     <div className="relative z-50 bg-muted/10 px-2 pb-2 sm:px-3">
@@ -88,11 +90,15 @@ const Header = ({
         </div>
 
         {/* Financial overview */}
-        <Financial isLoading={isLoading} monthlySummary={monthlySummary} />
+        <Financial
+          isLoading={isLoading}
+          monthlySummary={monthlySummary}
+          overview={overview}
+        />
       </EventCalendarNav>
 
       {/* Monthly booking overview */}
-      <Monthly isLoading={isLoading} monthlySummary={monthlySummary} />
+      <Monthly isLoading={isLoading} overview={overview} />
     </div>
   );
 };

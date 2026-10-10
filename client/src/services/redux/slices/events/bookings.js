@@ -259,85 +259,135 @@ const getBookingRange = (booking) => {
   return { startAt, endAt: endAt ? new Date(endAt) : null };
 };
 
-const updateBookingStatus = (state, statusTransaction, booking) => {
-  //status={new:"approved",old:'pending'}
-  const calendar = { ...state.calendar };
-  const updatedBooking = updateSchedule(state, statusTransaction, booking);
+const updateCalendar = ({
+  state,
+  statusTransaction,
+  booking,
+  options = {},
+}) => {
+  const calendar = state.calendar;
+  if (!calendar || !booking) return;
 
-  console.log("updatedBooking", updatedBooking);
-  if (!updatedBooking) return;
+  const { visibleRange, monthRange, days = [], overview = {} } = calendar;
+  const { amountReceived = 0 } = booking;
 
-  const bookingRange = getBookingRange(updatedBooking);
-
-  const { visibleRange, monthRange } = calendar;
+  const bookingRange = getBookingRange(booking);
 
   const isVisible = isDateWithinRange(bookingRange, visibleRange);
   const isWithinMonth = isDateWithinRange(bookingRange, monthRange);
-  console.log("isVisible", isVisible);
-  console.log("isWithinMonth", isWithinMonth);
-  if (isVisible) {
-    const { days = [], overview = {} } = calendar;
-    const { monthly = [] } = overview;
 
-    const updatedDays = days.map((day) => {
-      console.log("bookingRange", JSON.parse(JSON.stringify(bookingRange)));
-      console.log("day", JSON.parse(JSON.stringify(day)));
+  const oldStatus = statusTransaction?.old;
+  const newStatus = statusTransaction?.new;
+
+  const hasStatusChanged = oldStatus && newStatus && oldStatus !== newStatus;
+
+  const excludedStatuses = ["rejected", "changes_requested"];
+
+  // CALENDAR DAYS
+  let updatedDays = days;
+
+  if (isVisible && options.days && hasStatusChanged) {
+    updatedDays = days.map((day) => {
       const isAffected = isDateWithinRange(bookingRange, {
-        startAt: day?.start,
-        endAt: day?.end,
+        startAt: day.start,
+        endAt: day.end,
       });
-      console.log("isAffected", isAffected);
+
       if (!isAffected) return day;
+
+      const statusCounts = { ...day.statusCounts };
+
+      if (!excludedStatuses.includes(oldStatus)) {
+        statusCounts[oldStatus] = Math.max(
+          0,
+          (statusCounts[oldStatus] ?? 0) - 1,
+        );
+
+        if (statusCounts[oldStatus] === 0) {
+          delete statusCounts[oldStatus];
+        }
+      }
+
+      if (!excludedStatuses.includes(newStatus)) {
+        statusCounts[newStatus] = (statusCounts[newStatus] ?? 0) + 1;
+      }
 
       return {
         ...day,
-        statusCounts: {
-          ...day.statusCounts,
-          [statusTransaction.old]: Math.max(
-            (day.statusCounts?.[statusTransaction.old] || 0) - 1,
-            0,
-          ),
-          [statusTransaction.new]:
-            (day.statusCounts?.[statusTransaction.new] || 0) + 1,
-        },
+        statusCounts,
       };
     });
+  }
 
-    console.log("updateDays", JSON.parse(JSON.stringify(updatedDays)));
+  // MONTHLY OVERVIEW
+  let updatedOverview = overview;
 
-    if (isWithinMonth) {
-      const getStatsIdx = (stats) =>
-        monthly.findIndex(({ status }) => status === stats);
+  if (isWithinMonth) {
+    let statuses = { ...overview.statuses };
+    let financial = { ...overview.financial };
+    let totalBookings = overview.totalBookings ?? 0;
 
-      const oldStatusIdx = getStatsIdx(statusTransaction.old);
-      const newStatusIdx = getStatsIdx(statusTransaction.new);
+    if (options.statuses && hasStatusChanged) {
+      const oldIncluded = !excludedStatuses.includes(oldStatus);
+      const newIncluded = !excludedStatuses.includes(newStatus);
 
-      if (oldStatusIdx > -1) {
-        monthly[oldStatusIdx] = {
-          ...monthly[oldStatusIdx],
-          count: Math.max((monthly[oldStatusIdx]?.count || 0) - 1, 0),
-        };
+      if (oldIncluded) {
+        statuses[oldStatus] = Math.max(0, (statuses[oldStatus] ?? 0) - 1);
+
+        if (statuses[oldStatus] === 0) {
+          delete statuses[oldStatus];
+        }
       }
 
-      if (newStatusIdx > -1) {
-        monthly[newStatusIdx] = {
-          ...monthly[newStatusIdx],
-          count: (monthly[newStatusIdx]?.count || 0) + 1,
-        };
-      } else {
-        monthly.push({ status: statusTransaction.new, count: 1 });
+      if (newIncluded) {
+        statuses[newStatus] = (statuses[newStatus] ?? 0) + 1;
+      }
+
+      if (oldIncluded && !newIncluded) {
+        totalBookings = Math.max(0, totalBookings - 1);
+      } else if (!oldIncluded && newIncluded) {
+        totalBookings += 1;
       }
     }
 
-    state.calendar = {
-      ...state.calendar,
-      days: updatedDays,
-      overview: {
-        ...state.calendar?.overview,
-        monthly,
-      },
+    // amountReceived represents the CHANGE in verified payments
+    if (amountReceived !== 0) {
+      financial.received = Math.max(
+        0,
+        (financial.received ?? 0) + amountReceived,
+      );
+    }
+
+    updatedOverview = {
+      ...overview,
+      totalBookings,
+      statuses,
+      financial,
     };
   }
+
+  state.calendar = {
+    ...calendar,
+    days: updatedDays,
+    overview: updatedOverview,
+  };
+};
+
+const updateBookingStatus = ({ state, statusTransaction, booking }) => {
+  //status={new:"approved",old:'pending'}
+
+  const updatedBooking = updateSchedule(state, statusTransaction, booking);
+  if (!updatedBooking) return;
+
+  updateCalendar({
+    state,
+    statusTransaction,
+    booking: { ...updatedBooking, amountReceived: booking?.amountReceived },
+    options: {
+      statuses: true,
+      days: true,
+    },
+  });
 };
 
 export const reduxSlice = createSlice({
@@ -345,20 +395,42 @@ export const reduxSlice = createSlice({
   initialState,
   reducers: {
     UPDATE_PAYMENT: (state, { payload }) => {
-      const { bookingStatus, data } = payload;
+      const { bookingStatus, data, amountReceived = 0 } = payload;
 
       const collections = [...(state.schedule[bookingStatus] || [])];
       const index = collections.findIndex(({ _id }) => _id === data?.booking);
 
-      if (index > -1) {
-        const payments = [...(collections[index]?.payments || [])];
-        const paymentIdx = payments.findIndex(({ _id }) => _id === data?._id);
+      if (index < 0) return;
+
+      const payments = [...(collections[index]?.payments || [])];
+      const paymentIdx = payments.findIndex(({ _id }) => _id === data?._id);
+
+      if (paymentIdx > -1) {
         payments[paymentIdx] = data;
-        collections[index] = {
-          ...collections[index],
-          payments,
-        };
+      } else {
+        payments.unshift(data);
       }
+
+      collections[index] = {
+        ...collections[index],
+        payments,
+      };
+
+      const booking = collections[index];
+
+      updateCalendar({
+        state,
+        statusTransaction: { old: bookingStatus, new: bookingStatus },
+        booking: {
+          _id: booking?._id,
+          bookingType: booking?.bookingType,
+          date: booking?.date,
+          venue: booking?.venue,
+          catering: booking?.catering,
+          amountReceived,
+        },
+      });
+
       state.schedule = {
         ...state.schedule,
         [bookingStatus]: collections,
@@ -380,16 +452,19 @@ export const reduxSlice = createSlice({
       }
 
       if (booking) {
-        updateBookingStatus(
+        updateBookingStatus({
           state,
-          { old: "approved", new: "confirmed" },
-          {
+          statusTransaction: { old: "approved", new: "confirmed" },
+          booking: {
             _id: booking?._id,
+            bookingType: booking?.bookingType,
+            date: booking?.date,
             payments,
             catering: booking?.catering,
             venue: booking?.venue,
+            amountReceived: data?.amount,
           },
-        );
+        });
       }
     },
   },
@@ -509,7 +584,11 @@ export const reduxSlice = createSlice({
       })
       .addCase(APPROVE.fulfilled, (state, action) => {
         const { success, data } = action.payload;
-        updateBookingStatus(state, { old: "pending", new: "approved" }, data);
+        updateBookingStatus({
+          state,
+          statusTransaction: { old: "pending", new: "approved" },
+          booking: data,
+        });
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
@@ -526,7 +605,7 @@ export const reduxSlice = createSlice({
       })
       .addCase(UPDATE.fulfilled, (state, action) => {
         const { success, data, statusTransaction } = action.payload;
-        updateBookingStatus(state, statusTransaction, data);
+        updateBookingStatus({ state, statusTransaction, booking: data });
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
