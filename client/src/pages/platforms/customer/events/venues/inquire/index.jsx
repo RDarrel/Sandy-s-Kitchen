@@ -16,8 +16,8 @@ import {
 import { AlertTriangle, ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BROWSE as BROWSE_CATERING_PACKAGES } from "@/services/redux/slices/events/cateringPackages";
-import { Step1, Step2, Step3, Step4, Step5, Step6, Step7 } from "./steps";
-import { Step6 as Review } from "../../catering/inquire/steps";
+import { Step1, Step2, Step4, Step5 } from "./steps";
+import { Step6 as Review, Step5 as Step6 } from "../../catering/inquire/steps";
 import {
   DEFAULT_FORM,
   DEFAULT_MENU_SELECTIONS,

@@ -2,7 +2,25 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Field from "../field";
 import Header from "../header";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
 const Step5 = ({ setForm = () => {}, form }) => {
+  const { auth } = useSelector(({ auth }) => auth);
+
+  useEffect(() => {
+    const { contact } = form;
+    const { fullName } = auth;
+    setForm((prev) => ({
+      ...prev,
+      contact: {
+        ...prev?.contact,
+        ...(!contact?.name && {
+          name: `${fullName?.fname} ${fullName?.lname}`,
+        }),
+        ...(!contact?.email && { email: auth?.email }),
+      },
+    }));
+  }, [auth]);
   const updateField = (key, value) =>
     setForm((prev) => ({
       ...prev,
@@ -11,7 +29,7 @@ const Step5 = ({ setForm = () => {}, form }) => {
   return (
     <div>
       <Header
-        title="Contact Details"
+        title="Contact Detailss"
         description="We will use these details to call back and finalize the quote."
       />
 

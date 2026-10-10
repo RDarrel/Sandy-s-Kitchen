@@ -274,7 +274,6 @@ const BookingOverview = ({ booking, status, date, action }) => {
         main: mainDishes,
         side: sideDishes,
       },
-      test: "asdfasdfas",
       selected: booking?.[bookingOrigin]?.item,
     };
 
@@ -380,15 +379,12 @@ const BookingOverview = ({ booking, status, date, action }) => {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-44">
-              {canEditBooking && (
-                <DropdownMenuItem
-                  className="gap-2 text-xs"
-                  onClick={handleEdit}
-                >
-                  <Pencil className="size-3.5" />
-                  Edit booking
-                </DropdownMenuItem>
-              )}
+              {/* {canEditBooking && ( */}
+              <DropdownMenuItem className="gap-2 text-xs" onClick={handleEdit}>
+                <Pencil className="size-3.5" />
+                Edit booking
+              </DropdownMenuItem>
+              {/* )} */}
 
               {canEditBooking && canCancelBooking && <DropdownMenuSeparator />}
 

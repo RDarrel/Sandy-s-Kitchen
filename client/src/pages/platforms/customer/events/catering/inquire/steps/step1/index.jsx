@@ -5,7 +5,7 @@ import Section from "./section";
 import VenueOption from "./venueOption";
 import Field from "./field";
 import DatePicker from "@/components/shared/datePicker";
-import { addHours, differenceInMinutes, subHours } from "date-fns";
+import { addHours, differenceInMinutes } from "date-fns";
 
 const eventTypes = [
   "Wedding",
@@ -22,12 +22,7 @@ const eventTypes = [
 /* Step 1                             */
 /* ---------------------------------- */
 
-const Step1 = ({
-  packageInfo = {},
-  form = {},
-  updateField = () => {},
-  setForm = () => {},
-}) => {
+const Step1 = ({ form = {}, updateField = () => {}, setForm = () => {} }) => {
   const cateringGuests = Number(form.guestCount) || 0;
 
   const handleDateChange = (field, date, isStartDate = false) =>
@@ -96,7 +91,7 @@ const Step1 = ({
                   catering: { ...prev?.catering, pax: Number(e.target.value) },
                 }))
               }
-              placeholder={`Up to ${packageInfo.includedGuests} guests`}
+              placeholder="Enter number of guests"
             />
           </Field>
           <Field label="Start Date & Time" required>

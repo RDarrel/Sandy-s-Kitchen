@@ -73,6 +73,24 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
 
   useEffect(() => {
     if (!isLoadingEquipAvailability && isOpen && selected?._id) {
+      // let _availability = { ...availability };
+      // const { catering, venue } = selected;
+      // const getEquipments = (inclusions) =>
+      //   inclusions?.filter(
+      //     ({ model, amount }) => model === "Equipment" && amount,
+      //   );
+      // const attachAmountInAllocations = (equipments, source) => {
+      //   equipments.forEach(({ item, amount }) => {
+      //     _availability[item?._id] = {
+      //       ..._availability[item?._id],
+      //       [`${source}Allocation`]: amount,
+      //     };
+      //   });
+      // };
+      // const cEquipments = getEquipments(catering?.inclusions);
+      // const vEquipments = getEquipments(venue?.inclusions);
+      // attachAmountInAllocations(cEquipments, "catering");
+      // attachAmountInAllocations(vEquipments, "venue");
       setEquipAvailability(availability);
     }
   }, [availability, isLoadingEquipAvailability, isOpen, selected]);
@@ -87,6 +105,23 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
       setHasSufficientEquipment(isEquipmentSufficient);
     }
   }, [equipAvailability, isOpen, isLoadingEquipAvailability]);
+
+  useEffect(() => {
+    if (isOpen && selected) {
+      const { catering, venue } = selected;
+      const getEquipments = (inclusions) =>
+        inclusions?.filter(
+          ({ model, amount }) => model === "Equipment" && amount,
+        );
+      const attachAmountInAllocations = (equipments, source) => {
+        equipments.forEach;
+      };
+      const cEquipments = getEquipments(catering?.inclusions);
+      const vEquipments = getEquipments(venue?.inclusions);
+    }
+  }, [selected, isOpen]);
+
+  console.log("equipment", equipAvailability);
 
   const service = SERVICE_BADGES[booking?.bookingType] || {
     label: "Booking",
@@ -125,12 +160,25 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
 
     const eInclusions = buildInclusions(venue?.inclusions || []);
     const cInclusions = buildInclusions(catering?.inclusions || []);
+    const alreadyPaidAmount = selected?.payments
+      ?.filter(({ status }) => status === "verified")
+      ?.reduce((acc, curr) => acc + curr.amount, 0);
+
+    const hasPayment = alreadyPaidAmount > 0;
+
     dispatch(
       APPROVE({
         _id: booking?._id,
         eInclusions,
         cInclusions,
         userId: auth?._id,
+        totalValueChange: selected?.pricing?.total,
+        statusTransaction: {
+          old: "pending",
+          new: hasPayment ? "confirmed" : "approved",
+        },
+        amountReceived: hasPayment ? alreadyPaidAmount : 0,
+        ...(hasPayment && { status: "confirmed" }),
       }),
     )
       .unwrap()
@@ -215,35 +263,17 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
       });
 
       setEquipAvailability((prev) => {
-        const baseAvailability = availability?.[itemID]?.available ?? 0;
         let updatedAvailability = { catering: 0, venue: 0 };
-        if (isCateringVenueOverlapping) {
-          const otherServiceAllocationKey = {
-            venue: "cateringAllocation",
-            catering: "venueAllocation",
-          };
-          const otherServiceAllocation =
-            prev?.[itemID]?.[otherServiceAllocationKey[serviceType]] ?? 0;
+        const bothAmount = availability?.[itemID]?.available;
 
-          const bothAmount = availability?.[itemID]?.available;
+        const remainingAvailability = Math.max(0, bothAmount - amount);
 
-          const totalAllocation = otherServiceAllocation + amount;
+        updatedAvailability = {
+          catering: remainingAvailability,
+          venue: remainingAvailability,
+          [`${serviceType}Allocation`]: amount,
+        };
 
-          const remainingAvailability = Math.max(
-            0,
-            bothAmount - totalAllocation,
-          );
-
-          updatedAvailability = {
-            catering: remainingAvailability,
-            venue: remainingAvailability,
-            [`${serviceType}Allocation`]: amount,
-          };
-        } else {
-          updatedAvailability = {
-            [serviceType]: Math.max(0, baseAvailability - amount),
-          };
-        }
         return {
           ...prev,
           [itemID]: {
@@ -255,7 +285,6 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
     },
     [availability, isCateringVenueOverlapping],
   );
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent

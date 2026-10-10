@@ -29,8 +29,6 @@ const Step1 = ({
   updateField = () => {},
   setForm = () => {},
 }) => {
-  const selectedVenue = form?.venue || {};
-
   const handleDateChange = (field, date, isStartDate = false) =>
     setForm((prev) => ({
       ...prev,
@@ -88,15 +86,15 @@ const Step1 = ({
             label="Guests"
             required
             description={
-              selectedVenue?.capacity
-                ? `Maximum capacity: ${selectedVenue.capacity} guests`
+              selected?.capacity
+                ? `Maximum capacity: ${selected.capacity} guests`
                 : undefined
             }
           >
             <Input
               type="number"
               min={1}
-              max={selectedVenue?.capacity}
+              max={selected?.capacity}
               value={form?.venue?.pax || ""}
               required
               onChange={(e) =>
@@ -109,8 +107,8 @@ const Step1 = ({
                 }))
               }
               placeholder={
-                selectedVenue?.capacity
-                  ? `Up to ${selectedVenue.capacity} guests`
+                selected?.capacity
+                  ? `Up to ${selected.capacity} guests`
                   : "Guests"
               }
             />
@@ -123,6 +121,7 @@ const Step1 = ({
                   ? new Date(form.venue?.schedule?.startAt)
                   : null
               }
+              excludeBookingId={form?._id}
               required
               withTime
               venueId={selected?._id}
@@ -130,8 +129,10 @@ const Step1 = ({
               type="start"
               setDate={(value) => {
                 handleDateChange("venue", value, true);
-                handleDateChange("catering", value, true);
                 handleDateChange("venue", null);
+                if (!form?._id) {
+                  handleDateChange("catering", value, true);
+                }
               }}
             />
           </Field>
@@ -146,6 +147,7 @@ const Step1 = ({
               type="end"
               withTime
               venueId={selected?._id}
+              excludeBookingId={form?._id}
               startAt={
                 form?.venue?.schedule?.startAt
                   ? new Date(form.venue?.schedule?.startAt)
@@ -154,7 +156,9 @@ const Step1 = ({
               align="center"
               setDate={(value) => {
                 handleDateChange("venue", value);
-                handleDateChange("catering", value);
+                if (!form?._id) {
+                  handleDateChange("catering", value);
+                }
               }}
             />
           </Field>
@@ -199,19 +203,10 @@ const Step1 = ({
       {form?.bookingType === "both" && (
         <Section title="Catering Reservation Details">
           <div className="grid gap-3 grid-cols-1 md:grid-cols-3 ">
-            <Field
-              label="Guests"
-              required
-              description={
-                selectedVenue?.capacity
-                  ? `Maximum capacity: ${selectedVenue.capacity} guests`
-                  : undefined
-              }
-            >
+            <Field label="Guests" required>
               <Input
                 type="number"
                 min={1}
-                max={selectedVenue?.capacity}
                 value={form?.catering?.pax || ""}
                 required
                 onChange={(e) =>
@@ -223,11 +218,7 @@ const Step1 = ({
                     },
                   }))
                 }
-                placeholder={
-                  selectedVenue?.capacity
-                    ? `Up to ${selectedVenue.capacity} guests`
-                    : "Guests"
-                }
+                placeholder={"Enter number of guests."}
               />
             </Field>
 

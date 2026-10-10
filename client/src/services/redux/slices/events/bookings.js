@@ -194,6 +194,7 @@ const updateSchedule = (state, statusTransaction, booking) => {
     cInclusions = [],
     payments = [],
     statusHistory = [],
+    terms = null,
   } = booking;
   const schedule = { ...state.schedule };
   const oldCollections = [...(schedule?.[statusTransaction?.old] ?? [])];
@@ -230,6 +231,7 @@ const updateSchedule = (state, statusTransaction, booking) => {
     }),
     ...(payments?.length > 0 && { payments }),
     ...(statusHistory?.length > 0 && { statusHistory }),
+    ...(terms && { terms }),
   };
 
   state.schedule = {
@@ -284,7 +286,7 @@ const updateCalendar = ({
   if (!calendar || !booking) return;
 
   const { visibleRange, monthRange, days = [], overview = {} } = calendar;
-  const { amountReceived = 0 } = booking;
+  const { amountReceived = 0, totalValueChange = 0 } = booking;
 
   const bookingRange = getBookingRange(booking);
 
@@ -372,6 +374,12 @@ const updateCalendar = ({
         (financial.received ?? 0) + amountReceived,
       );
     }
+    console.log("totalValue", totalValueChange);
+
+    financial.totalValue = Math.max(
+      0,
+      (financial.totalValue ?? 0) + totalValueChange,
+    );
 
     updatedOverview = {
       ...overview,
@@ -397,7 +405,11 @@ const updateBookingStatus = ({ state, statusTransaction, booking }) => {
   updateCalendar({
     state,
     statusTransaction,
-    booking: { ...updatedBooking, amountReceived: booking?.amountReceived },
+    booking: {
+      ...updatedBooking,
+      amountReceived: booking?.amountReceived,
+      totalValueChange: booking?.totalValueChange,
+    },
     options: {
       statuses: true,
       days: true,
@@ -618,11 +630,17 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(APPROVE.fulfilled, (state, action) => {
-        const { success, data } = action.payload;
+        const {
+          success,
+          data,
+          statusTransaction,
+          amountReceived = 0,
+          totalValueChange = 0,
+        } = action.payload;
         updateBookingStatus({
           state,
-          statusTransaction: { old: "pending", new: "approved" },
-          booking: data,
+          statusTransaction,
+          booking: { ...data, amountReceived, totalValueChange },
         });
         state.formSubmitted = false;
         state.message = success;

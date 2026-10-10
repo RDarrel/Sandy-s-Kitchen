@@ -133,12 +133,22 @@ exports.me = async (req, res) => {
 
 exports.approve = async (req, res) => {
   try {
-    const { _id, eInclusions, cInclusions, userId } = req.body;
+    const {
+      _id,
+      eInclusions,
+      cInclusions,
+      userId,
+      status,
+      statusTransaction,
+      amountReceived,
+      totalValueChange,
+    } = req.body;
 
     const booking = await BookingService.approve({
       _id,
       eInclusions,
       cInclusions,
+      status,
       userId,
     });
 
@@ -152,6 +162,9 @@ exports.approve = async (req, res) => {
         eInclusions: booking?.venue?.inclusions || [],
         cInclusions: booking?.catering?.inclusions || [],
       },
+      statusTransaction,
+      amountReceived,
+      totalValueChange,
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({

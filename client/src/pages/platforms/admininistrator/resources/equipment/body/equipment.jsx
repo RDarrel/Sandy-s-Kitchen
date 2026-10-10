@@ -22,12 +22,6 @@ const Equipment = ({ item, onRequestDelete = () => {} }) => {
       <TableCell>
         <QuantityDisplay quantity={item?.totalQty} unit={item?.unit} />
       </TableCell>
-      <TableCell>
-        <QuantityDisplay quantity={item?.totalQty} unit={item?.unit} />
-      </TableCell>
-      <TableCell>
-        <QuantityDisplay quantity={item?.totalQty} unit={item?.unit} />
-      </TableCell>
 
       <TableCell>
         <div className="flex justify-end gap-2">

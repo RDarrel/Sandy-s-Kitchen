@@ -21,9 +21,13 @@ const calculateTerms = ({ booking, policy }) => {
   |--------------------------------------------------------------------------
   */
 
-  const requiredDeposit =
-    Math.round(booking.pricing.total * (policy.depositPercent / 100) * 100) /
-    100;
+  // const requiredDeposit =
+  //   Math.round(booking.pricing.total * (policy.depositPercent / 100) * 100) /
+  //   100;
+
+  const requiredDeposit = Math.round(
+    booking.pricing.total * (policy.depositPercent / 100),
+  );
 
   /*
   |--------------------------------------------------------------------------
@@ -169,6 +173,7 @@ const approve = async ({
   _id,
   eInclusions = [],
   cInclusions = [],
+  status = "approved",
   userId = null,
 }) => {
   const booking = await Booking.findById(_id);
@@ -202,7 +207,7 @@ const approve = async ({
     policy,
   });
 
-  booking.status = "approved";
+  booking.status = status;
 
   booking.terms = terms;
 
@@ -215,26 +220,35 @@ const approve = async ({
   }
 
   booking.statusHistory.push({
-    status: "approved",
+    status,
     changedBy: userId,
     changedAt: terms.approvedAt,
   });
 
   await booking.save();
 
+  // await booking.populate([
+  //   {
+  //     path: "catering.item",
+  //     select: "inclusions name description",
+  //     populate: {
+  //       path: "inclusions.item",
+  //     },
+  //   },
+  //   {
+  //     path: "venue.item",
+  //     populate: {
+  //       path: "inclusions.item",
+  //     },
+  //   },
+  // ]);
+
   await booking.populate([
     {
-      path: "catering.item",
-      select: "inclusions name description",
-      populate: {
-        path: "inclusions.item",
-      },
+      path: "catering.inclusions.item",
     },
     {
-      path: "venue.item",
-      populate: {
-        path: "inclusions.item",
-      },
+      path: "venue.inclusions.item",
     },
   ]);
 

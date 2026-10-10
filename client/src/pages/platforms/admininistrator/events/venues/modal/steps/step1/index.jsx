@@ -114,8 +114,8 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
           </div>
           <div className="grid w-full  items-center gap-1.5">
             <Label htmlFor="pricePerPax">Additional Charges</Label>
-            <div className="grid grid-cols-2 gap-2">
-              <InputGroup className="max-w-xs">
+            <div className="grid grid-cols-1 gap-2">
+              <InputGroup>
                 <InputGroupAddon align="inline-start">Per Hour</InputGroupAddon>
                 <InputGroupInput
                   value={String(form?.additionalCharges?.perHour || "")}
@@ -133,26 +133,6 @@ const Step1 = ({ form, setForm = () => {}, isDraft = false }) => {
                   type="number"
                   id="duration"
                   placeholder="e.g. 100"
-                />
-              </InputGroup>
-              <InputGroup className="max-w-xs">
-                <InputGroupAddon align="inline-start">Per Pax</InputGroupAddon>
-                <InputGroupInput
-                  required
-                  value={String(form?.additionalCharges?.perPax || "")}
-                  onChange={({ target }) =>
-                    setForm({
-                      ...form,
-                      additionalCharges: {
-                        ...form.additionalCharges,
-                        perPax: Number(target.value),
-                      },
-                    })
-                  }
-                  min="1"
-                  type="number"
-                  placeholder="e.g. 300"
-                  id="duration"
                 />
               </InputGroup>
             </div>

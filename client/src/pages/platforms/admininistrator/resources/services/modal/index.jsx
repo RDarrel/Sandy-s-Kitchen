@@ -216,7 +216,7 @@ const InventoryModal = () => {
                 ))}
               </div>
             </div>
-            <div className="space-y-3 grid gap-1">
+            {/* <div className="space-y-3 grid gap-1">
               <div>
                 <Label>Service Requirement</Label>
                 <p className="text-xs ">
@@ -246,7 +246,7 @@ const InventoryModal = () => {
                   </div>
                 ))}
               </RadioGroup>
-            </div>
+            </div> */}
 
             <div>
               <FormField

@@ -48,7 +48,7 @@ const Header = ({ venue, estimate }) => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-1 mt-3">
         <HeaderMetric
           icon={Users}
-          label="Guests Included"
+          label="Guests Capacity"
           value={`${venue.capacity}`}
         />
         <HeaderMetric

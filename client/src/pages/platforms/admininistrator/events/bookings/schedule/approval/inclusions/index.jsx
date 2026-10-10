@@ -7,7 +7,7 @@ import { formatItemName, getResourceUnit } from "../utils";
 import { capitalize } from "lodash";
 
 const PENDING_ALLOCATION_STATUSES = ["pending", "changes_requested"];
-const EDITABLE_ALLOCATION_STATUSES = ["approved", "confirmed", "setup"];
+// const EDITABLE_ALLOCATION_STATUSES = ["approved", "confirmed", "setup"];
 
 const Inclusions = ({
   label,
@@ -94,7 +94,6 @@ const Inclusions = ({
               {sortedItems.map((inclusion, index) => {
                 const resourceAvailability =
                   equipAvailability?.[inclusion?.item?._id] || {};
-
                 if (isViewOnly && !isEditing) {
                   return (
                     <ReadOnlyAllocation

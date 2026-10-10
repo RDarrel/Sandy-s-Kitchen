@@ -55,9 +55,7 @@ const Header = ({ selected }) => {
                       {" / hr"}
                     </>
                   ),
-                  subTitle: `+ ${Formatter.amount(
-                    selected?.additionalCharges?.perPax,
-                  )} / guest`,
+                  subTitle: `Per additional hour`,
                   Icon: UserPlus,
                 },
                 {

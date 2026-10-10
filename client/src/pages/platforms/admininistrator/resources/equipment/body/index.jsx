@@ -40,9 +40,8 @@ const Body = ({
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Total Quantity</TableHead>
-                    <TableHead>Available</TableHead>
-                    <TableHead>Reserved</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+
+                    <TableHead className="text-end">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

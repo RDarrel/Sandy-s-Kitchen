@@ -11,7 +11,6 @@ import {
   Pencil,
   SlidersHorizontal,
   TriangleAlert,
-  CalendarX2,
 } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
@@ -49,6 +48,7 @@ const Step4 = ({ form, setForm = () => {}, setCurrentStep = () => {} }) => {
         start: startAt ? new Date(startAt).toISOString() : undefined,
         end: endAt ? new Date(endAt).toISOString() : undefined,
         pax: form?.venue?.pax,
+        excludeBookingId: form?._id,
       }),
     )
       .unwrap()
@@ -65,6 +65,7 @@ const Step4 = ({ form, setForm = () => {}, setCurrentStep = () => {} }) => {
     form?.venue?.time?.end,
     form?.venue?.pax,
     form?.date,
+    form?._id,
     dispatch,
   ]);
 
