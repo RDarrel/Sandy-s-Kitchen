@@ -9,6 +9,7 @@ const router = require("express").Router(),
     paymentDetails,
     bookingDetails,
     update,
+    search,
   } = require("../../controllers/events/Bookings"),
   { validate } = require("../../middleware/jwt");
 
@@ -17,6 +18,7 @@ router
   .get("/equipmentAvailability", validate, equipmentAvailability)
   .get("/me", validate, me)
   .get("/schedule", validate, schedule)
+  .get("/search", validate, search)
 
   .get("/:reference/details", validate, bookingDetails)
   .get("/:reference/payment", validate, paymentDetails)

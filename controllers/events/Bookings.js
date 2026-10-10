@@ -209,3 +209,14 @@ exports.bookingDetails = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch booking details" });
   }
 };
+
+exports.search = async (req, res) => {
+  try {
+    const { search } = req.query;
+    const results = await BookingService.search({ search });
+    res.status(200).json({ data: results });
+  } catch (error) {
+    console.log("error", error.message);
+    res.status(500).json({ message: "Failed to search booking" });
+  }
+};

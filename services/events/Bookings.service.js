@@ -1,6 +1,7 @@
 const Payment = require("../../models/events/Payment");
 const Booking = require("../../models/events/Booking");
 const Equipment = require("../../models/inventory/Equipment");
+const User = require("../../models/persons/Users");
 const BookingPolicy = require("../../models/events/BookingPolicy");
 const dateToUTC = require("../../utilities/dateToUTC");
 const { DateTime } = require("luxon");
@@ -901,6 +902,114 @@ const update = async ({ booking }) => {
   return updated;
 };
 
+const search = async ({ search }) => {
+  const query = search?.trim();
+
+  if (!query) return [];
+
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const results = await Booking.aggregate([
+    // LOOKUP CUSTOMER
+    {
+      $lookup: {
+        from: User.collection.name,
+        localField: "customer",
+        foreignField: "_id",
+        as: "customer",
+      },
+    },
+
+    {
+      $unwind: {
+        path: "$customer",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    // CREATE SEARCHABLE CUSTOMER NAME
+    {
+      $addFields: {
+        customerFullName: {
+          $trim: {
+            input: {
+              $concat: [
+                { $ifNull: ["$customer.fullName.fname", ""] },
+                " ",
+                { $ifNull: ["$customer.fullName.mname", ""] },
+                " ",
+                { $ifNull: ["$customer.fullName.lname", ""] },
+              ],
+            },
+          },
+        },
+      },
+    },
+
+    // SEARCH BOOKINGS
+    {
+      $match: {
+        $or: [
+          { reference: { $regex: escapedQuery, $options: "i" } },
+          { customerFullName: { $regex: escapedQuery, $options: "i" } },
+          {
+            "customer.fullName.fname": {
+              $regex: escapedQuery,
+              $options: "i",
+            },
+          },
+          {
+            "customer.fullName.mname": {
+              $regex: escapedQuery,
+              $options: "i",
+            },
+          },
+          {
+            "customer.fullName.lname": {
+              $regex: escapedQuery,
+              $options: "i",
+            },
+          },
+          { "customer.email": { $regex: escapedQuery, $options: "i" } },
+          { "contact.name": { $regex: escapedQuery, $options: "i" } },
+          { "contact.email": { $regex: escapedQuery, $options: "i" } },
+          { "contact.phone": { $regex: escapedQuery, $options: "i" } },
+        ],
+      },
+    },
+
+    // SORT AND LIMIT
+    {
+      $sort: { createdAt: -1 },
+    },
+    {
+      $limit: 20,
+    },
+
+    // RETURN ONLY REQUIRED FIELDS
+    {
+      $project: {
+        reference: 1,
+        eventType: 1,
+        bookingType: 1,
+        status: 1,
+        date: 1,
+        customerFullName: 1,
+        "customer._id": 1,
+        "customer.fullName": 1,
+        "customer.email": 1,
+        "contact.name": 1,
+        "contact.email": 1,
+        "contact.phone": 1,
+        "catering.schedule": 1,
+        "venue.schedule": 1,
+      },
+    },
+  ]);
+
+  return results;
+};
+
 module.exports = {
   approve,
   calendar,
@@ -910,4 +1019,5 @@ module.exports = {
   getPaymentDetails,
   getBookingDetails,
   update,
+  search,
 };
