@@ -16,6 +16,7 @@ const initialState = {
     },
   },
   filtered: [],
+  searchResults: [],
   selected: {},
   willCreate: false,
   showModal: false,
@@ -28,6 +29,7 @@ const initialState = {
   isLoadingEquipAvailability: false,
   isLoadingBookingPayment: false,
   isLoadingBookingDetails: false,
+  isLoadingSearch: false,
   message: "",
 };
 
@@ -172,6 +174,19 @@ export const MY_BOOKINGS = createAsyncThunk(
     }
   },
 );
+
+export const SEARCH = createAsyncThunk(`${url}/search`, (query, thunkAPI) => {
+  try {
+    return axioKit.universal(`${url}/search`, query);
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+
+    return thunkAPI.rejectWithValue(message);
+  }
+});
 
 const updateSchedule = (state, statusTransaction, booking) => {
   const {
@@ -467,6 +482,10 @@ export const reduxSlice = createSlice({
         });
       }
     },
+
+    RESET_SEARCH_RESULTS: (state) => {
+      state.searchResults = [];
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -499,6 +518,22 @@ export const reduxSlice = createSlice({
         const { error } = action;
         state.message = error.message;
         state.isLoadingMyBookings = false;
+      })
+
+      .addCase(SEARCH.pending, (state) => {
+        state.isLoadingSearch = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(SEARCH.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.searchResults = data;
+        state.isLoadingSearch = false;
+      })
+      .addCase(SEARCH.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingSearch = false;
       })
       .addCase(GET_BOOKING_DETAILS.pending, (state) => {
         state.isLoadingBookingDetails = true;
@@ -617,5 +652,6 @@ export const reduxSlice = createSlice({
       });
   },
 });
-export const { UPDATE_PAYMENT, CONFIRM_BOOKING } = reduxSlice.actions;
+export const { UPDATE_PAYMENT, CONFIRM_BOOKING, RESET_SEARCH_RESULTS } =
+  reduxSlice.actions;
 export default reduxSlice.reducer;

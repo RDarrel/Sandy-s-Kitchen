@@ -25,7 +25,6 @@ const Header = ({
   setBookingSearch,
   bookingSearchResults,
   handleSearchResultClick,
-  monthlySummary,
   selectDate,
   isLoading,
 }) => {
@@ -57,7 +56,7 @@ const Header = ({
             <div className="flex min-w-0 items-center rounded-md border bg-background px-0.5 shadow-xs">
               <EventCalendarNavPrev />
 
-              <EventCalendarTitle className="min-w-24 px-1 text-center text-sm font-semibold text-foreground sm:min-w-32" />
+              <EventCalendarTitle className="min-w-35 px-1 text-center text-sm font-semibold text-foreground sm:min-w-32" />
 
               <EventCalendarNavNext />
             </div>
@@ -90,11 +89,7 @@ const Header = ({
         </div>
 
         {/* Financial overview */}
-        <Financial
-          isLoading={isLoading}
-          monthlySummary={monthlySummary}
-          overview={overview}
-        />
+        <Financial isLoading={isLoading} overview={overview} />
       </EventCalendarNav>
 
       {/* Monthly booking overview */}

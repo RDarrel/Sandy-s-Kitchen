@@ -12,7 +12,6 @@ import { CALENDAR, SCHEDULE } from "@/services/redux/slices/events/bookings";
 const Calendar = ({
   selectedDate,
   selectDate,
-  monthlySummary,
   bookingSearchResults,
   searchOpen,
   bookingSearch,
@@ -116,7 +115,6 @@ const Calendar = ({
             setBookingSearch={setBookingSearch}
             bookingSearchResults={bookingSearchResults}
             handleSearchResultClick={handleSearchResultClick}
-            monthlySummary={monthlySummary}
             isLoading={isLoading}
           />
         </FrameHeader>
