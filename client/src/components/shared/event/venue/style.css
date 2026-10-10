@@ -271,10 +271,18 @@
   display: flex;
   gap: 0.35rem;
   align-items: flex-start;
+  min-width: 0;
   color: var(--foreground);
   font-size: 0.73rem;
   font-weight: 650;
   line-height: 1.28;
+}
+
+.venue-card__details li span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .venue-card__details li svg {

@@ -99,7 +99,7 @@ const Item = ({ isWebsite = true, venue, handleInquire = () => {} }) => {
               {visibleIncludes.map(({ item }) => (
                 <li key={item?._id}>
                   <Check />
-                  {item?.name}
+                  <span>{item?.name}</span>
                 </li>
               ))}
               {hasHiddenIncludes && (
@@ -115,7 +115,7 @@ const Item = ({ isWebsite = true, venue, handleInquire = () => {} }) => {
             variant="outline"
             onClick={() => handleInquire(venue)}
           >
-            Inquire Package
+            Inquire Now
           </Button>
         ) : (
           <div className=" grid grid-cols-2 gap-3 self-end pt-3">

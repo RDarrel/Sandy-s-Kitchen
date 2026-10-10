@@ -63,7 +63,7 @@ const VenueList = ({ isWebsite = true, onSelect = () => {} }) => {
       <Button
         aria-label="Next venues"
         className="venue-pagination__arrow"
-        disabled={currentPage === totalPages}
+        disabled={currentPage === totalPages || venues.length === 0}
         onClick={() => goToPage(currentPage + 1)}
         size="icon"
         variant="outline"
