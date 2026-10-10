@@ -88,7 +88,7 @@ const Package = ({
             variant="outline"
             onClick={() => handleInquire(item)}
           >
-            Inquire Package
+            Inquire Now
           </Button>
         ) : (
           <div className="mx-3 grid grid-cols-2 gap-3 self-end py-3">

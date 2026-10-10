@@ -13,8 +13,15 @@ import DatePicker from "@/components/shared/datePicker";
 import "./venue/style.css";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { BROWSE, SEARCH_VENUES } from "@/services/redux/slices/events/venues";
+import {
+  BROWSE as RESET_VENUES,
+  SEARCH_VENUES,
+} from "@/services/redux/slices/events/venues";
 import { Formatter } from "@/services/utilities";
+import {
+  SEARCH_CATERING,
+  BROWSE as RESET_CATERING,
+} from "@/services/redux/slices/events/cateringPackages";
 
 const GUEST_OPTIONS = [
   { label: "Any number of guests", value: " " },
@@ -64,7 +71,7 @@ const BUDGET_RANGES = {
   },
 };
 
-const Search = () => {
+const Search = ({ isVenue = true }) => {
   const { auth } = useSelector(({ auth }) => auth);
   const [form, setForm] = useState({});
   const dispatch = useDispatch();
@@ -76,11 +83,11 @@ const Search = () => {
 
   const handleSearch = () => {
     if (!canSearch) return;
-
+    const FETCH_SEARCH = isVenue ? SEARCH_VENUES : SEARCH_CATERING;
     const { budget, date, guests, sortBy, eventType } = form;
 
     dispatch(
-      SEARCH_VENUES({
+      FETCH_SEARCH({
         ...(hasValue(budget) && BUDGET_RANGES[budget]),
         ...(hasValue(guests) && GUEST_RANGES[guests]),
         ...(hasValue(sortBy) && { sortBy }),
@@ -91,7 +98,8 @@ const Search = () => {
   };
 
   const handleReset = () => {
-    dispatch(BROWSE());
+    const RESET = isVenue ? RESET_VENUES : RESET_CATERING;
+    dispatch(RESET());
     setForm({ date: null });
   };
 
@@ -105,11 +113,15 @@ const Search = () => {
       <div className="mb-5">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="size-4 text-muted-foreground" />
-          <h3 className="font-semibold">Find Your Venue</h3>
+          <h3 className="font-semibold">
+            {isVenue ? "Find Your Venue" : "Find Your Package"}
+          </h3>
         </div>
 
         <p className="mt-1 text-xs text-muted-foreground">
-          Find the perfect venue for your event.
+          {isVenue
+            ? "Find the perfect venue for your event."
+            : "Find the right package for your event."}
         </p>
       </div>
 
@@ -139,36 +151,38 @@ const Search = () => {
         </div>
 
         {/* Event Type */}
-        <div className="grid gap-2">
-          <Label>Event Type</Label>
+        {isVenue && (
+          <div className="grid gap-2">
+            <Label>Event Type</Label>
 
-          <Select
-            value={form?.eventType || ""}
-            onValueChange={(value) =>
-              setForm((prev) => ({ ...prev, eventType: value }))
-            }
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select event type" />
-            </SelectTrigger>
+            <Select
+              value={form?.eventType || ""}
+              onValueChange={(value) =>
+                setForm((prev) => ({ ...prev, eventType: value }))
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select event type" />
+              </SelectTrigger>
 
-            <SelectContent>
-              <SelectItem value=" ">All event types</SelectItem>
-              <SelectItem value="Wedding">Wedding</SelectItem>
-              <SelectItem value="Birthday Party">Birthday Party</SelectItem>
-              <SelectItem value="Debut">Debut</SelectItem>
-              <SelectItem value="Christening / Baptism">
-                Christening / Baptism
-              </SelectItem>
-              <SelectItem value="Corporate Event">Corporate Event</SelectItem>
-              <SelectItem value="Seminar / Training">
-                Seminar / Training
-              </SelectItem>
-              <SelectItem value="Conference">Conference</SelectItem>
-              <SelectItem value="Team Building">Team Building</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+              <SelectContent>
+                <SelectItem value=" ">All event types</SelectItem>
+                <SelectItem value="Wedding">Wedding</SelectItem>
+                <SelectItem value="Birthday Party">Birthday Party</SelectItem>
+                <SelectItem value="Debut">Debut</SelectItem>
+                <SelectItem value="Christening / Baptism">
+                  Christening / Baptism
+                </SelectItem>
+                <SelectItem value="Corporate Event">Corporate Event</SelectItem>
+                <SelectItem value="Seminar / Training">
+                  Seminar / Training
+                </SelectItem>
+                <SelectItem value="Conference">Conference</SelectItem>
+                <SelectItem value="Team Building">Team Building</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* Budget */}
         <div className="grid gap-2">
@@ -195,13 +209,15 @@ const Search = () => {
         </div>
 
         {/* Event Date */}
-        <div className="grid gap-2">
-          <Label>When is your event?</Label>
-          <DatePicker
-            date={form?.date ?? null}
-            setDate={(value) => setForm((prev) => ({ ...prev, date: value }))}
-          />
-        </div>
+        {isVenue && (
+          <div className="grid gap-2">
+            <Label>When is your event?</Label>
+            <DatePicker
+              date={form?.date ?? null}
+              setDate={(value) => setForm((prev) => ({ ...prev, date: value }))}
+            />
+          </div>
+        )}
 
         <hr />
 
@@ -216,7 +232,7 @@ const Search = () => {
             }
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Sort venues by" />
+              <SelectValue placeholder="Select sort by" />
             </SelectTrigger>
 
             <SelectContent>
@@ -234,7 +250,7 @@ const Search = () => {
       <div className="mt-6">
         <div className="grid gap-2">
           <Button className="w-full" onClick={handleSearch}>
-            Find Venues
+            Find {isVenue ? "Venues" : "Packages"}
           </Button>
 
           <Button variant="ghost" className="w-full" onClick={handleReset}>

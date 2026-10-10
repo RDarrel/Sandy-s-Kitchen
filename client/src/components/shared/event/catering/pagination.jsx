@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const Pagination = ({
   placement = "",
+  isEmpty = false,
   totalPages,
   currentPage,
   goToPage = () => {},
@@ -41,7 +42,7 @@ const Pagination = ({
       <Button
         aria-label="Next catering packages"
         className="catering-pagination__arrow"
-        disabled={currentPage === totalPages}
+        disabled={currentPage === totalPages || isEmpty}
         onClick={() => goToPage(currentPage + 1)}
         size="icon"
         variant="outline"

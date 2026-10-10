@@ -2,6 +2,7 @@ const router = require("express").Router(),
   {
     save,
     browse,
+    search,
     update,
     destroy,
   } = require("../../controllers/events/CateringPackages"),
@@ -10,6 +11,7 @@ const router = require("express").Router(),
 router
   .post("/save", validate, save)
   .get("/browse", browse)
+  .get("/search", search)
   .put("/update", validate, update)
   .delete("/destroy", validate, destroy);
 

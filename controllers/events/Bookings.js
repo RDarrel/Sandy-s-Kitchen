@@ -1,5 +1,5 @@
 const Booking = require("../../models/events/Booking");
-const BookingService = require("../../services/events/Bookings.service");
+const BookingService = require("../../services/events/Booking.service");
 const dateToUTC = require("../../utilities/dateToUTC");
 
 exports.save = async (req, res) => {

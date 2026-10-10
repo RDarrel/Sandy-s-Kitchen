@@ -1,15 +1,10 @@
-import { Button } from "@/components/ui/button";
 import {
   Empty,
-  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { BROWSE } from "@/services/redux/slices/events/venues";
-import { RotateCcw } from "lucide-react";
-import { useDispatch } from "react-redux";
 
 function StackedCardsIllustration() {
   return (
@@ -32,9 +27,7 @@ function StackedCardsIllustration() {
   );
 }
 
-export default function Pattern() {
-  const dispatch = useDispatch();
-
+export default function EmptyVenue({ isVenue = true }) {
   return (
     <div className="flex min-h-[22rem] items-center justify-center p-4">
       <Empty className="py-12">
@@ -42,10 +35,12 @@ export default function Pattern() {
           <EmptyMedia>
             <StackedCardsIllustration />
           </EmptyMedia>
-          <EmptyTitle>No venues available</EmptyTitle>
+          <EmptyTitle>
+            No {isVenue ? "venues" : "catering packages"} available
+          </EmptyTitle>
           <EmptyDescription className="max-w-none sm:whitespace-nowrap">
-            Try adjusting your event details or check back later for available
-            venues.
+            Try adjusting your {isVenue ? "event" : "package"} details or check
+            back later for available venues.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>

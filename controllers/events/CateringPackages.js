@@ -1,5 +1,5 @@
 const CateringPackage = require("../../models/events/CateringPackage");
-
+const CateringService = require("../../services/events/Catering.service");
 const packagePopulate = [
   {
     path: "mainCourseCategories.category",
@@ -74,5 +74,18 @@ exports.destroy = async (req, res) => {
       .json({ data: req?.body?._id, success: "Successfully deleted package." });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+exports.search = async (req, res) => {
+  try {
+    const venues = await CateringService.search(req.query);
+    return res.status(200).json({
+      success: true,
+      data: venues,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
   }
 };

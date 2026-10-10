@@ -48,6 +48,24 @@ export const BROWSE = createAsyncThunk(`${url}`, (_, thunkAPI) => {
   }
 });
 
+export const SEARCH_CATERING = createAsyncThunk(
+  `${url}/searchCatering`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/search`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   try {
     return axioKit.update(url, form);
@@ -123,6 +141,21 @@ export const reduxSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
+      .addCase(SEARCH_CATERING.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(SEARCH_CATERING.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.collections = state.filtered = data;
+        state.isLoading = false;
+      })
+      .addCase(SEARCH_CATERING.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.isLoading = false;
