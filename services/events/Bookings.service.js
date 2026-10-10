@@ -471,11 +471,107 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
             $count: "count",
           },
         ],
+
+        // Financial overview for the selected month
+        financial: [
+          {
+            $match: {
+              ...scheduleMatch(selectedMonthStart, selectedMonthEnd),
+              status: {
+                $in: ["approved", "confirmed", "setup", "completed"],
+              },
+            },
+          },
+
+          // Get verified payments for each booking
+          {
+            $lookup: {
+              from: Payment.collection.name,
+              let: {
+                bookingId: "$_id",
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $and: [
+                        {
+                          $eq: ["$booking", "$$bookingId"],
+                        },
+                        {
+                          $eq: ["$status", "verified"],
+                        },
+                      ],
+                    },
+                  },
+                },
+                {
+                  $group: {
+                    _id: null,
+                    total: {
+                      $sum: "$amount",
+                    },
+                  },
+                },
+              ],
+              as: "payments",
+            },
+          },
+
+          // Calculate received payments per booking
+          {
+            $addFields: {
+              received: {
+                $ifNull: [
+                  {
+                    $arrayElemAt: ["$payments.total", 0],
+                  },
+                  0,
+                ],
+              },
+            },
+          },
+
+          // Calculate financial totals
+          {
+            $group: {
+              _id: null,
+              totalValue: {
+                $sum: "$pricing.total",
+              },
+              received: {
+                $sum: "$received",
+              },
+            },
+          },
+
+          {
+            $project: {
+              _id: 0,
+              totalValue: 1,
+              received: 1,
+            },
+          },
+        ],
       },
     },
   ]);
 
-  return result;
+  return {
+    days: result.calendar,
+    overview: {
+      totalBookings: result.totalBookings[0]?.count ?? 0,
+
+      statuses: Object.fromEntries(
+        result.monthlyOverview.map(({ status, count }) => [status, count]),
+      ),
+
+      financial: result.financial[0] ?? {
+        totalValue: 0,
+        received: 0,
+      },
+    },
+  };
 };
 const getMyBookings = async ({ customer }) => {
   const bookings = await Booking.find({ customer })

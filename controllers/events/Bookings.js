@@ -55,11 +55,7 @@ exports.calendar = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
-        days: result.calendar,
-        overview: {
-          monthly: result.monthlyOverview,
-          totalCount: result.totalBookings[0]?.count || 0,
-        },
+        ...result,
         visibleRange: {
           startAt: dateToUTC({
             date: start,
