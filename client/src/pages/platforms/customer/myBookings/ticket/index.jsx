@@ -77,7 +77,7 @@ const Ticket = ({ booking }) => {
             ))}
           </div>
 
-          <Action action={action} />
+          <Action action={action} booking={booking} />
         </div>
 
         {/* Tablet / desktop layout - preserved original design */}

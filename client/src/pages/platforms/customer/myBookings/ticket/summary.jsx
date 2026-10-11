@@ -34,6 +34,7 @@ const Summary = ({ payment, reference }) => {
             type="button"
             variant="outline"
             size="sm"
+            onClick={handleViewDetails}
             className="h-8 shrink-0 gap-1 px-2.5 text-[10px] sm:text-xs"
           >
             <span className="hidden sm:inline">View details</span>

@@ -203,18 +203,20 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
   };
 
   const handleBack = () => {
-    onSelect({}, "default");
-    clearCateringDraft();
-    setForm(DEFAULT_FORM);
-    setMenuSelections(DEFAULT_MENU_SELECTIONS);
-    setSteps(DEFAULT_STEPS);
-    setCurrentStep(1);
-
     if (isUpdating) {
       navigate(`/platforms/my-bookings/${form?.reference}`);
     } else {
       navigate(`/platforms/catering`);
     }
+
+    setTimeout(() => {
+      onSelect({}, "default");
+      clearCateringDraft();
+      setForm(DEFAULT_FORM);
+      setMenuSelections(DEFAULT_MENU_SELECTIONS);
+      setSteps(DEFAULT_STEPS);
+      setCurrentStep(1);
+    }, 500);
   };
 
   if (!packageSelected) {

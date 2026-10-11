@@ -196,17 +196,19 @@ const VenueInquiry = () => {
       .catch((error) => toast.error(error?.message || error));
   };
   const handleBack = () => {
-    clearVenueDraft();
-    setForm(DEFAULT_FORM);
-    setMenuSelections(DEFAULT_MENU_SELECTIONS);
-    setSteps(DEFAULT_STEPS);
-    setCurrentStep(1);
-
     if (isUpdating) {
       navigate(`/platforms/my-bookings/${form?.reference}`);
     } else {
       navigate(`/platforms/venues`);
     }
+
+    setTimeout(() => {
+      clearVenueDraft();
+      setForm(DEFAULT_FORM);
+      setMenuSelections(DEFAULT_MENU_SELECTIONS);
+      setSteps(DEFAULT_STEPS);
+      setCurrentStep(1);
+    }, 500);
   };
   if (!selected?._id) {
     return (
