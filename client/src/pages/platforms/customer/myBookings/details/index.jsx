@@ -54,6 +54,7 @@ import {
   getPaymentSummary,
   getServices,
   getStatusMeta,
+  prepareBookingEdt,
 } from "../utils";
 import PaymentDetails from "./paymentDetails";
 
@@ -199,19 +200,6 @@ export default BookingDetails;
 /* BOOKING OVERVIEW                                                           */
 /* -------------------------------------------------------------------------- */
 
-const groupMenusByCategory = (menus) => {
-  const grouped = Object.groupBy(menus ?? [], (item) => item.category);
-
-  const formatted = Object.fromEntries(
-    Object.entries(grouped).map(([category, items]) => [
-      category,
-      items.map(({ _id }) => _id),
-    ]),
-  );
-
-  return formatted;
-};
-
 const BookingOverview = ({ booking, status, date, action }) => {
   const navigate = useNavigate();
 
@@ -236,50 +224,8 @@ const BookingOverview = ({ booking, status, date, action }) => {
   const canManageBooking = canEditBooking || canCancelBooking;
 
   const handleEdit = () => {
-    const {
-      statusHistory: _statusHistory,
-      terms: _terms,
-      bookingOrigin,
-      ...rest
-    } = booking;
-    const mainDishes = groupMenusByCategory(booking?.catering?.mainDishes);
-    const sideDishes = groupMenusByCategory(booking?.catering?.sideDishes);
-
-    const linkMap = {
-      venue: "venues/inquire",
-      catering: "catering/inquire",
-    };
-
-    const sessionkeyMap = {
-      venue: "venueDraft",
-      catering: "cateringDraft",
-    };
-
-    const draft = {
-      currentStep: 1,
-      form: {
-        ...rest,
-        date: booking?.date?.split("T")[0],
-        reason: action?.reason,
-        catering: {
-          ...booking?.catering,
-          item: booking?.catering?.item?._id,
-        },
-        venue: {
-          ...booking?.venue,
-          item: booking?.venue?.item?._id,
-        },
-      },
-      menuSelections: {
-        main: mainDishes,
-        side: sideDishes,
-      },
-      selected: booking?.[bookingOrigin]?.item,
-    };
-
-    sessionStorage.setItem(sessionkeyMap[bookingOrigin], JSON.stringify(draft));
-
-    navigate(`/platforms/${linkMap[bookingOrigin]}`);
+    const path = prepareBookingEdt(booking, action?.reason);
+    navigate(path);
   };
 
   const handleCancel = () => {

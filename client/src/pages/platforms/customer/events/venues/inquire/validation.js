@@ -9,7 +9,7 @@ const step1 = (form) => {
   if (!bookingType) {
     toast.error("Catering option is required", {
       description: "Please select whether you want to book a catering package.",
-      duration: 4000,
+      duration: 6000,
     });
     return false;
   }
@@ -18,21 +18,22 @@ const step1 = (form) => {
   if (venueSchedule?.startAt && venueSchedule?.endAt) {
     if (new Date(venueSchedule.startAt) >= new Date(venueSchedule.endAt)) {
       toast.error("Invalid venue schedule", {
-        description: `The venue starts on ${Formatter.date(venueSchedule.startAt, true)} and ends on ${Formatter.date(venueSchedule.endAt, true)}. The end date and time must be later than the start date and time.`,
-        duration: 6000,
+        description: `Venue starts at ${Formatter.date(venueSchedule.startAt, true)} but ends at ${Formatter.date(venueSchedule.endAt, true)}. Please select a later end date and time.`,
+        duration: 8000,
       });
       return false;
     }
   }
 
+  // Catering cannot start before venue
   if (
     cateringSchedule?.startAt &&
     venueSchedule?.startAt &&
     new Date(cateringSchedule.startAt) < new Date(venueSchedule.startAt)
   ) {
-    toast.error("Catering schedule is outside venue hours", {
-      description: `Catering starts on ${Formatter.date(cateringSchedule.startAt, true)}, but the venue reservation begins on ${Formatter.date(venueSchedule.startAt, true)}. Please adjust the catering start date and time.`,
-      duration: 6000,
+    toast.error("Catering starts too early", {
+      description: `Catering starts at ${Formatter.date(cateringSchedule.startAt, true)}, but the venue starts at ${Formatter.date(venueSchedule.startAt, true)}. Please adjust the catering schedule.`,
+      duration: 8000,
     });
     return false;
   }
@@ -43,29 +44,24 @@ const step1 = (form) => {
     venueSchedule?.endAt &&
     new Date(cateringSchedule.endAt) > new Date(venueSchedule.endAt)
   ) {
-    toast.error("Catering schedule is outside venue hours", {
-      description: `Catering ends on ${Formatter.date(cateringSchedule.endAt, true)}, but the venue reservation ends on ${Formatter.date(venueSchedule.endAt, true)}. Please adjust the catering end date and time.`,
-      duration: 6000,
+    toast.error("Catering ends too late", {
+      description: `Catering ends at ${Formatter.date(cateringSchedule.endAt, true)}, but the venue ends at ${Formatter.date(venueSchedule.endAt, true)}. Please adjust the catering schedule.`,
+      duration: 8000,
     });
     return false;
   }
 
-  // Validate venue capacity
+  // Validate venue guest count
   if (bookingType === "both") {
-    if (venue?.pax < catering?.pax) {
-      toast.error("Guest count exceeds venue capacity", {
-        description: `The venue can accommodate up to ${venue.pax} guests, but ${catering.pax} guests are selected for catering. Please adjust the catering guest count.`,
-        duration: 6000,
-      });
-      return false;
-    } else if (catering?.pax > venue?.px) {
-      toast.error("Catering guests exceed venue capacity", {
-        description: `You selected ${catering.pax} catering guests, but your venue booking is for up to ${venue.pax} guests. Please reduce the catering guest count.`,
-        duration: 6000,
+    if (catering?.pax > venue?.pax) {
+      toast.error("Guest count exceeds venue booking", {
+        description: `Catering has ${catering.pax} guests, but the venue is booked for ${venue.pax}. Please adjust the guest count.`,
+        duration: 8000,
       });
       return false;
     }
   }
+
   return true;
 };
 

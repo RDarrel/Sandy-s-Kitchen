@@ -40,7 +40,9 @@ const CateringList = ({ isWebsite = true, onSelect = () => {} }) => {
     sessionStorage.removeItem("venueDraft");
     navigate("/authentication/sign-in");
   }, []);
+
   const isEmpty = visiblePackages?.length === 0;
+
   return (
     <section className="catering-page grid grid-cols-1 md:grid-cols-[auto_1fr] max-w-6xl mx-auto gap-5 items-start  ">
       <Search isVenue={false} />

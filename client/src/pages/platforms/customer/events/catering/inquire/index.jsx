@@ -251,7 +251,7 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
           onClick={handleBack}
         >
           <ArrowLeft className="size-3.5" />
-          Back to Packages
+          Back to {isUpdating ? "Booking" : "Packages"}
         </Button>
 
         <div className="rounded-lg border bg-card shadow-sm">
@@ -312,7 +312,10 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
               </StepperNav>
             </div>
 
-            <form onSubmit={goNext}>
+            <form
+              onSubmit={goNext}
+              className="relative flex min-h-0 flex-1 flex-col "
+            >
               {isUpdating && reason && (
                 <div className="border-b bg-amber-50/70 px-3 py-2.5 text-amber-950 sm:px-5 dark:bg-amber-950/20 dark:text-amber-100">
                   <div className="flex items-start gap-2.5">
@@ -332,7 +335,7 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
                   </div>
                 </div>
               )}
-              <StepperPanel className="min-w-0 h-full flex flex-col">
+              <StepperPanel className="flex min-h-0 min-w-0 flex-1 flex-col">
                 {[
                   Step1,
                   form?.bookingType !== "catering" ? Step4 : undefined,
@@ -345,7 +348,7 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
                   .map((Step, idx) => (
                     <StepperContent
                       value={idx + 1}
-                      className="flex h-full flex-col p-3 gap-4 sm:p-5"
+                      className="flex min-h-0 flex-1 flex-col gap-4 p-3 sm:p-5"
                       key={idx}
                     >
                       <div>

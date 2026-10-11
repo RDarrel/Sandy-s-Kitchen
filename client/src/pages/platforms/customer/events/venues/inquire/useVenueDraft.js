@@ -47,8 +47,8 @@ const useVenueDraft = ({
           setIsUpdating(true);
         }
 
-        if (draft?.reason) {
-          setReason(draft.reason);
+        if (draft?.form?.reason) {
+          setReason(draft.form?.reason);
         }
       }
     } catch (error) {

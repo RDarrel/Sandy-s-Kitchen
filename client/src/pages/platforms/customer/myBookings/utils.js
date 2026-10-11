@@ -20,22 +20,6 @@ export const getStatusMeta = (booking) => {
   );
 };
 
-const formatTimeRange = (time = {}) => {
-  if (!time?.start && !time?.end) {
-    return "-";
-  }
-
-  if (time?.start && !time?.end) {
-    return Formatter.time(time.start);
-  }
-
-  if (!time?.start && time?.end) {
-    return Formatter.time(time.end);
-  }
-
-  return `${Formatter.time(time.start)} - ${Formatter.time(time.end)}`;
-};
-
 export const getServices = (booking) => {
   if (!booking) {
     return [];
@@ -520,4 +504,64 @@ export const getDateParts = (date) => {
 
 export const getStatusKey = (booking) => {
   return String(booking?.status || "pending").toLowerCase();
+};
+
+const groupMenusByCategory = (menus) => {
+  const grouped = Object.groupBy(menus ?? [], (item) => item.category);
+
+  const formatted = Object.fromEntries(
+    Object.entries(grouped).map(([category, items]) => [
+      category,
+      items.map(({ _id }) => _id),
+    ]),
+  );
+
+  return formatted;
+};
+
+export const prepareBookingEdt = (booking, reason) => {
+  const {
+    statusHistory: _statusHistory,
+    terms: _terms,
+    bookingOrigin,
+    ...rest
+  } = booking;
+  const mainDishes = groupMenusByCategory(booking?.catering?.mainDishes);
+  const sideDishes = groupMenusByCategory(booking?.catering?.sideDishes);
+
+  const linkMap = {
+    venue: "venues/inquire",
+    catering: "catering/inquire",
+  };
+
+  const sessionkeyMap = {
+    venue: "venueDraft",
+    catering: "cateringDraft",
+  };
+
+  const draft = {
+    currentStep: 1,
+    form: {
+      ...rest,
+      date: booking?.date?.split("T")[0],
+      reason,
+      catering: {
+        ...booking?.catering,
+        item: booking?.catering?.item?._id,
+      },
+      venue: {
+        ...booking?.venue,
+        item: booking?.venue?.item?._id,
+      },
+    },
+    menuSelections: {
+      main: mainDishes,
+      side: sideDishes,
+    },
+    selected: booking?.[bookingOrigin]?.item,
+  };
+
+  sessionStorage.setItem(sessionkeyMap[bookingOrigin], JSON.stringify(draft));
+
+  return `/platforms/${linkMap[bookingOrigin]}`;
 };

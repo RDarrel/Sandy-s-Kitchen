@@ -39,9 +39,6 @@ const Header = ({ venue, estimate }) => {
           <div className="catering-package__price">
             <strong>{Formatter.amount(estimate.basePrice)}</strong>
             <span className="text-muted-foreground text-xs">Starting Rate</span>
-            <small className="!text-[12px] !font-">
-              + {Formatter.amount(estimate?.guests?.rate)} / additional guest
-            </small>
           </div>
         </div>
       </div>

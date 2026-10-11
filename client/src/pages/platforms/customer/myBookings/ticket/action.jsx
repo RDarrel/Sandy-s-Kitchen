@@ -1,14 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { prepareBookingEdt } from "../utils";
 
 const Action = ({ action, booking }) => {
   const Icon = action.icon;
   const navigate = useNavigate();
 
-  const handlePay = () => {
-    navigate(`/platforms/my-bookings/${booking.reference}/payment`);
+  const handleAction = () => {
+    if (booking?.status === "changes_requested") {
+      const path = prepareBookingEdt(booking, action?.reason);
+      navigate(path);
+    } else {
+      navigate(`/platforms/my-bookings/${booking.reference}/payment`);
+    }
   };
+
   return (
     <div
       className={`mt-1.5 flex min-w-0 flex-col gap-1.5 rounded-md border px-2 py-1.5 sm:flex-row sm:items-center sm:justify-between ${
@@ -65,7 +72,7 @@ const Action = ({ action, booking }) => {
         <Button
           type="button"
           size="sm"
-          onClick={handlePay}
+          onClick={handleAction}
           className="h-6 w-full shrink-0 gap-1 px-2 text-[10px] sm:w-auto"
         >
           {action.buttonLabel}

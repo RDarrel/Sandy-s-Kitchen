@@ -243,7 +243,7 @@ const VenueInquiry = () => {
           onClick={handleBack}
         >
           <ArrowLeft className="size-3.5" />
-          Back to Venues
+          Back to {isUpdating ? "Booking" : "Venues"}
         </Button>
 
         <div className="rounded-lg border bg-card shadow-sm">
@@ -304,9 +304,12 @@ const VenueInquiry = () => {
               </StepperNav>
             </div>
 
-            <form onSubmit={goNext}>
+            <form
+              onSubmit={goNext}
+              className="relative flex min-h-0 flex-1 flex-col "
+            >
               {isUpdating && reason && (
-                <div className="border-b bg-amber-50/70 px-3 py-2.5 text-amber-950 sm:px-5 dark:bg-amber-950/20 dark:text-amber-100">
+                <div className="shrink-0 border-b bg-amber-50/70 px-3 py-2.5 text-amber-950 sm:px-5 dark:bg-amber-950/20 dark:text-amber-100">
                   <div className="flex items-start gap-2.5">
                     <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md border border-amber-200 bg-background/80 dark:border-amber-900/60 dark:bg-background/20">
                       <AlertTriangle className="size-3.5 text-amber-700 dark:text-amber-300" />
@@ -324,7 +327,8 @@ const VenueInquiry = () => {
                   </div>
                 </div>
               )}
-              <StepperPanel className="min-w-0 h-full flex flex-col">
+
+              <StepperPanel className="flex min-h-0 min-w-0 flex-1 flex-col">
                 {[
                   Step1,
                   ...(form?.bookingType === "both"
@@ -337,10 +341,10 @@ const VenueInquiry = () => {
                   .map((Step, idx) => (
                     <StepperContent
                       value={idx + 1}
-                      className="flex h-full flex-col p-3 gap-4 sm:p-5"
+                      className="flex min-h-0 flex-1 flex-col gap-4 p-3 sm:p-5"
                       key={idx}
                     >
-                      <div>
+                      <div className="flex-1">
                         <Step
                           form={form}
                           selected={selected}
@@ -363,11 +367,14 @@ const VenueInquiry = () => {
                           isUpdating={isUpdating}
                         />
                       </div>
-                      <Actions
-                        currentStep={currentStep}
-                        totalSteps={steps.length}
-                        onBack={goBack}
-                      />
+
+                      <div className="mt-auto shrink-0">
+                        <Actions
+                          currentStep={currentStep}
+                          totalSteps={steps.length}
+                          onBack={goBack}
+                        />
+                      </div>
                     </StepperContent>
                   ))}
               </StepperPanel>

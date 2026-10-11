@@ -592,13 +592,35 @@ const getMyBookings = async ({ customer }) => {
   const bookings = await Booking.find({ customer })
     .populate({
       path: "catering.item",
-      select: "inclusions name description",
-      populate: { path: "inclusions.item" },
+      populate: [
+        {
+          path: "mainCourseCategories.category",
+          select: "name",
+        },
+        {
+          path: "mainCourseCategories.choices",
+          select: "name description",
+        },
+        {
+          path: "sideMenuCategories.category",
+          select: "name",
+        },
+        {
+          path: "sideMenuCategories.choices",
+          select: "name description",
+        },
+        {
+          path: "inclusions.item",
+          select: "name requirement category",
+        },
+      ],
     })
     .populate({
       path: "venue.item",
       populate: { path: "inclusions.item" },
     })
+    .populate("catering.inclusions.item", "name category")
+    .populate("venue.inclusions.item", "name category")
     .populate("catering.mainDishes")
     .populate("catering.sideDishes")
     .lean();
