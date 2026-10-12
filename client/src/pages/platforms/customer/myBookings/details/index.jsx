@@ -503,7 +503,7 @@ const MenuList = ({ title, items = [] }) => {
 
       {items.length > 0 ? (
         <div className="px-2">
-          {items.map((item, index) => (
+          {items.map(({ menu: item }, index) => (
             <div
               key={item?._id || item?.name || index}
               className="flex min-w-0 items-start gap-2 border-b py-1.5 last:border-b-0"

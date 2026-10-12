@@ -48,7 +48,7 @@ const Step4 = ({ form, setForm = () => {}, setCurrentStep = () => {} }) => {
         start: startAt ? new Date(startAt).toISOString() : undefined,
         end: endAt ? new Date(endAt).toISOString() : undefined,
         pax: form?.venue?.pax,
-        excludeBookingId: form?._id,
+        ...(form?._id && { excludeBookingId: form?._id }),
       }),
     )
       .unwrap()

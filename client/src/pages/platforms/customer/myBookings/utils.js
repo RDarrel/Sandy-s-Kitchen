@@ -507,16 +507,28 @@ export const getStatusKey = (booking) => {
 };
 
 const groupMenusByCategory = (menus) => {
-  const grouped = Object.groupBy(menus ?? [], (item) => item.category);
+  console.log("menus", menus);
+  const grouped = menus?.reduce((acc, curr) => {
+    const key = curr?.menu?.category;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(curr?.menu?._id);
+    return acc;
+  }, {});
+  console.log("grouped", grouped);
 
-  const formatted = Object.fromEntries(
-    Object.entries(grouped).map(([category, items]) => [
-      category,
-      items.map(({ _id }) => _id),
-    ]),
-  );
+  return grouped;
+  // const grouped = Object.groupBy(menus ?? [], (item) => item.category);
+  // console.log("grouped", grouped);
+  // const formatted = Object.fromEntries(
+  //   Object.entries(grouped).map(([category, items]) => [
+  //     category,
+  //     items.map(({ _id }) => _id),
+  //   ]),
+  // );
 
-  return formatted;
+  // return formatted;
 };
 
 export const prepareBookingEdt = (booking, reason) => {
