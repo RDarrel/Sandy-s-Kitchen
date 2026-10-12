@@ -49,6 +49,26 @@ const modelSchema = new mongoose.Schema(
       enum: ["weight", "volume", "pieces"],
       required: true,
     },
+
+    conversions: [
+      {
+        fromUnit: {
+          type: String,
+          required: true,
+          enum: ["kg", "g", "l", "ml", "pcs"],
+        },
+        toUnit: {
+          type: String,
+          required: true,
+          enum: ["kg", "g", "l", "ml", "pcs"],
+        },
+        factor: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+      },
+    ],
     //Track expiration date
     trackExpiration: {
       type: Boolean,

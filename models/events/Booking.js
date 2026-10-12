@@ -46,6 +46,68 @@ const contactSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const ingredientSchema = new mongoose.Schema(
+  {
+    inventory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Item",
+      required: true,
+    },
+
+    calculatedQty: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    requiredQty: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    unit: {
+      type: String,
+      enum: ["g", "ml", "pcs"],
+      required: true,
+    },
+
+    source: {
+      type: String,
+      enum: ["recipe", "manual"],
+      default: "recipe",
+    },
+  },
+  { _id: false },
+);
+
+const dishSchema = new mongoose.Schema(
+  {
+    menu: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Menu",
+    },
+
+    servings: {
+      type: Number,
+      default: null,
+      min: 1,
+    },
+
+    recipeYield: {
+      type: Number,
+      default: null,
+      min: 1,
+    },
+
+    ingredients: {
+      type: [ingredientSchema],
+      default: undefined,
+    },
+  },
+  { _id: false },
+);
+
 const cateringDetailsSchema = new mongoose.Schema(
   {
     item: {
@@ -78,19 +140,9 @@ const cateringDetailsSchema = new mongoose.Schema(
       },
     },
 
-    mainDishes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Menu",
-      },
-    ],
+    mainDishes: [dishSchema],
 
-    sideDishes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Menu",
-      },
-    ],
+    sideDishes: [dishSchema],
     inclusions: {
       type: [inclusionSchema],
     },

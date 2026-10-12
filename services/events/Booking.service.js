@@ -621,8 +621,8 @@ const getMyBookings = async ({ customer }) => {
     })
     .populate("catering.inclusions.item", "name category")
     .populate("venue.inclusions.item", "name category")
-    .populate("catering.mainDishes")
-    .populate("catering.sideDishes")
+    .populate("catering.mainDishes.menu")
+    .populate("catering.sideDishes.menu")
     .lean();
 
   return await attachPaymentsToBookings({ bookings });
@@ -661,8 +661,8 @@ const schedule = async ({ date }) => {
     .populate("venue.item", "name description address")
     .populate("catering.inclusions.item")
     .populate("venue.inclusions.item")
-    .populate("catering.mainDishes")
-    .populate("catering.sideDishes")
+    .populate("catering.mainDishes.menu")
+    .populate("catering.sideDishes.menu")
     .lean();
 
   const scheduleWithPayments = await attachPaymentsToBookings({
@@ -916,8 +916,8 @@ const getBookingDetails = async ({ customer, reference }) => {
     })
     .populate("catering.inclusions.item", "name category")
     .populate("venue.inclusions.item", "name category")
-    .populate("catering.mainDishes")
-    .populate("catering.sideDishes")
+    .populate("catering.mainDishes.menu")
+    .populate("catering.sideDishes.menu")
     .lean();
 
   if (!booking) return {};
