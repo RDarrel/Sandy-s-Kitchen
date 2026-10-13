@@ -1,93 +1,148 @@
 import { Badge } from "@/components/ui/badge";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   AlertTriangle,
   Building2,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   MapPin,
 } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 import { formatItemName } from "../utils";
-import { EmptyPanel, SectionTitle } from "../components";
-import { useMemo } from "react";
+import { EmptyPanel } from "../components";
+import { useMemo, useState } from "react";
+import Dishes from "./dishes";
 
 const Service = ({
   item,
+  catering = null,
   conflicts = [],
   isBoth = false,
-  isViewOnly = false,
+  handleDishPreparationChange = () => {},
 }) => {
   const hasConflict = conflicts.length > 0 && item?.label === "Venue";
   const Icon = item.icon;
+  const dishCount =
+    (item?.mainDishes?.length || 0) + (item?.sideDishes?.length || 0);
+  const scheduleLabel = Formatter?.bookingDateRange(item?.time);
+  const [openDishMenuKey, setOpenDishMenuKey] = useState(null);
   const services = useMemo(() => {
     return (item?.inclusions || []).filter(({ model }) => model === "Services");
   }, [item.inclusions]);
 
   return (
-    <div className="relative overflow-visible">
+    <Collapsible defaultOpen className="relative overflow-visible">
       <section
         className={`rounded-md border bg-background ${
           hasConflict ? "border-destructive/30" : ""
         }`}
       >
-        {/* Service Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 rounded-t-md border-b bg-background/95 px-3 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className={`flex size-7 shrink-0 items-center justify-center rounded-md border bg-background ${item.accentClassName}`}
-            >
-              <Icon className={`size-4 ${item.iconClassName}`} />
-            </span>
+        <CollapsibleTrigger asChild>
+          <div
+            role="button"
+            tabIndex={0}
+            className="group sticky top-0 z-10 flex cursor-pointer items-center justify-between gap-3 rounded-md bg-background px-3 py-2 text-left data-[state=open]:rounded-b-none data-[state=open]:border-b"
+          >
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className={`flex size-7 shrink-0 items-center justify-center rounded-md border bg-background ${item.accentClassName}`}
+              >
+                <Icon className={`size-4 ${item.iconClassName}`} />
+              </span>
 
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="truncate text-sm font-semibold">{item.label}</h3>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="truncate text-sm font-semibold">
+                    <span className="group-data-[state=open]:hidden">
+                      {item.label} - {item.name}
+                    </span>
+                    <span className="hidden group-data-[state=open]:inline">
+                      {item.label}
+                    </span>
+                  </h3>
 
-                {hasConflict && (
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-                    <AlertTriangle className="size-3" />
+                  <ChevronDown className="size-3.5 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+
+                  {hasConflict && (
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                      <AlertTriangle className="size-3" />
+                    </span>
+                  )}
+                </div>
+
+                <p className="truncate text-[11px] text-muted-foreground">
+                  <span className="group-data-[state=open]:hidden">
+                    {scheduleLabel}
+                    {item.type === "catering" && (
+                      <>
+                        {" "}
+                        - {dishCount} {dishCount === 1 ? "dish" : "dishes"}
+                      </>
+                    )}
                   </span>
-                )}
+                  <span className="hidden group-data-[state=open]:inline">
+                    {item.name}
+                  </span>
+                </p>
               </div>
+            </div>
 
-              <p className="truncate text-[11px] text-muted-foreground">
-                {item.name}
-              </p>
+            <div className="flex shrink-0 items-center gap-1.5">
+              {hasConflict && (
+                <Badge
+                  variant="outline"
+                  className="border-destructive/30 bg-destructive/5 text-[10px] text-destructive"
+                >
+                  {conflicts.length}{" "}
+                  {conflicts.length === 1 ? "conflict" : "conflicts"}
+                </Badge>
+              )}
+
+              <Badge variant="outline" className="shrink-0 px-2.5 py-1 text-xs">
+                {item.pax} pax
+              </Badge>
             </div>
           </div>
-
-          <div className="flex shrink-0 items-center gap-1.5">
-            {hasConflict && (
-              <Badge
-                variant="outline"
-                className="border-destructive/30 bg-destructive/5 text-[10px] text-destructive"
-              >
-                {conflicts.length}{" "}
-                {conflicts.length === 1 ? "conflict" : "conflicts"}
-              </Badge>
-            )}
-
-            <Badge variant="outline" className="shrink-0 px-2.5 py-1 text-xs">
-              {item.pax} pax
-            </Badge>
-          </div>
-        </div>
+        </CollapsibleTrigger>
 
         {/* Service Content */}
-        <div className="grid gap-2 p-3">
+        <CollapsibleContent className="grid gap-2 p-3">
           <ServiceSection title="Details">
             <ServicePanel item={item} isBoth={isBoth} />
           </ServiceSection>
 
           {item.type === "catering" && (
             <ServiceSection
-              title="Menu Choices"
+              title="Dish Preperation"
               count={item.mainDishes.length + item.sideDishes.length}
             >
-              <div className="grid gap-2 md:grid-cols-2">
-                <MenuPanel title="Main Dishes" items={item.mainDishes} />
+              <div className="grid gap-2 items-start md:grid-cols-2">
+                <Dishes
+                  title="Main Dishes"
+                  type="mainDishes"
+                  items={item.mainDishes}
+                  defaultServings={item.pax}
+                  catering={catering}
+                  openMenuKey={openDishMenuKey}
+                  setOpenMenuKey={setOpenDishMenuKey}
+                  handleDishPreparationChange={handleDishPreparationChange}
+                />
 
-                <MenuPanel title="Side Dishes" items={item.sideDishes} />
+                <Dishes
+                  title="Side Dishes"
+                  type="sideDishes"
+                  items={item.sideDishes}
+                  defaultServings={item.pax}
+                  catering={catering}
+                  openMenuKey={openDishMenuKey}
+                  setOpenMenuKey={setOpenDishMenuKey}
+                  handleDishPreparationChange={handleDishPreparationChange}
+                />
               </div>
             </ServiceSection>
           )}
@@ -97,15 +152,9 @@ const Service = ({
               <IncludedServicesPanel items={services} />
             </ServiceSection>
           )}
-
-          {item.pricing && !isViewOnly && (
-            <ServiceSection title="Pricing">
-              <PricePanel label={item.label} pricing={item.pricing} />
-            </ServiceSection>
-          )}
-        </div>
+        </CollapsibleContent>
       </section>
-    </div>
+    </Collapsible>
   );
 };
 export default Service;
@@ -167,33 +216,6 @@ const DetailPill = ({ icon, value }) => (
 
     <span className="truncate font-medium">{value || "-"}</span>
   </span>
-);
-
-/*
-|--------------------------------------------------------------------------
-| MENU PANEL
-|--------------------------------------------------------------------------
-*/
-
-const MenuPanel = ({ title, items }) => (
-  <section className="rounded-md border bg-muted/10 p-2.5">
-    <SectionTitle title={title} />
-
-    {items.length > 0 ? (
-      <div className="grid gap-1">
-        {items.map((item) => (
-          <div
-            key={item?._id || formatItemName(item)}
-            className="rounded-md border bg-background px-2 py-1 text-xs font-medium"
-          >
-            {formatItemName(item)}
-          </div>
-        ))}
-      </div>
-    ) : (
-      <EmptyPanel label={`No ${title.toLowerCase()} selected`} />
-    )}
-  </section>
 );
 
 const IncludedServicesPanel = ({ items = [] }) => {

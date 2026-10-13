@@ -28,24 +28,11 @@ const Stock = {
     return `${formatted} ${hasMeasurement ? capitalize(unitMap[measurement]) : ""}`;
   },
 
-  convertToBaseUnit: (value, type, useNumber = false) => {
-    const baseUnit = unitMap[type];
-    let unit = 0;
-
-    switch (type) {
-      case "weight":
-        unit = value / 1000; // g → kg
-        break;
-      case "volume":
-        unit = value / 1000; // ml → L
-        break;
-      default:
-        unit = value;
+  convertToBaseUnit: (amount, unit) => {
+    if (["kg", "l"].includes(unit)) {
+      return amount * 1000;
     }
-
-    const formatted = parseFloat(unit.toFixed(2));
-
-    return useNumber ? formatted : `${formatted} ${baseUnit}`;
+    return amount;
   },
   getStatus: (_stock, measurement) => {
     const stock = Number(_stock) || 0;

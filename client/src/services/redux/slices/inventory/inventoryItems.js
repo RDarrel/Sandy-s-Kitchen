@@ -57,6 +57,19 @@ export const BROWSE = createAsyncThunk(
   },
 );
 
+export const STOCKS = createAsyncThunk(`${url}/stocks`, (data, thunkAPI) => {
+  try {
+    return axioKit.save(url, data, "stocks");
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+
+    return thunkAPI.rejectWithValue(message);
+  }
+});
+
 export const UPDATE = createAsyncThunk(`${url}/update`, (form, thunkAPI) => {
   try {
     return axioKit.update(url, form.data);
@@ -246,6 +259,22 @@ export const reduxSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(BROWSE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
+
+      .addCase(STOCKS.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(STOCKS.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.collections = state.cluster = data;
+        state.isLoading = false;
+      })
+      .addCase(STOCKS.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.isLoading = false;

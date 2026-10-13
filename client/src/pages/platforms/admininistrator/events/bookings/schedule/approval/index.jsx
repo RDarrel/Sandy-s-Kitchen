@@ -15,9 +15,11 @@ import {
   buildInclusions,
   getConflictingVenues,
   getEquipmentAllocations,
+  getIngredientIds,
   getPaymentSummary,
   getServiceRows,
   hasCateringVenueOverlap,
+  hasIngredientShortage,
 } from "./utils";
 import Service from "./service";
 import { DIALOG_CONTENT_CLASSNAME } from "./constant";
@@ -28,6 +30,7 @@ import {
   EQUIPMENT_AVAILABILITY,
   UPDATE,
 } from "@/services/redux/slices/events/bookings";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
 import ConflictPanel from "./service/conflictPanel";
@@ -38,7 +41,7 @@ import BookingSummary from "./bookingSummary";
 import RequestChanges from "./requestChanges";
 import WarningMsg from "./warningMsg";
 import FinancialDetails from "./financialDetails";
-import { cn } from "@/lib/utils";
+import { STOCKS } from "@/services/redux/slices/inventory/inventoryItems";
 
 const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
   const { auth } = useSelector(({ auth }) => auth);
@@ -48,6 +51,9 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
     equipmentAvailability: availability,
     isLoadingEquipAvailability,
   } = useSelector(({ bookings }) => bookings);
+  const { collections: ingredientStocks } = useSelector(
+    ({ inventoryItems }) => inventoryItems,
+  );
   const [booking, setBooking] = useState({});
   const [equipAvailability, setEquipAvailability] = useState({});
   // const [equipmentAllocations, setEquipmentAllocations] = useState([]);
@@ -61,8 +67,12 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
 
   useEffect(() => {
     if (isOpen) {
+      const { bookingType } = selected;
       setBooking(selected);
       dispatch(EQUIPMENT_AVAILABILITY({ bookingID: selected?._id }));
+      if (bookingType !== "venue") {
+        dispatch(STOCKS({ inventoryIds: getIngredientIds(selected) }));
+      }
     }
   }, [isOpen, selected, dispatch]);
 
@@ -73,24 +83,6 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
 
   useEffect(() => {
     if (!isLoadingEquipAvailability && isOpen && selected?._id) {
-      // let _availability = { ...availability };
-      // const { catering, venue } = selected;
-      // const getEquipments = (inclusions) =>
-      //   inclusions?.filter(
-      //     ({ model, amount }) => model === "Equipment" && amount,
-      //   );
-      // const attachAmountInAllocations = (equipments, source) => {
-      //   equipments.forEach(({ item, amount }) => {
-      //     _availability[item?._id] = {
-      //       ..._availability[item?._id],
-      //       [`${source}Allocation`]: amount,
-      //     };
-      //   });
-      // };
-      // const cEquipments = getEquipments(catering?.inclusions);
-      // const vEquipments = getEquipments(venue?.inclusions);
-      // attachAmountInAllocations(cEquipments, "catering");
-      // attachAmountInAllocations(vEquipments, "venue");
       setEquipAvailability(availability);
     }
   }, [availability, isLoadingEquipAvailability, isOpen, selected]);
@@ -106,23 +98,6 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
     }
   }, [equipAvailability, isOpen, isLoadingEquipAvailability]);
 
-  useEffect(() => {
-    if (isOpen && selected) {
-      const { catering, venue } = selected;
-      const getEquipments = (inclusions) =>
-        inclusions?.filter(
-          ({ model, amount }) => model === "Equipment" && amount,
-        );
-      const attachAmountInAllocations = (equipments, source) => {
-        equipments.forEach;
-      };
-      const cEquipments = getEquipments(catering?.inclusions);
-      const vEquipments = getEquipments(venue?.inclusions);
-    }
-  }, [selected, isOpen]);
-
-  console.log("equipment", equipAvailability);
-
   const service = SERVICE_BADGES[booking?.bookingType] || {
     label: "Booking",
     className: "border-border bg-muted/40 text-foreground",
@@ -135,6 +110,14 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
   const isCateringVenueOverlapping = useMemo(() => {
     return hasCateringVenueOverlap(booking);
   }, [booking]);
+
+  const hasShortage = useMemo(() => {
+    if (isOpen) {
+      return hasIngredientShortage(booking, ingredientStocks);
+    }
+  }, [booking, isOpen, ingredientStocks]);
+
+  console.log("hasShortage", hasShortage);
 
   const { hasConflicts, conflicts, totalConflicts } = useMemo(() => {
     const { approved = [], confirmed = [], setup = [] } = schedule;
@@ -285,6 +268,77 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
     },
     [availability, isCateringVenueOverlapping],
   );
+
+  const handleDishPreparationChange = useCallback(
+    (
+      isServings = true,
+      dishType = "mainDishes",
+      identifier = {
+        menuId: "",
+        ingredientId: "",
+      },
+      value = {
+        servings: 0,
+        ingredientQty: 0,
+        unit: "",
+      },
+    ) => {
+      setBooking((prev) => {
+        const { catering } = prev;
+        const dishes = [...(catering[dishType] ?? [])];
+
+        const index = dishes.findIndex(
+          ({ menu }) => menu?._id === identifier?.menuId,
+        );
+
+        if (index === -1) {
+          return prev;
+        }
+
+        if (isServings) {
+          dishes[index] = {
+            ...dishes[index],
+            servings: Number(value?.servings),
+          };
+        } else {
+          const ingredients = [...(dishes[index]?.ingredients ?? [])];
+          const ingredientIdx = ingredients?.findIndex(
+            ({ inventory }) => inventory === identifier?.ingredientId,
+          );
+          const updatedIngredient = {
+            requiredQty: Number(value?.ingredientQty),
+            unit: value?.unit,
+          };
+          if (ingredientIdx > -1) {
+            ingredients[ingredientIdx] = {
+              ...ingredients[ingredientIdx],
+              ...updatedIngredient,
+            };
+          } else {
+            ingredients.unshift({
+              inventory: identifier?.ingredientId,
+              ...updatedIngredient,
+            });
+          }
+
+          dishes[index] = {
+            ...dishes[index],
+            ingredients,
+          };
+        }
+
+        return {
+          ...prev,
+          catering: {
+            ...prev.catering,
+            [dishType]: dishes,
+          },
+        };
+      });
+    },
+    [],
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
@@ -369,17 +423,15 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                     {services.map((item) => (
                       <Service
                         key={item.type}
-                        isViewOnly={isViewOnly}
                         item={item}
-                        hasConflicts={hasConflicts}
+                        catering={
+                          item?.type === "catering" ? booking?.catering : null
+                        }
                         conflicts={conflicts}
                         isBoth={isCombinedBooking}
-                        handleInclusionAmountChange={
-                          handleInclusionAmountChange
+                        handleDishPreparationChange={
+                          handleDishPreparationChange
                         }
-                        equipAvailability={equipAvailability}
-                        isSharedAvailability={isCateringVenueOverlapping}
-                        isLoadingEquipAvailability={isLoadingEquipAvailability}
                       />
                     ))}
                   </div>

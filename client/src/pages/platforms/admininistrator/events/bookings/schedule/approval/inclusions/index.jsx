@@ -1,6 +1,6 @@
 import { EmptyPanel } from "../components";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { PackageCheck, Pencil } from "lucide-react";
 import { memo, useEffect, useMemo, useState } from "react";
 import Allocation from "./allocation";
 import { formatItemName, getResourceUnit } from "../utils";
@@ -44,14 +44,20 @@ const Inclusions = ({
     <div>
       <section className="overflow-hidden rounded-md border bg-background">
         <div className="flex items-start justify-between gap-3 border-b bg-muted/10 px-3 py-2.5">
-          <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-foreground">
-              Equipment Allocations
-            </h3>
+          <div className="flex min-w-0 items-start gap-2">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-background text-primary">
+              <PackageCheck className="size-4" />
+            </span>
 
-            <p className="text-[10px] leading-4 text-muted-foreground">
-              {description}
-            </p>
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-foreground">
+                Equipment Allocations
+              </h3>
+
+              <p className="text-[10px] leading-4 text-muted-foreground">
+                {description}
+              </p>
+            </div>
           </div>
 
           {canEditAllocations && (

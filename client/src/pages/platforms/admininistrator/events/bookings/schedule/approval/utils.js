@@ -1,6 +1,7 @@
-import { Formatter } from "@/services/utilities";
+import { Formatter, Stock } from "@/services/utilities";
 import { capitalize } from "lodash";
 import { Building2, Sparkles, Utensils } from "lucide-react";
+import { getPrecalculatedIngredient } from "./service/dishes/utils";
 export const getServiceRows = (booking) => {
   const rows = [];
   if (booking.bookingType === "venue" || booking.bookingType === "both") {
@@ -344,4 +345,90 @@ export const getEquipmentAllocations = (booking = {}) => {
     }));
 
   return [...venueEquipments, ...cateringEquipments];
+};
+export const getIngredientIds = (booking) => {
+  const { mainDishes = [], sideDishes = [] } = booking?.catering ?? {};
+
+  const dishes = [...mainDishes, ...sideDishes];
+
+  const ingredientIds = [
+    ...new Set(
+      dishes.flatMap(({ menu }) =>
+        (menu?.ingredients ?? [])
+          .map(({ inventory }) => inventory?._id ?? inventory)
+          .filter(Boolean)
+          .map(String),
+      ),
+    ),
+  ];
+
+  return ingredientIds;
+};
+
+export const hasIngredientShortage = (booking, ingredientStocks = []) => {
+  const { mainDishes = [], sideDishes = [] } = booking?.catering ?? {};
+
+  const dishes = [...(mainDishes ?? []), ...(sideDishes ?? [])];
+
+  const requiredQuantities = new Map();
+
+  dishes?.forEach((element) => {
+    const {
+      ingredients: bookingIngredients = [],
+      menu,
+      servings = null,
+    } = element;
+
+    const baseServings = servings === null ? booking?.catering?.pax : servings;
+
+    menu?.ingredients?.forEach((ingredient) => {
+      const saved = bookingIngredients.find(
+        ({ inventory }) => inventory === ingredient?.inventory?._id,
+      );
+
+      let ingredientConsumed = {};
+
+      if (!saved) {
+        ingredientConsumed = getPrecalculatedIngredient(
+          ingredient,
+          baseServings,
+          menu?.recipeYield || 1,
+        );
+      } else {
+        ingredientConsumed = {
+          unit: saved?.unit,
+          qty: saved?.requiredQty,
+        };
+      }
+
+      const requiredQty = Stock.convertToBaseUnit(
+        ingredientConsumed?.qty,
+        ingredientConsumed?.unit,
+      );
+
+      requiredQuantities.set(
+        String(ingredient?.inventory?._id),
+        Number(
+          (requiredQuantities.get(String(ingredient?.inventory?._id)) ?? 0) +
+            requiredQty,
+        ),
+      );
+    });
+  });
+
+  const stockMap = new Map(
+    ingredientStocks.map((item) => [
+      String(item._id),
+      Number(item.stock?.current ?? 0),
+    ]),
+  );
+
+  return [...requiredQuantities].some(([inventoryId, requiredQty]) => {
+    const currentStock = stockMap.get(inventoryId);
+
+    // Missing stock data should not be treated as sufficient.
+    if (currentStock === undefined) return true;
+
+    return requiredQty > currentStock;
+  });
 };

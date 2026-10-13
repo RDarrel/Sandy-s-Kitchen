@@ -516,7 +516,6 @@ const groupMenusByCategory = (menus) => {
     acc[key].push(curr?.menu?._id);
     return acc;
   }, {});
-  console.log("grouped", grouped);
 
   return grouped;
   // const grouped = Object.groupBy(menus ?? [], (item) => item.category);
