@@ -1,9 +1,6 @@
 const Item = require("../../models/inventory/Item");
 const StockBatch = require("../../models/inventory/StockBatch");
-const {
-  convertToBaseUnit,
-  convertFromBaseUnit,
-} = require("../../utilities/unitConverter");
+const { convertFromBaseUnit } = require("../../utilities/unitConverter");
 exports.save = async (req, res) => {
   try {
     const inventory = await Item.create(req.body);
@@ -149,5 +146,29 @@ exports.destroy = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+};
+
+exports.stocks = async (req, res) => {
+  try {
+    const { inventoryIds = [] } = req.body;
+
+    if (!Array.isArray(inventoryIds)) {
+      return res.status(400).json({
+        message: "Invalid inventory IDs.",
+      });
+    }
+
+    const items = await Item.find({
+      _id: { $in: inventoryIds },
+    })
+      .select("_id name stock.current")
+      .lean();
+
+    return res.status(200).json({ data: items });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch inventory stocks.",
+    });
   }
 };
