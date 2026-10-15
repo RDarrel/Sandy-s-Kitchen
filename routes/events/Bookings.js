@@ -10,6 +10,7 @@ const router = require("express").Router(),
     bookingDetails,
     update,
     search,
+    venueConflicts,
   } = require("../../controllers/events/Bookings"),
   { validate } = require("../../middleware/jwt");
 
@@ -22,6 +23,7 @@ router
 
   .get("/:reference/details", validate, bookingDetails)
   .get("/:reference/payment", validate, paymentDetails)
+  .get("/:reference/venue-conflicts", validate, venueConflicts)
   .post("/save", validate, save)
   .put("/approve", validate, approve)
   .put("/update", validate, update);

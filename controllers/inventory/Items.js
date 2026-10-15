@@ -162,7 +162,7 @@ exports.stocks = async (req, res) => {
     const items = await Item.find({
       _id: { $in: inventoryIds },
     })
-      .select("_id name stock.current")
+      .select("_id name baseUnit stock.current")
       .lean();
 
     return res.status(200).json({ data: items });

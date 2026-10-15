@@ -13,5 +13,6 @@ module.exports = {
   getMyBookings: Query.getMyBookings,
   getBookingDetails: Query.getBookingDetails,
   getPaymentDetails: Query.getPaymentDetails,
+  getVenueConflicts: Query.getVenueConflicts,
   search: Query.search,
 };

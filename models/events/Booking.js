@@ -54,12 +54,6 @@ const ingredientSchema = new mongoose.Schema(
       required: true,
     },
 
-    calculatedQty: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
     requiredQty: {
       type: Number,
       required: true,
@@ -68,7 +62,6 @@ const ingredientSchema = new mongoose.Schema(
 
     unit: {
       type: String,
-      enum: ["g", "ml", "pcs"],
       required: true,
     },
 

@@ -130,6 +130,7 @@ const getPaymentSummary = (booking) => {
   }
 
   if (isApproved && verifiedAmount === 0) {
+    console.log("isApproved", requiredDeposit);
     return {
       tone: "deposit",
       status: "pending",

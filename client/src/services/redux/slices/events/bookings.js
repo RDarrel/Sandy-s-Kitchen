@@ -16,6 +16,7 @@ const initialState = {
     },
   },
   filtered: [],
+  venueConflicts: [],
   searchResults: [],
   selected: {},
   willCreate: false,
@@ -29,6 +30,7 @@ const initialState = {
   isLoadingEquipAvailability: false,
   isLoadingBookingPayment: false,
   isLoadingBookingDetails: false,
+  isLoadingVenueConflicts: false,
   isLoadingSearch: false,
   message: "",
 };
@@ -126,6 +128,24 @@ export const EQUIPMENT_AVAILABILITY = createAsyncThunk(
   },
 );
 
+export const VENUE_CONFLICTS = createAsyncThunk(
+  `${url}/venue_conflicts`,
+  (reference, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/${reference}/venue-conflicts`);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const GET_BOOKING_PAYMENT = createAsyncThunk(
   `${url}/GET_BOOKING_PAYMENT`,
   (reference, thunkAPI) => {
@@ -189,13 +209,7 @@ export const SEARCH = createAsyncThunk(`${url}/search`, (query, thunkAPI) => {
 });
 
 const updateSchedule = (state, statusTransaction, booking) => {
-  const {
-    eInclusions = [],
-    cInclusions = [],
-    payments = [],
-    statusHistory = [],
-    terms = null,
-  } = booking;
+  const { payments = [], statusHistory = [], terms = null } = booking;
   const schedule = { ...state.schedule };
   const oldCollections = [...(schedule?.[statusTransaction?.old] ?? [])];
 
@@ -205,7 +219,15 @@ const updateSchedule = (state, statusTransaction, booking) => {
 
   const toRemoveBooking = { ...oldCollections[index] };
 
-  oldCollections.splice(index, 1);
+  if (statusTransaction?.new === "update") {
+    oldCollections[index] = {
+      ...oldCollections[index],
+      ...(booking?.catering && { catering: booking?.catering }),
+      ...(booking?.venue && { venue: booking?.venue }),
+    };
+  } else {
+    oldCollections.splice(index, 1);
+  }
 
   if (oldCollections.length === 0) {
     delete schedule[statusTransaction.old];
@@ -216,18 +238,20 @@ const updateSchedule = (state, statusTransaction, booking) => {
   const updatedBooking = {
     ...toRemoveBooking,
     status: statusTransaction.new,
-    ...(eInclusions?.length > 0 && {
-      event: {
-        ...toRemoveBooking?.event,
-        inclusions: eInclusions,
-      },
-    }),
+    ...(statusTransaction.new === "approved" && {
+      ...(booking?.venue?.inclusions?.length > 0 && {
+        event: {
+          ...toRemoveBooking?.event,
+          inclusions: booking?.event?.inclusions,
+        },
+      }),
 
-    ...(cInclusions?.length > 0 && {
-      catering: {
-        ...toRemoveBooking?.catering,
-        inclusions: cInclusions,
-      },
+      ...(booking?.catering?.inclusions?.length > 0 && {
+        catering: {
+          ...toRemoveBooking?.catering,
+          inclusions: booking?.catering?.inclusions,
+        },
+      }),
     }),
     ...(payments?.length > 0 && { payments }),
     ...(statusHistory?.length > 0 && { statusHistory }),
@@ -236,7 +260,7 @@ const updateSchedule = (state, statusTransaction, booking) => {
 
   state.schedule = {
     ...schedule,
-    ...(!["changes_requested"].includes(statusTransaction?.new) && {
+    ...(!["changes_requested", "update"].includes(statusTransaction?.new) && {
       [statusTransaction.new]: [
         updatedBooking,
         ...(schedule?.[statusTransaction.new] ?? []),
@@ -298,7 +322,7 @@ const updateCalendar = ({
 
   const hasStatusChanged = oldStatus && newStatus && oldStatus !== newStatus;
 
-  const excludedStatuses = ["rejected", "changes_requested"];
+  const excludedStatuses = ["rejected", "changes_requested", "update"];
 
   // CALENDAR DAYS
   let updatedDays = days;
@@ -314,7 +338,7 @@ const updateCalendar = ({
 
       const statusCounts = { ...day.statusCounts };
 
-      if (!excludedStatuses.includes(oldStatus)) {
+      if (newStatus !== "update") {
         statusCounts[oldStatus] = Math.max(
           0,
           (statusCounts[oldStatus] ?? 0) - 1,
@@ -345,7 +369,7 @@ const updateCalendar = ({
     let totalBookings = overview.totalBookings ?? 0;
 
     if (options.statuses && hasStatusChanged) {
-      const oldIncluded = !excludedStatuses.includes(oldStatus);
+      const oldIncluded = newStatus !== "update";
       const newIncluded = !excludedStatuses.includes(newStatus);
 
       if (oldIncluded) {
@@ -374,7 +398,6 @@ const updateCalendar = ({
         (financial.received ?? 0) + amountReceived,
       );
     }
-    console.log("totalValue", totalValueChange);
 
     financial.totalValue = Math.max(
       0,
@@ -494,7 +517,10 @@ export const reduxSlice = createSlice({
         });
       }
     },
-
+    RESET_VENUE_CONFLICTS: (state) => {
+      state.venueConflicts = [];
+      state.isLoadingVenueConflicts = false;
+    },
     RESET_SEARCH_RESULTS: (state) => {
       state.searchResults = [];
     },
@@ -561,6 +587,22 @@ export const reduxSlice = createSlice({
         const { error } = action;
         state.message = error.message;
         state.isLoadingBookingDetails = false;
+      })
+
+      .addCase(VENUE_CONFLICTS.pending, (state) => {
+        state.isLoadingVenueConflicts = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(VENUE_CONFLICTS.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.venueConflicts = data;
+        state.isLoadingVenueConflicts = false;
+      })
+      .addCase(VENUE_CONFLICTS.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingVenueConflicts = false;
       })
       .addCase(GET_BOOKING_PAYMENT.pending, (state) => {
         state.isLoadingBookingPayment = true;
@@ -657,8 +699,18 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(UPDATE.fulfilled, (state, action) => {
-        const { success, data, statusTransaction } = action.payload;
-        updateBookingStatus({ state, statusTransaction, booking: data });
+        const {
+          success,
+          data,
+          statusTransaction,
+          amountReceived = 0,
+          totalValueChange = 0,
+        } = action.payload;
+        updateBookingStatus({
+          state,
+          statusTransaction,
+          booking: { ...data, amountReceived, totalValueChange },
+        });
         state.formSubmitted = false;
         state.message = success;
         state.isSuccess = true;
@@ -670,6 +722,10 @@ export const reduxSlice = createSlice({
       });
   },
 });
-export const { UPDATE_PAYMENT, CONFIRM_BOOKING, RESET_SEARCH_RESULTS } =
-  reduxSlice.actions;
+export const {
+  UPDATE_PAYMENT,
+  CONFIRM_BOOKING,
+  RESET_SEARCH_RESULTS,
+  RESET_VENUE_CONFLICTS,
+} = reduxSlice.actions;
 export default reduxSlice.reducer;

@@ -32,8 +32,21 @@ const Stock = {
     if (["kg", "l"].includes(unit)) {
       return amount * 1000;
     }
-    return amount;
+    return Number(amount);
   },
+
+  formatQuantity: (amount, unit) => {
+    if (unit === "g" && amount >= 1000) {
+      return `${amount / 1000} kg`;
+    }
+
+    if (unit === "ml" && amount >= 1000) {
+      return `${amount / 1000} l`;
+    }
+
+    return `${amount} ${unit}`;
+  },
+
   getStatus: (_stock, measurement) => {
     const stock = Number(_stock) || 0;
     if (measurement === "pieces") {

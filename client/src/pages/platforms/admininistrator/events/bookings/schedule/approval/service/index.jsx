@@ -15,7 +15,7 @@ import {
 import { Formatter } from "@/services/utilities";
 import { formatItemName } from "../utils";
 import { EmptyPanel } from "../components";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Dishes from "./dishes";
 
 const Service = ({
@@ -23,6 +23,9 @@ const Service = ({
   catering = null,
   conflicts = [],
   isBoth = false,
+  isViewOnly = false,
+  isPending = false,
+  invalidDishTarget = null,
   handleDishPreparationChange = () => {},
 }) => {
   const hasConflict = conflicts.length > 0 && item?.label === "Venue";
@@ -30,13 +33,28 @@ const Service = ({
   const dishCount =
     (item?.mainDishes?.length || 0) + (item?.sideDishes?.length || 0);
   const scheduleLabel = Formatter?.bookingDateRange(item?.time);
+  const [isServiceOpen, setIsServiceOpen] = useState(true);
   const [openDishMenuKey, setOpenDishMenuKey] = useState(null);
   const services = useMemo(() => {
     return (item?.inclusions || []).filter(({ model }) => model === "Services");
   }, [item.inclusions]);
 
+  useEffect(() => {
+    if (invalidDishTarget?.serviceType === item?.type) {
+      setIsServiceOpen(true);
+    }
+  }, [invalidDishTarget, item?.type]);
+
+  const handleDishKeyOpen = useCallback((value) => {
+    setOpenDishMenuKey(value);
+  }, []);
+
   return (
-    <Collapsible defaultOpen className="relative overflow-visible">
+    <Collapsible
+      open={isServiceOpen}
+      onOpenChange={setIsServiceOpen}
+      className="relative overflow-visible"
+    >
       <section
         className={`rounded-md border bg-background ${
           hasConflict ? "border-destructive/30" : ""
@@ -128,8 +146,11 @@ const Service = ({
                   items={item.mainDishes}
                   defaultServings={item.pax}
                   catering={catering}
+                  isViewOnly={isViewOnly}
+                  isPending={isPending}
                   openMenuKey={openDishMenuKey}
-                  setOpenMenuKey={setOpenDishMenuKey}
+                  setOpenMenuKey={handleDishKeyOpen}
+                  invalidDishTarget={invalidDishTarget}
                   handleDishPreparationChange={handleDishPreparationChange}
                 />
 
@@ -137,10 +158,13 @@ const Service = ({
                   title="Side Dishes"
                   type="sideDishes"
                   items={item.sideDishes}
+                  isViewOnly={isViewOnly}
+                  isPending={isPending}
                   defaultServings={item.pax}
                   catering={catering}
                   openMenuKey={openDishMenuKey}
-                  setOpenMenuKey={setOpenDishMenuKey}
+                  setOpenMenuKey={handleDishKeyOpen}
+                  invalidDishTarget={invalidDishTarget}
                   handleDishPreparationChange={handleDishPreparationChange}
                 />
               </div>

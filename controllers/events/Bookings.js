@@ -135,8 +135,8 @@ exports.approve = async (req, res) => {
   try {
     const {
       _id,
-      eInclusions,
-      cInclusions,
+      catering,
+      event,
       userId,
       status,
       statusTransaction,
@@ -146,22 +146,15 @@ exports.approve = async (req, res) => {
 
     const booking = await BookingService.approve({
       _id,
-      eInclusions,
-      cInclusions,
+      catering,
+      event,
       status,
       userId,
     });
 
     return res.status(200).json({
       success: "Booking approved successfully.",
-      data: {
-        _id: booking._id,
-        date: booking.date,
-        status: booking.status,
-        terms: booking.terms,
-        eInclusions: booking?.venue?.inclusions || [],
-        cInclusions: booking?.catering?.inclusions || [],
-      },
+      data: booking,
       statusTransaction,
       amountReceived,
       totalValueChange,
@@ -175,12 +168,29 @@ exports.approve = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const updated = await BookingService.update({ booking: req.body });
-    res.json({
-      data: updated,
-      statusTransaction: req.body?.statusTransaction,
-      success: "Booking updated successfully.",
-    });
+    try {
+      const {
+        statusTransaction,
+        amountReceived,
+        totalValueChange,
+        status = "",
+      } = req.body;
+
+      const booking = await BookingService.update({
+        bookingToUpdate: req.body,
+      });
+
+      return res.status(200).json({
+        success: "Booking updated successfully.",
+        data: booking,
+        statusTransaction,
+        ...(status === "approved" && { amountReceived, totalValueChange }),
+      });
+    } catch (error) {
+      return res.status(error.statusCode || 500).json({
+        message: error.message,
+      });
+    }
   } catch (error) {
     console.log("error", error.message);
     res.status(500).json({ error: error.message });
@@ -220,6 +230,17 @@ exports.bookingDetails = async (req, res) => {
   } catch (error) {
     console.log("error", error.message);
     res.status(500).json({ message: "Failed to fetch booking details" });
+  }
+};
+
+exports.venueConflicts = async (req, res) => {
+  try {
+    const { reference } = req.params;
+    const results = await BookingService.getVenueConflicts({ reference });
+    res.status(200).json({ data: results });
+  } catch (error) {
+    console.log("error", error.message);
+    res.status(500).json({ message: "Failed to fetch venue conflicts." });
   }
 };
 

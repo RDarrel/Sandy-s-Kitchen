@@ -2,6 +2,7 @@ import { Formatter, Stock } from "@/services/utilities";
 import { capitalize } from "lodash";
 import { Building2, Sparkles, Utensils } from "lucide-react";
 import { getPrecalculatedIngredient } from "./service/dishes/utils";
+
 export const getServiceRows = (booking) => {
   const rows = [];
   if (booking.bookingType === "venue" || booking.bookingType === "both") {
@@ -199,104 +200,91 @@ export const getResourceRequirement = (inclusion) =>
       (inclusion?.model === "Equipment" ? "qty" : "none"),
   ).toLowerCase();
 
-export const buildInclusions = (inclusions) =>
-  inclusions.map((inc) => ({ ...inc, item: inc?.item?._id }));
+export const buildInclusions = (inclusions = []) =>
+  inclusions?.map((inc) => ({ ...inc, item: inc?.item?._id }));
 
-export const getConflictingVenues = (booking, bookings = [], mode = "view") => {
-  const defaultResult = {
-    hasConflicts: false,
-    conflicts: [],
-    totalConflicts: 0,
-  };
-
-  if (!["venue", "both"].includes(booking?.bookingType) || mode === "view") {
-    return defaultResult;
-  }
-
-  const { startAt, endAt } = booking?.venue?.schedule || {};
-
-  if (!startAt || !endAt) {
-    return defaultResult;
-  }
-
-  const pendingStart = new Date(startAt).getTime();
-  const pendingEnd = new Date(endAt).getTime();
-
-  if (
-    !Number.isFinite(pendingStart) ||
-    !Number.isFinite(pendingEnd) ||
-    pendingStart >= pendingEnd
-  ) {
-    return defaultResult;
-  }
-
-  const conflicts = bookings
-    .filter((existingBooking) => {
-      if (!["venue", "both"].includes(existingBooking?.bookingType)) {
-        return false;
-      }
-
-      // Don't compare the booking with itself.
-      if (
-        booking?._id &&
-        existingBooking?._id &&
-        String(booking._id) === String(existingBooking._id)
-      ) {
-        return false;
-      }
-
-      const existingSchedule = existingBooking?.venue?.schedule;
-
-      if (!existingSchedule?.startAt || !existingSchedule?.endAt) {
-        return false;
-      }
-
-      const existingStart = new Date(existingSchedule.startAt).getTime();
-      const existingEnd = new Date(existingSchedule.endAt).getTime();
-
-      if (
-        !Number.isFinite(existingStart) ||
-        !Number.isFinite(existingEnd) ||
-        existingStart >= existingEnd
-      ) {
-        return false;
-      }
-
-      // Two schedules conflict when their time ranges overlap.
-      return existingStart < pendingEnd && existingEnd > pendingStart;
-    })
-    .map((existingBooking) => {
-      const existingStart = new Date(
-        existingBooking?.venue?.schedule?.startAt,
-      ).getTime();
-
-      const existingEnd = new Date(
-        existingBooking?.venue.schedule?.endAt,
-      ).getTime();
-
+const buildIngredients = (
+  menu,
+  servings,
+  recipeYield,
+  bookingIngredients = [],
+) => {
+  return menu?.ingredients?.map((ing) => {
+    const manualAdjustment = bookingIngredients.find(
+      ({ inventory }) => inventory === ing?.inventory?._id,
+    );
+    if (manualAdjustment) {
+      return manualAdjustment;
+    } else {
+      const preCalculated = getPrecalculatedIngredient(
+        ing,
+        servings,
+        recipeYield,
+      );
       return {
-        ...existingBooking,
-        overlap: {
-          startAt: new Date(Math.max(existingStart, pendingStart)),
-          endAt: new Date(Math.min(existingEnd, pendingEnd)),
-        },
+        inventory: ing?.inventory?._id,
+        requiredQty: Number(preCalculated?.qty),
+        unit: preCalculated?.unit,
       };
-    });
-
-  return {
-    hasConflicts: conflicts.length > 0,
-    conflicts,
-    totalConflicts: conflicts.length,
-  };
+    }
+  });
 };
 
-export const hasCateringVenueOverlap = (booking) => {
-  const { catering, venue, bookingType } = booking;
-  if (bookingType !== "both") return false;
-  return (
-    venue?.schedule?.startAt < catering?.schedule?.endAt &&
-    venue.schedule?.endAt > catering.schedule?.startAt
-  );
+export const buildBookingToUpdate = (booking) => {
+  const { catering = {}, bookingType = "venue" } = booking;
+
+  const attachIngredients = (dishes) => {
+    if (dishes?.length === 0 || !dishes) return [];
+    return dishes.map((dish) => {
+      const { servings, menu, ingredients } = dish;
+      const baseServings = servings || catering?.pax;
+      const baseRecipeYield = dish?.recipeYield || menu?.recipeYield || 1;
+
+      return {
+        menu: dish?.menu?._id,
+        servings: baseServings,
+        recipeYield: baseRecipeYield,
+        ingredients: buildIngredients(
+          menu,
+          baseServings,
+          baseRecipeYield,
+          ingredients,
+        ),
+      };
+    });
+  };
+
+  const cateringToUpdate = {
+    ...booking?.catering,
+    ...(catering?.mainDishes?.length > 0 && {
+      mainDishes: attachIngredients(catering?.mainDishes),
+    }),
+    ...(catering?.sideDishes?.length > 0 && {
+      sideDishes: attachIngredients(catering?.sideDishes),
+    }),
+    inclusions: buildInclusions(booking?.catering?.inclusions),
+    item: booking?.catering?.item?._id,
+  };
+
+  const venueToUpdate = {
+    ...booking?.venue,
+    inclusions: buildInclusions(booking?.venue?.inclusions),
+    item: booking?.venue?.item?._id,
+  };
+
+  const toUpdateService = {
+    both: {
+      venue: venueToUpdate,
+      catering: cateringToUpdate,
+    },
+    catering: { catering: cateringToUpdate },
+    venue: { venue: venueToUpdate },
+  };
+
+  return {
+    _id: booking?._id,
+    ...toUpdateService[bookingType],
+  };
 };
 
 export const getEquipmentAllocations = (booking = {}) => {
@@ -365,70 +353,96 @@ export const getIngredientIds = (booking) => {
   return ingredientIds;
 };
 
-export const hasIngredientShortage = (booking, ingredientStocks = []) => {
+export const getIngredientShortages = (booking, ingredientStocks = []) => {
   const { mainDishes = [], sideDishes = [] } = booking?.catering ?? {};
 
   const dishes = [...(mainDishes ?? []), ...(sideDishes ?? [])];
 
   const requiredQuantities = new Map();
 
-  dishes?.forEach((element) => {
+  dishes.forEach((element) => {
     const {
       ingredients: bookingIngredients = [],
       menu,
       servings = null,
     } = element;
 
-    const baseServings = servings === null ? booking?.catering?.pax : servings;
+    const baseServings = servings ?? booking?.catering?.pax;
 
     menu?.ingredients?.forEach((ingredient) => {
+      const inventoryId = String(ingredient?.inventory?._id);
+
       const saved = bookingIngredients.find(
-        ({ inventory }) => inventory === ingredient?.inventory?._id,
+        ({ inventory }) => inventory === inventoryId,
       );
 
-      let ingredientConsumed = {};
+      const ingredientConsumed = saved
+        ? {
+            unit: saved.unit,
+            qty: saved.requiredQty,
+          }
+        : getPrecalculatedIngredient(
+            ingredient,
+            baseServings,
+            menu?.recipeYield || 1,
+          );
 
-      if (!saved) {
-        ingredientConsumed = getPrecalculatedIngredient(
-          ingredient,
-          baseServings,
-          menu?.recipeYield || 1,
-        );
-      } else {
-        ingredientConsumed = {
-          unit: saved?.unit,
-          qty: saved?.requiredQty,
-        };
-      }
-
-      const requiredQty = Stock.convertToBaseUnit(
-        ingredientConsumed?.qty,
-        ingredientConsumed?.unit,
+      const requiredQty = Number(
+        Stock.convertToBaseUnit(
+          ingredientConsumed.qty,
+          ingredientConsumed.unit,
+        ) || 0,
       );
 
       requiredQuantities.set(
-        String(ingredient?.inventory?._id),
-        Number(
-          (requiredQuantities.get(String(ingredient?.inventory?._id)) ?? 0) +
-            requiredQty,
-        ),
+        inventoryId,
+        Number((requiredQuantities.get(inventoryId) ?? 0) + requiredQty),
       );
     });
   });
 
   const stockMap = new Map(
-    ingredientStocks.map((item) => [
-      String(item._id),
-      Number(item.stock?.current ?? 0),
-    ]),
+    ingredientStocks.map((item) => [String(item._id), item]),
   );
 
-  return [...requiredQuantities].some(([inventoryId, requiredQty]) => {
-    const currentStock = stockMap.get(inventoryId);
+  const shortages = [...requiredQuantities].flatMap(
+    ([inventoryId, requiredQty]) => {
+      const item = stockMap.get(inventoryId);
 
-    // Missing stock data should not be treated as sufficient.
-    if (currentStock === undefined) return true;
+      // Missing stock data should not be treated as sufficient.
+      if (!item) {
+        return [
+          {
+            inventory: inventoryId,
+            requiredQty,
+            currentStock: null,
+            shortageQty: null,
+            missingStockData: true,
+          },
+        ];
+      }
 
-    return requiredQty > currentStock;
-  });
+      const currentStock = Number(item.stock?.current ?? 0);
+
+      if (requiredQty <= currentStock) {
+        return [];
+      }
+
+      return [
+        {
+          ...item,
+          inventory: inventoryId,
+          requiredQty,
+          currentStock,
+          shortageQty: requiredQty - currentStock,
+          missingStockData: false,
+        },
+      ];
+    },
+  );
+
+  return {
+    hasIngredientShortage: shortages.length > 0,
+    shortages,
+  };
 };

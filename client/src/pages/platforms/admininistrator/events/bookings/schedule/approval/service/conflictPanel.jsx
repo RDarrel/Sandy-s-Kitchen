@@ -14,19 +14,14 @@ const formatSchedule = (schedule) => {
   });
 };
 
-const ConflictPanel = ({ service, conflicts = [] }) => {
+const ConflictPanel = ({ service, conflicts = [], floating = false }) => {
   return (
     <div
-      className="
-        mt-2
-        xl:absolute
-        xl:left-[calc(100%+1.5rem)]
-        xl:top-0
-        xl:z-50
-        xl:mt-0
-        xl:h-full
-        xl:w-[310px]
-      "
+      className={
+        floating
+          ? "mt-2 w-full xl:absolute xl:left-[calc(100%+1.5rem)] xl:top-0 xl:z-50 xl:mt-0 xl:w-[310px]"
+          : "w-full"
+      }
     >
       <div
         className="
@@ -35,8 +30,6 @@ const ConflictPanel = ({ service, conflicts = [] }) => {
           border
           border-destructive/25
           bg-background
-          xl:sticky
-          xl:top-4
           xl:shadow-xl
         "
       >
@@ -80,7 +73,7 @@ const ConflictPanel = ({ service, conflicts = [] }) => {
         </div>
 
         {/* Conflict List */}
-        <div className="max-h-[280px] overflow-y-auto [scrollbar-width:thin]">
+        <div className="max-h-[220px] overflow-y-auto [scrollbar-width:thin]">
           {conflicts.map((conflict, index) => (
             <ConflictBooking
               key={conflict._id}

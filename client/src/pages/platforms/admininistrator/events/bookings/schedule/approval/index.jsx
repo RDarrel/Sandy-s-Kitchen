@@ -12,28 +12,30 @@ import { fullName } from "@/services/utilities";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { SERVICE_BADGES } from "../../constant";
 import {
-  buildInclusions,
-  getConflictingVenues,
+  buildBookingToUpdate,
   getEquipmentAllocations,
   getIngredientIds,
+  getIngredientShortages,
   getPaymentSummary,
   getServiceRows,
-  hasCateringVenueOverlap,
-  hasIngredientShortage,
 } from "./utils";
 import Service from "./service";
-import { DIALOG_CONTENT_CLASSNAME } from "./constant";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { DESCRIPTION, DIALOG_CONTENT_CLASSNAME, TITLE } from "./constant";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  APPROVE,
   EQUIPMENT_AVAILABILITY,
+  RESET_VENUE_CONFLICTS,
   UPDATE,
+  VENUE_CONFLICTS,
 } from "@/services/redux/slices/events/bookings";
+import { STOCKS } from "@/services/redux/slices/inventory/inventoryItems";
+
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
 import ConflictPanel from "./service/conflictPanel";
+import ShortagePanel from "./service/shortagePanel";
 import Inclusions from "./inclusions";
 import Estimate from "./estimate";
 import CustomerDetails from "./customerDetails";
@@ -41,26 +43,29 @@ import BookingSummary from "./bookingSummary";
 import RequestChanges from "./requestChanges";
 import WarningMsg from "./warningMsg";
 import FinancialDetails from "./financialDetails";
-import { STOCKS } from "@/services/redux/slices/inventory/inventoryItems";
+import { getPrecalculatedIngredient } from "./service/dishes/utils";
 
 const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
   const { auth } = useSelector(({ auth }) => auth);
   const {
     formSubmitted,
-    schedule,
+    venueConflicts,
     equipmentAvailability: availability,
     isLoadingEquipAvailability,
+    isLoadingVenueConflicts,
   } = useSelector(({ bookings }) => bookings);
   const { collections: ingredientStocks } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
   const [booking, setBooking] = useState({});
   const [equipAvailability, setEquipAvailability] = useState({});
-  // const [equipmentAllocations, setEquipmentAllocations] = useState([]);
   const [isEquipmentSufficient, setHasSufficientEquipment] = useState(false);
   const [changeRequestOpen, setChangeRequestOpen] = useState(false);
   const [changeRequestReason, setChangeRequestReason] = useState("");
   const [changeRequestError, setChangeRequestError] = useState("");
+  const [invalidDishTarget, setInvalidDishTarget] = useState(null);
+  const [sidePanelTop, setSidePanelTop] = useState(0);
+  const servicePanelRefs = useRef({});
   const dispatch = useDispatch();
 
   const isViewOnly = mode === "view";
@@ -69,12 +74,18 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
     if (isOpen) {
       const { bookingType } = selected;
       setBooking(selected);
-      dispatch(EQUIPMENT_AVAILABILITY({ bookingID: selected?._id }));
-      if (bookingType !== "venue") {
-        dispatch(STOCKS({ inventoryIds: getIngredientIds(selected) }));
+      if (mode !== "view") {
+        dispatch(EQUIPMENT_AVAILABILITY({ bookingID: selected?._id }));
+
+        if (bookingType !== "venue") {
+          dispatch(STOCKS({ inventoryIds: getIngredientIds(selected) }));
+        }
+      }
+      if (mode === "approve" && bookingType !== "catering") {
+        dispatch(VENUE_CONFLICTS(selected?.reference));
       }
     }
-  }, [isOpen, selected, dispatch]);
+  }, [isOpen, selected, dispatch, mode]);
 
   const equipmentAllocations = useMemo(() => {
     if (!isOpen) return [];
@@ -83,9 +94,37 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
 
   useEffect(() => {
     if (!isLoadingEquipAvailability && isOpen && selected?._id) {
-      setEquipAvailability(availability);
+      let _availability = { ...availability };
+      if (mode === "update") {
+        //ATTACH AMOUNT OF EQUIPMENT
+        const { catering, venue } = selected;
+        const attachAmount = (source, items) => {
+          const equipments = items?.filter(
+            ({ amount, model }) => model === "Equipment" && amount,
+          );
+
+          equipments?.forEach((element) => {
+            const itemId = element?.item?._id;
+            _availability = {
+              ..._availability,
+              [itemId]: {
+                ..._availability[itemId],
+                [source]: Math.max(
+                  0,
+                  Number(_availability[itemId]?.[source] ?? 0) -
+                    element?.amount,
+                ),
+                [`${source}Allocation`]: element?.amount,
+              },
+            };
+          });
+        };
+        attachAmount("catering", catering?.inclusions);
+        attachAmount("venue", venue?.inclusions);
+      }
+      setEquipAvailability(_availability);
     }
-  }, [availability, isLoadingEquipAvailability, isOpen, selected]);
+  }, [availability, isLoadingEquipAvailability, isOpen, selected, mode]);
 
   useEffect(() => {
     if (isOpen && !isLoadingEquipAvailability) {
@@ -104,69 +143,121 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
   };
 
   const services = useMemo(() => {
-    return getServiceRows(booking);
-  }, [booking]);
+    return getServiceRows(selected);
+  }, [selected]);
 
-  const isCateringVenueOverlapping = useMemo(() => {
-    return hasCateringVenueOverlap(booking);
-  }, [booking]);
-
-  const hasShortage = useMemo(() => {
+  const { hasIngredientShortage = false, shortages = [] } = useMemo(() => {
     if (isOpen) {
-      return hasIngredientShortage(booking, ingredientStocks);
+      return getIngredientShortages(booking, ingredientStocks);
     }
+    return {};
   }, [booking, isOpen, ingredientStocks]);
 
-  console.log("hasShortage", hasShortage);
-
-  const { hasConflicts, conflicts, totalConflicts } = useMemo(() => {
-    const { approved = [], confirmed = [], setup = [] } = schedule;
-    return getConflictingVenues(
-      booking,
-      [...approved, ...confirmed, ...setup],
-      mode,
-    );
-  }, [booking, schedule, mode]);
+  const {
+    hasConflicts = false,
+    conflicts = [],
+    totalConflicts = 0,
+  } = useMemo(() => {
+    const totalConflicts = venueConflicts?.length;
+    return {
+      conflicts: isViewOnly ? [] : venueConflicts,
+      totalConflicts: isViewOnly ? 0 : totalConflicts,
+      hasConflicts: isViewOnly ? false : totalConflicts > 0,
+    };
+  }, [venueConflicts, isViewOnly]);
 
   const payment = getPaymentSummary(booking);
 
   const customerName = fullName(booking?.customer?.fullName);
 
   const isCombinedBooking = booking?.bookingType === "both";
-
   const conflictService = services.find(({ type }) => type === "venue");
+  const shortageService = services.find(({ type }) => type === "catering");
+  const hasSidePanel = hasConflicts || hasIngredientShortage;
+  const hasStackedSidePanel = hasConflicts && hasIngredientShortage;
+  const sidePanelTarget = hasStackedSidePanel
+    ? "stacked"
+    : hasConflicts
+      ? "venue"
+      : hasIngredientShortage
+        ? "catering"
+        : "";
+
+  useEffect(() => {
+    if (!isOpen || !sidePanelTarget || sidePanelTarget === "stacked") {
+      setSidePanelTop(0);
+      return undefined;
+    }
+
+    const updateSidePanelTop = () => {
+      setSidePanelTop(
+        servicePanelRefs.current[sidePanelTarget]?.offsetTop || 0,
+      );
+    };
+
+    const frame = requestAnimationFrame(updateSidePanelTop);
+    window.addEventListener("resize", updateSidePanelTop);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateSidePanelTop);
+    };
+  }, [isOpen, sidePanelTarget, services]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { catering = {}, venue = {} } = booking;
+    const willUpdate = mode === "update";
+    const form = e.currentTarget;
+    const invalidDish = getFirstInvalidDishPreparation(booking);
+
+    if (invalidDish) {
+      setInvalidDishTarget(invalidDish);
+
+      requestAnimationFrame(() => {
+        form.reportValidity();
+      });
+
+      return;
+    }
+    if (!form.reportValidity()) {
+      return;
+    }
     if (hasConflicts) return;
 
-    const eInclusions = buildInclusions(venue?.inclusions || []);
-    const cInclusions = buildInclusions(catering?.inclusions || []);
     const alreadyPaidAmount = selected?.payments
       ?.filter(({ status }) => status === "verified")
       ?.reduce((acc, curr) => acc + curr.amount, 0);
 
+    // const bookingToUpdate = prepareToUpdate;
+
     const hasPayment = alreadyPaidAmount > 0;
 
-    dispatch(
-      APPROVE({
-        _id: booking?._id,
-        eInclusions,
-        cInclusions,
-        userId: auth?._id,
-        totalValueChange: selected?.pricing?.total,
-        statusTransaction: {
-          old: "pending",
-          new: hasPayment ? "confirmed" : "approved",
-        },
-        amountReceived: hasPayment ? alreadyPaidAmount : 0,
-        ...(hasPayment && { status: "confirmed" }),
-      }),
-    )
+    const data = {
+      ...buildBookingToUpdate(booking),
+      status: !willUpdate ? (hasPayment ? "confirmed" : "approved") : "update",
+      userId: auth?._id,
+      totalValueChange: !willUpdate ? selected?.pricing?.total : 0,
+      statusTransaction: {
+        old: booking?.status,
+        new:
+          hasPayment && !willUpdate
+            ? "confirmed"
+            : willUpdate
+              ? "update"
+              : "approved",
+      },
+      amountReceived: hasPayment && !willUpdate ? alreadyPaidAmount : 0,
+      ...(hasPayment && !willUpdate && { status: "confirmed" }),
+    };
+
+    dispatch(UPDATE(data))
       .unwrap()
-      .then((payload) => {
-        toast.success(payload?.success);
+      .then(() => {
+        toast.success(
+          willUpdate
+            ? "Booking updated successfully."
+            : "Booking approved successfully.",
+        );
         setIsOpen(false);
         setBooking({});
       })
@@ -266,7 +357,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
         };
       });
     },
-    [availability, isCateringVenueOverlapping],
+    [availability],
   );
 
   const handleDishPreparationChange = useCallback(
@@ -296,9 +387,26 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
         }
 
         if (isServings) {
+          const dish = dishes[index];
+          const preCalculatedIngredients = dish?.menu?.ingredients?.map(
+            (ing) => {
+              const consumed = getPrecalculatedIngredient(
+                ing,
+                value?.servings,
+                dish?.menu?.recipeYield || 1,
+              );
+              return {
+                inventory: ing?.inventory?._id,
+                requiredQty: consumed?.qty,
+                unit: consumed?.unit,
+              };
+            },
+          );
+
           dishes[index] = {
             ...dishes[index],
             servings: Number(value?.servings),
+            ingredients: preCalculatedIngredients,
           };
         } else {
           const ingredients = [...(dishes[index]?.ingredients ?? [])];
@@ -339,15 +447,20 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
     [],
   );
 
+  const handleClose = () => {
+    setIsOpen(false);
+    dispatch(RESET_VENUE_CONFLICTS());
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent
         className={cn(
           DIALOG_CONTENT_CLASSNAME,
           isViewOnly
             ? "xl:w-[1080px] xl:max-w-[1080px]"
-            : hasConflicts
-              ? "xl:grid xl:w-fit xl:max-w-none xl:grid-cols-[790px_310px] xl:gap-6 [&>button]:xl:right-[320px]"
+            : hasSidePanel
+              ? "xl:grid xl:w-fit xl:max-w-none xl:grid-cols-[820px_310px] xl:gap-6 [&>button]:xl:right-[320px]"
               : "xl:w-[820px] xl:max-w-[820px]",
         )}
       >
@@ -362,7 +475,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <DialogTitle className="truncate text-base">
-                    {isViewOnly ? "Booking Details" : "Approve Booking"}
+                    {TITLE[mode]}
                   </DialogTitle>
 
                   {hasConflicts && (
@@ -378,11 +491,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                 </div>
 
                 <DialogDescription>
-                  {isViewOnly
-                    ? "View booking information, inclusions, and equipment allocations."
-                    : hasConflicts
-                      ? "Review the detected schedule conflicts before approval."
-                      : "Review request details and allocations before approval."}
+                  {DESCRIPTION[hasConflicts ? "conflict" : mode]}
                 </DialogDescription>
               </div>
             </div>
@@ -391,6 +500,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
           <form
             id="approval-form"
             onSubmit={handleSubmit}
+            noValidate
             className="space-y-3 p-4"
           >
             <div
@@ -404,7 +514,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
               <div className="space-y-3">
                 <BookingSummary
                   booking={booking}
-                  isViewOnly={isViewOnly}
+                  isViewOnly={["view", "update"].includes(mode)}
                   customerName={customerName}
                   isCombinedBooking={isCombinedBooking}
                   payment={payment}
@@ -417,42 +527,75 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                   customerName={customerName}
                 />
 
-                {/* Services */}
-                <section className="relative overflow-visible">
-                  <div className="grid gap-3">
-                    {services.map((item) => (
-                      <Service
-                        key={item.type}
-                        item={item}
-                        catering={
-                          item?.type === "catering" ? booking?.catering : null
-                        }
-                        conflicts={conflicts}
-                        isBoth={isCombinedBooking}
-                        handleDishPreparationChange={
-                          handleDishPreparationChange
-                        }
-                      />
-                    ))}
-                  </div>
+                <div className="relative space-y-3 overflow-visible">
+                  {/* Services */}
+                  <section className="overflow-visible">
+                    <div className="grid gap-3">
+                      {services.map((item) => (
+                        <div
+                          key={item.type}
+                          ref={(node) => {
+                            servicePanelRefs.current[item.type] = node;
+                          }}
+                        >
+                          <Service
+                            item={item}
+                            catering={
+                              item?.type === "catering"
+                                ? booking?.catering
+                                : null
+                            }
+                            isViewOnly={isViewOnly}
+                            isPending={booking?.status === "pending"}
+                            conflicts={conflicts}
+                            isBoth={isCombinedBooking}
+                            invalidDishTarget={invalidDishTarget}
+                            handleDishPreparationChange={
+                              handleDishPreparationChange
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
 
-                  {hasConflicts && conflictService && (
-                    <ConflictPanel
-                      service={conflictService}
-                      conflicts={conflicts}
-                    />
+                  {!isViewOnly && hasSidePanel && (
+                    <aside
+                      className="mt-2 w-full xl:absolute xl:left-[calc(100%+1.5rem)] xl:z-50 xl:mt-0 xl:w-[310px]"
+                      style={{
+                        top: sidePanelTop,
+                        height: `calc(100% - ${sidePanelTop}px)`,
+                      }}
+                    >
+                      <div className="grid gap-3 xl:sticky xl:top-4">
+                        {hasConflicts && conflictService && (
+                          <ConflictPanel
+                            service={conflictService}
+                            conflicts={conflicts}
+                          />
+                        )}
+
+                        {hasIngredientShortage && shortageService && (
+                          <ShortagePanel
+                            service={shortageService}
+                            shortages={shortages}
+                          />
+                        )}
+                      </div>
+                    </aside>
                   )}
-                </section>
 
-                <Inclusions
-                  items={equipmentAllocations}
-                  booking={booking}
-                  equipAvailability={equipAvailability}
-                  isViewOnly={isViewOnly}
-                  handleInclusionAmountChange={handleInclusionAmountChange}
-                />
+                  <Inclusions
+                    items={equipmentAllocations}
+                    booking={booking}
+                    equipAvailability={equipAvailability}
+                    isViewOnly={isViewOnly}
+                    handleInclusionAmountChange={handleInclusionAmountChange}
+                    isLoadingEquipAvailability={isLoadingEquipAvailability}
+                  />
 
-                {!isViewOnly && <Estimate booking={booking} />}
+                  {mode === "approve" && <Estimate booking={booking} />}
+                </div>
               </div>
 
               {isViewOnly && (
@@ -465,10 +608,12 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
 
           {/* Footer */}
           <DialogFooter className="border-t bg-muted/10 px-4 py-3">
-            <WarningMsg
-              hasConflicts={hasConflicts}
-              isEquipmentSufficient={isEquipmentSufficient}
-            />
+            {["update", "approve"].includes(mode) && (
+              <WarningMsg
+                hasConflicts={hasConflicts}
+                isEquipmentSufficient={isEquipmentSufficient}
+              />
+            )}
             <Button
               type="button"
               variant="outline"
@@ -476,21 +621,23 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
             >
               {isViewOnly ? "Close" : "Cancel"}
             </Button>
-            {!isViewOnly && (
+            {["update", "approve"].includes(mode) && (
               <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800"
-                  onClick={() => {
-                    setChangeRequestReason("");
-                    setChangeRequestError("");
-                    setChangeRequestOpen(true);
-                  }}
-                  disabled={formSubmitted}
-                >
-                  Request Changes
-                </Button>
+                {mode === "approve" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800"
+                    onClick={() => {
+                      setChangeRequestReason("");
+                      setChangeRequestError("");
+                      setChangeRequestOpen(true);
+                    }}
+                    disabled={formSubmitted}
+                  >
+                    Request Changes
+                  </Button>
+                )}
                 <Button
                   type="submit"
                   form="approval-form"
@@ -498,11 +645,13 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                     hasConflicts ||
                     formSubmitted ||
                     isLoadingEquipAvailability ||
+                    isLoadingVenueConflicts ||
                     !isEquipmentSufficient
                   }
                 >
                   <CheckCircle2 className="size-4" />
-                  Approve Booking <Spinner formSubmitted={formSubmitted} />
+                  {mode === "update" ? "Update" : "Approve"} Booking{" "}
+                  <Spinner formSubmitted={formSubmitted} />
                 </Button>
               </>
             )}
@@ -524,3 +673,46 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
 };
 
 export default Approval;
+
+const getFirstInvalidDishPreparation = (booking = {}) => {
+  if (!["catering", "both"].includes(booking?.bookingType)) return null;
+
+  const catering = booking?.catering || {};
+  const dishTypes = ["mainDishes", "sideDishes"];
+
+  for (const dishType of dishTypes) {
+    const dishes = catering?.[dishType] || [];
+
+    for (const dish of dishes) {
+      const menuId = dish?.menu?._id;
+      const servings = Number(dish?.servings ?? catering?.pax ?? 0);
+
+      if (!servings || servings < 1) {
+        return {
+          serviceType: "catering",
+          dishType,
+          menuId,
+          field: "servings",
+        };
+      }
+
+      for (const ingredient of dish?.ingredients || []) {
+        const qty = Number(ingredient?.requiredQty ?? 0);
+        const unit = String(ingredient?.unit || "").trim();
+
+        if (!qty || qty <= 0 || !unit) {
+          return {
+            serviceType: "catering",
+            dishType,
+            menuId,
+            ingredientId:
+              ingredient?.inventory?._id || ingredient?.inventory || "",
+            field: !unit ? "unit" : "ingredient",
+          };
+        }
+      }
+    }
+  }
+
+  return null;
+};

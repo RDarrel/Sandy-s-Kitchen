@@ -214,9 +214,47 @@ const getMyBookings = async ({ customer }) => {
   return await attachPaymentsToBookings({ bookings });
 };
 
+const getVenueConflicts = async ({ reference }) => {
+  const booking = await Booking.findOne({ reference }).lean();
+
+  if (!booking?.venue?.item) return [];
+
+  const { startAt, endAt } = booking.venue.schedule;
+
+  const conflicts = await Booking.find({
+    _id: { $ne: booking._id },
+    status: { $in: ["approved", "confirmed", "setup"] },
+    "venue.item": booking.venue.item,
+    "venue.schedule.startAt": { $lt: endAt },
+    "venue.schedule.endAt": { $gt: startAt },
+  })
+    .select("reference eventType contact.name status venue.schedule customer")
+    .populate("customer", "fullName")
+    .sort({ "venue.schedule.startAt": 1 })
+    .lean();
+
+  return conflicts.map((conflict) => ({
+    ...conflict,
+    overlap: {
+      startAt: new Date(
+        Math.max(
+          new Date(startAt).getTime(),
+          new Date(conflict.venue.schedule.startAt).getTime(),
+        ),
+      ),
+      endAt: new Date(
+        Math.min(
+          new Date(endAt).getTime(),
+          new Date(conflict.venue.schedule.endAt).getTime(),
+        ),
+      ),
+    },
+  }));
+};
 module.exports = {
   search,
   getBookingDetails,
   getPaymentDetails,
   getMyBookings,
+  getVenueConflicts,
 };

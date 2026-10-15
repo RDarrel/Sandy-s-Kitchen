@@ -116,7 +116,7 @@ const Allocation = memo(
                 min="1"
                 max={maxInputValue}
                 value={String(amount || "")}
-                required
+                required={true}
                 onChange={({ target }) =>
                   handleInclusionAmountChange(
                     inclusion?.source,
