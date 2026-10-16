@@ -23,6 +23,7 @@ import {
   startOfDay,
   startOfMinute,
 } from "date-fns";
+import { Formatter } from "@/services/utilities";
 
 const roundUpTo15Minutes = (date) => {
   const normalized = startOfMinute(date);
@@ -37,14 +38,18 @@ const roundUpTo15Minutes = (date) => {
   return addMinutes(normalized, 15 - remainder);
 };
 
-const formatDate = (date) =>
-  isValidDate(date)
-    ? date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : "Select date";
+const formatDate = (date, isRange = false) => {
+  const isValid = isRange
+    ? isValidDate(date?.from) && isValidDate(date?.to)
+    : isValidDate(date);
+
+  if (!isValid) return `Select Date ${isRange ? " Range" : ""}`;
+  if (isRange) {
+    return `${Formatter.date(date?.from)} - ${Formatter.date(date?.to)}`;
+  } else {
+    return Formatter.date(date);
+  }
+};
 
 const formatDateTime = (date) => {
   if (!isValidDate(date)) return "Select date and time";
@@ -103,6 +108,7 @@ const isTimeDisabled = (date, time, min, max) => {
   return false;
 };
 const DatePicker = ({
+  mode = "single",
   date = new Date(),
   highlightToday = true,
   withTime = false,
@@ -130,6 +136,8 @@ const DatePicker = ({
       setDate(roundUpTo15Minutes(min));
     }
   }, [date, open, min, max, setDate]);
+
+  const isRange = mode === "range";
 
   const isSameDate = useMemo(() => {
     if (!hideCalendarOnSameDay) return false;
@@ -167,7 +175,7 @@ const DatePicker = ({
             )}
           >
             <CalendarIcon className="size-4" />
-            {withTime ? formatDateTime(date) : formatDate(date)}
+            {withTime ? formatDateTime(date) : formatDate(date, isRange)}
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -186,8 +194,9 @@ const DatePicker = ({
             >
               {!showTimeOnly && (
                 <Calendar
-                  mode="single"
+                  mode={mode}
                   selected={date}
+                  numberOfMonths={isRange ? 2 : 1}
                   disabled={{
                     before: min ? startOfDay(new Date(min)) : undefined,
                     after: max ? endOfDay(new Date(max)) : undefined,
@@ -195,12 +204,23 @@ const DatePicker = ({
                   onSelect={(selectedDate) => {
                     if (!selectedDate) return;
 
-                    const nextDate = withTime
-                      ? mergeDateAndTime(selectedDate, date)
-                      : selectedDate;
+                    if (!isRange) {
+                      const nextDate = withTime
+                        ? mergeDateAndTime(selectedDate, date)
+                        : selectedDate;
 
-                    setDate(nextDate);
-                    if (!withTime) setOpen(false);
+                      setDate(nextDate);
+                    } else {
+                      if (selectedDate.from && !selectedDate.to) {
+                        setDate({
+                          from: selectedDate.from,
+                          to: selectedDate.from,
+                        });
+                      } else {
+                        setDate(selectedDate);
+                      }
+                    }
+                    if (!withTime && !isRange) setOpen(false);
                   }}
                   classNames={{
                     ...(!highlightToday && {

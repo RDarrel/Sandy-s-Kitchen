@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { axioKit } from "../../../utilities";
+import { axioKit, Stock } from "../../../utilities";
 
 const url = "procurement/purchases";
 
@@ -108,6 +108,67 @@ export const DESTROY = createAsyncThunk(`${url}/destroy`, (form, thunkAPI) => {
   }
 });
 
+const addItemToCart = (state, payload) => {
+  const inventoryId = String(
+    payload?._id || payload?.inventory?._id || payload?.inventory || "",
+  );
+
+  if (!inventoryId) return;
+
+  const inventoryObj =
+    payload?.inventory && typeof payload.inventory === "object"
+      ? payload.inventory
+      : payload;
+
+  const preferredSupplierId = String(payload?.supplier || "");
+
+  const suppliers = Array.isArray(inventoryObj?.suppliers)
+    ? inventoryObj.suppliers
+    : [];
+
+  const preferredSupplierRow = preferredSupplierId
+    ? suppliers.find(
+        (row) => String(row?.supplier?._id || "") === preferredSupplierId,
+      )
+    : null;
+
+  const primarySupplierRow =
+    suppliers
+      .slice()
+      .sort(
+        (a, b) => Number(Boolean(b?.isPrimary)) - Number(Boolean(a?.isPrimary)),
+      )[0] || null;
+
+  const supplierId = String(
+    preferredSupplierRow?.supplier?._id ||
+      primarySupplierRow?.supplier?._id ||
+      inventoryObj?.supplier?._id ||
+      "",
+  );
+
+  const unitCost =
+    preferredSupplierRow?.cost ??
+    primarySupplierRow?.cost ??
+    inventoryObj?.cost ??
+    payload?.cost ??
+    0;
+
+  const isExistIdx = state.cart.findIndex(
+    ({ inventory }) => String(inventory?._id || "") === inventoryId,
+  );
+
+  if (isExistIdx > -1) {
+    state.cart.splice(isExistIdx, 1);
+  } else {
+    state.cart.unshift({
+      inventory: inventoryObj,
+      cost: unitCost,
+      supplier: supplierId,
+      quantity: payload?.quantity ?? 1,
+    });
+  }
+};
+
 export const reduxSlice = createSlice({
   name: url,
   initialState,
@@ -178,10 +239,21 @@ export const reduxSlice = createSlice({
           inventory: inventoryObj,
           cost: unitCost,
           supplier: supplierId,
-          quantity: 1,
+          quantity: payload?.quantity ?? 1,
         });
       }
       state.cart = _cart;
+    },
+
+    CartAddMany: (state, { payload }) => {
+      if (payload.length === 0) {
+        state.cart = [];
+      } else {
+        payload.forEach((item) => {
+          const { toPurchaseQty } = Stock.getPurchaseDetails(item);
+          addItemToCart(state, { ...item, quantity: toPurchaseQty });
+        });
+      }
     },
     CartUpdate: (state, { payload }) => {
       const index = state.cart?.findIndex(
@@ -398,6 +470,7 @@ export const {
   CartAdd,
   CartRemove,
   CartUpdate,
+  CartAddMany,
   SetShowOrderDetails,
   ToggleShowOrderDetails,
   OpenShortDeliveryActionModal,

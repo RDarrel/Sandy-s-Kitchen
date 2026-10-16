@@ -20,7 +20,12 @@ import {
   getServiceRows,
 } from "./utils";
 import Service from "./service";
-import { DESCRIPTION, DIALOG_CONTENT_CLASSNAME, TITLE } from "./constant";
+import {
+  ACTION_LABEL,
+  DESCRIPTION,
+  DIALOG_CONTENT_CLASSNAME,
+  TITLE,
+} from "./constant";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -522,11 +527,12 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                 />
 
                 {/* Customer Details */}
-                <CustomerDetails
-                  booking={booking}
-                  customerName={customerName}
-                />
-
+                {mode !== "update" && (
+                  <CustomerDetails
+                    booking={booking}
+                    customerName={customerName}
+                  />
+                )}
                 <div className="relative space-y-3 overflow-visible">
                   {/* Services */}
                   <section className="overflow-visible">
@@ -545,7 +551,8 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                                 ? booking?.catering
                                 : null
                             }
-                            isViewOnly={isViewOnly}
+                            mode={mode}
+                            isViewOnly={["view", "setup"].includes(mode)}
                             isPending={booking?.status === "pending"}
                             conflicts={conflicts}
                             isBoth={isCombinedBooking}
@@ -579,6 +586,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                           <ShortagePanel
                             service={shortageService}
                             shortages={shortages}
+                            mode={mode}
                           />
                         )}
                       </div>
@@ -589,7 +597,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                     items={equipmentAllocations}
                     booking={booking}
                     equipAvailability={equipAvailability}
-                    isViewOnly={isViewOnly}
+                    isViewOnly={["view", "setup"].includes(mode)}
                     handleInclusionAmountChange={handleInclusionAmountChange}
                     isLoadingEquipAvailability={isLoadingEquipAvailability}
                   />
@@ -608,10 +616,13 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
 
           {/* Footer */}
           <DialogFooter className="border-t bg-muted/10 px-4 py-3">
-            {["update", "approve"].includes(mode) && (
+            {["update", "approve", "setup"].includes(mode) && (
               <WarningMsg
                 hasConflicts={hasConflicts}
                 isEquipmentSufficient={isEquipmentSufficient}
+                hasIngredientShortage={
+                  hasIngredientShortage && mode === "setup"
+                }
               />
             )}
             <Button
@@ -621,7 +632,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
             >
               {isViewOnly ? "Close" : "Cancel"}
             </Button>
-            {["update", "approve"].includes(mode) && (
+            {["update", "approve", "setup"].includes(mode) && (
               <>
                 {mode === "approve" && (
                   <Button
@@ -646,11 +657,12 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                     formSubmitted ||
                     isLoadingEquipAvailability ||
                     isLoadingVenueConflicts ||
-                    !isEquipmentSufficient
+                    !isEquipmentSufficient ||
+                    (hasIngredientShortage && mode === "setup")
                   }
                 >
                   <CheckCircle2 className="size-4" />
-                  {mode === "update" ? "Update" : "Approve"} Booking{" "}
+                  {ACTION_LABEL[mode]}
                   <Spinner formSubmitted={formSubmitted} />
                 </Button>
               </>

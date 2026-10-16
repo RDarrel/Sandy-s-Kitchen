@@ -19,6 +19,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Dishes from "./dishes";
 
 const Service = ({
+  mode,
   item,
   catering = null,
   conflicts = [],
@@ -171,7 +172,7 @@ const Service = ({
             </ServiceSection>
           )}
 
-          {services?.length > 0 && (
+          {services?.length > 0 && mode !== "update" && (
             <ServiceSection title="Included Services" count={services.length}>
               <IncludedServicesPanel items={services} />
             </ServiceSection>

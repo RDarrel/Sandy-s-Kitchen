@@ -5,6 +5,7 @@ export const TITLE = {
   approve: "Approve Booking",
   view: "Booking Details",
   update: "Update Boking",
+  setup: "Confirm Booking Setup",
 };
 
 export const DESCRIPTION = {
@@ -12,4 +13,12 @@ export const DESCRIPTION = {
   view: "View booking information, inclusions, and equipment allocations.",
   conflict: "Review the detected schedule conflicts before approval.",
   update: "Modify dish preparation and equipment allocations.",
+  setup:
+    "Review preparations before starting setup. Ingredient stock will be deducted upon confirmation.",
+};
+
+export const ACTION_LABEL = {
+  approve: "Approve Booking",
+  update: "Update Booking",
+  setup: "Confirm & Start Setup",
 };

@@ -70,7 +70,7 @@ const Schedule = ({
   }, [selectedDate]);
 
   const handleAction = useCallback((booking, _action) => {
-    const approvalModalActions = ["view", "update"];
+    const approvalModalActions = ["view", "update", "setup"];
     const action = approvalModalActions.includes(_action) ? "approve" : _action;
     setSchedModal((prev) => ({ ...prev, [action]: !prev[action] }));
     setSelected(booking);

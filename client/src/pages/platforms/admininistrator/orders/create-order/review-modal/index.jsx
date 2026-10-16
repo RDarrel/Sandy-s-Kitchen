@@ -39,13 +39,14 @@ import { toast } from "sonner";
 import Spinner from "@/components/shared/spinner";
 const ReviewOrderModal = () => {
   const dispatch = useDispatch();
+
   const { token } = useSelector(({ auth }) => auth);
   const { collections: suppliers } = useSelector(({ suppliers }) => suppliers);
   const { cart, formSubmitted } = useSelector(({ purchases }) => purchases);
   const [formattedCart, setFormattedCart] = useState([]);
   const [supplierFilter, setSupplierFilter] = useState("all");
   const [itemSearch, setItemSearch] = useState("");
-
+  console.log("cart", cart);
   const [draftQtyById, setDraftQtyById] = useState({});
 
   const { reviewOpen } = useSelector(({ purchases }) => purchases);
@@ -80,6 +81,25 @@ const ReviewOrderModal = () => {
     })
       .format(new Date(date))
       .replace(/\//g, "-");
+  };
+
+  const formatDateOnly = (date) => {
+    if (!date) return null;
+
+    // Already a date-only string: YYYY-MM-DD
+    if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+
+    const value = date instanceof Date ? date : new Date(date);
+
+    if (Number.isNaN(value.getTime())) return null;
+
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const day = String(value.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
   };
 
   const getDefaultDeliveryWindow = () => {
@@ -223,7 +243,10 @@ const ReviewOrderModal = () => {
     }));
     const purchases = formattedCart.map((group) => ({
       supplier: group.supplier,
-      deliveryWindow: group.deliveryWindow,
+      deliveryWindow: {
+        from: formatDateOnly(group.deliveryWindow?.from),
+        to: formatDateOnly(group.deliveryWindow?.to),
+      },
       totalAmount: group.totalAmount,
       status: "incoming",
     }));

@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Stock } from "@/services/utilities";
 import { AlertTriangle, PackageSearch } from "lucide-react";
 
-const ShortagePanel = ({ service, shortages = [], floating = false }) => {
+const ShortagePanel = ({ service, shortages = [], floating = false, mode }) => {
   return (
     <div
       className={
@@ -72,8 +72,9 @@ const ShortagePanel = ({ service, shortages = [], floating = false }) => {
             <AlertTriangle className="mt-0.5 size-3 shrink-0 text-amber-700" />
 
             <p className="text-[11px] leading-4 text-muted-foreground">
-              Approval is still allowed. Review ingredient shortages before
-              preparation.
+              {["approve", "update"].includes(mode)
+                ? "Approval is still allowed. Review ingredient shortages before preparation."
+                : "Setup cannot proceed until all ingredient shortages are resolved."}
             </p>
           </div>
         </div>

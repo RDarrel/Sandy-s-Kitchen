@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -339,6 +338,24 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
     [inventoryById, supplierLabelById],
   );
 
+  const formatDateOnly = (date) => {
+    if (!date) return null;
+
+    if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+
+    const value = date instanceof Date ? date : new Date(date);
+
+    if (Number.isNaN(value.getTime())) return null;
+
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const day = String(value.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  };
+
   const placeOrder = (event) => {
     event.preventDefault();
     if (formSubmitted) return;
@@ -388,7 +405,10 @@ const ConvertToOrderModal = ({ open, onOpenChange, request }) => {
 
       purchases.push({
         supplier: supplierId,
-        deliveryWindow,
+        deliveryWindow: {
+          from: formatDateOnly(deliveryWindow?.from),
+          to: formatDateOnly(deliveryWindow?.to),
+        },
         totalAmount: groupAmount,
         status: "incoming",
       });

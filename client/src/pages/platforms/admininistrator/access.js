@@ -27,6 +27,7 @@ import { Bookings, CateringPackages, Venues } from "./events";
 import Audit from "./audit";
 import Policy from "./policy";
 import PaymentMethods from "./paymentMethods";
+import StockPlanning from "./stockPlanning";
 
 export const ADMIN_MANAGEMENT = [
   {
@@ -39,7 +40,18 @@ export const ADMIN_MANAGEMENT = [
     name: "Inventory",
     path: "/inventory",
     icon: Package,
-    component: StockItems,
+    children: [
+      {
+        name: "Stock Management",
+        path: "/stock-management",
+        component: StockItems,
+      },
+      {
+        name: "Stock Planning",
+        path: "/stock-planning",
+        component: StockPlanning,
+      },
+    ],
   },
   {
     name: "Resources",

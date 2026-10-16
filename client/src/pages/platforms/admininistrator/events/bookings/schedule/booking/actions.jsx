@@ -106,13 +106,7 @@ const Actions = ({ booking, handleAction = () => {} }) => {
               type="button"
               size="sm"
               className="h-7 px-2"
-              onClick={() =>
-                handleAction(
-                  booking,
-                  "updateStatus",
-                  NEXT_STATUS[booking.status],
-                )
-              }
+              onClick={() => handleAction(booking, NEXT_STATUS[booking.status])}
             >
               {NEXT_STATUS[booking.status] === "setup"
                 ? "Start Setup"

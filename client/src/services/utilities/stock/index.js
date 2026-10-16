@@ -5,6 +5,14 @@ const unitMap = {
   volume: "L",
   pieces: "Pcs",
 };
+
+const formattedUnitMap = {
+  kg: "kg",
+  g: "g",
+  ml: "mL",
+  l: "L",
+  pcs: "pcs",
+};
 const Stock = {
   format: (stock) => {
     const value = Number(stock || 0);
@@ -28,23 +36,25 @@ const Stock = {
     return `${formatted} ${hasMeasurement ? capitalize(unitMap[measurement]) : ""}`;
   },
 
-  convertToBaseUnit: (amount, unit) => {
-    if (["kg", "l"].includes(unit)) {
+  convertToBaseUnit: (amount, unit = "pcs") => {
+    if (["kg", "l"].includes(unit?.toLowerCase())) {
       return amount * 1000;
     }
     return Number(amount);
   },
 
-  formatQuantity: (amount, unit) => {
-    if (unit === "g" && amount >= 1000) {
-      return `${amount / 1000} kg`;
+  formatQuantity: (amount, unit, normalizeUnit = false) => {
+    const qty = Number(amount) || 0;
+
+    if (unit === "g" && (qty >= 1000 || normalizeUnit)) {
+      return `${Number((qty / 1000).toFixed(2))} Kg`;
     }
 
-    if (unit === "ml" && amount >= 1000) {
-      return `${amount / 1000} l`;
+    if (unit === "ml" && (qty >= 1000 || normalizeUnit)) {
+      return `${Number((qty / 1000).toFixed(2))} L`;
     }
 
-    return `${amount} ${unit}`;
+    return `${Math.round(qty)} ${formattedUnitMap[unit] || unit}`;
   },
 
   getStatus: (_stock, measurement) => {
@@ -67,6 +77,26 @@ const Stock = {
       pieces: "pc",
     };
     return map[measurement];
+  },
+
+  //For Stock Planning only
+  getPurchaseDetails: (item) => {
+    const { projectedStock, suggestedPurchaseQty } = item;
+    const { min } = item?.stock;
+    const minimumStock = Stock.convertToBaseUnit(
+      min,
+      Stock.getUnit(item?.measurement),
+    );
+
+    const minimumStockGap = Math.max(0, minimumStock - Number(projectedStock));
+
+    const toPurchaseQty = Math.max(
+      Number(suggestedPurchaseQty),
+      minimumStockGap,
+    );
+    const isBelowMinStock = projectedStock < minimumStock;
+
+    return { isBelowMinStock, toPurchaseQty, minimumStock };
   },
 };
 export default Stock;

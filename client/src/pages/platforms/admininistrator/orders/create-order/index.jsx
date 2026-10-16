@@ -1,7 +1,7 @@
 import { BROWSE } from "@/services/redux/slices/inventory/inventoryItems";
 import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import CreateOrderBody from "./body";
 import CreateOrderHeader from "./header";
 import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/procurement/suppliers";
@@ -10,8 +10,7 @@ import { ArrowRight } from "lucide-react";
 import ReviewOrderModal from "./review-modal";
 
 const CreateOrder = () => {
-  const { token } = useSelector(({ auth }) => auth),
-    [search, setSearch] = useState(""),
+  const [search, setSearch] = useState(""),
     [supplierId, setSupplierId] = useState("all"),
     [type, setType] = useState("all"),
     [category, setCategory] = useState("all"),
