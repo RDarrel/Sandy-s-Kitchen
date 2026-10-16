@@ -1,4 +1,5 @@
 const Item = require("../../models/inventory/Item");
+const InventoryService = require("../../services/inventory/InventoryItem.service");
 const StockBatch = require("../../models/inventory/StockBatch");
 const { convertFromBaseUnit } = require("../../utilities/unitConverter");
 exports.save = async (req, res) => {
@@ -169,6 +170,22 @@ exports.stocks = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: "Failed to fetch inventory stocks.",
+    });
+  }
+};
+
+exports.stockPlanning = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const data = await InventoryService.getStockPlanning({
+      startDate,
+      endDate,
+    });
+    res.json({ data });
+  } catch (error) {
+    console.log("error", error.message);
+    return res.status(500).json({
+      message: "Failed to fetch stock planning.",
     });
   }
 };

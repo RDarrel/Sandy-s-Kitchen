@@ -5,10 +5,28 @@ const StockBatch = require("../../models/inventory/StockBatch");
 const StockMovement = require("../../models/inventory/StockMovement");
 const mongoose = require("mongoose");
 const { convertToBaseUnit } = require("../../utilities/unitConverter");
+const dateToUTC = require("../../utilities/dateToUTC");
 exports.save = async (req, res) => {
   try {
     const { cart, purchases } = req.body;
-    const createdPurchase = await Purchase.insertMany(purchases);
+    const normalizedPurchases = purchases.map((purchase) => ({
+      ...purchase,
+      deliveryWindow: {
+        from: dateToUTC({
+          date: purchase.deliveryWindow.from,
+          timezone: "Asia/Manila",
+          dateOnly: true,
+        }),
+        to: dateToUTC({
+          date: purchase.deliveryWindow.to,
+          timezone: "Asia/Manila",
+          dateOnly: true,
+          endOfDay: true,
+        }),
+      },
+    }));
+
+    const createdPurchase = await Purchase.insertMany(normalizedPurchases);
     await Promise.all(
       createdPurchase.map(async (purchase) => {
         const items = cart.filter(
