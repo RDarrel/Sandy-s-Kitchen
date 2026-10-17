@@ -1,5 +1,5 @@
 import { TableCell, TableRow } from "@/components/ui/table";
-import { SearchX } from "lucide-react";
+import { PackageSearch, SearchX } from "lucide-react";
 
 const ItemEmpty = ({ search }) => {
   return (

@@ -138,13 +138,7 @@ const Item = ({ item, isSelected, toggleItem = () => {} }) => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span
-                    className={`cursor-help font-medium underline decoration-dotted underline-offset-4 ${
-                      item?.projectedStock < 0
-                        ? "text-destructive"
-                        : item?.projectedStock < item?.minimumStock
-                          ? "text-amber-600 dark:text-amber-500"
-                          : "text-foreground"
-                    }`}
+                    className={`cursor-help font-medium underline decoration-dotted underline-offset-4 `}
                   >
                     {Stock.formatQuantity(
                       item?.projectedStock,
@@ -164,6 +158,7 @@ const Item = ({ item, isSelected, toggleItem = () => {} }) => {
                         {Stock.formatQuantity(
                           item?.currentStock ?? 0,
                           item?.baseUnit,
+                          item?.currentStock === 0,
                         )}
                       </span>
                     </div>

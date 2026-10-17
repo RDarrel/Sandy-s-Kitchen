@@ -2,14 +2,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useMemo, useState } from "react";
-import { PackageSearch, SearchX } from "lucide-react";
 import { Formatter, Stock } from "@/services/utilities";
 import { useDispatch, useSelector } from "react-redux";
 import { STOCK_PLANNING } from "@/services/redux/slices/inventory/inventoryItems";
@@ -23,9 +21,10 @@ import Legend from "./legend";
 import Item from "./item";
 import ReviewOrderModal from "../orders/create-order/review-modal";
 import ItemEmpty from "./itemEmpty";
+import TableLoading from "@/components/shared/loading/table";
 
 const StockPlanning = () => {
-  const { collections: inventories = [] } = useSelector(
+  const { collections: inventories = [], isLoading } = useSelector(
     ({ inventoryItems }) => inventoryItems,
   );
 
@@ -77,11 +76,20 @@ const StockPlanning = () => {
           .toLowerCase()
           .includes(search.trim().toLowerCase()),
       )
-      .sort(
-        (a, b) =>
-          (priority[a?.stockAlert?.type] ?? 3) -
-          (priority[b?.stockAlert?.type] ?? 3),
-      );
+      .sort((a, b) => {
+        const priorityA = priority[a?.stockAlert?.type] ?? 3;
+        const priorityB = priority[b?.stockAlert?.type] ?? 3;
+
+        // First: Sort by stock alert priority
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+
+        // Second: Sort by highest purchase quantity
+        return (
+          (Number(b?.toPurchaseQty) || 0) - (Number(a?.toPurchaseQty) || 0)
+        );
+      });
   }, [inventories, search]);
 
   // Select All only applies to ingredients with a recommended purchase quantity.
@@ -186,80 +194,84 @@ const StockPlanning = () => {
           />
 
           <CardContent className="-mt-2 min-w-0">
-            <div className="w-full min-w-0 overflow-hidden rounded-md border border-border">
-              {/* One table keeps the header and body columns aligned. */}
-              <div
-                className="max-h-[420px] w-full overflow-auto overscroll-contain"
-                role="region"
-                aria-label="Stock planning table"
-                tabIndex={0}
-              >
-                <Table className="w-full min-w-[1163px] table-fixed">
-                  <colgroup>
-                    <col className="w-12" />
-                    <col className="w-[220px]" />
-                    <col className="w-[175px]" />
-                    <col className="w-[220px]" />
-                    <col className="w-[145px]" />
-                    <col className="w-[190px]" />
-                    <col className="w-[165px]" />
-                  </colgroup>
+            {isLoading ? (
+              <TableLoading hasPagination={false} />
+            ) : (
+              <div className="w-full min-w-0 overflow-hidden rounded-md border border-border">
+                {/* One table keeps the header and body columns aligned. */}
+                <div
+                  className="max-h-[420px] w-full overflow-auto overscroll-contain"
+                  role="region"
+                  aria-label="Stock planning table"
+                  tabIndex={0}
+                >
+                  <Table className="w-full min-w-[1163px] table-fixed">
+                    <colgroup>
+                      <col className="w-12" />
+                      <col className="w-[220px]" />
+                      <col className="w-[175px]" />
+                      <col className="w-[220px]" />
+                      <col className="w-[145px]" />
+                      <col className="w-[190px]" />
+                      <col className="w-[165px]" />
+                    </colgroup>
 
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="sticky top-0 z-20 bg-muted">
-                        <Checkbox
-                          checked={allSelected}
-                          onCheckedChange={toggleAllItems}
-                          aria-label="Select all ingredients requiring purchase"
-                        />
-                      </TableHead>
-
-                      <TableHead className="sticky top-0 z-20 bg-muted">
-                        Ingredient
-                      </TableHead>
-
-                      <TableHead className="sticky top-0 z-20 bg-muted">
-                        Available Stock
-                      </TableHead>
-
-                      <TableHead className="sticky top-0 z-20 bg-muted">
-                        Total Needed
-                      </TableHead>
-
-                      <TableHead className="sticky top-0 z-20 bg-muted">
-                        Projected Stock
-                      </TableHead>
-
-                      <TableHead className="sticky top-0 z-20 bg-muted">
-                        Stock Alert
-                      </TableHead>
-
-                      <TableHead className="sticky top-0 z-20 bg-muted">
-                        To Purchase
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-
-                  <TableBody>
-                    {filteredItems.length > 0 ? (
-                      filteredItems.map((item) => {
-                        return (
-                          <Item
-                            key={item?._id}
-                            item={item}
-                            toggleItem={toggleItem}
-                            isSelected={isSelected}
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="sticky top-0 z-20 bg-muted">
+                          <Checkbox
+                            checked={allSelected}
+                            onCheckedChange={toggleAllItems}
+                            aria-label="Select all ingredients requiring purchase"
                           />
-                        );
-                      })
-                    ) : (
-                      <ItemEmpty search={search} />
-                    )}
-                  </TableBody>
-                </Table>
+                        </TableHead>
+
+                        <TableHead className="sticky top-0 z-20 bg-muted">
+                          Ingredient
+                        </TableHead>
+
+                        <TableHead className="sticky top-0 z-20 bg-muted">
+                          Available Stock
+                        </TableHead>
+
+                        <TableHead className="sticky top-0 z-20 bg-muted">
+                          Total Needed
+                        </TableHead>
+
+                        <TableHead className="sticky top-0 z-20 bg-muted">
+                          Projected Stock
+                        </TableHead>
+
+                        <TableHead className="sticky top-0 z-20 bg-muted">
+                          Stock Alert
+                        </TableHead>
+
+                        <TableHead className="sticky top-0 z-20 bg-muted">
+                          To Purchase
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                      {filteredItems.length > 0 ? (
+                        filteredItems.map((item) => {
+                          return (
+                            <Item
+                              key={item?._id}
+                              item={item}
+                              toggleItem={toggleItem}
+                              isSelected={isSelected}
+                            />
+                          );
+                        })
+                      ) : (
+                        <ItemEmpty search={search} />
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
-            </div>
+            )}
 
             <Legend />
           </CardContent>
