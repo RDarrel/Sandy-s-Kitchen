@@ -54,6 +54,10 @@ const Stock = {
       return `${Number((qty / 1000).toFixed(2))} L`;
     }
 
+    if (unit === "g" || unit === "ml") {
+      return `${Number(qty.toFixed(2))} ${formattedUnitMap[unit] || unit}`;
+    }
+
     return `${Math.round(qty)} ${formattedUnitMap[unit] || unit}`;
   },
 

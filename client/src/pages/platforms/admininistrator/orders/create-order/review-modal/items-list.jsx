@@ -48,6 +48,8 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
     return { unit, subtotal };
   }, [inventory, unitCost, qty, draftQtyById]);
   const dispatch = useDispatch();
+
+  console.log("item", item);
   return (
     <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/30 px-3 py-3 text-sm shadow-sm transition-colors hover:bg-background/40 sm:grid-cols-[1fr_110px_130px_130px_120px] sm:items-center">
       <div className="min-w-0">
@@ -79,7 +81,7 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
         <span className="text-xs text-muted-foreground sm:hidden">Qty</span>
         <div className="flex w-full items-center gap-2 sm:w-auto">
           <Input
-            value={draftQtyById?.[inventory?._id] ?? qty}
+            value={String(Number(draftQtyById?.[inventory?._id] ?? qty) || "")}
             required
             onChange={(event) => {
               let value = event.target.value;
@@ -104,8 +106,7 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
                 }),
               );
             }}
-            inputMode="numeric"
-            pattern="[0-9]*"
+            step={inventory?.baseUnit === "pcs" ? "1" : "any"}
             className="h-9 w-24 rounded-md bg-background text-center text-sm tabular-nums shadow-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none sm:w-24"
           />
           <span className="text-xs text-muted-foreground">{unit}</span>

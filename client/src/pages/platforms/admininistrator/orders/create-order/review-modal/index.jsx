@@ -46,7 +46,6 @@ const ReviewOrderModal = () => {
   const [formattedCart, setFormattedCart] = useState([]);
   const [supplierFilter, setSupplierFilter] = useState("all");
   const [itemSearch, setItemSearch] = useState("");
-  console.log("cart", cart);
   const [draftQtyById, setDraftQtyById] = useState({});
 
   const { reviewOpen } = useSelector(({ purchases }) => purchases);

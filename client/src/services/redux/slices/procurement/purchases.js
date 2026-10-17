@@ -250,8 +250,12 @@ export const reduxSlice = createSlice({
         state.cart = [];
       } else {
         payload.forEach((item) => {
-          const { toPurchaseQty } = Stock.getPurchaseDetails(item);
-          addItemToCart(state, { ...item, quantity: toPurchaseQty });
+          const [qty] = Stock.formatQuantity(
+            item?.toPurchaseQty,
+            item?.baseUnit,
+            true,
+          ).split(" ");
+          addItemToCart(state, { ...item, quantity: qty });
         });
       }
     },
