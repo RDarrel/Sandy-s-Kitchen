@@ -95,7 +95,7 @@ export const PAYMENT_STYLES = {
 
 export const SERVICE_BADGES = {
   both: {
-    label: "Catering + Venue",
+    label: "Venue + Catering",
     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
   },
   venue: {

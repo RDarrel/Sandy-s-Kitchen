@@ -30,7 +30,7 @@ const Schedule = ({
   const [activeStatus, setActiveStatus] = useState("all");
   const [approvalModalMode, setApprovalModalMode] = useState("approve");
   const [schedModal, setSchedModal] = useState({
-    approve: false,
+    approved: false,
     reviewPayment: false,
     view: false,
     recordPayment: false,
@@ -71,15 +71,13 @@ const Schedule = ({
 
   const handleAction = useCallback((booking, _action) => {
     const approvalModalActions = ["view", "update", "setup"];
-    const action = approvalModalActions.includes(_action) ? "approve" : _action;
+    const action = approvalModalActions.includes(_action)
+      ? "approved"
+      : _action;
     setSchedModal((prev) => ({ ...prev, [action]: !prev[action] }));
     setSelected(booking);
 
-    if (approvalModalActions.includes(_action)) {
-      setApprovalModalMode(_action);
-    } else {
-      setApprovalModalMode("approve");
-    }
+    setApprovalModalMode(_action);
   }, []);
 
   useEffect(() => {
@@ -235,8 +233,8 @@ const Schedule = ({
       </Card>
 
       <Approval
-        isOpen={schedModal?.approve}
-        setIsOpen={() => handleAction({}, "approve")}
+        isOpen={schedModal?.approved}
+        setIsOpen={() => handleAction({}, "approved")}
         selected={selected}
         mode={approvalModalMode}
       />

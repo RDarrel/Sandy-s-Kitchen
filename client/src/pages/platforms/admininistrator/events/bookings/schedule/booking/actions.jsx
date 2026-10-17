@@ -18,16 +18,19 @@ const Actions = ({ booking, handleAction = () => {} }) => {
   const hasToReview = useMemo(() => {
     return booking?.payments?.some(({ status }) => status === "pending");
   }, [booking?.payments]);
+
   const { hasEdit, hasCollapseActions } = useMemo(() => {
     const { status } = booking;
     if (status === "approved")
       return { hasEdit: true, hasCollapseActions: false };
-    if (["confirmed", "setup"].includes(status))
+    if (["confirmed"].includes(status))
       return { hasEdit: true, hasCollapseActions: true };
     return {};
   }, [booking]);
+
   const isApproved = booking?.status === "approved";
 
+  const handleCompleted = () => {};
   return (
     <div className="flex flex-wrap justify-end gap-1.5 border-t bg-muted/10 px-2.5 py-2">
       {hasEdit && !hasCollapseActions && (
@@ -68,7 +71,7 @@ const Actions = ({ booking, handleAction = () => {} }) => {
             type="button"
             size="sm"
             className="h-7 px-2.5"
-            onClick={() => handleAction(booking, "approve")}
+            onClick={() => handleAction(booking, "approved")}
           >
             Approve
           </Button>
@@ -106,7 +109,11 @@ const Actions = ({ booking, handleAction = () => {} }) => {
               type="button"
               size="sm"
               className="h-7 px-2"
-              onClick={() => handleAction(booking, NEXT_STATUS[booking.status])}
+              onClick={() =>
+                booking?.status === "setup"
+                  ? handleCompleted()
+                  : handleAction(booking, NEXT_STATUS[booking.status])
+              }
             >
               {NEXT_STATUS[booking.status] === "setup"
                 ? "Start Setup"

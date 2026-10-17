@@ -329,6 +329,7 @@ export const reduxSlice = createSlice({
     RESET: (state) => {
       state.isSuccess = false;
       state.message = "";
+      state.cart = [];
     },
   },
   extraReducers: (builder) => {

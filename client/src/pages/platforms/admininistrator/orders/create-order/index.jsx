@@ -2,12 +2,13 @@ import { BROWSE } from "@/services/redux/slices/inventory/inventoryItems";
 import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/procurement/suppliers";
+import { RESET } from "@/services/redux/slices/procurement/purchases";
+import { ArrowRight } from "lucide-react";
+import CreateOrderCart from "./cart";
+import ReviewOrderModal from "./review-modal";
 import CreateOrderBody from "./body";
 import CreateOrderHeader from "./header";
-import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/procurement/suppliers";
-import CreateOrderCart from "./cart";
-import { ArrowRight } from "lucide-react";
-import ReviewOrderModal from "./review-modal";
 
 const CreateOrder = () => {
   const [search, setSearch] = useState(""),
@@ -19,6 +20,9 @@ const CreateOrder = () => {
   useEffect(() => {
     dispatch(BROWSE());
     dispatch(BROWSE_SUPPLIERS());
+    return () => {
+      dispatch(RESET());
+    };
   }, [dispatch]);
 
   return (

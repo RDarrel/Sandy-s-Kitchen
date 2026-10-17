@@ -257,6 +257,7 @@ export const reduxSlice = createSlice({
       state.isSuccess = false;
       state.message = "";
       state.formSubmitted = false;
+      state.collections = [];
       state.selected = {};
       state.search = "";
     },

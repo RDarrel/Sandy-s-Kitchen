@@ -86,7 +86,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
           dispatch(STOCKS({ inventoryIds: getIngredientIds(selected) }));
         }
       }
-      if (mode === "approve" && bookingType !== "catering") {
+      if (mode === "approved" && bookingType !== "catering") {
         dispatch(VENUE_CONFLICTS(selected?.reference));
       }
     }
@@ -212,6 +212,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const willUpdate = mode === "update";
+    const isApproval = mode === "approved";
     const form = e.currentTarget;
     const invalidDish = getFirstInvalidDishPreparation(booking);
 
@@ -238,30 +239,30 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
     const hasPayment = alreadyPaidAmount > 0;
 
     const data = {
-      ...buildBookingToUpdate(booking),
-      status: !willUpdate ? (hasPayment ? "confirmed" : "approved") : "update",
+      ...(["approved", "update"].includes(mode)
+        ? buildBookingToUpdate(booking)
+        : { _id: booking?._id }),
+      status: !willUpdate ? mode : "update",
       userId: auth?._id,
-      totalValueChange: !willUpdate ? selected?.pricing?.total : 0,
+      totalValueChange: isApproval ? selected?.pricing?.total : 0,
       statusTransaction: {
         old: booking?.status,
         new:
-          hasPayment && !willUpdate
-            ? "confirmed"
-            : willUpdate
-              ? "update"
-              : "approved",
+          hasPayment && isApproval ? "confirmed" : willUpdate ? "update" : mode,
       },
-      amountReceived: hasPayment && !willUpdate ? alreadyPaidAmount : 0,
-      ...(hasPayment && !willUpdate && { status: "confirmed" }),
+      amountReceived: hasPayment && isApproval ? alreadyPaidAmount : 0,
+      ...(hasPayment && isApproval && { status: "confirmed" }),
     };
 
     dispatch(UPDATE(data))
       .unwrap()
       .then(() => {
+        const messageMap = {
+          approved: "Booking approved successfully",
+          setup: "Booking setup confirmed successfully.",
+        };
         toast.success(
-          willUpdate
-            ? "Booking updated successfully."
-            : "Booking approved successfully.",
+          willUpdate ? "Booking updated successfully." : messageMap[mode],
         );
         setIsOpen(false);
         setBooking({});
@@ -602,7 +603,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                     isLoadingEquipAvailability={isLoadingEquipAvailability}
                   />
 
-                  {mode === "approve" && <Estimate booking={booking} />}
+                  {mode === "approved" && <Estimate booking={booking} />}
                 </div>
               </div>
 
@@ -616,7 +617,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
 
           {/* Footer */}
           <DialogFooter className="border-t bg-muted/10 px-4 py-3">
-            {["update", "approve", "setup"].includes(mode) && (
+            {["update", "approved", "setup"].includes(mode) && (
               <WarningMsg
                 hasConflicts={hasConflicts}
                 isEquipmentSufficient={isEquipmentSufficient}
@@ -632,9 +633,9 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
             >
               {isViewOnly ? "Close" : "Cancel"}
             </Button>
-            {["update", "approve", "setup"].includes(mode) && (
+            {["update", "approved", "setup"].includes(mode) && (
               <>
-                {mode === "approve" && (
+                {mode === "approved" && (
                   <Button
                     type="button"
                     variant="outline"

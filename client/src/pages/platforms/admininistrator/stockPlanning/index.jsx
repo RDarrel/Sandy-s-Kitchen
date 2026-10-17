@@ -10,9 +10,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useEffect, useMemo, useState } from "react";
 import { Formatter, Stock } from "@/services/utilities";
 import { useDispatch, useSelector } from "react-redux";
-import { STOCK_PLANNING } from "@/services/redux/slices/inventory/inventoryItems";
+import {
+  RESET as RESET_INVENTORY,
+  STOCK_PLANNING,
+} from "@/services/redux/slices/inventory/inventoryItems";
 import { BROWSE as BROWSE_SUPPLIERS } from "@/services/redux/slices/procurement/suppliers";
 import {
+  RESET as RESET_PURCHASES,
   CartAdd,
   CartAddMany,
 } from "@/services/redux/slices/procurement/purchases";
@@ -46,7 +50,6 @@ const StockPlanning = () => {
 
   const [dateRange, setDateRange] = useState("7");
   const [search, setSearch] = useState("");
-
   useEffect(() => {
     if (date?.from && date?.to) {
       dispatch(CartAddMany([]));
@@ -61,6 +64,11 @@ const StockPlanning = () => {
 
   useEffect(() => {
     dispatch(BROWSE_SUPPLIERS());
+
+    return () => {
+      dispatch(RESET_INVENTORY());
+      dispatch(RESET_PURCHASES());
+    };
   }, [dispatch]);
 
   const filteredItems = useMemo(() => {

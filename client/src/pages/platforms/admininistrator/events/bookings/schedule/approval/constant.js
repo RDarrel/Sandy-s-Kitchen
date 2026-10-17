@@ -2,14 +2,14 @@ export const DIALOG_CONTENT_CLASSNAME =
   "w-[calc(100%-2rem)] overflow-visible !border-0 bg-transparent p-0 shadow-none !outline-none !ring-0 focus:!outline-none focus:!ring-0 focus-visible:!outline-none focus-visible:!ring-0";
 
 export const TITLE = {
-  approve: "Approve Booking",
+  approved: "Approve Booking",
   view: "Booking Details",
   update: "Update Boking",
   setup: "Confirm Booking Setup",
 };
 
 export const DESCRIPTION = {
-  approve: "Review request details and allocations before approval.",
+  approved: "Review request details and allocations before approval.",
   view: "View booking information, inclusions, and equipment allocations.",
   conflict: "Review the detected schedule conflicts before approval.",
   update: "Modify dish preparation and equipment allocations.",
@@ -18,7 +18,7 @@ export const DESCRIPTION = {
 };
 
 export const ACTION_LABEL = {
-  approve: "Approve Booking",
+  approved: "Approve Booking",
   update: "Update Booking",
   setup: "Confirm & Start Setup",
 };
