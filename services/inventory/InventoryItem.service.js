@@ -300,12 +300,37 @@ const getStockPlanning = async ({ startDate, endDate }) => {
   posMap.forEach((historicalQty, inventoryId) => {
     posDailyMap.set(inventoryId, historicalQty / HISTORY_DAYS);
   });
+
+  /*
+   * 6. Fetch POS inventory items to check their base units.
+   */
+  const posInventoryIds = [...posDailyMap.keys()];
+
+  const posInventoryItems = posInventoryIds.length
+    ? await InventoryItem.find({
+        _id: { $in: posInventoryIds },
+      }).select("_id baseUnit")
+    : [];
+
+  /*
+   * 7. Exclude pcs items with average daily POS demand below 1.
+   */
+  const excludedPosIds = new Set(
+    posInventoryItems
+      .filter(
+        (item) =>
+          item.baseUnit === "pcs" &&
+          (posDailyMap.get(item._id.toString()) ?? 0) * planningDays < 1,
+      )
+      .map((item) => item._id.toString()),
+  );
+
+  excludedPosIds.forEach((id) => {
+    posDailyMap.delete(id);
+  });
+
   /*
    * 6. Fetch inventory items.
-   *
-   * IMPORTANT:
-   * This assumes current stock is stored in stock.current.
-   * Adjust it if your Item.js schema uses a different field.
    */
   const inventoryIds = new Set([
     ...cateringMap.keys(),
@@ -324,8 +349,8 @@ const getStockPlanning = async ({ startDate, endDate }) => {
   );
 
   /*
-   * 7. Calculate daily stock projections.
-   * Return an array so the frontend can use .map().
+   * 7. Calculate daily stock projections, purchase quantities,
+   * and stock alerts.
    */
   const stockPlanning = [];
 
@@ -342,6 +367,18 @@ const getStockPlanning = async ({ startDate, endDate }) => {
     const totalNeeded = cateringNeeded + estimatedPosNeeded;
 
     const currentStock = Number(inventory.stock?.current ?? 0);
+
+    // Convert minimum stock into the same base unit as projected stock.
+    const minimumStock = convertToBaseUnit({
+      measurement: inventory.measurement,
+      qty: Number(inventory.stock?.min ?? 0),
+      unit:
+        inventory.baseUnit === "g"
+          ? "kg"
+          : inventory?.baseUnit === "ml"
+            ? "l"
+            : inventory?.baseUnit,
+    });
 
     const incomingByDateMapForItem =
       incomingByDateMap.get(inventoryId) ?? new Map();
@@ -364,13 +401,13 @@ const getStockPlanning = async ({ startDate, endDate }) => {
     let projectedStock = currentStock;
     let lowestProjectedStock = currentStock;
     let firstShortageDate = null;
+    let firstBelowMinimumDate = null;
 
     const dailyProjection = {};
+
     dateKeys.forEach((date) => {
       const incomingQty = incomingByDateMapForItem.get(date) ?? 0;
-
       const cateringQty = cateringByDateMapForItem.get(date) ?? 0;
-
       const posQty = posDailyMap.get(inventoryId) ?? 0;
 
       // Add incoming stock on its expected arrival date.
@@ -385,20 +422,70 @@ const getStockPlanning = async ({ startDate, endDate }) => {
         firstShortageDate = date;
       }
 
+      if (projectedStock < minimumStock && !firstBelowMinimumDate) {
+        firstBelowMinimumDate = date;
+      }
+
       dailyProjection[date] = {
         incomingQty,
         estimatedPosNeeded: posQty,
         cateringNeeded: cateringQty,
         projectedStock,
+        minimumStock,
+        belowMinimum: projectedStock < minimumStock,
         shortage: Math.max(0, -projectedStock),
       };
     });
 
+    /*
+     * Purchase quantity:
+     * - Cover the deepest projected shortage, if any.
+     * - Otherwise, restore the lowest projected stock to minimum.
+     *
+     * This estimates the quantity needed to cover the projected
+     * low point. Supplier lead time and order arrival timing must
+     * be considered separately to prevent an earlier shortage.
+     */
     const shortage = Math.max(0, -lowestProjectedStock);
+
+    const minimumStockGap = Math.max(0, minimumStock - lowestProjectedStock);
+
+    const includesMinimumStock = minimumStockGap > shortage;
+
+    const toPurchaseQty = Math.max(shortage, minimumStockGap);
+
+    /*
+     * Stock alert priority:
+     * 1. Projected shortage
+     * 2. Projected stock below minimum
+     * 3. Sufficient stock
+     */
+    let stockAlert;
+
+    if (firstShortageDate) {
+      stockAlert = {
+        type: "shortage",
+        title: "Shortage",
+        date: firstShortageDate,
+      };
+    } else if (firstBelowMinimumDate) {
+      stockAlert = {
+        type: "below",
+        title: "Below Minimum Stock",
+        date: firstBelowMinimumDate,
+      };
+    } else {
+      stockAlert = {
+        type: "sufficient",
+        title: "Sufficient",
+        date: null,
+      };
+    }
 
     stockPlanning.push({
       ...inventory,
       currentStock,
+      minimumStock,
       cateringNeeded,
       estimatedPosNeeded,
       totalNeeded,
@@ -409,26 +496,39 @@ const getStockPlanning = async ({ startDate, endDate }) => {
       lowestProjectedStock,
       shortage,
       suggestedPurchaseQty: shortage,
+      minimumStockGap,
+      toPurchaseQty,
+      includesMinimumStock,
       firstShortageDate,
+      firstBelowMinimumDate,
+      stockAlert,
       dailyProjection,
     });
   });
 
-  stockPlanning?.sort((a, b) => {
+  /*
+   * 8. Sort items requiring attention first.
+   */
+  stockPlanning.sort((a, b) => {
     const aHasShortage = a.shortage > 0;
     const bHasShortage = b.shortage > 0;
 
-    // 1. Ingredients with shortage first.
     if (aHasShortage !== bHasShortage) {
       return Number(bHasShortage) - Number(aHasShortage);
     }
 
-    // 2. Among shortage items, largest shortage first.
     if (aHasShortage && bHasShortage) {
       return b.shortage - a.shortage;
     }
 
-    // 3. Among sufficient items, lowest projected stock first.
+    const aBelowMinimum = a.projectedStock < a.minimumStock;
+
+    const bBelowMinimum = b.projectedStock < b.minimumStock;
+
+    if (aBelowMinimum !== bBelowMinimum) {
+      return Number(bBelowMinimum) - Number(aBelowMinimum);
+    }
+
     return a.projectedStock - b.projectedStock;
   });
 
