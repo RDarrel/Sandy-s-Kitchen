@@ -10,6 +10,12 @@ const { DateTime } = require("luxon");
 const HISTORY_DAYS = 30;
 const TIMEZONE = "Asia/Manila";
 
+// Treat tiny floating-point residuals as zero.
+const normalizeQty = (value) => {
+  const qty = Number(value) || 0;
+  return Math.abs(qty) < 1e-10 ? 0 : qty;
+};
+
 const getStockPlanning = async ({ startDate, endDate }) => {
   const start = dateToUTC({
     date: startDate,
@@ -330,7 +336,7 @@ const getStockPlanning = async ({ startDate, endDate }) => {
   });
 
   /*
-   * 6. Fetch inventory items.
+   * 8. Fetch inventory items.
    */
   const inventoryIds = new Set([
     ...cateringMap.keys(),
@@ -349,7 +355,7 @@ const getStockPlanning = async ({ startDate, endDate }) => {
   );
 
   /*
-   * 7. Calculate daily stock projections, purchase quantities,
+   * 9. Calculate daily stock projections, purchase quantities,
    * and stock alerts.
    */
   const stockPlanning = [];
@@ -375,9 +381,9 @@ const getStockPlanning = async ({ startDate, endDate }) => {
       unit:
         inventory.baseUnit === "g"
           ? "kg"
-          : inventory?.baseUnit === "ml"
+          : inventory.baseUnit === "ml"
             ? "l"
-            : inventory?.baseUnit,
+            : inventory.baseUnit,
     });
 
     const incomingByDateMapForItem =
@@ -410,11 +416,11 @@ const getStockPlanning = async ({ startDate, endDate }) => {
       const cateringQty = cateringByDateMapForItem.get(date) ?? 0;
       const posQty = posDailyMap.get(inventoryId) ?? 0;
 
-      // Add incoming stock on its expected arrival date.
-      projectedStock += incomingQty;
-
-      // Subtract estimated POS and catering demand.
-      projectedStock -= posQty + cateringQty;
+      // Add incoming stock and subtract demand.
+      // Normalize tiny floating-point residuals.
+      projectedStock = normalizeQty(
+        projectedStock + incomingQty - posQty - cateringQty,
+      );
 
       lowestProjectedStock = Math.min(lowestProjectedStock, projectedStock);
 
@@ -422,7 +428,10 @@ const getStockPlanning = async ({ startDate, endDate }) => {
         firstShortageDate = date;
       }
 
-      if (projectedStock < minimumStock && !firstBelowMinimumDate) {
+      if (
+        normalizeQty(projectedStock - minimumStock) < 0 &&
+        !firstBelowMinimumDate
+      ) {
         firstBelowMinimumDate = date;
       }
 
@@ -432,8 +441,8 @@ const getStockPlanning = async ({ startDate, endDate }) => {
         cateringNeeded: cateringQty,
         projectedStock,
         minimumStock,
-        belowMinimum: projectedStock < minimumStock,
-        shortage: Math.max(0, -projectedStock),
+        belowMinimum: normalizeQty(projectedStock - minimumStock) < 0,
+        shortage: Math.max(0, normalizeQty(-projectedStock)),
       };
     });
 
@@ -442,13 +451,15 @@ const getStockPlanning = async ({ startDate, endDate }) => {
      * - Cover the deepest projected shortage, if any.
      * - Otherwise, restore the lowest projected stock to minimum.
      *
-     * This estimates the quantity needed to cover the projected
-     * low point. Supplier lead time and order arrival timing must
-     * be considered separately to prevent an earlier shortage.
+     * Supplier lead time and arrival timing must be considered
+     * separately to prevent an earlier shortage.
      */
-    const shortage = Math.max(0, -lowestProjectedStock);
+    const shortage = Math.max(0, normalizeQty(-lowestProjectedStock));
 
-    const minimumStockGap = Math.max(0, minimumStock - lowestProjectedStock);
+    const minimumStockGap = Math.max(
+      0,
+      normalizeQty(minimumStock - lowestProjectedStock),
+    );
 
     const includesMinimumStock = minimumStockGap > shortage;
 
@@ -504,32 +515,6 @@ const getStockPlanning = async ({ startDate, endDate }) => {
       stockAlert,
       dailyProjection,
     });
-  });
-
-  /*
-   * 8. Sort items requiring attention first.
-   */
-  stockPlanning.sort((a, b) => {
-    const aHasShortage = a.shortage > 0;
-    const bHasShortage = b.shortage > 0;
-
-    if (aHasShortage !== bHasShortage) {
-      return Number(bHasShortage) - Number(aHasShortage);
-    }
-
-    if (aHasShortage && bHasShortage) {
-      return b.shortage - a.shortage;
-    }
-
-    const aBelowMinimum = a.projectedStock < a.minimumStock;
-
-    const bBelowMinimum = b.projectedStock < b.minimumStock;
-
-    if (aBelowMinimum !== bBelowMinimum) {
-      return Number(bBelowMinimum) - Number(aBelowMinimum);
-    }
-
-    return a.projectedStock - b.projectedStock;
   });
 
   return stockPlanning;
