@@ -35,10 +35,11 @@ const modelSchema = new mongoose.Schema(
       enum: [
         "purchase",
         "order",
+        "catering",
         "manual",
         "expired",
         "damaged",
-        "spoiled", //panis,mabaho
+        "spoiled", //panis,sira
         "other",
       ],
       required: true,

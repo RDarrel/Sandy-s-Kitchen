@@ -170,15 +170,20 @@ exports.update = async (req, res) => {
   try {
     try {
       const {
+        _id,
+        userId,
         statusTransaction,
         amountReceived,
         totalValueChange,
         status = "",
       } = req.body;
 
-      const booking = await BookingService.update({
-        bookingToUpdate: req.body,
-      });
+      const booking =
+        status === "setup"
+          ? await BookingService.confirmSetup({ bookingId: _id, user: userId })
+          : await BookingService.update({
+              bookingToUpdate: req.body,
+            });
 
       return res.status(200).json({
         success: "Booking updated successfully.",

@@ -3,6 +3,7 @@ const Query = require("./Query.service");
 const Calendar = require("./Calendar.service");
 const Equipment = require("./Equipment.service");
 const Mutation = require("./Mutation.service");
+const { confirmSetup } = require("./Setup.service");
 
 module.exports = {
   approve: Approval.approve,
@@ -15,4 +16,5 @@ module.exports = {
   getPaymentDetails: Query.getPaymentDetails,
   getVenueConflicts: Query.getVenueConflicts,
   search: Query.search,
+  confirmSetup,
 };
