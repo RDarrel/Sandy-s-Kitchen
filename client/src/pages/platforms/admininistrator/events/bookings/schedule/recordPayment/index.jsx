@@ -336,10 +336,10 @@ const RecordPayment = ({ isOpen, setIsOpen, selected = {} }) => {
               type="button"
               variant="outline"
               size="sm"
-              onClick={handleReset}
+              onClick={setIsOpen}
               disabled={formSubmitted}
             >
-              Reset
+              Close
             </Button>
 
             <Button

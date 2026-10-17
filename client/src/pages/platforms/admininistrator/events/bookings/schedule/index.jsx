@@ -17,6 +17,7 @@ import { Formatter } from "@/services/utilities";
 import Approval from "./approval";
 import ReviewPayment from "./reviewPayment";
 import RecordPayment from "./recordPayment";
+import CompletedConfirmation from "./completedConfirmation";
 
 const Schedule = ({
   selectedDate,
@@ -34,6 +35,7 @@ const Schedule = ({
     reviewPayment: false,
     view: false,
     recordPayment: false,
+    completed: false,
   });
   const [selected, setSelected] = useState({});
   const [activeHighlightId, setActiveHighlightId] = useState(null);
@@ -246,6 +248,11 @@ const Schedule = ({
       <RecordPayment
         isOpen={schedModal?.recordPayment}
         setIsOpen={() => handleAction({}, "recordPayment")}
+        selected={selected}
+      />
+      <CompletedConfirmation
+        isOpen={schedModal?.completed}
+        setIsOpen={() => handleAction({}, "completed")}
         selected={selected}
       />
     </>
