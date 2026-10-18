@@ -35,20 +35,19 @@ import {
   VENUE_CONFLICTS,
 } from "@/services/redux/slices/events/bookings";
 import { STOCKS } from "@/services/redux/slices/inventory/inventoryItems";
-
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { getPrecalculatedIngredient } from "./service/dishes/utils";
 import Spinner from "@/components/shared/spinner";
 import ConflictPanel from "./service/conflictPanel";
 import ShortagePanel from "./service/shortagePanel";
 import Inclusions from "./inclusions";
 import Estimate from "./estimate";
 import CustomerDetails from "./customerDetails";
-import BookingSummary from "./bookingSummary";
 import RequestChanges from "./requestChanges";
 import WarningMsg from "./warningMsg";
 import FinancialDetails from "./financialDetails";
-import { getPrecalculatedIngredient } from "./service/dishes/utils";
+import Summary from "./summary";
 
 const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
   const { auth } = useSelector(({ auth }) => auth);
@@ -518,7 +517,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
               )}
             >
               <div className="space-y-3">
-                <BookingSummary
+                <Summary
                   booking={booking}
                   isViewOnly={["view", "update"].includes(mode)}
                   customerName={customerName}

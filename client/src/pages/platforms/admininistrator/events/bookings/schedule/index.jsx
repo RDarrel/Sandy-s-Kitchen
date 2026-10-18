@@ -17,8 +17,12 @@ import { Formatter } from "@/services/utilities";
 import Approval from "./approval";
 import ReviewPayment from "./reviewPayment";
 import RecordPayment from "./recordPayment";
-import CompletedConfirmation from "./completedConfirmation";
-import RejectionConfirmation from "./rejectionConfirmation";
+
+import {
+  CompletedConfirmation,
+  RejectionConfirmation,
+  CancelConfirmation,
+} from "./confirmation";
 
 const Schedule = ({
   selectedDate,
@@ -38,6 +42,7 @@ const Schedule = ({
     recordPayment: false,
     completed: false,
     reject: false,
+    cancel: false,
   });
   const [selected, setSelected] = useState({});
   const [activeHighlightId, setActiveHighlightId] = useState(null);
@@ -261,6 +266,13 @@ const Schedule = ({
         isOpen={schedModal.reject}
         setIsOpen={(open) =>
           setSchedModal((prev) => ({ ...prev, reject: open }))
+        }
+        selected={selected}
+      />
+      <CancelConfirmation
+        isOpen={schedModal.cancel}
+        setIsOpen={(open) =>
+          setSchedModal((prev) => ({ ...prev, cancel: open }))
         }
         selected={selected}
       />

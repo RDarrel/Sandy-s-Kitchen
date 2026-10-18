@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Eye } from "lucide-react";
+import { MoreHorizontal, Pencil, Eye, Ban } from "lucide-react";
 
 const ADVANCEABLE_STATUSES = ["confirmed", "setup"];
 
@@ -33,7 +33,7 @@ const Actions = ({ booking, handleAction = () => {} }) => {
     const status = booking?.status;
 
     if (status === "approved") {
-      return { hasEdit: true, hasCollapseActions: false };
+      return { hasEdit: true, hasCollapseActions: true };
     }
 
     if (status === "confirmed") {
@@ -44,6 +44,8 @@ const Actions = ({ booking, handleAction = () => {} }) => {
   }, [booking?.status]);
 
   const isApproved = booking?.status === "approved";
+
+  const isBookingLocked = booking?.status === "setup";
 
   return (
     <>
@@ -60,7 +62,7 @@ const Actions = ({ booking, handleAction = () => {} }) => {
           </Button>
         )}
 
-        {!hasCollapseActions && (
+        {!isBookingLocked && (
           <Button
             type="button"
             variant="outline"
@@ -157,11 +159,12 @@ const Actions = ({ booking, handleAction = () => {} }) => {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleAction(booking, "view")}>
-                <Eye className="mr-2 size-4" />
-                View
-              </DropdownMenuItem>
-
+              {isBookingLocked && (
+                <DropdownMenuItem onClick={() => handleAction(booking, "view")}>
+                  <Eye className="mr-2 size-4" />
+                  View
+                </DropdownMenuItem>
+              )}
               {hasEdit && (
                 <DropdownMenuItem
                   onClick={() => handleAction(booking, "update")}
@@ -170,6 +173,10 @@ const Actions = ({ booking, handleAction = () => {} }) => {
                   Update
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem onClick={() => handleAction(booking, "cancel")}>
+                <Ban className="mr-2 size-4" />
+                Cancel Booking
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}

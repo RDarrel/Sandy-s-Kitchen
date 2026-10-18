@@ -1,11 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, CheckCircle2, UsersRound, Wallet } from "lucide-react";
-import { Metric } from "./components";
-import { STATUS_STYLES } from "../../constant";
+import { Metric } from "../components";
+import { STATUS_STYLES } from "../../../constant";
 import { Formatter } from "@/services/utilities";
-import { formatDate, getTotalPax } from "./utils";
+import { formatDate, getTotalPax } from "../utils";
 import { cn } from "@/lib/utils";
-const BookingSummary = ({
+import Notice from "./notice";
+
+const Summary = ({
   booking,
   isViewOnly = false,
   customerName,
@@ -15,6 +17,7 @@ const BookingSummary = ({
 }) => {
   return (
     <section className="rounded-md border bg-muted/15 p-3">
+      {/* Booking header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">
@@ -33,18 +36,14 @@ const BookingSummary = ({
 
           <Badge
             variant="outline"
-            className={`capitalize ${STATUS_STYLES[booking?.status] || ""}`}
+            className={cn("capitalize", STATUS_STYLES[booking?.status])}
           >
             {booking?.status || "pending"}
           </Badge>
         </div>
       </div>
 
-      {/* <div
-        className={`mt-3 grid grid-cols-2 gap-1.5 ${
-          isCombinedBooking ? "md:grid-cols-5" : "md:grid-cols-4"
-        }`}
-      > */}
+      {/* Booking metrics */}
       <div
         className={cn("mt-3 grid grid-cols-2 gap-1.5", {
           "md:grid-cols-5": isCombinedBooking && !isViewOnly,
@@ -86,16 +85,22 @@ const BookingSummary = ({
           <Metric
             icon={<Wallet className="size-3.5" />}
             label="Estimate"
-            value={Formatter.amount(payment.total)}
+            value={Formatter.amount(payment?.total ?? 0)}
           />
         )}
+
         <Metric
           icon={<CheckCircle2 className="size-3.5" />}
           label="Type"
-          value={service.label}
+          value={service?.label || "—"}
         />
       </div>
+
+      {["rejected", "declined"].includes(booking?.status) && (
+        <Notice booking={booking} />
+      )}
     </section>
   );
 };
-export default BookingSummary;
+
+export default Summary;

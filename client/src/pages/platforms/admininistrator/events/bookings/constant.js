@@ -22,7 +22,8 @@ export const STATUS_STYLES = {
   confirmed: "border-teal-200 bg-teal-50 text-teal-700",
   setup: "border-sky-200 bg-sky-50 text-sky-700",
   completed: "border-violet-200 bg-violet-50 text-violet-700",
-  cancelled: "border-rose-200 bg-rose-50 text-rose-700",
+  rejected: "border-red-200 bg-red-50 text-red-700",
+  cancelled: "border-slate-200 bg-slate-50 text-slate-700",
 };
 
 export const STATUS_LABELS = {
