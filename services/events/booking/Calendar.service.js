@@ -159,7 +159,9 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
           {
             $group: {
               _id: "$_id.date",
-
+              total: {
+                $sum: "$count",
+              },
               statusCounts: {
                 $push: {
                   k: "$_id.status",
@@ -189,7 +191,7 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
                   amount: 1,
                 },
               },
-
+              total: 1,
               statusCounts: {
                 $arrayToObject: "$statusCounts",
               },

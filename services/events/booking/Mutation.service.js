@@ -3,7 +3,7 @@ const BookingPolicy = require("../../../models/events/BookingPolicy");
 const { attachRecipesToDishes } = require("./helpers/attachRecipesToDishes");
 const { calculateTerms } = require("./helpers/calculateTerms");
 const update = async ({ bookingToUpdate }) => {
-  const { userId } = bookingToUpdate;
+  const { userId, reason } = bookingToUpdate;
   const booking = await Booking.findById(bookingToUpdate?._id);
 
   if (!booking) {
@@ -47,6 +47,7 @@ const update = async ({ bookingToUpdate }) => {
   if (!["update", "changes_requested"].includes(bookingToUpdate.status)) {
     booking.statusHistory.push({
       status: booking?.status,
+      reason,
       changedBy: userId,
       changedAt: new Date(),
     });

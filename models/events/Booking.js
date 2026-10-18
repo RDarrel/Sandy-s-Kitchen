@@ -404,7 +404,7 @@ const bookingSchema = new mongoose.Schema(
 
         changedBy: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
+          ref: "Users",
         },
 
         reason: {

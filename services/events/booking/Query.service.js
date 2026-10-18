@@ -17,9 +17,8 @@ const getPaymentDetails = async ({ customer, reference }) => {
   return bookingWithPayments;
 };
 
-const getBookingDetails = async ({ customer, reference }) => {
+const getBookingDetails = async ({ reference }) => {
   const booking = await Booking.findOne({
-    customer,
     reference,
   })
     .populate({
@@ -51,6 +50,7 @@ const getBookingDetails = async ({ customer, reference }) => {
       path: "venue.item",
       populate: { path: "inclusions.item" },
     })
+    .populate("statusHistory.changedBy", "fullName")
     .populate("catering.inclusions.item", "name category")
     .populate("venue.inclusions.item", "name category")
     .populate("catering.mainDishes.menu")
