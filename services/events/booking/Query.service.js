@@ -1,6 +1,7 @@
 const Booking = require("../../../models/events/Booking");
 const User = require("../../../models/persons/Users");
 const { attachPaymentsToBookings } = require("./helpers/attachPayments");
+const { attachRecipesToDishes } = require("./helpers/attachRecipesToDishes");
 
 const getPaymentDetails = async ({ customer, reference }) => {
   const booking = await Booking.findOne({
@@ -17,7 +18,7 @@ const getPaymentDetails = async ({ customer, reference }) => {
   return bookingWithPayments;
 };
 
-const getBookingDetails = async ({ reference }) => {
+const getBookingDetails = async ({ reference, role }) => {
   const booking = await Booking.findOne({
     reference,
   })
@@ -50,6 +51,7 @@ const getBookingDetails = async ({ reference }) => {
       path: "venue.item",
       populate: { path: "inclusions.item" },
     })
+    .populate("customer", "fullName")
     .populate("statusHistory.changedBy", "fullName")
     .populate("catering.inclusions.item", "name category")
     .populate("venue.inclusions.item", "name category")
@@ -62,6 +64,11 @@ const getBookingDetails = async ({ reference }) => {
   const [bookingWithPayments] = await attachPaymentsToBookings({
     bookings: [booking],
   });
+
+  if ([1, 5].includes(Number(role)) && booking?.status !== "venue") {
+    const [result] = await attachRecipesToDishes([bookingWithPayments]);
+    return result;
+  }
 
   return bookingWithPayments;
 };

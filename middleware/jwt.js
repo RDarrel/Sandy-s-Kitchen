@@ -14,7 +14,6 @@ const verifyToken = (token) =>
 
 exports.validate = (req, res, proceed) => {
   const token = req.cookies.token;
-  const { authorization } = req.headers;
   if (!token)
     return res.status(401).json({
       error: "Unauthorized",

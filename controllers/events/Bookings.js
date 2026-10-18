@@ -226,7 +226,7 @@ exports.bookingDetails = async (req, res) => {
 
     const booking = await BookingService.getBookingDetails({
       reference,
-      customer: res.locals.caller?._id,
+      role: res.locals.caller?.role,
     });
 
     return res.status(200).json({
