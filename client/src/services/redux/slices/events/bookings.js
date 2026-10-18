@@ -260,7 +260,9 @@ const updateSchedule = (state, statusTransaction, booking) => {
 
   state.schedule = {
     ...schedule,
-    ...(!["changes_requested", "update"].includes(statusTransaction?.new) && {
+    ...(!["changes_requested", "update", "rejected"].includes(
+      statusTransaction?.new,
+    ) && {
       [statusTransaction.new]: [
         updatedBooking,
         ...(schedule?.[statusTransaction.new] ?? []),
@@ -322,7 +324,7 @@ const updateCalendar = ({
 
   const hasStatusChanged = oldStatus && newStatus && oldStatus !== newStatus;
 
-  const excludedStatuses = ["rejected", "changes_requested", "update"];
+  const excludedStatuses = ["changes_requested", "update", "rejected"];
 
   // CALENDAR DAYS
   let updatedDays = days;
@@ -351,6 +353,10 @@ const updateCalendar = ({
 
       if (!excludedStatuses.includes(newStatus)) {
         statusCounts[newStatus] = (statusCounts[newStatus] ?? 0) + 1;
+      }
+
+      if (["changes_requested", "rejected"].includes(newStatus)) {
+        day.total = Number(day.total ?? 0) - 1;
       }
 
       return {
@@ -516,6 +522,10 @@ export const reduxSlice = createSlice({
           },
         });
       }
+    },
+    SET_SELECTED: (state, { payload }) => {
+      state.selected = payload;
+      state.isLoadingBookingDetails = false;
     },
     RESET_VENUE_CONFLICTS: (state) => {
       state.venueConflicts = [];
@@ -727,5 +737,6 @@ export const {
   CONFIRM_BOOKING,
   RESET_SEARCH_RESULTS,
   RESET_VENUE_CONFLICTS,
+  SET_SELECTED,
 } = reduxSlice.actions;
 export default reduxSlice.reducer;

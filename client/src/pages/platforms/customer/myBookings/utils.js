@@ -128,7 +128,7 @@ export const getPaymentSummary = (booking) => {
 };
 export const getBookingAction = (booking, payment) => {
   const status = booking?.status;
-
+  console.log("status", status);
   /*
    * PENDING
    *
@@ -156,12 +156,28 @@ export const getBookingAction = (booking, payment) => {
       ({ status }) => status === "changes_requested",
     )?.reason;
     return {
+      title: "Booking Changes Required",
       message:
         "Changes were requested. Please review and update your booking to continue.",
       reason,
       buttonLabel: "Review & Update",
       icon: AlertTriangle,
       variant: "action-required",
+    };
+  }
+
+  if (status === "rejected") {
+    const { statusHistory = [] } = booking;
+    const reason = statusHistory.findLast(
+      ({ status }) => status === "rejected",
+    )?.reason;
+    return {
+      title: "Booking request declined",
+      message:
+        "Your booking request was declined. View details to see the reason.",
+      reason,
+      icon: AlertTriangle,
+      variant: "danger",
     };
   }
 

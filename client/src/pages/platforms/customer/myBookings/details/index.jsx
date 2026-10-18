@@ -205,10 +205,8 @@ const BookingOverview = ({ booking, status, date, action }) => {
 
   const StatusIcon = status.icon;
   const ActionIcon = action.icon;
-
   const iconTone = NOTICE_ICON_TONE[action.variant] || NOTICE_ICON_TONE.default;
   const actionMessage = action?.reason?.trim() || action.message;
-  const isActionRequired = action.variant === "action-required";
 
   const canEditBooking = ["pending", "changes_requested"].includes(
     booking?.status,
@@ -298,9 +296,9 @@ const BookingOverview = ({ booking, status, date, action }) => {
           <ActionIcon className={`size-4 shrink-0 ${iconTone}`} />
 
           <div className="min-w-0">
-            {isActionRequired && (
+            {action?.title && (
               <p className="mb-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
-                Booking Changes Required
+                {action?.title}
               </p>
             )}
 

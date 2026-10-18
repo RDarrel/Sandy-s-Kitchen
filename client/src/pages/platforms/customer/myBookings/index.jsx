@@ -80,8 +80,8 @@ const MyBookings = () => {
           summary.completed += 1;
         }
 
-        if (status === "cancelled") {
-          summary.cancelled += 1;
+        if (["cancelled", "rejected"].includes(status)) {
+          summary.closed += 1;
         }
 
         return summary;
@@ -91,7 +91,7 @@ const MyBookings = () => {
         upcoming: 0,
         pending: 0,
         completed: 0,
-        cancelled: 0,
+        closed: 0,
       },
     );
   }, [bookings]);
@@ -115,6 +115,7 @@ const MyBookings = () => {
       const matchesFilter =
         filter === "all" ||
         (filter === "upcoming" && UPCOMING_STATUSES.includes(status)) ||
+        (["rejected", "cancelled"].includes(status) && filter === "closed") ||
         (filter === "pending" && status === "pending") ||
         (filter === "completed" && status === "completed") ||
         (filter === "cancelled" && status === "cancelled");

@@ -11,9 +11,15 @@ import { Loader2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
-import { SEARCH } from "@/services/redux/slices/events/bookings";
+import {
+  GET_BOOKING_DETAILS,
+  SEARCH,
+  SET_SELECTED,
+} from "@/services/redux/slices/events/bookings";
 import { fullName } from "@/services/utilities";
 import { capitalize } from "lodash";
+import Approval from "../../../schedule/approval";
+import { toast } from "sonner";
 
 /* -------------------------------------------------------------------------- */
 /* SEARCH RESULT SKELETON                                                     */
@@ -72,10 +78,13 @@ const SearchCustomer = ({
   const {
     isLoadingSearch,
     isLoadingSchedule,
+    isLoadingBookingDetails,
     searchResults = [],
   } = useSelector(({ bookings }) => bookings);
 
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState({});
+  const [isOpenViewDetails, setIsOpenViewDetails] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const inputRef = useRef(null);
 
@@ -127,6 +136,22 @@ const SearchCustomer = ({
   const isSearching =
     hasSearch && (search.trim() !== debouncedSearch || isLoadingSearch);
 
+  const handleViewClosedBooking = (booking) => {
+    setSelected(booking);
+    dispatch(GET_BOOKING_DETAILS(booking?.reference))
+      .unwrap()
+      .then(({ data }) => {
+        setSelected(data);
+        setIsOpenViewDetails(true);
+        setSearch("");
+        setSearchOpen(false);
+      })
+      .catch(() => {
+        setSelected({});
+        toast.error("Failed to load booking details. Please try again.");
+      });
+  };
+
   return (
     <div
       className={`absolute inset-y-0 left-0 z-10 flex w-full max-w-md origin-left items-center transition-all duration-200 ease-out ${
@@ -170,17 +195,24 @@ const SearchCustomer = ({
                   <div className="max-h-72 divide-y overflow-y-auto">
                     {searchResults.map((booking) => {
                       const bookingId = booking._id || booking.id;
-                      const isSelected = bookingId === highlightedBookingId;
+                      const isSelected =
+                        bookingId === (highlightedBookingId || selected?._id);
                       const isLoadingSelected =
                         isSelected &&
-                        (isLoadingSchedule || highlightedBookingId);
+                        (isLoadingSchedule ||
+                          highlightedBookingId ||
+                          isLoadingBookingDetails);
                       const hasSelectedBooking = Boolean(highlightedBookingId);
 
                       return (
                         <button
                           key={bookingId}
                           type="button"
-                          onClick={() => handleSearchResultClick(booking)}
+                          onClick={() =>
+                            ["rejected", "cancelled"].includes(booking?.status)
+                              ? handleViewClosedBooking(booking)
+                              : handleSearchResultClick(booking)
+                          }
                           disabled={hasSelectedBooking}
                           className={`flex w-full min-w-0 items-start gap-2.5 px-3 py-3 text-left transition-colors focus-visible:bg-muted/50 focus-visible:outline-none disabled:cursor-wait ${
                             isSelected
@@ -281,6 +313,16 @@ const SearchCustomer = ({
           <TooltipContent side="top">Close search</TooltipContent>
         </Tooltip>
       </div>
+
+      <Approval
+        isOpen={isOpenViewDetails}
+        setIsOpen={() => {
+          setIsOpenViewDetails(false);
+          setSelected({});
+        }}
+        selected={selected || {}}
+        mode="view"
+      />
     </div>
   );
 };

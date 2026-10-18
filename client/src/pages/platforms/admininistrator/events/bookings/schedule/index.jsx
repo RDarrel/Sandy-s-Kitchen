@@ -18,6 +18,7 @@ import Approval from "./approval";
 import ReviewPayment from "./reviewPayment";
 import RecordPayment from "./recordPayment";
 import CompletedConfirmation from "./completedConfirmation";
+import RejectionConfirmation from "./rejectionConfirmation";
 
 const Schedule = ({
   selectedDate,
@@ -36,6 +37,7 @@ const Schedule = ({
     view: false,
     recordPayment: false,
     completed: false,
+    reject: false,
   });
   const [selected, setSelected] = useState({});
   const [activeHighlightId, setActiveHighlightId] = useState(null);
@@ -253,6 +255,13 @@ const Schedule = ({
       <CompletedConfirmation
         isOpen={schedModal?.completed}
         setIsOpen={() => handleAction({}, "completed")}
+        selected={selected}
+      />
+      <RejectionConfirmation
+        isOpen={schedModal.reject}
+        setIsOpen={(open) =>
+          setSchedModal((prev) => ({ ...prev, reject: open }))
+        }
         selected={selected}
       />
     </>

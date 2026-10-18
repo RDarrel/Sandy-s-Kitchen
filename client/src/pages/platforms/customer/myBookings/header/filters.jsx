@@ -21,10 +21,11 @@ const Filters = ({ value, counts, onChange }) => {
       count: counts.completed,
     },
     {
-      value: "cancelled",
-      label: "Cancelled",
-      count: counts.cancelled,
+      value: "closed",
+      label: "Closed",
+      count: counts.closed,
     },
+
     {
       value: "all",
       label: "All",

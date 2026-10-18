@@ -77,6 +77,7 @@ const Actions = ({ booking, handleAction = () => {} }) => {
             <Button
               type="button"
               variant="outline"
+              onClick={() => handleAction(booking, "reject")}
               size="sm"
               className="h-7 px-2 hover:bg-accent/40 hover:text-accent-foreground"
             >

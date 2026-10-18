@@ -5,8 +5,7 @@ const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
   const bookings = [...segments.allDay, ...segments.timed].map(
     (segment) => segment.occurrence.event,
   );
-
-  const statusCounts = bookings[0]?.statusCounts || {};
+  const { statusCounts = {}, total = 0 } = bookings[0] || {};
 
   const visibleStatuses = STATUS_ORDER.filter((status) => statusCounts[status]);
 
@@ -37,9 +36,7 @@ const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
     >
       <div className="pointer-events-none absolute left-2 right-2 top-1.5 z-10 flex min-h-5 items-center justify-between gap-2">
         <span className="truncate text-[10px] font-medium text-muted-foreground">
-          {bookings.length > 0
-            ? `${bookings.length} booking${bookings.length > 1 ? "s" : ""}`
-            : ""}
+          {total > 0 ? `${total} booking${total > 1 ? "s" : ""}` : ""}
         </span>
 
         <span
