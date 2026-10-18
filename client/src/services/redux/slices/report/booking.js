@@ -4,7 +4,7 @@ import { axioKit } from "../../../utilities";
 const url = "reports/booking";
 
 const initialState = {
-  collections: [],
+  paymentReport: { summary: {}, payments: [] },
   formSubmitted: false,
   isSuccess: false,
   isLoading: false,
@@ -40,8 +40,8 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(GET_PAYMENT_REPORT.fulfilled, (state, action) => {
-        const { payload } = action.payload;
-        state.collections = payload;
+        const { data } = action.payload;
+        state.paymentReport = data;
         state.isLoading = false;
       })
       .addCase(GET_PAYMENT_REPORT.rejected, (state, action) => {
