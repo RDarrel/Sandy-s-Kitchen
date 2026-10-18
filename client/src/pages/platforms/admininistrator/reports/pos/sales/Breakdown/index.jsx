@@ -4,13 +4,13 @@ import { useSelector } from "react-redux";
 import { Skeleton } from "@/components/ui/skeleton";
 const FuelBreakdown = () => {
   const { filtered, isLoading, collections } = useSelector(
-    ({ deals }) => deals
+    ({ deals }) => deals,
   );
   const [fuels, setFuels] = useState([]);
 
   useEffect(() => {
-    const cart = collections.flatMap((deal) => deal.cart);
-    const cluster = cart.reduce((acc, ct) => {
+    const cart = collections?.flatMap((deal) => deal.cart);
+    const cluster = cart?.reduce((acc, ct) => {
       const { amount, srp, fuel } = ct;
 
       const index = acc.findIndex((item) => item?.fuel?._id === fuel?._id);
@@ -27,12 +27,12 @@ const FuelBreakdown = () => {
   }, [collections]);
 
   const getFuel = (fuel) => {
-    return fuels.find((item) => item?.fuel?._id === fuel);
+    return fuels?.find((item) => item?.fuel?._id === fuel);
   };
 
   const getTotal = () => {
-    const total = fuels.reduce((acc, item) => acc + item.total, 0);
-    const liters = fuels.reduce((acc, item) => acc + item.liters, 0);
+    const total = fuels?.reduce((acc, item) => acc + item.total, 0);
+    const liters = fuels?.reduce((acc, item) => acc + item.liters, 0);
 
     return { liters, total };
   };

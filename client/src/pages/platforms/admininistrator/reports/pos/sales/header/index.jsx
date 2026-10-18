@@ -17,7 +17,7 @@ import { FileText } from "lucide-react";
 const Header = () => {
   const { auth } = useSelector(({ auth }) => auth);
   const { filtered, frequency, collections } = useSelector(
-    ({ deals }) => deals
+    ({ deals }) => deals,
   );
 
   const [date, setDate] = useState(() => {
@@ -43,7 +43,7 @@ const Header = () => {
           <Button
             className={"bg-[#FF4F00]  hover:bg-[#e64500] cursor-pointer"}
             title="Export Sales Report to Excel"
-            disabled={!filtered.length}
+            disabled={!filtered?.length}
             onClick={() =>
               ExportSales({
                 array: filtered,

@@ -7,7 +7,6 @@ import {
   UtensilsCrossed,
   Boxes,
   CalendarDays,
-  BrickWall,
   ClipboardList,
   CreditCard,
   ChartNoAxesCombined,
@@ -25,11 +24,11 @@ import StockRequests from "./orders/stock-requests";
 import StockItems from "./inventory";
 import { Equipment, Services } from "./resources";
 import { Bookings, CateringPackages, Venues } from "./events";
-import Audit from "./audit";
+// import Audit from "./audit";
 import Policy from "./policy";
 import PaymentMethods from "./paymentMethods";
 import StockPlanning from "./stockPlanning";
-import BookingRevenue from "./reports/bookingRevenue";
+import { PaymentReport, PosSalesReport } from "./reports";
 
 export const ADMIN_MANAGEMENT = [
   {
@@ -174,14 +173,14 @@ export const ADMIN_MANAGEMENT = [
           {
             name: "Sales",
             path: "/sales",
-            component: BookingRevenue,
+            component: PaymentReport,
           },
 
           //it's about in every payments
           {
             name: "Payments",
             path: "/payments",
-            component: BookingRevenue,
+            component: PaymentReport,
           },
         ],
       },
@@ -192,12 +191,12 @@ export const ADMIN_MANAGEMENT = [
           {
             name: "Sales",
             path: "/sales",
-            component: BookingRevenue,
+            component: PosSalesReport,
           },
           {
             name: "Transactions",
             path: "/transactions",
-            component: BookingRevenue,
+            component: PaymentReport,
           },
         ],
       },

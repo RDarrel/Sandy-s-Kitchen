@@ -31,7 +31,7 @@ const Body = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.length > 0 ? (
+                {filtered?.length > 0 ? (
                   filtered.map((item, index) => {
                     const { date, total, solds = [] } = item;
 
@@ -73,7 +73,7 @@ const Body = () => {
                                       {
                                         hour: "2-digit",
                                         minute: "2-digit",
-                                      }
+                                      },
                                     )}
                               </TableCell>
                             </TableRow>

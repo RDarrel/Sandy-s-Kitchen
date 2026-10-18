@@ -1,0 +1,2 @@
+export { default as PaymentReport } from "./booking/payments";
+export { default as PosSalesReport } from "./pos/sales";
