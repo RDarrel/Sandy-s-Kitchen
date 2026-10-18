@@ -202,7 +202,9 @@ const SearchCustomer = ({
                         (isLoadingSchedule ||
                           highlightedBookingId ||
                           isLoadingBookingDetails);
-                      const hasSelectedBooking = Boolean(highlightedBookingId);
+                      const hasSelectedBooking = Boolean(
+                        highlightedBookingId || selected?._id,
+                      );
 
                       return (
                         <button
