@@ -358,6 +358,7 @@ const getStockPlanning = async ({ startDate, endDate }) => {
    * 9. Calculate daily stock projections, purchase quantities,
    * and stock alerts.
    */
+
   const stockPlanning = [];
 
   inventoryIds.forEach((inventoryId) => {
@@ -374,8 +375,9 @@ const getStockPlanning = async ({ startDate, endDate }) => {
 
     const currentStock = Number(inventory.stock?.current ?? 0);
 
-    // Convert minimum stock into the same base unit as projected stock.
-    const minimumStock = convertToBaseUnit({
+    // Keep stock.min in the database.
+    // Treat it as the reorder level, not the purchase target.
+    const reorderLevel = convertToBaseUnit({
       measurement: inventory.measurement,
       qty: Number(inventory.stock?.min ?? 0),
       unit:
@@ -406,8 +408,9 @@ const getStockPlanning = async ({ startDate, endDate }) => {
 
     let projectedStock = currentStock;
     let lowestProjectedStock = currentStock;
+
     let firstShortageDate = null;
-    let firstBelowMinimumDate = null;
+    let firstReorderDate = null;
 
     const dailyProjection = {};
 
@@ -416,23 +419,22 @@ const getStockPlanning = async ({ startDate, endDate }) => {
       const cateringQty = cateringByDateMapForItem.get(date) ?? 0;
       const posQty = posDailyMap.get(inventoryId) ?? 0;
 
-      // Add incoming stock and subtract demand.
-      // Normalize tiny floating-point residuals.
       projectedStock = normalizeQty(
         projectedStock + incomingQty - posQty - cateringQty,
       );
 
       lowestProjectedStock = Math.min(lowestProjectedStock, projectedStock);
 
-      if (projectedStock < 0 && !firstShortageDate) {
+      const hasShortage = projectedStock < 0;
+
+      const belowReorderLevel = normalizeQty(projectedStock - reorderLevel) < 0;
+
+      if (hasShortage && !firstShortageDate) {
         firstShortageDate = date;
       }
 
-      if (
-        normalizeQty(projectedStock - minimumStock) < 0 &&
-        !firstBelowMinimumDate
-      ) {
-        firstBelowMinimumDate = date;
+      if (belowReorderLevel && !firstReorderDate) {
+        firstReorderDate = date;
       }
 
       dailyProjection[date] = {
@@ -440,50 +442,31 @@ const getStockPlanning = async ({ startDate, endDate }) => {
         estimatedPosNeeded: posQty,
         cateringNeeded: cateringQty,
         projectedStock,
-        minimumStock,
-        belowMinimum: normalizeQty(projectedStock - minimumStock) < 0,
+        reorderLevel,
+        belowReorderLevel,
         shortage: Math.max(0, normalizeQty(-projectedStock)),
       };
     });
 
-    /*
-     * Purchase quantity:
-     * - Cover the deepest projected shortage, if any.
-     * - Otherwise, restore the lowest projected stock to minimum.
-     *
-     * Supplier lead time and arrival timing must be considered
-     * separately to prevent an earlier shortage.
-     */
+    // Purchase only enough to cover the deepest projected shortage.
+    // This accounts for the timing of incoming deliveries and demand.
     const shortage = Math.max(0, normalizeQty(-lowestProjectedStock));
 
-    const minimumStockGap = Math.max(
-      0,
-      normalizeQty(minimumStock - lowestProjectedStock),
-    );
+    const toPurchaseQty = shortage;
 
-    const includesMinimumStock = minimumStockGap > shortage;
-
-    const toPurchaseQty = Math.max(shortage, minimumStockGap);
-
-    /*
-     * Stock alert priority:
-     * 1. Projected shortage
-     * 2. Projected stock below minimum
-     * 3. Sufficient stock
-     */
     let stockAlert;
 
     if (firstShortageDate) {
       stockAlert = {
         type: "shortage",
-        title: "Shortage",
+        title: "Projected Shortage",
         date: firstShortageDate,
       };
-    } else if (firstBelowMinimumDate) {
+    } else if (firstReorderDate) {
       stockAlert = {
-        type: "below",
-        title: "Below Minimum Stock",
-        date: firstBelowMinimumDate,
+        type: "reorder",
+        title: "Reorder Recommended",
+        date: firstReorderDate,
       };
     } else {
       stockAlert = {
@@ -496,7 +479,7 @@ const getStockPlanning = async ({ startDate, endDate }) => {
     stockPlanning.push({
       ...inventory,
       currentStock,
-      minimumStock,
+      reorderLevel,
       cateringNeeded,
       estimatedPosNeeded,
       totalNeeded,
@@ -506,12 +489,10 @@ const getStockPlanning = async ({ startDate, endDate }) => {
       projectedStock,
       lowestProjectedStock,
       shortage,
-      suggestedPurchaseQty: shortage,
-      minimumStockGap,
+      suggestedPurchaseQty: toPurchaseQty,
       toPurchaseQty,
-      includesMinimumStock,
       firstShortageDate,
-      firstBelowMinimumDate,
+      firstReorderDate,
       stockAlert,
       dailyProjection,
     });

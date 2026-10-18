@@ -74,7 +74,7 @@ const StockPlanning = () => {
   const filteredItems = useMemo(() => {
     const priority = {
       shortage: 0,
-      below: 1,
+      reorder: 1,
       sufficient: 2,
     };
 
@@ -134,11 +134,11 @@ const StockPlanning = () => {
   const toggleItem = (item) => {
     if (!item) return;
 
-    const { toPurchaseQty = 0 } = Stock.getPurchaseDetails(item);
+    const { toPurchaseQty = 0 } = item;
     const recommendedQty = Number(toPurchaseQty);
 
     const [quantity] = Stock.formatQuantity(
-      recommendedQty > 0 ? recommendedQty : 1,
+      recommendedQty > 0 ? recommendedQty : 0,
       item.baseUnit,
       true,
     ).split(" ");

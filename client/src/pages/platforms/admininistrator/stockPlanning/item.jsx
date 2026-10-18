@@ -17,10 +17,10 @@ import {
 import { capitalize } from "lodash";
 
 const getAlertDetails = (item) => {
-  const title = item?.stockAlert?.title ?? "Sufficient";
+  const type = item?.stockAlert?.type ?? "Sufficient";
   const alertDate = item?.stockAlert?.date;
 
-  if (title === "Shortage") {
+  if (type === "shortage") {
     return {
       label: "Shortage",
       date: alertDate,
@@ -29,9 +29,9 @@ const getAlertDetails = (item) => {
     };
   }
 
-  if (title === "Below Minimum Stock") {
+  if (type === "reorder") {
     return {
-      label: "Below minimum",
+      label: "Reorder",
       date: alertDate,
       textClass: "text-amber-600 dark:text-amber-400",
       Icon: AlertTriangle,
@@ -56,7 +56,6 @@ const Item = ({ item, isSelected, toggleItem = () => {} }) => {
   const hasProjectionBreakdown =
     Object.keys(item?.dailyProjection ?? {}).length > 0;
 
-  console.log("toPurchase", toPurchaseQty, item?.name);
   return (
     <TableRow
       key={item._id}
@@ -223,7 +222,8 @@ const Item = ({ item, isSelected, toggleItem = () => {} }) => {
           )}
 
           <p className="mt-1 text-xs text-muted-foreground">
-            Min: {Stock.formatQuantity(item?.minimumStock ?? 0, item?.baseUnit)}
+            Reorder Level:{" "}
+            {Stock.formatQuantity(item?.reorderLevel ?? 0, item?.baseUnit)}
           </p>
         </div>
       </TableCell>
