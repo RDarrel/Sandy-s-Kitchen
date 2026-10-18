@@ -31,16 +31,27 @@ const isPathActive = (pathname, targetPath) =>
     ),
   );
 
-const LinkWithChild = ({ pathname, ...link }) => {
-  const { name, icon: Icon, children, path } = link;
-  const childLinks =
-    children?.map((subItem) => ({
-      ...subItem,
-      to: buildPlatformPath(path, subItem.path),
-    })) || [];
-  const isActive = childLinks.some((subItem) =>
-    isPathActive(pathname, subItem.to),
+// Check whether a parent has any active descendant.
+const hasActiveChild = (item, pathname, parentPath = "") => {
+  const fullPath = `${parentPath}${item.path ?? ""}`;
+
+  if (!item.children?.length) {
+    return isPathActive(pathname, buildPlatformPath(fullPath));
+  }
+
+  return item.children.some((child) =>
+    hasActiveChild(child, pathname, fullPath),
   );
+};
+
+const NestedMenuItem = ({ item, pathname, parentPath = "", depth = 0 }) => {
+  const { name, icon: Icon, children, path = "" } = item;
+
+  const fullPath = `${parentPath}${path}`;
+  const hasChildren = Array.isArray(children) && children.length > 0;
+
+  const isActive = hasActiveChild(item, pathname, parentPath);
+
   const [isOpen, setIsOpen] = useState(isActive);
 
   useEffect(() => {
@@ -49,60 +60,81 @@ const LinkWithChild = ({ pathname, ...link }) => {
     }
   }, [isActive]);
 
-  return (
+  // Leaf navigation item
+  if (!hasChildren) {
+    const to = buildPlatformPath(fullPath);
+
+    if (depth === 0) {
+      return (
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            asChild
+            tooltip={name}
+            isActive={isPathActive(pathname, to)}
+          >
+            <Link to={to}>
+              {Icon && <Icon />}
+              <span>{name}</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
+
+    return (
+      <SidebarMenuSubItem>
+        <SidebarMenuSubButton asChild isActive={isPathActive(pathname, to)}>
+          <Link to={to}>
+            {Icon && <Icon className="size-4 shrink-0" />}
+            <span>{name}</span>
+          </Link>
+        </SidebarMenuSubButton>
+      </SidebarMenuSubItem>
+    );
+  }
+
+  const content = (
     <Collapsible
-      key={name}
-      asChild
       open={isOpen}
       onOpenChange={setIsOpen}
       className="group/collapsible"
     >
-      <SidebarMenuItem>
-        <CollapsibleTrigger asChild>
+      <CollapsibleTrigger asChild>
+        {depth === 0 ? (
           <SidebarMenuButton tooltip={name}>
             {Icon && <Icon />}
             <span>{name}</span>
-            <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+            <ChevronRight className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
           </SidebarMenuButton>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <SidebarMenuSub>
-            {childLinks.map((subItem) => (
-              <SidebarMenuSubItem key={subItem.name}>
-                <SidebarMenuSubButton
-                  asChild
-                  isActive={isPathActive(pathname, subItem.to)}
-                >
-                  <Link to={subItem.to}>
-                    <span>{subItem.name}</span>
-                  </Link>
-                </SidebarMenuSubButton>
-              </SidebarMenuSubItem>
-            ))}
-          </SidebarMenuSub>
-        </CollapsibleContent>
-      </SidebarMenuItem>
+        ) : (
+          <SidebarMenuSubButton className="w-full cursor-pointer">
+            {Icon && <Icon className="size-4 shrink-0" />}
+            <span>{name}</span>
+            <ChevronRight className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuSubButton>
+        )}
+      </CollapsibleTrigger>
+
+      <CollapsibleContent>
+        <SidebarMenuSub>
+          {children.map((child) => (
+            <NestedMenuItem
+              key={`${fullPath}/${child.path}/${child.name}`}
+              item={child}
+              pathname={pathname}
+              parentPath={fullPath}
+              depth={depth + 1}
+            />
+          ))}
+        </SidebarMenuSub>
+      </CollapsibleContent>
     </Collapsible>
   );
-};
 
-const LinkWithoutChild = ({ pathname, ...link }) => {
-  const { name, icon: Icon, path } = link;
-  const to = buildPlatformPath(path);
-
-  return (
-    <SidebarMenuItem key={name}>
-      <SidebarMenuButton
-        tooltip={name}
-        asChild
-        isActive={isPathActive(pathname, to)}
-      >
-        <Link to={to}>
-          {Icon && <Icon />}
-          <span>{name}</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
+  return depth === 0 ? (
+    <SidebarMenuItem>{content}</SidebarMenuItem>
+  ) : (
+    <SidebarMenuSubItem>{content}</SidebarMenuSubItem>
   );
 };
 
@@ -112,14 +144,11 @@ export function NavMain({ links, label = "Platforms" }) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
+
       <SidebarMenu>
-        {links?.map((link) =>
-          link?.children ? (
-            <LinkWithChild key={link.name} {...link} pathname={pathname} />
-          ) : (
-            <LinkWithoutChild key={link.name} {...link} pathname={pathname} />
-          ),
-        )}
+        {links?.map((link) => (
+          <NestedMenuItem key={link.name} item={link} pathname={pathname} />
+        ))}
       </SidebarMenu>
     </SidebarGroup>
   );

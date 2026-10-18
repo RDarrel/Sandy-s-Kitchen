@@ -10,6 +10,7 @@ import {
   BrickWall,
   ClipboardList,
   CreditCard,
+  ChartNoAxesCombined,
 } from "lucide-react";
 import Dashboard from "./dashboard";
 import Staffs from "./staffs";
@@ -28,6 +29,7 @@ import Audit from "./audit";
 import Policy from "./policy";
 import PaymentMethods from "./paymentMethods";
 import StockPlanning from "./stockPlanning";
+import BookingRevenue from "./reports/bookingRevenue";
 
 export const ADMIN_MANAGEMENT = [
   {
@@ -158,15 +160,58 @@ export const ADMIN_MANAGEMENT = [
       },
     ],
   },
+
+  {
+    name: "Reports",
+    path: "/reports",
+    icon: ChartNoAxesCombined,
+    children: [
+      {
+        name: "Booking",
+        path: "/booking",
+        children: [
+          //it's about in boooking list  to determine the booking that have balance or paid
+          {
+            name: "Sales",
+            path: "/sales",
+            component: BookingRevenue,
+          },
+
+          //it's about in every payments
+          {
+            name: "Payments",
+            path: "/payments",
+            component: BookingRevenue,
+          },
+        ],
+      },
+      {
+        name: "POS",
+        path: "/pos",
+        children: [
+          {
+            name: "Sales",
+            path: "/sales",
+            component: BookingRevenue,
+          },
+          {
+            name: "Transactions",
+            path: "/transactions",
+            component: BookingRevenue,
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export const ADMIN_SYSTEM = [
-  {
-    name: "Audit Trail",
-    path: "/audit",
-    icon: BrickWall,
-    component: Audit,
-  },
+  // {
+  //   name: "Audit Trail",
+  //   path: "/audit",
+  //   icon: BrickWall,
+  //   component: Audit,
+  // },
   {
     name: "Booking Policy",
     path: "/booking-policy",
