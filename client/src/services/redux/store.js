@@ -24,7 +24,7 @@ import {
 import { cashier } from "./slices/stations";
 import { suppliers, purchases, stockRequests } from "./slices/procurement";
 import { services } from "./slices/resources";
-import { bookingReport } from "./slices/report";
+import { bookingReport, posReport } from "./slices/report";
 const store = configureStore({
   reducer: {
     stockBatch,
@@ -53,6 +53,7 @@ const store = configureStore({
     paymentMethods,
     payments,
     bookingReport,
+    posReport,
   },
 });
 

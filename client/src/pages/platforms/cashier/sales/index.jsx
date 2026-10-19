@@ -177,7 +177,7 @@ const Sales = () => {
                   filteredRows.map((row) => (
                     <TableRow key={row.id}>
                       <TableCell className="whitespace-nowrap  text-muted-foreground">
-                        {row.id}
+                        {row.id.slice(-8).toUpperCase()}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-muted-foreground">
                         {row.time}

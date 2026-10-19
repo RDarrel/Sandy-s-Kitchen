@@ -28,7 +28,12 @@ import { Bookings, CateringPackages, Venues } from "./events";
 import Policy from "./policy";
 import PaymentMethods from "./paymentMethods";
 import StockPlanning from "./stockPlanning";
-import { BookingSalesReport, PaymentReport, PosSalesReport } from "./reports";
+import {
+  BookingSalesReport,
+  PaymentReport,
+  PosSalesReport,
+  PosTransactionsReport,
+} from "./reports";
 
 export const ADMIN_MANAGEMENT = [
   {
@@ -196,7 +201,7 @@ export const ADMIN_MANAGEMENT = [
           {
             name: "Transactions",
             path: "/transactions",
-            component: PaymentReport,
+            component: PosTransactionsReport,
           },
         ],
       },

@@ -1,7 +1,12 @@
 import React, { useMemo } from "react";
 import "./print.css";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { format, capitalize } from "@/services/utilities";
 
 const normalizeOrder = (raw) => {
@@ -79,7 +84,16 @@ const ViewReceiptModal = ({ isOpen, setIsOpen, order }) => {
 
   return (
     <Dialog open={Boolean(isOpen)} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-sm rounded-2xl bg-white p-3 text-foreground shadow-xl">
+      <DialogContent
+        aria-label="Transaction Receipt"
+        aria-describedby={undefined}
+        className="max-w-sm rounded-2xl bg-white p-3 text-foreground shadow-xl"
+      >
+        <DialogTitle className="sr-only">Transaction Receipt</DialogTitle>
+
+        <DialogDescription className="sr-only">
+          View transaction details and payment information.
+        </DialogDescription>
         <div className="vr-container">
           <div className="vr-header">
             <h6 className="vr-store">Sandy&apos;s Kitchenette</h6>

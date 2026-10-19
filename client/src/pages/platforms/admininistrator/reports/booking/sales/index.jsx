@@ -111,7 +111,6 @@ const BookingSalesReport = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   const startDate = isValid(date?.from) ? format(date.from, "yyyy-MM-dd") : "";
-
   const endDate = isValid(date?.to) ? format(date.to, "yyyy-MM-dd") : "";
 
   useEffect(() => {
