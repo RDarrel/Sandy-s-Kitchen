@@ -1,21 +1,22 @@
-import React from "react";
-import { Card } from "@/components/ui/card";
-
-import Header from "./header";
-import Body from "./body";
-import FuelBreakdown from "./Breakdown";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const Sales = () => {
   return (
-    <div className="flex gap-4">
-      <div className="flex-1">
+    <div className="bg-background p-4 md:p-6">
+      <div className="mx-auto w-full max-w-7xl space-y-5">
         <Card>
-          <Header />
-          <Body />
+          <CardHeader>
+            <CardTitle>POS Sales Report</CardTitle>
+            <CardDescription></CardDescription>
+          </CardHeader>
+          <CardContent></CardContent>
         </Card>
-      </div>
-      <div className="w-70">
-        <FuelBreakdown isSales={true} />
       </div>
     </div>
   );
