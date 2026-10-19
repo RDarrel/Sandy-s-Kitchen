@@ -36,6 +36,7 @@ const Dishes = ({
   catering = {},
   openMenuKey,
   invalidDishTarget = null,
+  isReport = false,
   handleDishPreparationChange = () => {},
   setOpenMenuKey = () => {},
 }) => {
@@ -63,6 +64,7 @@ const Dishes = ({
             return (
               <MenuItemPanel
                 key={menuKey}
+                isReport={isReport}
                 type={type}
                 item={item}
                 isPending={isPending}
@@ -95,6 +97,7 @@ const MenuItemPanel = memo(
     item,
     catering,
     isOpen,
+    isReport,
     onOpenChange,
     handleDishPreparationChange,
   }) => {
@@ -130,7 +133,9 @@ const MenuItemPanel = memo(
     return (
       <Collapsible
         open={isOpen}
-        onOpenChange={onOpenChange}
+        onOpenChange={() =>
+          isReport ? console.log("clicked") : onOpenChange(true)
+        }
         className="rounded-md border bg-background transition-colors data-[state=open]:border-primary/25 data-[state=open]:bg-primary/5 data-[state=open]:shadow-xs"
       >
         <div className="grid grid-cols-[minmax(0,1fr)_8.75rem] items-center gap-2 px-2 py-1.5">
@@ -148,45 +153,49 @@ const MenuItemPanel = memo(
               <span className="block truncate text-xs font-semibold">
                 {formatItemName(menu || item)}
               </span>
-              <span className="block truncate text-[10px] text-muted-foreground">
-                Recipe Yield:{" "}
-                <span className="font-semibold text-foreground">
-                  {menuRecipeYield}{" "}
-                  {menuRecipeYield === 1 ? "person" : "persons"}
+              {!isReport && (
+                <span className="block truncate text-[10px] text-muted-foreground">
+                  Recipe Yield:{" "}
+                  <span className="font-semibold text-foreground">
+                    {menuRecipeYield}{" "}
+                    {menuRecipeYield === 1 ? "person" : "persons"}
+                  </span>
                 </span>
-              </span>
+              )}
             </span>
           </CollapsibleTrigger>
 
-          <div className="grid gap-0.5">
-            <span className="text-[10px] font-medium text-muted-foreground">
-              Servings
-            </span>
+          {!isReport && (
+            <div className="grid gap-0.5">
+              <span className="text-[10px] font-medium text-muted-foreground">
+                Servings
+              </span>
 
-            <div className="grid grid-cols-[minmax(0,1fr)_1.75rem] gap-1">
-              <Input
-                type="number"
-                min="1"
-                required
-                readOnly={isViewOnly}
-                name={`${type}-${item?.menu?._id}-servings`}
-                value={String(servings || "")}
-                onInvalid={() => onOpenChange(true)}
-                onChange={({ target }) =>
-                  handleServingsChanges(Number(target.value))
-                }
-                className="h-7 px-2 text-xs"
-              />
+              <div className="grid grid-cols-[minmax(0,1fr)_1.75rem] gap-1">
+                <Input
+                  type="number"
+                  min="1"
+                  required
+                  readOnly={isViewOnly}
+                  name={`${type}-${item?.menu?._id}-servings`}
+                  value={String(servings || "")}
+                  onInvalid={() => onOpenChange(true)}
+                  onChange={({ target }) =>
+                    handleServingsChanges(Number(target.value))
+                  }
+                  className="h-7 px-2 text-xs"
+                />
 
-              <CollapsibleTrigger
-                type="button"
-                aria-label={`Toggle ${formatItemName(menu || item)} ingredients`}
-                className="group flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ChevronDown className="size-3.5 transition-transform group-data-[state=open]:rotate-180" />
-              </CollapsibleTrigger>
+                <CollapsibleTrigger
+                  type="button"
+                  aria-label={`Toggle ${formatItemName(menu || item)} ingredients`}
+                  className="group flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <ChevronDown className="size-3.5 transition-transform group-data-[state=open]:rotate-180" />
+                </CollapsibleTrigger>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <CollapsibleContent className="border-t bg-muted/10 px-2 py-2">

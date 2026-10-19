@@ -49,7 +49,13 @@ import WarningMsg from "./warningMsg";
 import FinancialDetails from "./financialDetails";
 import Summary from "./summary";
 
-const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
+const Approval = ({
+  isOpen,
+  setIsOpen,
+  selected = {},
+  mode = "approval",
+  isReport = false,
+}) => {
   const { auth } = useSelector(({ auth }) => auth);
   const {
     formSubmitted,
@@ -147,8 +153,9 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
   };
 
   const services = useMemo(() => {
+    if (!isOpen) return [];
     return getServiceRows(selected);
-  }, [selected]);
+  }, [selected, isOpen]);
 
   const { hasIngredientShortage = false, shortages = [] } = useMemo(() => {
     if (isOpen) {
@@ -551,6 +558,7 @@ const Approval = ({ isOpen, setIsOpen, selected = {}, mode = "approval" }) => {
                                 ? booking?.catering
                                 : null
                             }
+                            isReport={isReport}
                             mode={mode}
                             isViewOnly={["view", "setup"].includes(mode)}
                             isPending={booking?.status === "pending"}

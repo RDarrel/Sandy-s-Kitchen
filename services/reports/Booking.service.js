@@ -1,4 +1,5 @@
 const Payment = require("../../models/events/Payment");
+const Booking = require("../../models/events/Booking");
 const dateToUTC = require("../../utilities/dateToUTC");
 
 const getPaymentReport = async ({ startDate, endDate }) => {
@@ -16,12 +17,13 @@ const getPaymentReport = async ({ startDate, endDate }) => {
   const [result] = await Payment.aggregate([
     {
       $match: {
-        ...(start && end && {
-          createdAt: {
-            $gte: start,
-            $lte: end,
-          },
-        }),
+        ...(start &&
+          end && {
+            createdAt: {
+              $gte: start,
+              $lte: end,
+            },
+          }),
         status: {
           $in: ["pending", "verified", "voided"],
         },
@@ -202,6 +204,278 @@ const getPaymentReport = async ({ startDate, endDate }) => {
   };
 };
 
+const getSalesReport = async ({ startDate, endDate }) => {
+  const start = dateToUTC({
+    date: startDate,
+    dateOnly: true,
+  });
+
+  const end = dateToUTC({
+    date: endDate,
+    dateOnly: true,
+    endOfDay: true,
+  });
+
+  const [result] = await Booking.aggregate([
+    {
+      $match: {
+        status: {
+          $in: ["confirmed", "setup", "completed"],
+        },
+
+        ...(start &&
+          end && {
+            $or: [
+              {
+                "catering.schedule.startAt": {
+                  $gte: start,
+                  $lte: end,
+                },
+              },
+              {
+                "venue.schedule.startAt": {
+                  $gte: start,
+                  $lte: end,
+                },
+              },
+            ],
+          }),
+      },
+    },
+
+    // Get payment records for every booking
+    {
+      $lookup: {
+        from: Payment.collection.name,
+        let: {
+          bookingId: "$_id",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$booking", "$$bookingId"],
+              },
+            },
+          },
+          {
+            $sort: {
+              createdAt: -1,
+              _id: -1,
+            },
+          },
+          {
+            $lookup: {
+              from: "paymentmethods",
+              localField: "method",
+              foreignField: "_id",
+              pipeline: [
+                {
+                  $project: {
+                    name: 1,
+                    type: 1,
+                  },
+                },
+              ],
+              as: "method",
+            },
+          },
+          {
+            $unwind: {
+              path: "$method",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "reviewedBy",
+              foreignField: "_id",
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                  },
+                },
+              ],
+              as: "reviewedBy",
+            },
+          },
+          {
+            $unwind: {
+              path: "$reviewedBy",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              amount: 1,
+              status: 1,
+              createdAt: 1,
+              reviewedAt: 1,
+              method: 1,
+              reviewedBy: 1,
+              snapshot: 1,
+              type: 1,
+              reference: 1,
+              proofImgId: 1,
+              notes: 1,
+              rejectionReason: 1,
+            },
+          },
+        ],
+        as: "payments",
+      },
+    },
+
+    // Sum verified payments only
+    {
+      $addFields: {
+        totalPaid: {
+          $sum: {
+            $map: {
+              input: "$payments",
+              as: "payment",
+              in: {
+                $cond: [
+                  {
+                    $eq: ["$$payment.status", "verified"],
+                  },
+                  {
+                    $ifNull: ["$$payment.amount", 0],
+                  },
+                  0,
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+
+    // Calculate remaining balance
+    {
+      $addFields: {
+        outstandingBalance: {
+          $max: [
+            {
+              $subtract: [
+                {
+                  $ifNull: ["$totalAmount", 0],
+                },
+                "$totalPaid",
+              ],
+            },
+            0,
+          ],
+        },
+      },
+    },
+
+    // Return summary and booking records
+    {
+      $facet: {
+        summary: [
+          {
+            $group: {
+              _id: null,
+
+              totalBookingValue: {
+                $sum: {
+                  $ifNull: ["$pricing.total", 0],
+                },
+              },
+
+              totalPaidAmount: {
+                $sum: "$totalPaid",
+              },
+
+              outstandingBalance: {
+                $sum: "$outstandingBalance",
+              },
+
+              totalBookings: {
+                $sum: 1,
+              },
+            },
+          },
+          {
+            $addFields: {
+              averageBookingValue: {
+                $cond: [
+                  {
+                    $gt: ["$totalBookings", 0],
+                  },
+                  {
+                    $divide: ["$totalBookingValue", "$totalBookings"],
+                  },
+                  0,
+                ],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+            },
+          },
+        ],
+
+        bookings: [
+          {
+            $sort: {
+              createdAt: -1,
+              _id: -1,
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "customer",
+              foreignField: "_id",
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                  },
+                },
+              ],
+              as: "customer",
+            },
+          },
+          {
+            $unwind: {
+              path: "$customer",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+        ],
+      },
+    },
+  ]);
+  const bookings = await Booking.populate(result?.bookings || [], [
+    { path: "catering.mainDishes.menu" },
+    { path: "catering.sideDishes.menu" },
+    { path: "catering.item" },
+    { path: "venue.item" },
+    { path: "catering.inclusions.item" },
+    { path: "venue.inclusions.item" },
+  ]);
+
+  return {
+    summary: result?.summary?.[0] || {
+      totalBookingValue: 0,
+      totalPaidAmount: 0,
+      outstandingBalance: 0,
+      totalBookings: 0,
+      averageBookingValue: 0,
+    },
+
+    bookings: bookings || [],
+  };
+};
+
 module.exports = {
   getPaymentReport,
+  getSalesReport,
 };

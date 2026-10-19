@@ -1,5 +1,5 @@
 const amount = (value, isNumber = false) => {
-  if (!value && value !== 0) return "₱0";
+  if (!value && value === 0) return "₱0.00";
 
   const num = Number(value);
 

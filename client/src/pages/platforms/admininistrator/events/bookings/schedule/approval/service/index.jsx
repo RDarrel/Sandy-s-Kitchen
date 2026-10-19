@@ -27,6 +27,7 @@ const Service = ({
   isViewOnly = false,
   isPending = false,
   invalidDishTarget = null,
+  isReport = false,
   handleDishPreparationChange = () => {},
 }) => {
   const hasConflict = conflicts.length > 0 && item?.label === "Venue";
@@ -153,6 +154,7 @@ const Service = ({
                   setOpenMenuKey={handleDishKeyOpen}
                   invalidDishTarget={invalidDishTarget}
                   handleDishPreparationChange={handleDishPreparationChange}
+                  isReport={isReport}
                 />
 
                 <Dishes
@@ -167,6 +169,7 @@ const Service = ({
                   setOpenMenuKey={handleDishKeyOpen}
                   invalidDishTarget={invalidDishTarget}
                   handleDishPreparationChange={handleDishPreparationChange}
+                  isReport={isReport}
                 />
               </div>
             </ServiceSection>
