@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Bar,
@@ -30,6 +30,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import DatePicker from "@/components/shared/datePicker";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,153 +61,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Formatter } from "@/services/utilities";
+import { capitalize, Formatter, Stock } from "@/services/utilities";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  GET_COLLECTIONS, GET_INCOMING_DELIVERIES, GET_INVENTORY_OVERVIEW,
+  GET_SUMMARY, GET_TOP_SELLING_ITEMS, GET_UPCOMING_BOOKINGS,
+} from "@/services/redux/slices/dashboard";
+import { buildCollectionSeries, getCollectionRange, getCustomDateRange, getPeriodRange, mapBooking, mapDelivery, mapInventoryItem } from "./data";
+import { IncomingDeliveriesSkeleton, InventoryOverviewSkeleton, TopSellingItemsSkeleton, UpcomingBookingsSkeleton } from "./skeletons";
 
-// Design preview data. Replace with dashboard reports when the data integration is ready.
-const periods = {
-  week: {
-    label: "October 19 - 25, 2026",
-    orders: 286,
-    bookings: 12,
-    outstanding: 24500,
-    series: [
-      { date: "Mon", booking: 18000, pos: 8200 },
-      { date: "Tue", booking: 12000, pos: 10600 },
-      { date: "Wed", booking: 24000, pos: 9400 },
-      { date: "Thu", booking: 16000, pos: 12800 },
-      { date: "Fri", booking: 28000, pos: 15600 },
-      { date: "Sat", booking: 36000, pos: 19400 },
-      { date: "Sun", booking: 22000, pos: 14200 },
-    ],
-  },
-  month: {
-    label: "October 2026",
-    orders: 1148,
-    bookings: 38,
-    outstanding: 76500,
-    series: [
-      { date: "Oct 1-4", booking: 68000, pos: 36200 },
-      { date: "Oct 5-11", booking: 124000, pos: 74800 },
-      { date: "Oct 12-18", booking: 138000, pos: 82400 },
-      { date: "Oct 19-25", booking: 156000, pos: 90200 },
-      { date: "Oct 26-31", booking: 96000, pos: 66800 },
-    ],
-  },
-  year: {
-    label: "2026",
-    series: [
-      { date: "Jan", booking: 324000, pos: 218000 },
-      { date: "Feb", booking: 356000, pos: 234000 },
-      { date: "Mar", booking: 402000, pos: 258000 },
-      { date: "Apr", booking: 378000, pos: 242000 },
-      { date: "May", booking: 460000, pos: 286000 },
-      { date: "Jun", booking: 428000, pos: 274000 },
-      { date: "Jul", booking: 496000, pos: 302000 },
-      { date: "Aug", booking: 472000, pos: 288000 },
-      { date: "Sep", booking: 524000, pos: 316000 },
-      { date: "Oct", booking: 582000, pos: 350400 },
-      { date: "Nov", booking: 548000, pos: 338000 },
-      { date: "Dec", booking: 684000, pos: 412000 },
-    ],
-  },
-};
-const upcomingBookings = [
-  {
-    day: "21",
-    month: "OCT",
-    event: "Reyes Family Celebration",
-    service: "Venue + Catering",
-    guests: 80,
-    time: "11:00 AM",
-    status: "Confirmed",
-  },
-  {
-    day: "22",
-    month: "OCT",
-    event: "Team Appreciation Lunch",
-    service: "Catering",
-    guests: 120,
-    time: "12:00 PM",
-    status: "Setup",
-  },
-  {
-    day: "24",
-    month: "OCT",
-    event: "Sofia's 18th Birthday",
-    service: "Venue + Catering",
-    guests: 150,
-    time: "6:00 PM",
-    status: "Confirmed",
-  },
-  {
-    day: "25",
-    month: "OCT",
-    event: "Santos Wedding Reception",
-    service: "Venue + Catering",
-    guests: 200,
-    time: "5:00 PM",
-    status: "Confirmed",
-  },
-  {
-    day: "27",
-    month: "OCT",
-    event: "Company Anniversary Lunch",
-    service: "Catering",
-    guests: 100,
-    time: "12:30 PM",
-    status: "Confirmed",
-  },
-];
-const inventoryAlerts = [
-  { name: "Pork Shoulder", quantity: 4, reorder: 10, unit: "kg" },
-  { name: "Chicken", quantity: 6, reorder: 15, unit: "kg" },
-  { name: "Cooking Oil", quantity: 0, reorder: 8, unit: "L" },
-  { name: "Rice", quantity: 12, reorder: 25, unit: "kg" },
-];
-const incomingDeliveries = [
-  {
-    reference: "PO-2026-1042",
-    supplier: "Fresh Choice Meats",
-    expected: "Oct 20, 2026",
-    items: 6,
-    amount: 12400,
-  },
-  {
-    reference: "PO-2026-1043",
-    supplier: "Farm Fresh Produce",
-    expected: "Oct 21, 2026",
-    items: 8,
-    amount: 4850,
-  },
-  {
-    reference: "PO-2026-1044",
-    supplier: "Golden Grain Trading",
-    expected: "Oct 22, 2026",
-    items: 3,
-    amount: 8600,
-  },
-  {
-    reference: "PO-2026-1045",
-    supplier: "Kitchen Essentials Supply",
-    expected: "Oct 23, 2026",
-    items: 5,
-    amount: 3200,
-  },
-  {
-    reference: "PO-2026-1046",
-    supplier: "Daily Dairy Supply",
-    expected: "Oct 24, 2026",
-    items: 4,
-    amount: 5600,
-  },
-];
-const bestSellers = [
-  { name: "Pork Menudo", sold: 86, amount: 10320 },
-  { name: "Chicken Adobo", sold: 72, amount: 9360 },
-  { name: "Beef Caldereta", sold: 54, amount: 9720 },
-  { name: "Pork Sinigang", sold: 48, amount: 6720 },
-  { name: "Pancit Canton", sold: 41, amount: 4510 },
-];
 const chartConfig = {
   booking: { label: "Booking", color: "var(--primary)" },
   pos: { label: "POS", color: "var(--chart-3)" },
@@ -213,44 +77,102 @@ const chartConfig = {
 const money = (value) => Formatter.amount(value);
 
 const Dashboard = () => {
-  const [period, setPeriod] = useState("week");
+  const [period, setPeriod] = useState("month");
   const [revenueFrequency, setRevenueFrequency] = useState("week");
-  const data = periods[period];
-  const bookingSales = data.series.reduce((sum, day) => sum + day.booking, 0);
-  const posSales = data.series.reduce((sum, day) => sum + day.pos, 0);
-  const totalSales = bookingSales + posSales;
-  const revenueData = periods[revenueFrequency];
-  const bookingRevenue = revenueData.series.reduce(
-    (sum, entry) => sum + entry.booking,
-    0,
-  );
-  const posRevenue = revenueData.series.reduce(
-    (sum, entry) => sum + entry.pos,
-    0,
-  );
-  const totalRevenue = bookingRevenue + posRevenue;
-  const channelData = [
-    { name: "booking", value: bookingRevenue },
-    { name: "pos", value: posRevenue },
-  ];
-  const outOfStockCount = inventoryAlerts.filter(
-    (item) => item.quantity <= 0,
-  ).length;
-  const lowStockCount = inventoryAlerts.length - outOfStockCount;
-  const statuses = [
-    {
-      name: "Confirmed",
-      count: period === "week" ? 6 : 19,
-      color: "bg-primary",
-    },
-    { name: "Setup", count: period === "week" ? 2 : 5, color: "bg-accent" },
-    {
-      name: "Completed",
-      count: period === "week" ? 4 : 14,
-      color: "bg-chart-4",
-    },
-  ];
+  const [now] = useState(() => new Date());
+  const [customDate, setCustomDate] = useState(() => {
+    const initialRange = getPeriodRange("month", now);
+    return { from: initialRange.start, to: initialRange.end };
+  });
+  const [customRange, setCustomRange] = useState(() => getCustomDateRange(customDate));
+  const dispatch = useDispatch();
+  const {
+    summary, collections, topSellingItems, upcomingBookings: bookingReport,
+    inventoryOverview, incomingDeliveries: deliveryReport, errors = {}, requestIds = {},
+    isLoadingSummary: loadingSummary, isLoadingCollections: loadingCollections,
+    isLoadingTopSelling: loadingTopSelling, isLoadingUpcomingBookings: loadingBookings,
+    isLoadingInventoryOverview: loadingInventory, isLoadingIncomingDeliveries: loadingDeliveries,
+  } = useSelector((state) => state.dashboard);
+  const isLoadingSummary = !requestIds.summary || loadingSummary;
+  const isLoadingCollections = !requestIds.collections || loadingCollections;
+  const isLoadingTopSelling = !requestIds.topSellingItems || loadingTopSelling;
+  const isLoadingBookings = !requestIds.upcomingBookings || loadingBookings;
+  const isLoadingInventory = !requestIds.inventoryOverview || loadingInventory;
+  const isLoadingDeliveries = !requestIds.incomingDeliveries || loadingDeliveries;
+  const range = useMemo(() => period === "custom" ? customRange : getPeriodRange(period, now), [period, customRange, now]);
+  const revenueRange = useMemo(() => getCollectionRange(range, revenueFrequency), [range, revenueFrequency]);
+  const { startDate, endDate } = range;
+  const { frequency } = revenueRange;
 
+  const handlePeriodChange = (value) => {
+    if (value === "custom") {
+      const nextDate = { from: range.start, to: range.end };
+      setCustomDate(nextDate);
+      setCustomRange(getCustomDateRange(nextDate));
+    }
+    setPeriod(value);
+  };
+
+  const handleCustomDateChange = (nextDate) => {
+    setCustomDate(nextDate);
+    const nextRange = getCustomDateRange(nextDate);
+    if (nextRange) setCustomRange(nextRange);
+  };
+
+  useEffect(() => {
+    const requests = [
+      dispatch(GET_SUMMARY({ startDate, endDate })),
+      dispatch(GET_TOP_SELLING_ITEMS({ startDate, endDate })),
+    ];
+    return () => requests.forEach((request) => request.abort());
+  }, [dispatch, startDate, endDate]);
+
+  useEffect(() => {
+    const request = dispatch(GET_COLLECTIONS({ startDate, endDate, frequency }));
+    return () => request.abort();
+  }, [dispatch, startDate, endDate, frequency]);
+
+  useEffect(() => {
+    const requests = [
+      dispatch(GET_UPCOMING_BOOKINGS()),
+      dispatch(GET_INVENTORY_OVERVIEW()),
+      dispatch(GET_INCOMING_DELIVERIES()),
+    ];
+    return () => requests.forEach((request) => request.abort());
+  }, [dispatch]);
+
+  const series = useMemo(
+    () => buildCollectionSeries(collections?.overview, revenueRange),
+    [collections?.overview, revenueRange],
+  );
+  const upcomingBookings = (bookingReport?.bookings || []).map(mapBooking);
+  const bestSellers = (topSellingItems || []).map((item) => ({
+    id: item.menuId, name: capitalize(item.name),
+    sold: Number(item.quantitySold ?? 0), amount: Number(item.totalSales ?? 0),
+  }));
+  const inventoryAlerts = (inventoryOverview?.items || []).map(mapInventoryItem);
+  const incomingDeliveries = (deliveryReport?.deliveries || []).map(mapDelivery);
+  const totalSales = Number(summary?.totalCollections ?? 0);
+  const bookingSales = Number(summary?.bookingCollections ?? 0);
+  const posSales = Number(summary?.posSales ?? 0);
+  const totalRevenue = Number(collections?.totalCollections ?? 0);
+  const channelData = (collections?.bySource || []).filter((entry) => ["booking", "pos"].includes(entry.name));
+  const hasCollections = (collections?.overview || []).some((entry) => Number(entry.booking) > 0 || Number(entry.pos) > 0);
+  const summaryTrends = errors.summary ? [] : (summary?.trends || []);
+  const data = {
+    label: range.label,
+    bookings: Number(summary?.verifiedPayments ?? 0),
+    orders: Number(summary?.posTransactions ?? 0),
+    outstanding: Number(summary?.outstandingBalance ?? 0),
+  };
+  const revenueData = { label: revenueRange.label, series };
+  const outOfStockCount = Number(inventoryOverview?.statusCounts?.outOfStock ?? 0);
+  const lowStockCount = Number(inventoryOverview?.statusCounts?.lowStock ?? 0);
+  const statuses = [
+    { name: "Approved", count: Number(bookingReport?.statusCounts?.approved ?? 0), color: "bg-chart-4" },
+    { name: "Confirmed", count: Number(bookingReport?.statusCounts?.confirmed ?? 0), color: "bg-primary" },
+    { name: "Setup", count: Number(bookingReport?.statusCounts?.setup ?? 0), color: "bg-accent" },
+  ];
   return (
     <div className="min-h-full bg-background p-4 text-foreground md:p-6 xl:p-7">
       <div className="mx-auto max-w-[1440px] space-y-5">
@@ -268,30 +190,36 @@ const Dashboard = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Select value={period} onValueChange={setPeriod}>
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end sm:gap-3">
+            <Select value={period} onValueChange={handlePeriodChange}>
               <SelectTrigger
                 aria-label={`Reporting period: ${data.label}`}
-                className="h-10 min-w-0 flex-1 gap-3 rounded-lg bg-card px-3 text-xs shadow-none sm:w-[225px] sm:flex-none"
+                className="h-10 min-w-0 flex-1 gap-3 rounded-lg bg-card px-3 text-xs shadow-sm sm:w-[225px] sm:flex-none"
               >
                 <span className="flex min-w-0 items-center gap-2.5">
                   <CalendarDays
                     className="size-4 shrink-0 text-muted-foreground"
                     aria-hidden="true"
                   />
-                  <SelectValue>{data.label}</SelectValue>
+                  <SelectValue>{period === "custom" ? "Custom Date Range" : data.label}</SelectValue>
                 </span>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="week">This Week</SelectItem>
                 <SelectItem value="month">This Month</SelectItem>
+                <SelectItem value="custom">Custom Date Range</SelectItem>
               </SelectContent>
             </Select>
+            {period === "custom" && (
+              <div role="group" aria-label="Custom dashboard date range" className="[&_button]:h-10 [&_button]:rounded-lg [&_button]:text-xs">
+                <DatePicker mode="range" date={customDate} setDate={handleCustomDateChange} highlightToday={false} />
+              </div>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-10 shrink-0 gap-2 rounded-lg bg-card px-3 text-xs shadow-none"
+                  className="h-10 shrink-0 gap-2 rounded-lg bg-card px-3 text-xs shadow-sm"
                 >
                   <ReceiptText
                     className="size-4 text-muted-foreground"
@@ -333,51 +261,60 @@ const Dashboard = () => {
           </div>
         </header>
 
+        {errors.summary && (
+          <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs text-destructive">
+            <span>Could not load the summary: {errors.summary}</span>
+            <Button variant="outline" size="sm" onClick={() => dispatch(GET_SUMMARY({ startDate, endDate }))}>Retry</Button>
+          </div>
+        )}
         <section
           aria-label="Business performance"
           className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
         >
           <Metric
+            isLoading={isLoadingSummary}
+            showTrend
             title="Total Collections"
-            value={money(totalSales)}
+            value={errors.summary ? "—" : money(totalSales)}
             icon={PhilippinePeso}
             featured
             description="Booking + POS"
             detail="Total payments received"
-            points={data.series.map((day) => day.booking + day.pos)}
+            points={summaryTrends.map((entry) => Number(entry.total ?? 0))}
             to="/platforms/reports/pos/sales"
           />
           <Metric
+            isLoading={isLoadingSummary}
+            showTrend
             title="Booking Collections"
-            value={money(bookingSales)}
+            value={errors.summary ? "—" : money(bookingSales)}
             icon={CalendarDays}
             description={`${data.bookings} verified payments`}
             detail="Payments from bookings"
-            points={data.series.map((day) => day.booking)}
+            points={summaryTrends.map((entry) => Number(entry.booking ?? 0))}
             to="/platforms/reports/booking/sales"
           />
           <Metric
+            isLoading={isLoadingSummary}
+            showTrend
             title="POS Sales"
-            value={money(posSales)}
+            value={errors.summary ? "—" : money(posSales)}
             icon={ShoppingBag}
             gold
             description={`${data.orders.toLocaleString()} transactions`}
             detail="Sales from POS orders"
-            points={data.series.map((day) => day.pos)}
+            points={summaryTrends.map((entry) => Number(entry.pos ?? 0))}
             to="/platforms/reports/pos/sales"
           />
           <Metric
+            isLoading={isLoadingSummary}
             title="Outstanding Balance"
-            value={money(data.outstanding)}
+            value={errors.summary ? "—" : money(data.outstanding)}
             icon={CreditCard}
             gold
-            description="To be collected"
+            description={`${Number(summary?.bookingsWithBalance ?? 0)} bookings with balance`}
             detail="Unpaid booking balances"
-            points={
-              period === "week"
-                ? [36, 30, 34, 28, 29, 20, 24.5]
-                : [120, 108, 94, 82, 76.5]
-            }
+            points={[]}
             to="/platforms/reports/booking/payments"
           />
         </section>
@@ -404,7 +341,7 @@ const Dashboard = () => {
                   onValueChange={setRevenueFrequency}
                 >
                   <SelectTrigger
-                    aria-label="Revenue frequency"
+                    aria-label="Collections frequency"
                     className="h-9 w-[116px] rounded-md bg-muted/25 text-xs font-medium shadow-none hover:bg-muted/50 focus-visible:ring-1"
                   >
                     <SelectValue />
@@ -418,66 +355,13 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent className="px-5 pb-3 pt-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <span className="text-[11px] text-muted-foreground">
-                  Amount (PHP)
-                </span>
-                <div className="flex gap-4">
-                  <Legend color="bg-primary">Booking</Legend>
-                  <Legend color="bg-chart-3">POS</Legend>
-                </div>
-              </div>
-              <ChartContainer
-                config={chartConfig}
-                className="h-[240px] w-full aspect-auto sm:h-[260px]"
-              >
-                <BarChart
-                  accessibilityLayer
-                  data={revenueData.series}
-                  margin={{ top: 10, right: 5, left: -12, bottom: 0 }}
-                  barGap={4}
-                >
-                  <CartesianGrid
-                    vertical={false}
-                    stroke="var(--border)"
-                    strokeDasharray="3 5"
-                  />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={12}
-                    minTickGap={15}
-                    fontSize={11}
-                  />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) =>
-                      new Intl.NumberFormat("en", {
-                        notation: "compact",
-                      }).format(value)
-                    }
-                    fontSize={11}
-                  />
-                  <ChartTooltip
-                    defaultIndex={0}
-                    content={<ChartTooltipContent />}
-                  />
-                  <Bar
-                    dataKey="booking"
-                    fill="var(--color-booking)"
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={28}
-                  />
-                  <Bar
-                    dataKey="pos"
-                    fill="var(--color-pos)"
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={28}
-                  />
-                </BarChart>
-              </ChartContainer>
+              {!isLoadingCollections && errors.collections ? (
+                <DashboardFeedback error={errors.collections} onRetry={() => dispatch(GET_COLLECTIONS({ startDate, endDate, frequency }))} />
+              ) : !isLoadingCollections && !hasCollections ? (
+                <DashboardEmptyState icon={ChartColumn} title="No collections recorded" description="Booking payments and POS sales for this period will appear here." />
+              ) : (
+                <CollectionsOverviewChart series={revenueData.series} loading={isLoadingCollections} />
+              )}
             </CardContent>
           </Card>
 
@@ -498,10 +382,17 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent className="flex flex-1 items-center justify-center px-3 py-5">
+              {isLoadingCollections ? (
+                <CollectionsDonutSkeleton />
+              ) : errors.collections ? (
+                <DashboardFeedback error={errors.collections} onRetry={() => dispatch(GET_COLLECTIONS({ startDate, endDate, frequency }))} />
+              ) : !hasCollections ? (
+                <DashboardEmptyState icon={PhilippinePeso} title="No collections recorded" description="The Booking and POS breakdown will appear once payments are received." />
+              ) : (
               <ChartContainer
                 config={chartConfig}
                 className="mx-auto h-[260px] w-full max-w-[300px] aspect-auto"
-                aria-label="Revenue distribution between Booking and POS"
+                aria-label="Collections distribution between Booking and POS"
               >
                 <PieChart accessibilityLayer>
                   <ChartTooltip
@@ -566,6 +457,7 @@ const Dashboard = () => {
                   </Pie>
                 </PieChart>
               </ChartContainer>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -593,11 +485,15 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col px-5">
-              {upcomingBookings.length ? (
+              {isLoadingBookings ? (
+                <UpcomingBookingsSkeleton />
+              ) : errors.upcomingBookings ? (
+                <DashboardFeedback error={errors.upcomingBookings} onRetry={() => dispatch(GET_UPCOMING_BOOKINGS())} />
+              ) : upcomingBookings.length ? (
                 <>
                   <div className="flex min-h-11 flex-wrap items-center gap-x-4 gap-y-2 border-b py-3">
                     <span className="text-[11px] text-muted-foreground">
-                      {period === "week" ? "This week" : "This month"}
+                      Upcoming
                     </span>
                     {statuses.map((status) => (
                       <span
@@ -620,7 +516,7 @@ const Dashboard = () => {
                   <div className="flex flex-1 flex-col divide-y">
                     {upcomingBookings.map((booking) => (
                       <div
-                        key={booking.event}
+                        key={booking.id}
                         className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 py-3 sm:grid-cols-[44px_minmax(0,1fr)_88px] sm:gap-4 lg:h-[84px] lg:py-2.5"
                       >
                         <div className="overflow-hidden rounded-lg border bg-card text-center">
@@ -654,7 +550,7 @@ const Dashboard = () => {
                                 className="size-3 shrink-0"
                                 aria-hidden="true"
                               />
-                              <span>{booking.guests} guests</span>
+                              <span>{booking.guests == null ? "Guests not specified" : `${booking.guests} guests`}</span>
                             </p>
                           </div>
                         </div>
@@ -687,7 +583,7 @@ const Dashboard = () => {
                       Top-Selling Items
                     </CardTitle>
                     <p className="text-xs leading-4 text-muted-foreground">
-                      October 19 - 25, 2026
+                      {data.label}
                     </p>
                   </div>
                 </div>
@@ -698,7 +594,11 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col px-5">
-              {bestSellers.length ? (
+              {isLoadingTopSelling ? (
+                <TopSellingItemsSkeleton />
+              ) : errors.topSellingItems ? (
+                <DashboardFeedback error={errors.topSellingItems} onRetry={() => dispatch(GET_TOP_SELLING_ITEMS({ startDate, endDate }))} />
+              ) : bestSellers.length ? (
                 <>
                   <div className="flex min-h-11 items-center justify-between gap-2 border-b py-3 text-[11px] text-muted-foreground">
                     <span>Ranked by quantity sold</span>
@@ -709,7 +609,7 @@ const Dashboard = () => {
                   <ol className="divide-y">
                     {bestSellers.map((item, index) => (
                       <li
-                        key={item.name}
+                        key={item.id}
                         className="flex items-center gap-3 py-4 lg:h-[84px]"
                       >
                         <span
@@ -781,7 +681,11 @@ const Dashboard = () => {
                 </ReportLink>
               </div>
             </CardHeader>
-            {inventoryAlerts.length ? (
+            {isLoadingInventory ? (
+              <InventoryOverviewSkeleton />
+            ) : errors.inventoryOverview ? (
+              <DashboardFeedback error={errors.inventoryOverview} onRetry={() => dispatch(GET_INVENTORY_OVERVIEW())} />
+            ) : inventoryAlerts.length ? (
               <>
                 <div className="mx-5 flex min-h-11 flex-wrap items-center gap-4 border-b py-3 text-[11px]">
                   <span className="inline-flex items-center gap-1.5">
@@ -813,19 +717,19 @@ const Dashboard = () => {
                       );
                       const isOutOfStock = item.quantity <= 0;
                       return (
-                        <li key={item.name} className="py-3">
+                        <li key={item.id} className="py-3">
                           <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0">
                               <p className="text-sm font-medium leading-5">
-                                {item.name}
+                                {capitalize(item.name)}
                               </p>
                               <p className="mt-0.5 text-[11px] leading-4 tabular-nums text-muted-foreground">
-                                Reorder at {item.reorder} {item.unit}
+                                Reorder at {Stock.format(item.reorder)} {item.unit}
                               </p>
                             </div>
                             <div className="shrink-0 text-right">
                               <p className="text-sm font-semibold leading-5 tabular-nums">
-                                {item.quantity} {item.unit}
+                                {Stock.format(item.quantity)} {item.unit}
                               </p>
                               <p
                                 className={`mt-0.5 text-[11px] leading-4 ${isOutOfStock ? "text-destructive" : "text-amber-700 dark:text-amber-400"}`}
@@ -885,7 +789,11 @@ const Dashboard = () => {
                 </ReportLink>
               </div>
             </CardHeader>
-            {incomingDeliveries.length ? (
+            {isLoadingDeliveries ? (
+              <IncomingDeliveriesSkeleton />
+            ) : errors.incomingDeliveries ? (
+              <DashboardFeedback error={errors.incomingDeliveries} onRetry={() => dispatch(GET_INCOMING_DELIVERIES())} />
+            ) : incomingDeliveries.length ? (
               <>
                 <CardContent className="px-0">
                   <Table>
@@ -896,7 +804,7 @@ const Dashboard = () => {
                         </TableHead>
                         <TableHead className="text-xs">Expected</TableHead>
                         <TableHead className="text-right text-xs">
-                          Items
+                          Status
                         </TableHead>
                         <TableHead className="pr-5 text-right text-xs">
                           Amount
@@ -906,7 +814,7 @@ const Dashboard = () => {
                     <TableBody>
                       {incomingDeliveries.map((delivery) => (
                         <TableRow
-                          key={delivery.reference}
+                          key={delivery.id}
                           className="h-16 last:border-b-0"
                         >
                           <TableCell className="pl-5">
@@ -921,7 +829,7 @@ const Dashboard = () => {
                             {delivery.expected}
                           </TableCell>
                           <TableCell className="text-right text-xs tabular-nums">
-                            {delivery.items}
+                            <Badge variant="outline" className="whitespace-nowrap border-chart-3/25 bg-chart-3/10 text-[10px] font-medium">{delivery.status}</Badge>
                           </TableCell>
                           <TableCell className="whitespace-nowrap pr-5 text-right text-xs font-semibold tabular-nums">
                             {money(delivery.amount)}
@@ -946,6 +854,92 @@ const Dashboard = () => {
   );
 };
 
+const CollectionsOverviewChart = ({ series, loading }) => {
+  const chartData = useMemo(() => {
+    if (!loading) return series;
+    const heights = [[54, 32], [72, 44], [46, 30], [82, 53], [65, 41], [90, 62], [58, 38]];
+    return series.map((entry, index) => ({
+      ...entry,
+      booking: heights[index % heights.length][0],
+      pos: heights[index % heights.length][1],
+    }));
+  }, [series, loading]);
+
+  return (
+    <div role={loading ? "status" : undefined} aria-label={loading ? "Loading collections overview" : undefined} className="min-w-0 w-full">
+      <div aria-hidden={loading || undefined} className="mb-4 flex h-[18px] items-center justify-between gap-3">
+        {loading ? <Skeleton className="h-2.5 w-16" /> : <span className="text-[11px] text-muted-foreground">Amount (PHP)</span>}
+        <div className="flex gap-4">
+          {loading ? [0, 1].map((item) => (
+            <div key={item} className="flex items-center gap-1.5"><Skeleton className="size-2 rounded-full" /><Skeleton className="h-2.5 w-10" /></div>
+          )) : <><Legend color="bg-primary">Booking</Legend><Legend color="bg-chart-3">POS</Legend></>}
+        </div>
+      </div>
+      <ChartContainer config={chartConfig} className="h-[240px] w-full aspect-auto sm:h-[260px]" aria-hidden={loading || undefined}>
+        <BarChart
+          accessibilityLayer={!loading}
+          data={chartData}
+          margin={{ top: 10, right: 5, left: -12, bottom: 0 }}
+          barGap={4}
+        >
+          <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" />
+          <XAxis
+            dataKey="date" height={30} tickLine={false} axisLine={false}
+            tickMargin={12} minTickGap={15} fontSize={11}
+            tick={loading ? <CollectionsAxisSkeleton axis="x" /> : true}
+          />
+          <YAxis
+            width={60} tickLine={false} axisLine={false} fontSize={11}
+            domain={loading ? [0, 100] : [0, "auto"]}
+            tickFormatter={(value) => new Intl.NumberFormat("en", { notation: "compact" }).format(value)}
+            tick={loading ? <CollectionsAxisSkeleton axis="y" /> : true}
+          />
+          <ChartTooltip defaultIndex={0} active={loading ? false : undefined} cursor={false} content={<ChartTooltipContent />} />
+          <Bar
+            dataKey="booking" fill={loading ? "var(--skeleton)" : "var(--color-booking)"}
+            radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={false}
+            className={loading ? "animate-pulse motion-reduce:animate-none" : undefined}
+          />
+          <Bar
+            dataKey="pos" fill={loading ? "var(--skeleton)" : "var(--color-pos)"}
+            fillOpacity={loading ? 0.6 : 1} radius={[4, 4, 0, 0]} maxBarSize={28} isAnimationActive={false}
+            className={loading ? "animate-pulse motion-reduce:animate-none" : undefined}
+          />
+        </BarChart>
+      </ChartContainer>
+    </div>
+  );
+};
+
+const CollectionsAxisSkeleton = ({ x = 0, y = 0, axis }) => (
+  <rect
+    x={axis === "y" ? x - 24 : x - 12}
+    y={y - 4}
+    width={24}
+    height={8}
+    rx={3}
+    fill="var(--skeleton)"
+    className="animate-pulse motion-reduce:animate-none"
+  />
+);
+const CollectionsDonutSkeleton = () => (
+  <div role="status" aria-label="Loading collections by source" className="mx-auto h-[260px] w-full max-w-[300px]">
+    <svg viewBox="0 0 300 260" className="h-full w-full animate-pulse motion-reduce:animate-none" aria-hidden="true">
+      <circle cx="150" cy="130" r="93" fill="none" stroke="var(--skeleton)" strokeWidth="34" strokeDasharray="365 4 211 4" transform="rotate(-90 150 130)" />
+      <rect x="98" y="114" width="104" height="17" rx="4" fill="var(--skeleton)" />
+      <rect x="112" y="141" width="76" height="9" rx="3" fill="var(--skeleton)" />
+    </svg>
+  </div>
+);
+
+const DashboardFeedback = ({ error, onRetry }) => (
+    <div role="alert" className="flex min-h-[260px] flex-1 flex-col items-center justify-center gap-3 px-5 py-6 text-center">
+      <p className="text-sm font-medium">Could not load this section</p>
+      <p className="max-w-xs text-xs text-muted-foreground">{error}</p>
+      <Button variant="outline" size="sm" onClick={onRetry}>Try Again</Button>
+    </div>
+);
+
 const DashboardEmptyState = ({ icon, title, description }) => {
   const Icon = icon;
   return (
@@ -967,10 +961,12 @@ const Metric = ({
   icon,
   description,
   detail,
-  points,
+  points = [],
   to,
   gold,
   featured,
+  isLoading,
+  showTrend = false,
 }) => {
   const Icon = icon;
   const min = Math.min(...points);
@@ -1008,18 +1004,25 @@ const Metric = ({
           </span>
         </div>
         <p className="mt-2.5 break-words text-[28px] font-semibold leading-tight tracking-tight tabular-nums">
-          {value}
+          {isLoading ? <Skeleton aria-label="Loading amount" className="h-9 w-36" /> : value}
         </p>
       </div>
-      <div className="mx-4 mt-auto flex items-center justify-between gap-3 border-t border-border/70 py-2">
+      <div className="mx-4 mt-auto flex min-h-10 items-center justify-between gap-3 border-t border-border/70 py-2">
         <span className="inline-flex min-w-0 items-center gap-1 text-[11px] font-medium text-muted-foreground group-hover:text-foreground">
-          {description}
+          {isLoading ? <Skeleton className="h-3 w-24" /> : description}
           <ArrowUpRight
             className="size-3 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-primary"
             aria-hidden="true"
           />
         </span>
-        <svg
+        {isLoading && showTrend && (
+          <svg viewBox="0 0 104 36" className="h-6 w-[72px] shrink-0 animate-pulse text-skeleton motion-reduce:animate-none" aria-hidden="true">
+            <polygon points="4,36 4,27 20,19 36,23 52,12 68,17 84,7 100,13 100,36" fill="currentColor" opacity="0.35" />
+            <polyline points="4,27 20,19 36,23 52,12 68,17 84,7 100,13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="100" cy="13" r="2.5" fill="currentColor" />
+          </svg>
+        )}
+        {!isLoading && points.length > 1 && <svg
           viewBox="0 0 104 36"
           className={`h-6 w-[72px] shrink-0 ${gold ? "text-chart-3" : "text-primary"}`}
           aria-hidden="true"
@@ -1047,7 +1050,7 @@ const Metric = ({
               strokeWidth="1.5"
             />
           )}
-        </svg>
+        </svg>}
       </div>
     </Link>
   );

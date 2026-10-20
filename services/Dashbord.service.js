@@ -6,6 +6,7 @@ const Inventory = require("../models/inventory/Item");
 const Purchase = require("../models/procurement/Purchase");
 const Supplier = require("../models/procurement/Supplier");
 const dateToUTC = require("../utilities/dateToUTC");
+const TIMEZONE = "Asia/Manila";
 
 const getIncomingDeliveries = async ({ limit = 5 } = {}) => {
   const itemLimit = Math.min(Math.max(Number(limit) || 5, 1), 50);
@@ -93,6 +94,20 @@ const getInventoryOverview = async ({ limit = 5 } = {}) => {
       },
     },
 
+    // Current stock is stored in g/ml; the reorder level is stored in kg/L.
+    {
+      $addFields: {
+        minimumStockInBase: {
+          $multiply: [
+            { $ifNull: ["$stock.min", 0] },
+            {
+              $cond: [{ $in: ["$measurement", ["weight", "volume"]] }, 1000, 1],
+            },
+          ],
+        },
+      },
+    },
+
     // Calculate stock status
     {
       $addFields: {
@@ -107,7 +122,7 @@ const getInventoryOverview = async ({ limit = 5 } = {}) => {
               },
               {
                 case: {
-                  $lt: ["$stock.current", "$stock.min"],
+                  $lt: ["$stock.current", "$minimumStockInBase"],
                 },
                 then: "Low Stock",
               },
@@ -168,12 +183,12 @@ const getInventoryOverview = async ({ limit = 5 } = {}) => {
               stockPercentage: {
                 $cond: [
                   {
-                    $gt: ["$stock.min", 0],
+                    $gt: ["$minimumStockInBase", 0],
                   },
                   {
                     $multiply: [
                       {
-                        $divide: ["$stock.current", "$stock.min"],
+                        $divide: ["$stock.current", "$minimumStockInBase"],
                       },
                       100,
                     ],
@@ -243,7 +258,7 @@ const getUpcomingBookings = async ({ limit = 5 } = {}) => {
         upcomingDate: {
           $min: {
             $filter: {
-              input: ["$catering.schedule.start", "$event.schedule.start"],
+              input: ["$catering.schedule.startAt", "$venue.schedule.startAt"],
               as: "schedule",
               cond: {
                 $and: [
@@ -283,11 +298,12 @@ const getUpcomingBookings = async ({ limit = 5 } = {}) => {
             $project: {
               _id: 1,
               status: 1,
-              type: 1,
-              customer: 1,
-              guests: 1,
+              reference: 1,
+              eventType: 1,
+              bookingType: 1,
+              guests: { $ifNull: ["$catering.pax", "$venue.pax"] },
               cateringSchedule: "$catering.schedule",
-              eventSchedule: "$event.schedule",
+              venueSchedule: "$venue.schedule",
               upcomingDate: 1,
             },
           },
@@ -585,7 +601,24 @@ const getCollections = async ({ startDate, endDate, frequency = "daily" }) => {
   };
 };
 
+const getTrendFrequency = (startDate, endDate) => {
+  const start = new Date(`${startDate}T00:00:00Z`);
+  const end = new Date(`${endDate}T00:00:00Z`);
+
+  const days = Math.round((end - start) / 86400000) + 1;
+
+  if (days <= 1) return "hour";
+  if (days <= 31) return "day";
+  if (days <= 366) return "month";
+
+  return "year";
+};
+
 const getSummary = async ({ startDate, endDate }) => {
+  if (!startDate || !endDate) {
+    throw new Error("startDate and endDate are required.");
+  }
+
   const start = dateToUTC({
     date: startDate,
     dateOnly: true,
@@ -597,59 +630,121 @@ const getSummary = async ({ startDate, endDate }) => {
     endOfDay: true,
   });
 
+  if (
+    !(start instanceof Date) ||
+    !(end instanceof Date) ||
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    start > end
+  ) {
+    throw new Error("Invalid date range.");
+  }
+
+  const trendFrequency = getTrendFrequency(startDate, endDate);
+
+  const dateGroup = (field) => ({
+    $dateTrunc: {
+      date: field,
+      unit: trendFrequency,
+      timezone: TIMEZONE,
+    },
+  });
+
   const [orderResult, paymentResult, outstandingResult] = await Promise.all([
-    // 1. POS Sales
+    // 1. POS collections and trends
     Order.aggregate([
       {
         $match: {
           createdAt: {
             $gte: start,
-            $lt: end,
+            $lte: end,
           },
-          // Add paid/completed status filter here
-          // if your Order model supports unpaid/voided orders.
+
+          // Add your actual paid/completed status
+          // filter if necessary.
         },
       },
       {
-        $group: {
-          _id: null,
-          totalAmount: {
-            $sum: { $ifNull: ["$amount", 0] },
-          },
-          transactions: { $sum: 1 },
+        $facet: {
+          summary: [
+            {
+              $group: {
+                _id: null,
+                totalAmount: {
+                  $sum: {
+                    $ifNull: ["$amount", 0],
+                  },
+                },
+                transactions: { $sum: 1 },
+              },
+            },
+          ],
+
+          trends: [
+            {
+              $group: {
+                _id: dateGroup("$createdAt"),
+                amount: {
+                  $sum: {
+                    $ifNull: ["$amount", 0],
+                  },
+                },
+              },
+            },
+            { $sort: { _id: 1 } },
+          ],
         },
       },
     ]),
 
-    // 2. Booking Collections
+    // 2. Booking collections and trends
     BookingPayment.aggregate([
       {
         $match: {
           reviewedAt: {
             $gte: start,
-            $lt: end,
+            $lte: end,
           },
           status: "verified",
         },
       },
       {
-        $group: {
-          _id: null,
-          totalAmount: {
-            $sum: { $ifNull: ["$amount", 0] },
-          },
-          verifiedPayments: { $sum: 1 },
+        $facet: {
+          summary: [
+            {
+              $group: {
+                _id: null,
+                totalAmount: {
+                  $sum: {
+                    $ifNull: ["$amount", 0],
+                  },
+                },
+                verifiedPayments: { $sum: 1 },
+              },
+            },
+          ],
+
+          trends: [
+            {
+              $group: {
+                _id: dateGroup("$reviewedAt"),
+                amount: {
+                  $sum: {
+                    $ifNull: ["$amount", 0],
+                  },
+                },
+              },
+            },
+            { $sort: { _id: 1 } },
+          ],
         },
       },
     ]),
 
-    // 3. Current Outstanding Balance
+    // 3. Current outstanding balance
     Booking.aggregate([
       {
         $match: {
-          // IMPORTANT:
-          // Replace these with your actual eligible
-          // Booking status values.
           status: {
             $in: ["confirmed", "setup", "completed"],
           },
@@ -735,11 +830,103 @@ const getSummary = async ({ startDate, endDate }) => {
     ]),
   ]);
 
-  const posSales = orderResult[0]?.totalAmount ?? 0;
+  const orderData = orderResult[0] ?? {};
+  const paymentData = paymentResult[0] ?? {};
 
-  const bookingCollections = paymentResult[0]?.totalAmount ?? 0;
+  const posSales = orderData.summary?.[0]?.totalAmount ?? 0;
+
+  const bookingCollections = paymentData.summary?.[0]?.totalAmount ?? 0;
 
   const outstandingBalance = outstandingResult[0]?.outstandingBalance ?? 0;
+
+  // Merge Booking and POS trends
+  const trendsMap = new Map();
+
+  for (const item of orderData.trends ?? []) {
+    const key = item._id.toISOString();
+
+    trendsMap.set(key, {
+      date: key,
+      booking: 0,
+      pos: item.amount,
+      total: item.amount,
+    });
+  }
+
+  for (const item of paymentData.trends ?? []) {
+    const key = item._id.toISOString();
+
+    if (!trendsMap.has(key)) {
+      trendsMap.set(key, {
+        date: key,
+        booking: 0,
+        pos: 0,
+        total: 0,
+      });
+    }
+
+    const trend = trendsMap.get(key);
+
+    trend.booking += item.amount;
+    trend.total += item.amount;
+  }
+
+  // Fill missing periods with zero values
+  const trends = [];
+
+  const cursor = new Date(start);
+
+  // Align cursor with MongoDB dateTrunc boundaries.
+  // Philippine time is UTC+8, with no DST.
+  const PH_OFFSET = 8 * 60 * 60 * 1000;
+
+  const alignDate = (date) => {
+    const local = new Date(date.getTime() + PH_OFFSET);
+
+    if (trendFrequency === "year") {
+      local.setUTCMonth(0, 1);
+      local.setUTCHours(0, 0, 0, 0);
+    } else if (trendFrequency === "month") {
+      local.setUTCDate(1);
+      local.setUTCHours(0, 0, 0, 0);
+    } else if (trendFrequency === "day") {
+      local.setUTCHours(0, 0, 0, 0);
+    } else {
+      local.setUTCMinutes(0, 0, 0);
+    }
+
+    return new Date(local.getTime() - PH_OFFSET);
+  };
+
+  let period = alignDate(cursor);
+
+  while (period <= end) {
+    const key = period.toISOString();
+
+    trends.push(
+      trendsMap.get(key) ?? {
+        date: key,
+        booking: 0,
+        pos: 0,
+        total: 0,
+      },
+    );
+
+    // Move to the next calendar period in PH time
+    const local = new Date(period.getTime() + PH_OFFSET);
+
+    if (trendFrequency === "hour") {
+      local.setUTCHours(local.getUTCHours() + 1);
+    } else if (trendFrequency === "day") {
+      local.setUTCDate(local.getUTCDate() + 1);
+    } else if (trendFrequency === "month") {
+      local.setUTCMonth(local.getUTCMonth() + 1);
+    } else {
+      local.setUTCFullYear(local.getUTCFullYear() + 1);
+    }
+
+    period = new Date(local.getTime() - PH_OFFSET);
+  }
 
   return {
     totalCollections: bookingCollections + posSales,
@@ -748,11 +935,13 @@ const getSummary = async ({ startDate, endDate }) => {
     posSales,
     outstandingBalance,
 
-    verifiedPayments: paymentResult[0]?.verifiedPayments ?? 0,
+    verifiedPayments: paymentData.summary?.[0]?.verifiedPayments ?? 0,
 
-    posTransactions: orderResult[0]?.transactions ?? 0,
+    posTransactions: orderData.summary?.[0]?.transactions ?? 0,
 
     bookingsWithBalance: outstandingResult[0]?.bookingsWithBalance ?? 0,
+
+    trends,
   };
 };
 
