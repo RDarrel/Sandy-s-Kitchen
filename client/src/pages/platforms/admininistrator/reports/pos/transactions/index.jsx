@@ -267,7 +267,7 @@ const Transactions = () => {
             </div>
 
             {!isLoading && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto [&>div]:mt-0">
                 <CustomPagination
                   page={page}
                   maxPage={maxPage}
