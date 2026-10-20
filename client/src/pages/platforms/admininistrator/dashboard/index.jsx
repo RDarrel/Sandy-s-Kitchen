@@ -1,973 +1,482 @@
-import React, { useMemo, useState } from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Bar, BarChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis, YAxis } from "recharts";
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  Building2,
-  CalendarDays,
-  ChefHat,
-  ClipboardList,
-  PhilippinePeso,
-  Sparkles,
-  UtensilsCrossed,
+  ArrowRight, ArrowUpRight, CalendarDays, ChartColumn, ChartNoAxesCombined, ChevronDown, ChevronRight, CreditCard,
+  PhilippinePeso, ReceiptText, Search, ShoppingBag,
 } from "lucide-react";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
-import { format } from "@/services/utilities";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Formatter } from "@/services/utilities";
 
-const KPI = ({ title, value, delta, icon: Icon, helper }) => (
-  <Card className="relative overflow-hidden transition-shadow hover:shadow-sm">
-    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/6 via-transparent to-transparent" />
-    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-      <div className="space-y-1">
-        <p className="text-muted-foreground text-sm">{title}</p>
-        <div className="flex items-end gap-2">
-          <p className="text-2xl font-semibold leading-none tracking-tight">
-            {value}
-          </p>
-          {typeof delta === "number" && (
-            <Badge
-              variant="secondary"
-              className={cn(
-                "h-5 px-2 text-[11px]",
-                delta >= 0
-                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                  : "bg-rose-500/10 text-rose-700 dark:text-rose-300",
-              )}
-            >
-              {delta >= 0 ? "+" : ""}
-              {delta}%
-            </Badge>
-          )}
-        </div>
-        {helper ? (
-          <p className="text-muted-foreground text-xs">{helper}</p>
-        ) : null}
-      </div>
-      <div className="bg-muted text-muted-foreground flex h-9 w-9 items-center justify-center rounded-md border">
-        {React.createElement(Icon, { className: "h-4 w-4" })}
-      </div>
-    </CardHeader>
-    <CardContent className="pt-2">
-      <div className="bg-muted/70 h-1.5 w-full overflow-hidden rounded-full">
-        <div
-          className="bg-primary h-full rounded-full"
-          style={{
-            width: `${Math.min(100, Math.max(10, 40 + (delta || 0)))}%`,
-          }}
-        />
-      </div>
-    </CardContent>
-  </Card>
-);
-
-const StatusBadge = ({ status }) => {
-  const mapped = String(status || "").toLowerCase();
-  const { variant, className, label } =
-    mapped === "confirmed"
-      ? {
-          variant: "secondary",
-          className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-          label: "Confirmed",
-        }
-      : mapped === "pending"
-        ? {
-            variant: "secondary",
-            className: "bg-amber-500/10 text-amber-800 dark:text-amber-200",
-            label: "Pending",
-          }
-        : mapped === "preparing"
-          ? {
-              variant: "secondary",
-              className: "bg-sky-500/10 text-sky-800 dark:text-sky-200",
-              label: "Preparing",
-            }
-          : mapped === "served"
-            ? {
-                variant: "secondary",
-                className:
-                  "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-                label: "Served",
-              }
-            : mapped === "cancelled"
-              ? { variant: "destructive", className: "", label: "Cancelled" }
-              : { variant: "outline", className: "", label: status || "—" };
-
-  return (
-    <Badge variant={variant} className={cn("h-5 px-2 text-[11px]", className)}>
-      {label}
-    </Badge>
-  );
+// Design preview data. Replace with dashboard reports when the data integration is ready.
+const periods = {
+  week: {
+    label: "October 19 - 25, 2026",
+    orders: 286,
+    bookings: 12,
+    outstanding: 24500,
+    series: [
+      { date: "Mon", booking: 18000, pos: 8200 },
+      { date: "Tue", booking: 12000, pos: 10600 },
+      { date: "Wed", booking: 24000, pos: 9400 },
+      { date: "Thu", booking: 16000, pos: 12800 },
+      { date: "Fri", booking: 28000, pos: 15600 },
+      { date: "Sat", booking: 36000, pos: 19400 },
+      { date: "Sun", booking: 22000, pos: 14200 },
+    ],
+  },
+  month: {
+    label: "October 2026",
+    orders: 1148,
+    bookings: 38,
+    outstanding: 76500,
+    series: [
+      { date: "Oct 1-4", booking: 68000, pos: 36200 },
+      { date: "Oct 5-11", booking: 124000, pos: 74800 },
+      { date: "Oct 12-18", booking: 138000, pos: 82400 },
+      { date: "Oct 19-25", booking: 156000, pos: 90200 },
+      { date: "Oct 26-31", booking: 96000, pos: 66800 },
+    ],
+  },
+  year: {
+    label: "2026",
+    series: [
+      { date: "Jan", booking: 324000, pos: 218000 },
+      { date: "Feb", booking: 356000, pos: 234000 },
+      { date: "Mar", booking: 402000, pos: 258000 },
+      { date: "Apr", booking: 378000, pos: 242000 },
+      { date: "May", booking: 460000, pos: 286000 },
+      { date: "Jun", booking: 428000, pos: 274000 },
+      { date: "Jul", booking: 496000, pos: 302000 },
+      { date: "Aug", booking: 472000, pos: 288000 },
+      { date: "Sep", booking: 524000, pos: 316000 },
+      { date: "Oct", booking: 582000, pos: 350400 },
+      { date: "Nov", booking: 548000, pos: 338000 },
+      { date: "Dec", booking: 684000, pos: 412000 },
+    ],
+  },
 };
+const upcomingBookings = [
+  { day: "21", month: "OCT", event: "Reyes Family Celebration", service: "Venue + Catering", guests: 80, time: "11:00 AM", status: "Confirmed" },
+  { day: "22", month: "OCT", event: "Team Appreciation Lunch", service: "Catering", guests: 120, time: "12:00 PM", status: "Setup" },
+  { day: "24", month: "OCT", event: "Sofia's 18th Birthday", service: "Venue + Catering", guests: 150, time: "6:00 PM", status: "Confirmed" },
+];
+const recentTransactions = [
+  { id: "A8F24C10", time: "10:50 AM", items: 4, amount: 680, cashier: "Maria Santos" },
+  { id: "A8F24C09", time: "10:42 AM", items: 2, amount: 320, cashier: "Juan Reyes" },
+  { id: "A8F24C08", time: "10:35 AM", items: 6, amount: 1120, cashier: "Maria Santos" },
+];
+const bestSellers = [
+  { name: "Pork Menudo", sold: 86, amount: 10320 },
+  { name: "Chicken Adobo", sold: 72, amount: 9360 },
+  { name: "Beef Caldereta", sold: 54, amount: 9720 },
+];
+const chartConfig = {
+  booking: { label: "Booking Revenue", color: "var(--primary)" },
+  pos: { label: "POS Revenue", color: "var(--chart-3)" },
+};
+const money = (value) => Formatter.amount(value);
 
 const Dashboard = () => {
-  const [range, setRange] = useState("30d");
-
-  const series30 = useMemo(() => {
-    const today = new Date();
-    return Array.from({ length: 30 }, (_, idx) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() - (29 - idx));
-
-      const t = idx + 1;
-      const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-      const trend = 0.92 + idx / 72;
-
-      const revenueWave = 1800 * Math.sin(t / 3.4) + 900 * Math.cos(t / 7.2);
-      const revenueBoost = (isWeekend ? 3200 : 0) + (t % 9 === 0 ? 1200 : 0);
-      const revenue = Math.max(
-        0,
-        Math.round(15000 * trend + revenueWave + revenueBoost),
-      );
-
-      const ordersWave = 8 * Math.sin(t / 4.1) + 4 * Math.cos(t / 6.6);
-      const ordersBoost = (isWeekend ? 14 : 0) + (t % 10 === 0 ? 6 : 0);
-      const orders = Math.max(
-        0,
-        Math.round(58 * trend + ordersWave + ordersBoost),
-      );
-
-      const cateringWave = 2.4 * Math.sin(t / 3.8) + 1.3 * Math.cos(t / 6.1);
-      const cateringBoost = (isWeekend ? 2 : 0) + (t % 7 === 0 ? 3 : 0);
-      const catering = Math.max(
-        0,
-        Math.round(6 * trend + cateringWave + cateringBoost),
-      );
-
-      const venueWave = 1.6 * Math.cos(t / 5.7) + 0.9 * Math.sin(t / 8.4);
-      const venueBoost = (t % 12 === 0 ? 2 : 0) + (isWeekend ? 1 : 0);
-      const venue = Math.max(0, Math.round(2 * trend + venueWave + venueBoost));
-
-      return {
-        date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        revenue,
-        orders,
-        catering,
-        venue,
-      };
-    });
-  }, []);
-
-  const series = useMemo(() => {
-    if (range === "7d") return series30.slice(-7);
-    if (range === "14d") return series30.slice(-14);
-    return series30;
-  }, [range, series30]);
-
-  const totals = useMemo(() => {
-    const revenue = series.reduce((acc, x) => acc + x.revenue, 0);
-    const orders = series.reduce((acc, x) => acc + x.orders, 0);
-    const catering = series.reduce((acc, x) => acc + x.catering, 0);
-    const venue = series.reduce((acc, x) => acc + x.venue, 0);
-
-    const prev = series30.slice(-(series.length * 2), -series.length);
-    const prevRevenue = prev.reduce((acc, x) => acc + x.revenue, 0);
-    const prevOrders = prev.reduce((acc, x) => acc + x.orders, 0);
-    const prevCatering = prev.reduce((acc, x) => acc + x.catering, 0);
-    const prevVenue = prev.reduce((acc, x) => acc + x.venue, 0);
-
-    const pct = (curr, p) => (p ? Math.round(((curr - p) / p) * 100) : 0);
-
-    return {
-      revenue: { value: revenue, delta: pct(revenue, prevRevenue) },
-      orders: { value: orders, delta: pct(orders, prevOrders) },
-      catering: { value: catering, delta: pct(catering, prevCatering) },
-      venue: { value: venue, delta: pct(venue, prevVenue) },
-    };
-  }, [series, series30]);
-
-  const ordersByChannel = useMemo(() => {
-    const base = Math.max(1, Math.round(totals.orders.value / 7));
-    return [
-      { channel: "Dine-in", orders: Math.round(base * 3.2) },
-      { channel: "Take-out", orders: Math.round(base * 1.9) },
-    ];
-  }, [totals.orders.value]);
-
-  const topItems = useMemo(
-    () => [
-      { item: "Chicken Inasal Plate", sold: 132, revenue: 132 * 159 },
-      { item: "Beef Tapa Silog", sold: 108, revenue: 108 * 165 },
-      { item: "Pancit Canton Bilao (Small)", sold: 39, revenue: 39 * 850 },
-      { item: "Spaghetti Party Tray", sold: 27, revenue: 27 * 900 },
-      { item: "Iced Tea Pitcher", sold: 96, revenue: 96 * 95 },
-    ],
-    [],
+  const [period, setPeriod] = useState("week");
+  const [revenueFrequency, setRevenueFrequency] = useState("week");
+  const [search, setSearch] = useState("");
+  const data = periods[period];
+  const bookingSales = data.series.reduce((sum, day) => sum + day.booking, 0);
+  const posSales = data.series.reduce((sum, day) => sum + day.pos, 0);
+  const totalSales = bookingSales + posSales;
+  const revenueData = periods[revenueFrequency];
+  const bookingRevenue = revenueData.series.reduce((sum, entry) => sum + entry.booking, 0);
+  const posRevenue = revenueData.series.reduce((sum, entry) => sum + entry.pos, 0);
+  const totalRevenue = bookingRevenue + posRevenue;
+  const channelData = [
+    { name: "booking", value: bookingRevenue },
+    { name: "pos", value: posRevenue },
+  ];
+  const filteredTransactions = recentTransactions.filter((transaction) =>
+    `${transaction.id} ${transaction.cashier}`.toLowerCase().includes(search.trim().toLowerCase()),
   );
-
-  const diningOrders = useMemo(
-    () => [
-      {
-        no: "D-10441",
-        type: "Dine-in",
-        table: "T02",
-        total: 980,
-        status: "Preparing",
-        time: "12:08 PM",
-      },
-      {
-        no: "D-10440",
-        type: "Take-out",
-        table: "—",
-        total: 520,
-        status: "Confirmed",
-        time: "11:56 AM",
-      },
-      {
-        no: "D-10439",
-        type: "Dine-in",
-        table: "T10",
-        total: 1460,
-        status: "Confirmed",
-        time: "11:44 AM",
-      },
-      {
-        no: "D-10438",
-        type: "Dine-in",
-        table: "T07",
-        total: 1280,
-        status: "Preparing",
-        time: "11:31 AM",
-      },
-      {
-        no: "D-10437",
-        type: "Take-out",
-        table: "—",
-        total: 690,
-        status: "Confirmed",
-        time: "11:18 AM",
-      },
-      {
-        no: "D-10436",
-        type: "Dine-in",
-        table: "T03",
-        total: 1550,
-        status: "Served",
-        time: "11:05 AM",
-      },
-      {
-        no: "D-10435",
-        type: "Dine-in",
-        table: "T11",
-        total: 780,
-        status: "Served",
-        time: "10:52 AM",
-      },
-      {
-        no: "D-10434",
-        type: "Take-out",
-        table: "—",
-        total: 430,
-        status: "Served",
-        time: "10:41 AM",
-      },
-      {
-        no: "D-10433",
-        type: "Dine-in",
-        table: "T06",
-        total: 1120,
-        status: "Served",
-        time: "10:28 AM",
-      },
-      {
-        no: "D-10432",
-        type: "Dine-in",
-        table: "T01",
-        total: 860,
-        status: "Served",
-        time: "10:12 AM",
-      },
-      {
-        no: "D-10431",
-        type: "Take-out",
-        table: "—",
-        total: 610,
-        status: "Cancelled",
-        time: "9:58 AM",
-      },
-      {
-        no: "D-10430",
-        type: "Dine-in",
-        table: "T09",
-        total: 1320,
-        status: "Served",
-        time: "9:43 AM",
-      },
-    ],
-    [],
-  );
-
-  const cateringAppointments = useMemo(
-    () => [
-      {
-        client: "Garcia Family",
-        event: "Birthday Lunch",
-        date: "Apr 25",
-        pax: 45,
-        status: "Pending",
-      },
-      {
-        client: "San Miguel Corp.",
-        event: "Team Meeting Snacks",
-        date: "Apr 27",
-        pax: 80,
-        status: "Confirmed",
-      },
-      {
-        client: "Lopez & Co.",
-        event: "Product Launch",
-        date: "May 2",
-        pax: 120,
-        status: "Pending",
-      },
-      {
-        client: "St. Anne School",
-        event: "Recognition Day",
-        date: "May 6",
-        pax: 200,
-        status: "Confirmed",
-      },
-      {
-        client: "Villanueva Residence",
-        event: "Christening Lunch",
-        date: "May 9",
-        pax: 55,
-        status: "Pending",
-      },
-      {
-        client: "Bautista Holdings",
-        event: "Boardroom Merienda",
-        date: "May 12",
-        pax: 60,
-        status: "Confirmed",
-      },
-      {
-        client: "Reyes Family",
-        event: "Family Reunion",
-        date: "May 15",
-        pax: 90,
-        status: "Pending",
-      },
-      {
-        client: "Barangay Council",
-        event: "Community Meeting",
-        date: "May 18",
-        pax: 140,
-        status: "Confirmed",
-      },
-      {
-        client: "Del Rosario Clinic",
-        event: "Anniversary Buffet",
-        date: "May 22",
-        pax: 75,
-        status: "Pending",
-      },
-      {
-        client: "Cruz Trading",
-        event: "Client Appreciation",
-        date: "May 26",
-        pax: 110,
-        status: "Confirmed",
-      },
-    ],
-    [],
-  );
-
-  const venueReservations = useMemo(
-    () => [
-      {
-        event: "Wedding Reception",
-        date: "May 3",
-        time: "5:00 PM",
-        package: "Venue + Buffet",
-        status: "Pending",
-      },
-      {
-        event: "Baptism Reception",
-        date: "May 10",
-        time: "11:00 AM",
-        package: "Venue Only",
-        status: "Confirmed",
-      },
-      {
-        event: "Debut Celebration",
-        date: "May 17",
-        time: "6:00 PM",
-        package: "Venue + Catering",
-        status: "Pending",
-      },
-      {
-        event: "Corporate Townhall",
-        date: "May 20",
-        time: "2:00 PM",
-        package: "Venue Only",
-        status: "Confirmed",
-      },
-      {
-        event: "Graduation Party",
-        date: "May 24",
-        time: "4:00 PM",
-        package: "Venue + Buffet",
-        status: "Pending",
-      },
-      {
-        event: "Company Anniversary",
-        date: "May 28",
-        time: "6:30 PM",
-        package: "Venue + Catering",
-        status: "Confirmed",
-      },
-      {
-        event: "Baby Shower",
-        date: "Jun 1",
-        time: "1:00 PM",
-        package: "Venue Only",
-        status: "Pending",
-      },
-      {
-        event: "Church Fellowship",
-        date: "Jun 5",
-        time: "10:00 AM",
-        package: "Venue + Snacks",
-        status: "Confirmed",
-      },
-    ],
-    [],
-  );
+  const statuses = [
+    { name: "Confirmed", count: period === "week" ? 6 : 19, color: "bg-primary" },
+    { name: "Setup", count: period === "week" ? 2 : 5, color: "bg-accent" },
+    { name: "Completed", count: period === "week" ? 4 : 14, color: "bg-chart-4" },
+  ];
 
   return (
-    <div className="bg-background p-4 md:p-6">
-      <div className="mx-auto max-w-7xl space-y-4">
-        <Card className="relative overflow-hidden border-border/70">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(1000px_circle_at_20%_0%,hsl(var(--primary)/0.14),transparent_55%)]" />
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_circle_at_80%_10%,hsl(var(--primary)/0.10),transparent_60%)]" />
-          <CardContent className="p-4 md:p-5">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
-                    Sandy's Kitchenette
-                  </h1>
-                </div>
-                <p className="text-muted-foreground text-sm">
-                  Quick overview of dining operations (dine-in & take-out),
-                  catering appointments, and venue reservations.
-                </p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  <Badge
-                    variant="secondary"
-                    className="gap-1 px-2 py-0.5 text-xs"
-                  >
-                    <UtensilsCrossed className="h-3 w-3" />
-                    Dining Operations
-                  </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="gap-1 px-2 py-0.5 text-xs"
-                  >
-                    <ChefHat className="h-3 w-3" />
-                    Catering Appointments
-                  </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="gap-1 px-2 py-0.5 text-xs"
-                  >
-                    <Building2 className="h-3 w-3" />
-                    Event Venue Reservations
-                  </Badge>
-                </div>
-              </div>
+    <div className="min-h-full bg-background p-4 text-foreground md:p-6 xl:p-7">
+      <div className="mx-auto max-w-[1440px] space-y-5">
+        <header className="flex flex-col justify-between gap-4 pb-1 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-primary/10 bg-primary/5 text-primary">
+              <ChartNoAxesCombined className="size-5" aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold leading-tight tracking-tight sm:text-2xl">Dashboard</h1>
+              <p className="mt-1 text-xs text-muted-foreground">Booking &amp; POS</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger
+                aria-label={`Reporting period: ${data.label}`}
+                className="h-10 min-w-0 flex-1 gap-3 rounded-lg bg-card px-3 text-xs shadow-none sm:w-[225px] sm:flex-none"
+              >
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <CalendarDays className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <SelectValue>{data.label}</SelectValue>
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">This Week</SelectItem>
+                <SelectItem value="month">This Month</SelectItem>
+              </SelectContent>
+            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-10 shrink-0 gap-2 rounded-lg bg-card px-3 text-xs shadow-none">
+                  <ReceiptText className="size-4 text-muted-foreground" aria-hidden="true" />
+                  Reports
+                  <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="text-xs">Booking</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link to="/platforms/reports/booking/sales">Sales Report</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/platforms/reports/booking/payments">Payments Report</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs">POS</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link to="/platforms/reports/pos/sales">Sales Report</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/platforms/reports/pos/transactions">Transactions Report</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-                <Select value={range} onValueChange={setRange}>
-                  <SelectTrigger className="h-8 w-full bg-background/70 sm:w-[170px]">
-                    <SelectValue placeholder="Select range" />
+        <section aria-label="Business performance" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Metric
+            title="Total Sales" value={money(totalSales)} icon={PhilippinePeso}
+            description="Booking + POS" detail="Combined sales"
+            points={data.series.map((day) => day.booking + day.pos)}
+            to="/platforms/reports/pos/sales"
+          />
+          <Metric
+            title="Booking Sales" value={money(bookingSales)} icon={CalendarDays}
+            description={`${data.bookings} bookings`} detail="Catering & venue"
+            points={data.series.map((day) => day.booking)}
+            to="/platforms/reports/booking/sales"
+          />
+          <Metric
+            title="POS Sales" value={money(posSales)} icon={ShoppingBag} gold
+            description={`${data.orders.toLocaleString()} transactions`} detail="Point of sale"
+            points={data.series.map((day) => day.pos)}
+            to="/platforms/reports/pos/sales"
+          />
+          <Metric
+            title="Outstanding Balance" value={money(data.outstanding)} icon={CreditCard} gold
+            description="Booking balances" detail="To be collected"
+            points={period === "week" ? [36, 30, 34, 28, 29, 20, 24.5] : [120, 108, 94, 82, 76.5]}
+            to="/platforms/reports/booking/payments"
+          />
+        </section>
+
+        <div className="grid gap-5 lg:grid-cols-12">
+          <Card className="min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-sm lg:col-span-8">
+            <CardHeader className="px-5 pb-0 pt-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border bg-muted/30 text-muted-foreground">
+                    <ChartColumn className="size-[18px]" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <CardTitle className="text-sm font-semibold leading-5 tracking-tight">Revenue Overview</CardTitle>
+                    <p className="text-xs leading-4 text-muted-foreground">{revenueData.label}</p>
+                  </div>
+                </div>
+                <Select value={revenueFrequency} onValueChange={setRevenueFrequency}>
+                  <SelectTrigger aria-label="Revenue frequency" className="h-9 w-[116px] rounded-md bg-muted/25 text-xs font-medium shadow-none hover:bg-muted/50 focus-visible:ring-1">
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="7d">Last 7 days</SelectItem>
-                    <SelectItem value="14d">Last 14 days</SelectItem>
-                    <SelectItem value="30d">Last 30 days</SelectItem>
+                    <SelectItem value="week">Weekly</SelectItem>
+                    <SelectItem value="month">Monthly</SelectItem>
+                    <SelectItem value="year">Yearly</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="gap-2 bg-background/70"
-                >
-                  <ClipboardList className="h-4 w-4" />
-                  Export Summary
-                </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          <KPI
-            title="Revenue"
-            value={format.peso(totals.revenue.value)}
-            delta={totals.revenue.delta}
-            helper={`${series.length} days total`}
-            icon={PhilippinePeso}
-          />
-          <KPI
-            title="Dining Orders"
-            value={totals.orders.value.toLocaleString()}
-            delta={totals.orders.delta}
-            helper="Dine-in + take-out"
-            icon={UtensilsCrossed}
-          />
-          <KPI
-            title="Catering Requests"
-            value={totals.catering.value.toLocaleString()}
-            delta={totals.catering.delta}
-            helper="Inquiries / appointments"
-            icon={ChefHat}
-          />
-          <KPI
-            title="Venue Reservations"
-            value={totals.venue.value.toLocaleString()}
-            delta={totals.venue.delta}
-            helper="Bookings / holds"
-            icon={Building2}
-          />
-        </div>
-
-        <div className="grid gap-3 lg:grid-cols-7">
-          <Card className="lg:col-span-4">
-            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <div className="space-y-1">
-                <CardTitle className="text-base">Revenue Trend</CardTitle>
-                <p className="text-muted-foreground text-xs">
-                  Daily revenue (mock data)
-                </p>
+            </CardHeader>
+            <CardContent className="px-5 pb-3 pt-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <span className="text-[11px] text-muted-foreground">Revenue (PHP)</span>
+                <div className="flex gap-4">
+                <Legend color="bg-primary">Booking</Legend>
+                <Legend color="bg-chart-3">POS</Legend>
+                </div>
               </div>
-              <Badge variant="outline" className="gap-1 bg-background/70">
-                <CalendarDays className="h-3 w-3" />
-                {range === "7d" ? "7D" : range === "14d" ? "14D" : "30D"}
-              </Badge>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ChartContainer
-                className="aspect-auto h-[240px] w-full"
-                config={{
-                  revenue: { label: "Revenue", color: "#FF4F00" },
-                }}
-              >
-                <AreaChart
-                  data={series}
-                  margin={{ left: 10, right: 10, top: 10, bottom: 0 }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    axisLine={false}
-                    minTickGap={16}
-                  />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    width={40}
-                    tickFormatter={(v) => `${Math.round(v / 1000)}k`}
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent />}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="var(--color-revenue)"
-                    fill="var(--color-revenue)"
-                    fillOpacity={0.18}
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                </AreaChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-3">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Orders by Channel</CardTitle>
-              <p className="text-muted-foreground text-xs">
-                Dine-in vs take-out (mock data)
-              </p>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ChartContainer
-                className="aspect-auto h-[240px] w-full"
-                config={{
-                  orders: { label: "Orders", color: "#0ea5e9" },
-                }}
-              >
-                <BarChart
-                  data={ordersByChannel}
-                  layout="vertical"
-                  margin={{ left: 20, right: 10, top: 5, bottom: 5 }}
-                >
-                  <CartesianGrid horizontal={false} />
-                  <XAxis type="number" tickLine={false} axisLine={false} />
-                  <YAxis
-                    type="category"
-                    dataKey="channel"
-                    tickLine={false}
-                    axisLine={false}
-                    width={85}
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent />}
-                  />
-                  <Bar
-                    dataKey="orders"
-                    fill="var(--color-orders)"
-                    radius={[6, 6, 6, 6]}
-                  />
+              <ChartContainer config={chartConfig} className="h-[240px] w-full aspect-auto sm:h-[260px]">
+                <BarChart accessibilityLayer data={revenueData.series} margin={{ top: 10, right: 5, left: -12, bottom: 0 }} barGap={4}>
+                  <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" />
+                  <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={12} minTickGap={15} fontSize={11} />
+                  <YAxis tickLine={false} axisLine={false} tickFormatter={(value) => new Intl.NumberFormat("en", { notation: "compact" }).format(value)} fontSize={11} />
+                  <ChartTooltip cursor={{ fill: "var(--muted)", opacity: 0.4 }} content={<ChartTooltipContent formatter={formatChartValue} />} />
+                  <Bar dataKey="booking" fill="var(--primary)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="pos" fill="var(--chart-3)" radius={[4, 4, 0, 0]} maxBarSize={28} />
                 </BarChart>
               </ChartContainer>
             </CardContent>
           </Card>
-        </div>
 
-        <div className="grid gap-3 lg:grid-cols-7">
-          <Card className="lg:col-span-3">
-            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <div className="space-y-1">
-                <CardTitle className="text-base">Catering Requests</CardTitle>
-                <p className="text-muted-foreground text-xs">
-                  Daily inquiries (mock data)
-                </p>
+          <Card className="min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-sm lg:col-span-4">
+            <CardHeader className="px-5 pb-0 pt-3">
+              <div className="flex items-center gap-3 border-b pb-3">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border bg-muted/30 text-muted-foreground">
+                  <PhilippinePeso className="size-[18px]" aria-hidden="true" />
+                </span>
+                <div>
+                  <CardTitle className="text-sm font-semibold leading-5 tracking-tight">Revenue by Channel</CardTitle>
+                  <p className="text-xs leading-4 text-muted-foreground">{revenueData.label}</p>
+                </div>
               </div>
-              <ChefHat className="text-muted-foreground h-4 w-4" />
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="flex flex-1 items-center justify-center px-3 py-5">
               <ChartContainer
-                className="aspect-auto h-[220px] w-full"
-                config={{
-                  catering: { label: "Requests", color: "#a855f7" },
-                }}
+                config={chartConfig}
+                className="mx-auto h-[260px] w-full max-w-[300px] aspect-auto"
+                aria-label="Revenue distribution between Booking and POS"
               >
-                <AreaChart
-                  data={series}
-                  margin={{ left: 10, right: 10, top: 10, bottom: 0 }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    axisLine={false}
-                    minTickGap={18}
-                  />
-                  <YAxis tickLine={false} axisLine={false} width={28} />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent />}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="catering"
-                    stroke="var(--color-catering)"
-                    fill="var(--color-catering)"
-                    fillOpacity={0.16}
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                </AreaChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-4">
-            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <div className="space-y-1">
-                <CardTitle className="text-base">Venue Reservations</CardTitle>
-                <p className="text-muted-foreground text-xs">
-                  Daily bookings/holds (mock data)
-                </p>
-              </div>
-              <Building2 className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ChartContainer
-                className="aspect-auto h-[220px] w-full"
-                config={{
-                  venue: { label: "Reservations", color: "#22c55e" },
-                }}
-              >
-                <AreaChart
-                  data={series}
-                  margin={{ left: 10, right: 10, top: 10, bottom: 0 }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    axisLine={false}
-                    minTickGap={18}
-                  />
-                  <YAxis tickLine={false} axisLine={false} width={28} />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent />}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="venue"
-                    stroke="var(--color-venue)"
-                    fill="var(--color-venue)"
-                    fillOpacity={0.16}
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                </AreaChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-3 lg:grid-cols-7">
-          <Card className="lg:col-span-4 flex flex-col">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Operations Feed</CardTitle>
-              <p className="text-muted-foreground text-xs">
-                Dining, catering, and venue snapshots (mock data)
-              </p>
-            </CardHeader>
-            <CardContent className="pt-0 flex flex-1 flex-col">
-              <Tabs
-                defaultValue="dining"
-                className="w-full flex flex-1 flex-col"
-              >
-                <TabsList className="grid w-full grid-cols-3 bg-muted/50">
-                  <TabsTrigger value="dining" className="gap-2">
-                    <UtensilsCrossed className="h-4 w-4" />
-                    Dining
-                  </TabsTrigger>
-                  <TabsTrigger value="catering" className="gap-2">
-                    <ChefHat className="h-4 w-4" />
-                    Catering
-                  </TabsTrigger>
-                  <TabsTrigger value="venue" className="gap-2">
-                    <Building2 className="h-4 w-4" />
-                    Venue
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="dining" className="mt-3 flex-1">
-                  <div className="h-full min-h-[360px] overflow-auto rounded-md border lg:min-h-[520px]">
-                    <Table>
-                      <TableHeader className="sticky top-0 z-10 bg-muted/70">
-                        <TableRow>
-                          <TableHead>Order</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Table</TableHead>
-                          <TableHead>Total</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead className="text-right">Time</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {diningOrders.map((o) => (
-                          <TableRow key={o.no}>
-                            <TableCell className="font-medium">
-                              {o.no}
-                            </TableCell>
-                            <TableCell>{o.type}</TableCell>
-                            <TableCell>{o.table}</TableCell>
-                            <TableCell>{format.peso(o.total)}</TableCell>
-                            <TableCell>
-                              <StatusBadge status={o.status} />
-                            </TableCell>
-                            <TableCell className="text-right text-muted-foreground">
-                              {o.time}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="catering" className="mt-3 flex-1">
-                  <div className="h-full min-h-[360px] overflow-auto rounded-md border lg:min-h-[520px]">
-                    <Table>
-                      <TableHeader className="sticky top-0 z-10 bg-muted/70">
-                        <TableRow>
-                          <TableHead>Client</TableHead>
-                          <TableHead>Event</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Pax</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {cateringAppointments.map((c, idx) => (
-                          <TableRow key={`${c.client}-${idx}`}>
-                            <TableCell className="font-medium">
-                              {c.client}
-                            </TableCell>
-                            <TableCell>{c.event}</TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {c.date}
-                            </TableCell>
-                            <TableCell>{c.pax}</TableCell>
-                            <TableCell>
-                              <StatusBadge status={c.status} />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="venue" className="mt-3 flex-1">
-                  <div className="h-full min-h-[360px] overflow-auto rounded-md border lg:min-h-[520px]">
-                    <Table>
-                      <TableHeader className="sticky top-0 z-10 bg-muted/70">
-                        <TableRow>
-                          <TableHead>Event</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Time</TableHead>
-                          <TableHead>Package</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {venueReservations.map((v, idx) => (
-                          <TableRow key={`${v.event}-${idx}`}>
-                            <TableCell className="font-medium">
-                              {v.event}
-                            </TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {v.date}
-                            </TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {v.time}
-                            </TableCell>
-                            <TableCell>{v.package}</TableCell>
-                            <TableCell>
-                              <StatusBadge status={v.status} />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-3">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Top Menu Items</CardTitle>
-              <p className="text-muted-foreground text-xs">
-                Best sellers (mock data)
-              </p>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-2">
-                {topItems.map((x) => (
-                  <div
-                    key={x.item}
-                    className="space-y-1.5 rounded-lg border p-2.5 transition-shadow hover:shadow-sm"
+                <PieChart accessibilityLayer>
+                  <ChartTooltip content={<ChartTooltipContent hideLabel formatter={formatChartValue} />} />
+                  <Pie
+                    data={channelData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius="61%"
+                    outerRadius="88%"
+                    startAngle={90}
+                    endAngle={-270}
+                    stroke="var(--card)"
+                    strokeWidth={3}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{x.item}</p>
-                        <p className="text-muted-foreground text-xs">
-                          {x.sold} sold • {format.peso(x.revenue)}
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="shrink-0">
-                        {x.sold}
-                      </Badge>
-                    </div>
-                    <div className="bg-muted/70 h-2 w-full overflow-hidden rounded-full">
-                      <div
-                        className="bg-primary h-full rounded-full"
-                        style={{
-                          width: `${Math.round((x.sold / topItems[0].sold) * 100)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <Separator className="my-3" />
-
-              <div className="grid gap-2">
-                <Button
-                  size="sm"
-                  className="w-full justify-start gap-2"
-                  variant="outline"
-                >
-                  <UtensilsCrossed className="h-4 w-4" />
-                  Manage Dining Operations
-                </Button>
-                <Button
-                  size="sm"
-                  className="w-full justify-start gap-2"
-                  variant="outline"
-                >
-                  <ChefHat className="h-4 w-4" />
-                  Review Catering Requests
-                </Button>
-                <Button
-                  size="sm"
-                  className="w-full justify-start gap-2"
-                  variant="outline"
-                >
-                  <Building2 className="h-4 w-4" />
-                  View Venue Calendar
-                </Button>
-              </div>
+                    {channelData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.name === "booking" ? "var(--primary)" : "var(--chart-3)"} />
+                    ))}
+                    <Label content={({ viewBox }) => {
+                      if (!viewBox || !("cx" in viewBox)) return null;
+                      return (
+                        <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle">
+                          <tspan x={viewBox.cx} dy="-3" fill="var(--foreground)" className="text-lg font-semibold tabular-nums">{money(totalRevenue)}</tspan>
+                          <tspan x={viewBox.cx} dy="22" fill="var(--muted-foreground)" className="text-xs">Overall Revenue</tspan>
+                        </text>
+                      );
+                    }} />
+                  </Pie>
+                </PieChart>
+              </ChartContainer>
             </CardContent>
           </Card>
         </div>
+        <div className="grid items-stretch gap-5 lg:grid-cols-12">
+          <Card className="min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-sm lg:col-span-8">
+            <CardHeader className="border-b px-5 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-sm">Upcoming Bookings</CardTitle>
+                  <span className="rounded border bg-muted/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">{upcomingBookings.length}</span>
+                </div>
+                <ReportLink to="/platforms/events/bookings">View All <ChevronRight className="size-3.5" /></ReportLink>
+              </div>
+            </CardHeader>
+            <div className="grid grid-cols-3 divide-x border-b bg-muted/20">
+              {statuses.map((status) => (
+                <div key={status.name} className="px-3 py-3 sm:px-5">
+                  <Legend color={status.color}>{status.name}</Legend>
+                  <p className="mt-1.5 text-lg font-semibold tabular-nums">{status.count}</p>
+                </div>
+              ))}
+            </div>
+            <CardContent className="px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/25 hover:bg-muted/25">
+                    <TableHead className="pl-5 text-xs">Event / Service</TableHead>
+                    <TableHead className="text-xs">Schedule</TableHead>
+                    <TableHead className="text-right text-xs">Guests</TableHead>
+                    <TableHead className="pr-5 text-right text-xs">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {upcomingBookings.map((booking) => (
+                    <TableRow key={booking.event} className="last:border-b-0">
+                      <TableCell className="py-4 pl-5">
+                        <p className="whitespace-nowrap text-xs font-medium">{booking.event}</p>
+                        <p className="mt-1 text-[11px] text-muted-foreground">{booking.service}</p>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <p className="text-xs font-medium">Oct {booking.day}, 2026</p>
+                        <p className="mt-1 text-[11px] text-muted-foreground">{booking.time}</p>
+                      </TableCell>
+                      <TableCell className="text-right text-xs tabular-nums">{booking.guests}</TableCell>
+                      <TableCell className="pr-5 text-right"><StatusBadge status={booking.status} /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <div className="mt-auto flex items-center justify-between gap-3 border-t bg-muted/15 px-5 py-3 text-xs">
+              <span className="text-muted-foreground">Outstanding Balance</span>
+              <ReportLink to="/platforms/reports/booking/payments">{money(data.outstanding)} <ArrowUpRight className="size-3.5" /></ReportLink>
+            </div>
+          </Card>
+
+          <Card className="min-w-0 gap-0 rounded-xl py-0 shadow-sm lg:col-span-4">
+            <CardHeader className="border-b px-5 py-4">
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-sm">Top-Selling Items</CardTitle>
+                <ShoppingBag className="size-4 text-muted-foreground" aria-hidden="true" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-5 px-5 py-5">
+              {bestSellers.map((item, index) => (
+                <div key={item.name} className="flex gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-muted/40 text-xs font-medium text-muted-foreground">0{index + 1}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-medium">{item.name}</p>
+                      <p className="text-xs font-semibold tabular-nums">{money(item.amount)}</p>
+                    </div>
+                    <p className="mt-1 text-[11px] text-muted-foreground">{item.sold} sold</p>
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                      <div className={index === 0 ? "h-full rounded-full bg-primary" : "h-full rounded-full bg-primary/40"} style={{ width: `${item.sold / bestSellers[0].sold * 100}%` }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+            <div className="mt-auto border-t px-5 py-3">
+              <ReportLink to="/platforms/reports/pos/sales">View Sales Report <ArrowRight className="size-3.5" /></ReportLink>
+            </div>
+          </Card>
+        </div>
+
+        <Card className="min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-sm">
+          <CardHeader className="border-b px-5 py-4">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-2">
+                <ReceiptText className="size-4 text-primary" aria-hidden="true" />
+                <CardTitle className="text-sm">Recent POS Transactions</CardTitle>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="relative min-w-0 flex-1 sm:w-52">
+                  <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                  <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search transactions..." aria-label="Search transactions or cashiers" className="h-8 bg-background pl-8 text-xs shadow-none" />
+                </div>
+                <ReportLink to="/platforms/reports/pos/transactions">View All <ChevronRight className="size-3.5" /></ReportLink>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="px-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/25 hover:bg-muted/25">
+                  <TableHead className="pl-5 text-xs">Transaction ID</TableHead>
+                  <TableHead className="text-xs">Cashier</TableHead>
+                  <TableHead className="text-xs">Date & Time</TableHead>
+                  <TableHead className="text-right text-xs">Items</TableHead>
+                  <TableHead className="pr-5 text-right text-xs">Total Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTransactions.length ? filteredTransactions.map((transaction) => (
+                  <TableRow key={transaction.id} className="last:border-b-0">
+                    <TableCell className="py-3.5 pl-5 text-xs font-medium">#{transaction.id}</TableCell>
+                    <TableCell className="text-xs">{transaction.cashier}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">Oct 20, 2026 <span className="mx-1 text-border">/</span> {transaction.time}</TableCell>
+                    <TableCell className="text-right text-xs tabular-nums">{transaction.items}</TableCell>
+                    <TableCell className="pr-5 text-right text-xs font-semibold tabular-nums">{money(transaction.amount)}</TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow><TableCell colSpan={5} className="h-24 text-center text-xs text-muted-foreground">No matching transactions.</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 };
+
+const Metric = ({ title, value, icon, description, detail, points, to, gold }) => {
+  const Icon = icon;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const coordinates = points.map((point, index) => `${index / (points.length - 1) * 88},${34 - (point - min) / (max - min || 1) * 26}`).join(" ");
+  return (
+    <div className="min-w-0 overflow-hidden rounded-xl border bg-card shadow-sm">
+      <div className="p-4 pb-3.5 xl:p-5 xl:pb-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className={`flex size-7 items-center justify-center rounded-md ${gold ? "bg-accent/15 text-foreground" : "bg-primary/8 text-primary"}`}><Icon className="size-3.5" aria-hidden="true" /></span>
+            <p className="text-xs font-medium text-muted-foreground">{title}</p>
+          </div>
+          <Link to={to} aria-label={`View ${title.toLowerCase()} report`} className="rounded text-muted-foreground/60 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ArrowUpRight className="size-3.5" aria-hidden="true" /></Link>
+        </div>
+        <div className="mt-4 flex items-end justify-between gap-2">
+          <p className="min-w-0 break-words text-[26px] font-semibold leading-none tracking-tight tabular-nums">{value}</p>
+          <svg viewBox="0 0 88 40" className={`h-9 w-[72px] shrink-0 ${gold ? "text-chart-3" : "text-primary"}`} aria-hidden="true">
+            <polygon points={`0,40 ${coordinates} 88,40`} fill="currentColor" opacity="0.08" />
+            <polyline points={coordinates} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-1 border-t bg-muted/20 px-4 py-2.5 text-[11px] xl:px-5">
+        <span className="font-medium">{description}</span>
+        <span className="text-muted-foreground">{detail}</span>
+      </div>
+    </div>
+  );
+};
+
+const Legend = ({ color, children }) => (
+  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"><span className={`size-2 shrink-0 rounded-full ${color}`} />{children}</span>
+);
+
+const StatusBadge = ({ status }) => (
+  <Badge variant="outline" className={`gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-medium ${status === "Setup" ? "border-accent/30 bg-accent/10 text-foreground" : "border-primary/15 bg-primary/5 text-primary"}`}>
+    <span className={`size-1 rounded-full ${status === "Setup" ? "bg-chart-3" : "bg-primary"}`} />{status}
+  </Badge>
+);
+
+const ReportLink = ({ to, children }) => (
+  <Link to={to} className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{children}</Link>
+);
+
+const formatChartValue = (value, name) => (
+  <span className="flex w-full items-center justify-between gap-4">
+    <span className="text-muted-foreground">{chartConfig[name]?.label || name}</span>
+    <span className="font-medium tabular-nums">{money(value)}</span>
+  </span>
+);
 
 export default Dashboard;
