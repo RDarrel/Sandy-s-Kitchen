@@ -936,17 +936,12 @@ const getSummary = async ({ startDate, endDate }) => {
 
   return {
     totalCollections: bookingCollections + posSales,
-
     bookingCollections,
     posSales,
     outstandingBalance,
-
     verifiedPayments: paymentData.summary?.[0]?.verifiedPayments ?? 0,
-
     posTransactions: orderData.summary?.[0]?.transactions ?? 0,
-
     bookingsWithBalance: outstandingResult[0]?.bookingsWithBalance ?? 0,
-
     trends,
   };
 };
