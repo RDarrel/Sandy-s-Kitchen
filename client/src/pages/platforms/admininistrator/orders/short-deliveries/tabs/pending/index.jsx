@@ -191,7 +191,7 @@ const PendingShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
                       size="sm"
                       variant="outline"
                       className="h-8 whitespace-nowrap px-3"
-                      disabled={!token || formSubmitted}
+                      disabled={formSubmitted}
                       onClick={() =>
                         handleShortAction({
                           purchase,
@@ -207,7 +207,7 @@ const PendingShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
                       size="sm"
                       variant="default"
                       className="h-8 whitespace-nowrap px-3"
-                      disabled={!token || formSubmitted}
+                      disabled={formSubmitted}
                       onClick={() =>
                         handleShortAction({
                           purchase,
