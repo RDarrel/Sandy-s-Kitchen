@@ -1,0 +1,766 @@
+const BookingPayment = require("../models/events/Payment");
+const Booking = require("../models/events/Booking");
+const Order = require("../models/sales/order/Order");
+const OrderItem = require("../models/sales/order/OrderItem");
+const Inventory = require("../models/inventory/Item");
+const Purchase = require("../models/procurement/Purchase");
+const Supplier = require("../models/procurement/Supplier");
+const dateToUTC = require("../utilities/dateToUTC");
+
+const getIncomingDeliveries = async ({ limit = 5 } = {}) => {
+  const itemLimit = Math.min(Math.max(Number(limit) || 5, 1), 50);
+
+  const result = await Purchase.aggregate([
+    {
+      $match: {
+        deletedAt: null,
+        status: {
+          $in: ["incoming", "redelivery"],
+        },
+      },
+    },
+    {
+      $facet: {
+        deliveries: [
+          {
+            $sort: {
+              "deliveryWindow.from": 1,
+              _id: 1,
+            },
+          },
+          {
+            $limit: itemLimit,
+          },
+          {
+            $lookup: {
+              from: Supplier.collection.name,
+              localField: "supplier",
+              foreignField: "_id",
+              as: "supplierDetails",
+            },
+          },
+          {
+            $unwind: {
+              path: "$supplierDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              supplier: {
+                _id: "$supplier",
+                name: {
+                  $ifNull: ["$supplierDetails.name", "Unknown Supplier"],
+                },
+              },
+              totalAmount: 1,
+              status: 1,
+              deliveryWindow: 1,
+              hasShortDelivery: 1,
+              shortItemQty: 1,
+              originalPurchase: 1,
+              parentPurchase: 1,
+            },
+          },
+        ],
+
+        totalIncoming: [
+          {
+            $count: "count",
+          },
+        ],
+      },
+    },
+  ]);
+
+  const data = result[0] ?? {};
+
+  return {
+    deliveries: data.deliveries ?? [],
+    totalIncoming: data.totalIncoming?.[0]?.count ?? 0,
+  };
+};
+
+const getInventoryOverview = async ({ limit = 5 } = {}) => {
+  const itemLimit = Math.min(Math.max(Number(limit) || 5, 1), 50);
+
+  const result = await Inventory.aggregate([
+    // Exclude soft-deleted items
+    {
+      $match: {
+        deletedAt: null,
+      },
+    },
+
+    // Calculate stock status
+    {
+      $addFields: {
+        stockStatus: {
+          $switch: {
+            branches: [
+              {
+                case: {
+                  $lte: ["$stock.current", 0],
+                },
+                then: "Out of Stock",
+              },
+              {
+                case: {
+                  $lt: ["$stock.current", "$stock.min"],
+                },
+                then: "Low Stock",
+              },
+            ],
+            default: "In Stock",
+          },
+        },
+      },
+    },
+
+    // Only items requiring replenishment
+    {
+      $match: {
+        stockStatus: {
+          $in: ["Out of Stock", "Low Stock"],
+        },
+      },
+    },
+
+    // Get items and counts in one aggregation
+    {
+      $facet: {
+        items: [
+          {
+            $addFields: {
+              priority: {
+                $cond: [
+                  {
+                    $eq: ["$stockStatus", "Out of Stock"],
+                  },
+                  0,
+                  1,
+                ],
+              },
+            },
+          },
+          {
+            $sort: {
+              priority: 1,
+              "stock.current": 1,
+              name: 1,
+            },
+          },
+          {
+            $limit: itemLimit,
+          },
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              type: 1,
+              category: 1,
+              measurement: 1,
+              baseUnit: 1,
+              stockStatus: 1,
+              currentStock: "$stock.current",
+              minimumStock: "$stock.min",
+              stockPercentage: {
+                $cond: [
+                  {
+                    $gt: ["$stock.min", 0],
+                  },
+                  {
+                    $multiply: [
+                      {
+                        $divide: ["$stock.current", "$stock.min"],
+                      },
+                      100,
+                    ],
+                  },
+                  0,
+                ],
+              },
+            },
+          },
+        ],
+
+        statusCounts: [
+          {
+            $group: {
+              _id: "$stockStatus",
+              count: {
+                $sum: 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  const data = result[0] ?? {};
+
+  const statusCounts = {
+    lowStock: 0,
+    outOfStock: 0,
+  };
+
+  for (const item of data.statusCounts ?? []) {
+    if (item._id === "Low Stock") {
+      statusCounts.lowStock = item.count;
+    }
+
+    if (item._id === "Out of Stock") {
+      statusCounts.outOfStock = item.count;
+    }
+  }
+
+  return {
+    items: data.items ?? [],
+    statusCounts,
+    totalNeedsReplenishment: statusCounts.lowStock + statusCounts.outOfStock,
+  };
+};
+
+const getUpcomingBookings = async ({ limit = 5 } = {}) => {
+  const now = new Date();
+
+  const itemLimit = Math.min(Math.max(Number(limit) || 5, 1), 50);
+
+  const result = await Booking.aggregate([
+    {
+      $match: {
+        status: {
+          $in: ["approved", "confirmed", "setup"],
+        },
+      },
+    },
+
+    // Find the nearest future schedule
+    {
+      $addFields: {
+        upcomingDate: {
+          $min: {
+            $filter: {
+              input: ["$catering.schedule.start", "$event.schedule.start"],
+              as: "schedule",
+              cond: {
+                $and: [
+                  { $ne: ["$$schedule", null] },
+                  { $gte: ["$$schedule", now] },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+
+    // Include only bookings with upcoming schedules
+    {
+      $match: {
+        upcomingDate: {
+          $type: "date",
+        },
+      },
+    },
+
+    // Get bookings, status counts, and total
+    {
+      $facet: {
+        bookings: [
+          {
+            $sort: {
+              upcomingDate: 1,
+              _id: 1,
+            },
+          },
+          {
+            $limit: itemLimit,
+          },
+          {
+            $project: {
+              _id: 1,
+              status: 1,
+              type: 1,
+              customer: 1,
+              guests: 1,
+              cateringSchedule: "$catering.schedule",
+              eventSchedule: "$event.schedule",
+              upcomingDate: 1,
+            },
+          },
+        ],
+
+        statusCounts: [
+          {
+            $group: {
+              _id: "$status",
+              count: { $sum: 1 },
+            },
+          },
+        ],
+
+        totalBookings: [
+          {
+            $count: "count",
+          },
+        ],
+      },
+    },
+  ]);
+
+  const data = result[0] ?? {};
+
+  const statusCounts = {
+    approved: 0,
+    setup: 0,
+  };
+
+  for (const item of data.statusCounts ?? []) {
+    statusCounts[item._id] = item.count;
+  }
+
+  return {
+    bookings: data.bookings ?? [],
+    statusCounts,
+    totalBookings: data.totalBookings?.[0]?.count ?? 0,
+  };
+};
+
+const getTopSellingItems = async ({ startDate, endDate, limit = 5 }) => {
+  const start = dateToUTC({
+    date: startDate,
+    dateOnly: true,
+  });
+
+  const end = dateToUTC({
+    date: endDate,
+    dateOnly: true,
+    endOfDay: true,
+  });
+
+  const itemLimit = Math.min(Math.max(Number(limit) || 5, 1), 50);
+
+  const result = await OrderItem.aggregate([
+    // Join the parent POS order
+    {
+      $lookup: {
+        from: Order.collection.name,
+        localField: "order",
+        foreignField: "_id",
+        as: "orderDetails",
+      },
+    },
+    {
+      $unwind: "$orderDetails",
+    },
+
+    // Filter by order date
+    {
+      $match: {
+        "orderDetails.createdAt": {
+          $gte: start,
+          $lte: end,
+        },
+
+        // Add your actual paid/completed order
+        // status filter here.
+      },
+    },
+
+    // Group by menu item
+    {
+      $group: {
+        _id: "$menu",
+        quantitySold: {
+          $sum: "$quantity",
+        },
+        totalSales: {
+          $sum: "$amount",
+        },
+      },
+    },
+
+    // Highest quantity first
+    {
+      $sort: {
+        quantitySold: -1,
+        totalSales: -1,
+        _id: 1,
+      },
+    },
+
+    // Return only the top items
+    {
+      $limit: itemLimit,
+    },
+
+    // Get menu details
+    {
+      $lookup: {
+        from: "menus",
+        localField: "_id",
+        foreignField: "_id",
+        as: "menuDetails",
+      },
+    },
+    {
+      $unwind: {
+        path: "$menuDetails",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+
+    // Final response shape
+    {
+      $project: {
+        _id: 0,
+        menuId: "$_id",
+        name: {
+          $ifNull: ["$menuDetails.name", "Unknown Item"],
+        },
+        quantitySold: 1,
+        totalSales: 1,
+      },
+    },
+  ]);
+
+  return result;
+};
+
+const getCollections = async ({ startDate, endDate, frequency = "daily" }) => {
+  const frequencyMap = {
+    daily: "day",
+    weekly: "week",
+    monthly: "month",
+    yearly: "year",
+  };
+
+  if (!startDate || !endDate) {
+    throw new Error("startDate and endDate are required.");
+  }
+
+  if (!Object.hasOwn(frequencyMap, frequency)) {
+    throw new Error("Invalid frequency.");
+  }
+
+  const start = dateToUTC({
+    date: startDate,
+    dateOnly: true,
+  });
+
+  const end = dateToUTC({
+    date: endDate,
+    dateOnly: true,
+    endOfDay: true,
+  });
+
+  const dateGroup = (field) => ({
+    $dateTrunc: {
+      date: field,
+      unit: frequencyMap[frequency],
+      timezone: TIMEZONE,
+      ...(frequency === "weekly" && {
+        startOfWeek: "monday",
+      }),
+    },
+  });
+
+  const [orderResult, paymentResult] = await Promise.all([
+    // POS Collections
+    Order.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: start,
+            $lte: end,
+          },
+
+          // Add your actual paid/completed status
+          // filter if your Order model needs it.
+        },
+      },
+      {
+        $group: {
+          _id: dateGroup("$createdAt"),
+          totalAmount: {
+            $sum: {
+              $ifNull: ["$amount", 0],
+            },
+          },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]),
+
+    // Booking Collections
+    BookingPayment.aggregate([
+      {
+        $match: {
+          reviewedAt: {
+            $gte: start,
+            $lte: end,
+          },
+          status: "verified",
+        },
+      },
+      {
+        $group: {
+          _id: dateGroup("$reviewedAt"),
+          totalAmount: {
+            $sum: {
+              $ifNull: ["$amount", 0],
+            },
+          },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]),
+  ]);
+
+  // Combine POS and Booking collections by period
+  const collectionsMap = new Map();
+
+  for (const item of orderResult) {
+    const key = item._id.toISOString();
+
+    collectionsMap.set(key, {
+      period: key,
+      booking: 0,
+      pos: item.totalAmount,
+    });
+  }
+
+  for (const item of paymentResult) {
+    const key = item._id.toISOString();
+
+    if (!collectionsMap.has(key)) {
+      collectionsMap.set(key, {
+        period: key,
+        booking: 0,
+        pos: 0,
+      });
+    }
+
+    collectionsMap.get(key).booking += item.totalAmount;
+  }
+
+  const overview = [...collectionsMap.values()].sort(
+    (a, b) => new Date(a.period) - new Date(b.period),
+  );
+
+  // Calculate totals for the Pie Chart
+  const totals = overview.reduce(
+    (acc, item) => {
+      acc.booking += item.booking;
+      acc.pos += item.pos;
+
+      return acc;
+    },
+    {
+      booking: 0,
+      pos: 0,
+    },
+  );
+
+  return {
+    overview,
+    bySource: [
+      {
+        name: "booking",
+        value: totals.booking,
+      },
+      {
+        name: "pos",
+        value: totals.pos,
+      },
+    ],
+    totalCollections: totals.booking + totals.pos,
+  };
+};
+
+const getSummary = async ({ startDate, endDate }) => {
+  const start = dateToUTC({
+    date: startDate,
+    dateOnly: true,
+  });
+
+  const end = dateToUTC({
+    date: endDate,
+    dateOnly: true,
+    endOfDay: true,
+  });
+
+  const [orderResult, paymentResult, outstandingResult] = await Promise.all([
+    // 1. POS Sales
+    Order.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: start,
+            $lt: end,
+          },
+          // Add paid/completed status filter here
+          // if your Order model supports unpaid/voided orders.
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: {
+            $sum: { $ifNull: ["$amount", 0] },
+          },
+          transactions: { $sum: 1 },
+        },
+      },
+    ]),
+
+    // 2. Booking Collections
+    BookingPayment.aggregate([
+      {
+        $match: {
+          reviewedAt: {
+            $gte: start,
+            $lt: end,
+          },
+          status: "verified",
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: {
+            $sum: { $ifNull: ["$amount", 0] },
+          },
+          verifiedPayments: { $sum: 1 },
+        },
+      },
+    ]),
+
+    // 3. Current Outstanding Balance
+    Booking.aggregate([
+      {
+        $match: {
+          // IMPORTANT:
+          // Replace these with your actual eligible
+          // Booking status values.
+          status: {
+            $in: ["confirmed", "setup", "completed"],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: BookingPayment.collection.name,
+          let: {
+            bookingId: "$_id",
+          },
+          pipeline: [
+            {
+              $match: {
+                status: "verified",
+                $expr: {
+                  $eq: ["$booking", "$$bookingId"],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                totalPaid: {
+                  $sum: {
+                    $ifNull: ["$amount", 0],
+                  },
+                },
+              },
+            },
+          ],
+          as: "payments",
+        },
+      },
+      {
+        $set: {
+          totalPaid: {
+            $ifNull: [
+              {
+                $arrayElemAt: ["$payments.totalPaid", 0],
+              },
+              0,
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          remainingBalance: {
+            $max: [
+              {
+                $subtract: [
+                  {
+                    $ifNull: ["$pricing.total", 0],
+                  },
+                  "$totalPaid",
+                ],
+              },
+              0,
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          outstandingBalance: {
+            $sum: "$remainingBalance",
+          },
+          bookingsWithBalance: {
+            $sum: {
+              $cond: [
+                {
+                  $gt: ["$remainingBalance", 0],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]),
+  ]);
+
+  const posSales = orderResult[0]?.totalAmount ?? 0;
+
+  const bookingCollections = paymentResult[0]?.totalAmount ?? 0;
+
+  const outstandingBalance = outstandingResult[0]?.outstandingBalance ?? 0;
+
+  return {
+    totalCollections: bookingCollections + posSales,
+
+    bookingCollections,
+    posSales,
+    outstandingBalance,
+
+    verifiedPayments: paymentResult[0]?.verifiedPayments ?? 0,
+
+    posTransactions: orderResult[0]?.transactions ?? 0,
+
+    bookingsWithBalance: outstandingResult[0]?.bookingsWithBalance ?? 0,
+  };
+};
+
+module.exports = {
+  getSummary,
+  getCollections,
+  getTopSellingItems,
+  getUpcomingBookings,
+  getInventoryOverview,
+  getIncomingDeliveries,
+};
