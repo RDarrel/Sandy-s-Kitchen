@@ -1,4 +1,5 @@
 import { Formatter, fullName } from "@/services/utilities";
+import { cn } from "cn";
 import { Ban, CircleX } from "lucide-react";
 const REASON_STYLES = {
   rejected: {

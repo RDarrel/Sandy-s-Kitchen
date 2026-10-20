@@ -51,16 +51,27 @@ const Schedule = ({
   const highlightTimeoutRef = useRef(null);
 
   const { filtered, count, statusHeader, bookingsArray } = useMemo(() => {
+    const sortedSchedule = Object.fromEntries(
+      Object.entries(schedule).sort(([keyA], [keyB]) => {
+        const indexA = STATUS_ORDER.indexOf(keyA);
+        const indexB = STATUS_ORDER.indexOf(keyB);
+
+        return (
+          (indexA === -1 ? Infinity : indexA) -
+          (indexB === -1 ? Infinity : indexB)
+        );
+      }),
+    );
     const bookings =
       activeStatus === "all"
-        ? schedule
-        : { [activeStatus]: schedule[activeStatus] || [] };
-    const bookingsArray = Object.values(schedule)?.flat();
+        ? sortedSchedule
+        : { [activeStatus]: sortedSchedule[activeStatus] || [] };
+    const bookingsArray = Object.values(sortedSchedule)?.flat();
     return {
       filtered: bookings,
       count: bookingsArray?.length,
       bookingsArray,
-      statusHeader: { all: bookingsArray, ...schedule },
+      statusHeader: { all: bookingsArray, ...sortedSchedule },
     };
   }, [activeStatus, schedule]);
 
