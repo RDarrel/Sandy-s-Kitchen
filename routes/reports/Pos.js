@@ -1,7 +1,12 @@
 const router = require("express").Router(),
-  { transactionsReport } = require("../../controllers/reports/POS"),
+  {
+    transactionsReport,
+    salesReport,
+  } = require("../../controllers/reports/POS"),
   { validate } = require("../../middleware/jwt");
 
-router.get("/transactions", validate, transactionsReport);
+router
+  .get("/transactions", validate, transactionsReport)
+  .get("/sales", validate, salesReport);
 
 module.exports = router;

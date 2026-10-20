@@ -13,3 +13,18 @@ exports.transactionsReport = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch transactions report." });
   }
 };
+
+exports.salesReport = async (req, res) => {
+  try {
+    const { startDate, endDate, frequency } = req.query;
+    const result = await PosReportService.getSalesReport({
+      startDate,
+      endDate,
+      frequency,
+    });
+    res.json({ data: result });
+  } catch (error) {
+    console.log("error", error.message);
+    res.status(500).json({ error: "Failed to fetch sales report." });
+  }
+};
