@@ -301,7 +301,13 @@ const getUpcomingBookings = async ({ limit = 5 } = {}) => {
               reference: 1,
               eventType: 1,
               bookingType: 1,
-              guests: { $ifNull: ["$catering.pax", "$venue.pax"] },
+              guests: {
+                $cond: [
+                  { $in: ["$bookingType", ["both", "venue"]] },
+                  "$venue.pax",
+                  "$catering.pax",
+                ],
+              },
               cateringSchedule: "$catering.schedule",
               venueSchedule: "$venue.schedule",
               upcomingDate: 1,

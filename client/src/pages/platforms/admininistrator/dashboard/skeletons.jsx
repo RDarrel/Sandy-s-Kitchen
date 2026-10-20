@@ -13,7 +13,7 @@ export const UpcomingBookingsSkeleton = () => (
     </div>
     <div aria-hidden="true" className="divide-y">
       {rows.map((row) => (
-        <div key={row} className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 py-3 sm:grid-cols-[44px_minmax(0,1fr)_88px] sm:gap-4 lg:h-[84px] lg:py-2.5">
+        <div key={row} className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 py-3 sm:grid-cols-[44px_minmax(0,1fr)_88px] sm:gap-4 lg:min-h-[84px] lg:py-2.5">
           <div className="overflow-hidden rounded-lg border">
             <div className="flex h-[18px] items-center justify-center bg-muted/60"><Skeleton className="h-1.5 w-5" /></div>
             <div className="flex h-8 items-center justify-center"><Skeleton className="h-5 w-5" /></div>
@@ -22,7 +22,7 @@ export const UpcomingBookingsSkeleton = () => (
             <Skeleton className={`h-3.5 max-w-full ${row % 2 ? "w-40" : "w-48"}`} />
             <Skeleton className="h-2.5 w-28 max-w-full" />
             <div className="flex flex-wrap gap-x-4 gap-y-1">
-              <div className="flex w-[88px] items-center gap-1.5"><Skeleton className="size-3 shrink-0" /><Skeleton className="h-2 w-12" /></div>
+              <div className="flex min-w-0 items-center gap-1.5"><Skeleton className="size-3 shrink-0" /><Skeleton className="h-2 w-32 max-w-full" /></div>
               <div className="flex items-center gap-1.5"><Skeleton className="size-3 shrink-0" /><Skeleton className="h-2 w-14" /></div>
             </div>
           </div>

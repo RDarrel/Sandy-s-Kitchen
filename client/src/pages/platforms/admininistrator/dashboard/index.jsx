@@ -517,7 +517,7 @@ const Dashboard = () => {
                     {upcomingBookings.map((booking) => (
                       <div
                         key={booking.id}
-                        className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 py-3 sm:grid-cols-[44px_minmax(0,1fr)_88px] sm:gap-4 lg:h-[84px] lg:py-2.5"
+                        className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 py-3 sm:grid-cols-[44px_minmax(0,1fr)_88px] sm:gap-4 lg:min-h-[84px] lg:py-2.5"
                       >
                         <div className="overflow-hidden rounded-lg border bg-card text-center">
                           <p className="bg-muted/60 py-0.5 text-[9px] font-semibold tracking-wider text-muted-foreground">
@@ -538,18 +538,12 @@ const Dashboard = () => {
                             {booking.service}
                           </p>
                           <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] leading-4 tabular-nums text-muted-foreground">
-                            <p className="inline-flex w-[88px] items-center gap-1.5 whitespace-nowrap">
-                              <Clock3
-                                className="size-3 shrink-0"
-                                aria-hidden="true"
-                              />
+                            <p className="inline-flex min-w-0 items-start gap-1.5">
+                              <Clock3 className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
                               <span>{booking.time}</span>
                             </p>
                             <p className="inline-flex items-center gap-1.5 whitespace-nowrap">
-                              <Users
-                                className="size-3 shrink-0"
-                                aria-hidden="true"
-                              />
+                              <Users className="size-3 shrink-0" aria-hidden="true" />
                               <span>{booking.guests == null ? "Guests not specified" : `${booking.guests} guests`}</span>
                             </p>
                           </div>
@@ -1003,18 +997,18 @@ const Metric = ({
             <Icon className="size-4" aria-hidden="true" />
           </span>
         </div>
-        <p className="mt-2.5 break-words text-[28px] font-semibold leading-tight tracking-tight tabular-nums">
+        <div className="mt-2.5 break-words text-[28px] font-semibold leading-tight tracking-tight tabular-nums">
           {isLoading ? <Skeleton aria-label="Loading amount" className="h-9 w-36" /> : value}
-        </p>
+        </div>
       </div>
       <div className="mx-4 mt-auto flex min-h-10 items-center justify-between gap-3 border-t border-border/70 py-2">
-        <span className="inline-flex min-w-0 items-center gap-1 text-[11px] font-medium text-muted-foreground group-hover:text-foreground">
+        <div className="inline-flex min-w-0 items-center gap-1 text-[11px] font-medium text-muted-foreground group-hover:text-foreground">
           {isLoading ? <Skeleton className="h-3 w-24" /> : description}
           <ArrowUpRight
             className="size-3 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-primary"
             aria-hidden="true"
           />
-        </span>
+        </div>
         {isLoading && showTrend && (
           <svg viewBox="0 0 104 36" className="h-6 w-[72px] shrink-0 animate-pulse text-skeleton motion-reduce:animate-none" aria-hidden="true">
             <polygon points="4,36 4,27 20,19 36,23 52,12 68,17 84,7 100,13 100,36" fill="currentColor" opacity="0.35" />

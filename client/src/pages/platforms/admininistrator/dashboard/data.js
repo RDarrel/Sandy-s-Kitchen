@@ -73,16 +73,26 @@ export const formatManila = (value, options) => {
     ? new Intl.DateTimeFormat("en-US", { timeZone: TIMEZONE, ...options }).format(date) : "—";
 };
 
-export const mapBooking = (booking) => ({
+export const mapBooking = (booking) => {
+  const type = booking.bookingType === "both" ? "venue" : booking.bookingType;
+  const schedule = booking[`${type}Schedule`] ?? booking[type]?.schedule;
+  const start = schedule?.startAt;
+  const end = schedule?.endAt;
+  const dateOptions = { month: "short", day: "numeric", year: "numeric" };
+  const timeOptions = { hour: "numeric", minute: "2-digit", hour12: true };
+  const differentDays = start && end && formatManila(start, dateOptions) !== formatManila(end, dateOptions);
+  const scheduleOptions = { ...(differentDays ? dateOptions : {}), ...timeOptions };
+  return {
   id: booking._id,
   event: booking.eventType || booking.reference || "Booking",
   service: { both: "Venue + Catering", venue: "Venue", catering: "Catering" }[booking.bookingType] || "Booking",
-  day: formatManila(booking.upcomingDate, { day: "2-digit" }),
-  month: formatManila(booking.upcomingDate, { month: "short" }).toUpperCase(),
-  time: formatManila(booking.upcomingDate, { hour: "numeric", minute: "2-digit", hour12: true }),
-  guests: booking.guests ?? null,
+  day: formatManila(start, { day: "2-digit" }),
+  month: formatManila(start, { month: "short" }).toUpperCase(),
+  time: `${formatManila(start, scheduleOptions)} – ${formatManila(end, scheduleOptions)}`,
+  guests: booking[type]?.pax ?? booking.guests ?? null,
   status: booking.status ? booking.status.charAt(0).toUpperCase() + booking.status.slice(1) : "Unknown",
-});
+  };
+};
 
 export const mapInventoryItem = (item) => {
   const factor = ["weight", "volume"].includes(item.measurement) ? 1000 : 1;
