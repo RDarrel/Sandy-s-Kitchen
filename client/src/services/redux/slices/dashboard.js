@@ -4,37 +4,30 @@ import { axioKit } from "../../utilities";
 const url = "dashboard";
 
 const initialState = {
-  sales: {},
-  top: {},
-  transactions: [],
-  liters: [],
-  formSubmitted: false,
-  isSuccess: false,
-  isLoadingSales: false,
-  isLoadingTop: false,
-  isLoadingTransact: false,
-  isLoadingLiters: false,
+  summary: {},
+  collections: { overview: [], bySource: [], totalCollections: 0 },
+  topSellingItems: [],
+  upcomingBookings: { bookings: [], statusCounts: {}, totalBookings: 0 },
+  inventoryOverview: {
+    items: [],
+    statusCounts: {},
+    totalNeedsReplenishment: 0,
+  },
+  incomingDeliveries: { deliveries: [], totalIncoming: 0 },
+  isLoadingSummary: false,
+  isLoadingCollections: false,
+  isLoadingTopSelling: false,
+  isLoadingInventoryOverview: false,
+  isLoadingIncomingDeliveries: false,
+  isLoadingUpcomingBookings: false,
   message: "",
 };
 
-export const SALES = createAsyncThunk(`${url}`, ({ params }, thunkAPI) => {
-  try {
-    return axioKit.universal(`${url}/sales`, params);
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
-
-    return thunkAPI.rejectWithValue(message);
-  }
-});
-
-export const TOP_PRODUCTS = createAsyncThunk(
-  `${url}/topProducts`,
-  ({ params }, thunkAPI) => {
+export const GET_SUMMARY = createAsyncThunk(
+  `${url}/summary`,
+  (query, thunkAPI) => {
     try {
-      return axioKit.universal(`${url}/topProducts`, params);
+      return axioKit.universal(`${url}/summary`, query);
     } catch (error) {
       const message =
         (error.response &&
@@ -48,11 +41,11 @@ export const TOP_PRODUCTS = createAsyncThunk(
   },
 );
 
-export const TRANSACTIONS = createAsyncThunk(
-  `${url}/transactions`,
-  ({ params }, thunkAPI) => {
+export const GET_COLLECTIONS = createAsyncThunk(
+  `${url}/collections`,
+  (query, thunkAPI) => {
     try {
-      return axioKit.universal(`${url}/transactions`, params);
+      return axioKit.universal(`${url}/collections`, query);
     } catch (error) {
       const message =
         (error.response &&
@@ -66,11 +59,11 @@ export const TRANSACTIONS = createAsyncThunk(
   },
 );
 
-export const LITERS = createAsyncThunk(
-  `${url}/liters`,
-  ({ params }, thunkAPI) => {
+export const GET_TOP_SELLING_ITEMS = createAsyncThunk(
+  `${url}/top-selling-items`,
+  (query, thunkAPI) => {
     try {
-      return axioKit.universal(`${url}/liters`, params);
+      return axioKit.universal(`${url}/top-selling-items`, query);
     } catch (error) {
       const message =
         (error.response &&
@@ -84,6 +77,59 @@ export const LITERS = createAsyncThunk(
   },
 );
 
+export const GET_UPCOMING_BOOKINGS = createAsyncThunk(
+  `${url}/upcoming-bookings`,
+  (_, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/upcoming-bookings`);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+export const GET_INVENTORY_OVERVIEW = createAsyncThunk(
+  `${url}/inventory-overview`,
+  (_, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/inventory-overview`);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+export const GET_INCOMING_DELIVERIES = createAsyncThunk(
+  `${url}/incoming-deliveries`,
+  (_, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/incoming-deliveries`);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 export const reduxSlice = createSlice({
   name: url,
   initialState,
@@ -95,68 +141,98 @@ export const reduxSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(SALES.pending, (state) => {
-        state.isLoadingSales = true;
+      .addCase(GET_SUMMARY.pending, (state) => {
+        state.isLoadingSummary = true;
         state.isSuccess = false;
         state.message = "";
       })
-      .addCase(SALES.fulfilled, (state, action) => {
-        const { payload } = action.payload;
-        state.sales = payload;
-        state.isLoadingSales = false;
+      .addCase(GET_SUMMARY.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.summary = data;
+        state.isLoadingSummary = false;
       })
-      .addCase(SALES.rejected, (state, action) => {
+      .addCase(GET_SUMMARY.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
-        state.isLoadingSales = false;
+        state.isLoadingSummary = false;
       })
 
-      .addCase(TOP_PRODUCTS.pending, (state) => {
-        state.isLoadingTop = true;
+      .addCase(GET_COLLECTIONS.pending, (state) => {
+        state.isLoadingCollections = true;
         state.isSuccess = false;
         state.message = "";
       })
-      .addCase(TOP_PRODUCTS.fulfilled, (state, action) => {
-        const { payload } = action.payload;
-        state.top = payload;
-        state.isLoadingTop = false;
+      .addCase(GET_COLLECTIONS.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.collections = data;
+        state.isLoadingCollections = false;
       })
-      .addCase(TOP_PRODUCTS.rejected, (state, action) => {
+      .addCase(GET_COLLECTIONS.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
-        state.isLoadingTop = false;
+        state.isLoadingCollections = false;
       })
 
-      .addCase(TRANSACTIONS.pending, (state) => {
-        state.isLoadingTransact = true;
+      .addCase(GET_TOP_SELLING_ITEMS.pending, (state) => {
+        state.isLoadingTopSelling = true;
         state.isSuccess = false;
         state.message = "";
       })
-      .addCase(TRANSACTIONS.fulfilled, (state, action) => {
-        const { payload } = action.payload;
-        state.transactions = payload;
-        state.isLoadingTransact = false;
+      .addCase(GET_TOP_SELLING_ITEMS.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.topSellingItems = data;
+        state.isLoadingTopSelling = false;
       })
-      .addCase(TRANSACTIONS.rejected, (state, action) => {
+      .addCase(GET_TOP_SELLING_ITEMS.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
-        state.isLoadingTransact = false;
+        state.isLoadingTopSelling = false;
       })
 
-      .addCase(LITERS.pending, (state) => {
-        state.isLoadingLiters = true;
+      .addCase(GET_UPCOMING_BOOKINGS.pending, (state) => {
+        state.isLoadingUpcomingBookings = true;
         state.isSuccess = false;
         state.message = "";
       })
-      .addCase(LITERS.fulfilled, (state, action) => {
-        const { payload } = action.payload;
-        state.liters = payload;
-        state.isLoadingLiters = false;
+      .addCase(GET_UPCOMING_BOOKINGS.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.upcomingBookings = data;
+        state.isLoadingUpcomingBookings = false;
       })
-      .addCase(LITERS.rejected, (state, action) => {
+      .addCase(GET_UPCOMING_BOOKINGS.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
-        state.isLoadingLiters = false;
+        state.isLoadingUpcomingBookings = false;
+      })
+      .addCase(GET_INVENTORY_OVERVIEW.pending, (state) => {
+        state.isLoadingInventoryOverview = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(GET_INVENTORY_OVERVIEW.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.inventoryOverview = data;
+        state.isLoadingInventoryOverview = false;
+      })
+      .addCase(GET_INVENTORY_OVERVIEW.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingInventoryOverview = false;
+      })
+      .addCase(GET_INCOMING_DELIVERIES.pending, (state) => {
+        state.isLoadingIncomingDeliveries = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(GET_INCOMING_DELIVERIES.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.incomingDeliveries = data;
+        state.isLoadingIncomingDeliveries = false;
+      })
+      .addCase(GET_INCOMING_DELIVERIES.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingIncomingDeliveries = false;
       });
   },
 });
