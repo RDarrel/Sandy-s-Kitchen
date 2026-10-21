@@ -53,3 +53,45 @@ const getPricingMetric = (breakdown = {}) => {
 export const formatHours = (hours) => {
   return `${hours} hr${hours === 1 ? "" : "s"}`;
 };
+
+export const getCancellationSummary = (booking) => {
+  if (booking?.status !== "cancelled") return null;
+
+  const cancellation = booking?.cancellation;
+  const totalPaid = Number(cancellation?.totalPaid ?? 0);
+  const retainedAmount = Math.min(
+    totalPaid,
+    Number(cancellation?.nonRefundableAmount ?? 0),
+  );
+  const refundAmount = Number(cancellation?.refund?.amount ?? 0);
+  const refundStatus = cancellation?.refund?.status;
+
+  if (refundAmount > 0) {
+    const completed = refundStatus === "completed";
+    return {
+      totalPaid,
+      retainedAmount,
+      refundAmount,
+      label: completed ? "Refunded Amount" : "Refund Amount",
+      amount: refundAmount,
+      message: completed
+        ? "Refund completed"
+        : refundStatus === "pending"
+          ? "Awaiting refund processing"
+          : "",
+    };
+  }
+
+  return {
+    totalPaid,
+    retainedAmount,
+    refundAmount,
+    label: retainedAmount > 0 ? "Non-refundable Amount" : "Total Paid",
+    amount: retainedAmount > 0 ? retainedAmount : totalPaid,
+    message: retainedAmount > 0
+      ? "This amount will not be refunded."
+      : totalPaid === 0
+        ? "No payments were made for this booking."
+        : "",
+  };
+};

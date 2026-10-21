@@ -13,6 +13,7 @@ import {
 } from "../utils";
 import PaymentSummary from "./financial/summary";
 import PaymentHistory from "./financial/history";
+import RefundDetails from "./financial/refundDetails";
 import TermsSummary from "./financial/terms";
 import {
   PaymentHistorySkeleton,
@@ -86,6 +87,8 @@ const BookingDetails = () => {
 
         <ReservationOverview services={services} />
 
+        <RefundDetails booking={booking} />
+
         <PaymentHistory booking={booking} payments={booking?.payments || []} />
 
         {booking?.catering && <CateringDetails booking={booking} />}
@@ -101,6 +104,8 @@ const BookingDetails = () => {
       <div className="hidden items-start gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_300px]">
         <aside className="order-1 space-y-3 lg:sticky lg:top-3 lg:order-2">
           <PaymentSummary booking={booking} payment={payment} action={action} />
+
+          <RefundDetails booking={booking} />
 
           <PaymentHistory
             booking={booking}

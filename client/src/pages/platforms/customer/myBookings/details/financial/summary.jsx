@@ -4,10 +4,21 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, CreditCard } from "lucide-react";
 import AmountRow from "./amountRow";
 import { FramedCard, FrameTitle } from "../components";
-import { formatHours, getPaymentBreakdownRows } from "./utils";
+import {
+  formatHours,
+  getCancellationSummary,
+  getPaymentBreakdownRows,
+} from "./utils";
 
 const PaymentSummary = ({ booking, payment, action }) => {
   const navigate = useNavigate();
+  const cancellation = getCancellationSummary(booking);
+  const totalAmount = cancellation
+    ? (booking?.pricing?.total ?? 0)
+    : payment.total;
+  const verifiedAmount = cancellation
+    ? cancellation.totalPaid
+    : payment.verifiedAmount;
 
   const isFullyPaid = payment.total > 0 && payment.balance === 0;
 
@@ -35,14 +46,27 @@ const PaymentSummary = ({ booking, payment, action }) => {
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-medium text-muted-foreground">
-              {isFullyPaid
-                ? "Status"
-                : hasPendingPayment
-                  ? "Balance after verification"
-                  : "Remaining balance"}
+              {cancellation
+                ? cancellation.label
+                : isFullyPaid
+                  ? "Status"
+                  : hasPendingPayment
+                    ? "Balance after verification"
+                    : "Remaining balance"}
             </p>
 
-            {isFullyPaid ? (
+            {cancellation ? (
+              <>
+                <p className="mt-1 text-xl font-semibold leading-none tracking-tight">
+                  {Formatter.amount(cancellation.amount)}
+                </p>
+                {cancellation.message && (
+                  <p className="mt-1 text-[10px] leading-4 text-muted-foreground">
+                    {cancellation.message}
+                  </p>
+                )}
+              </>
+            ) : isFullyPaid ? (
               <p className="mt-1 flex items-center gap-1.5 text-base font-semibold text-emerald-700 dark:text-emerald-400">
                 <CheckCircle2 className="size-4" />
                 Fully paid
@@ -55,7 +79,7 @@ const PaymentSummary = ({ booking, payment, action }) => {
           </div>
 
           <p className="shrink-0 text-right text-[11px] text-muted-foreground">
-            of {Formatter.amount(payment.total)} total
+            of {Formatter.amount(totalAmount)} total
           </p>
         </div>
 
@@ -67,18 +91,29 @@ const PaymentSummary = ({ booking, payment, action }) => {
           ))}
 
           <div className="border-t pt-2">
-            <AmountRow label="Total amount" value={payment.total} strong />
+            <AmountRow label="Total amount" value={totalAmount} strong />
           </div>
 
-          {payment.verifiedAmount > 0 && (
+          {verifiedAmount > 0 && (
             <AmountRow
               label="Verified payments"
-              value={payment.verifiedAmount}
+              value={verifiedAmount}
               positive
             />
           )}
 
-          {payment.pendingAmount > 0 && (
+          {cancellation?.refundAmount > 0 && (
+            <AmountRow
+              label="Non-refundable Amount"
+              value={cancellation.retainedAmount}
+            />
+          )}
+
+          {cancellation?.totalPaid > 0 && cancellation.refundAmount === 0 && (
+            <AmountRow label="Refund Amount" value={0} />
+          )}
+
+          {!cancellation && payment.pendingAmount > 0 && (
             <>
               <AmountRow
                 label="Pending verification"
@@ -93,18 +128,20 @@ const PaymentSummary = ({ booking, payment, action }) => {
           )}
         </div>
 
-        {action.buttonLabel && booking?.status !== "changes_requested" && (
-          <Button
-            type="button"
-            className="mt-3 h-8 w-full gap-1.5 text-xs"
-            onClick={() =>
-              navigate(`/platforms/my-bookings/${booking.reference}/payment`)
-            }
-          >
-            {action.buttonLabel}
-            <CreditCard className="size-3.5" />
-          </Button>
-        )}
+        {!cancellation &&
+          action.buttonLabel &&
+          booking?.status !== "changes_requested" && (
+            <Button
+              type="button"
+              className="mt-3 h-8 w-full gap-1.5 text-xs"
+              onClick={() =>
+                navigate(`/platforms/my-bookings/${booking.reference}/payment`)
+              }
+            >
+              {action.buttonLabel}
+              <CreditCard className="size-3.5" />
+            </Button>
+          )}
       </div>
     </FramedCard>
   );
