@@ -17,4 +17,5 @@ module.exports = {
   getVenueConflicts: Query.getVenueConflicts,
   search: Query.search,
   confirmSetup,
+  cancel: Mutation.cancel,
 };

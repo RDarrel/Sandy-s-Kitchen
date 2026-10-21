@@ -427,7 +427,10 @@ const bookingSchema = new mongoose.Schema(
           default: "none",
         },
 
-        method: String,
+        method: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "PaymentMethod",
+        },
 
         accountName: String,
         accountNumber: String,

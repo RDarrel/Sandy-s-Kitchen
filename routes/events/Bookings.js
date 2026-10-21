@@ -11,6 +11,7 @@ const router = require("express").Router(),
     update,
     search,
     venueConflicts,
+    cancel,
   } = require("../../controllers/events/Bookings"),
   { validate } = require("../../middleware/jwt");
 
@@ -25,6 +26,7 @@ router
   .get("/:reference/payment", validate, paymentDetails)
   .get("/:reference/venue-conflicts", validate, venueConflicts)
   .post("/save", validate, save)
+  .put("/cancel", validate, cancel)
   .put("/approve", validate, approve)
   .put("/update", validate, update);
 

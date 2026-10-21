@@ -30,6 +30,7 @@ import VenueDetails from "./service/venue";
 import CustomerInformation, { ContactSkeleton } from "./customerInformation";
 import NotesAndRequests from "./notes";
 import NotFound from "./notFound";
+import { BROWSE } from "@/services/redux/slices/events/paymentMethods";
 
 const BookingDetails = () => {
   const { selected: booking, isLoadingBookingDetails } = useSelector(
@@ -42,6 +43,7 @@ const BookingDetails = () => {
 
   useEffect(() => {
     dispatch(GET_BOOKING_DETAILS(reference));
+    dispatch(BROWSE());
   }, [dispatch, reference]);
 
   if (isLoadingBookingDetails) {

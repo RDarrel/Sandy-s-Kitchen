@@ -7,6 +7,8 @@ import {
   CreditCard,
   XCircle,
   AlertTriangle,
+  Info,
+  Clock,
 } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 
@@ -128,7 +130,6 @@ export const getPaymentSummary = (booking) => {
 };
 export const getBookingAction = (booking, payment) => {
   const status = booking?.status;
-  console.log("status", status);
   /*
    * PENDING
    *
@@ -163,6 +164,74 @@ export const getBookingAction = (booking, payment) => {
       buttonLabel: "Review & Update",
       icon: AlertTriangle,
       variant: "action-required",
+    };
+  }
+
+  if (status === "cancelled") {
+    const { cancellation } = booking;
+
+    const {
+      totalPaid = 0,
+      nonRefundableAmount = 0,
+      refund,
+    } = cancellation ?? {};
+
+    const refundAmount = refund?.amount ?? 0;
+    const refundStatus = refund?.status ?? "none";
+
+    const formatCurrency = (amount) =>
+      new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP",
+        maximumFractionDigits: 0,
+      }).format(amount);
+
+    // 1. Cancelled with pending refund
+    if (refundAmount > 0 && refundStatus === "pending") {
+      return {
+        title: "Refund Pending",
+        message: `Your booking has been cancelled. Your refund of ${formatCurrency(refundAmount)} is awaiting processing.`,
+        reason: null,
+        buttonLabel: null,
+        icon: Clock,
+        variant: "payment",
+      };
+    }
+
+    // 2. Cancelled with completed refund
+    if (refundAmount > 0 && refundStatus === "completed") {
+      return {
+        title: "Refund Completed",
+        message: `Your booking has been cancelled. Your refund of ${formatCurrency(refundAmount)} has been processed.`,
+        reason: null,
+        buttonLabel: null,
+        icon: CheckCircle2,
+        variant: "success",
+      };
+    }
+
+    // 3. Cancelled with non-refundable payment
+    if (totalPaid > 0 && nonRefundableAmount > 0) {
+      const retainedAmount = Math.min(totalPaid, nonRefundableAmount);
+
+      return {
+        title: "Booking Cancelled",
+        message: `Your booking has been cancelled. Your down payment of ${formatCurrency(retainedAmount)} is non-refundable.`,
+        reason: null,
+        buttonLabel: null,
+        icon: Info,
+        variant: "danger",
+      };
+    }
+
+    // 4. Cancelled without any payment
+    return {
+      title: "Booking Cancelled",
+      message: "Your booking has been cancelled successfully.",
+      reason: null,
+      buttonLabel: null,
+      icon: Info,
+      variant: "danger",
     };
   }
 

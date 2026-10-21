@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { axioKit, Formatter } from "../../../utilities";
+import { axioKit } from "../../../utilities";
 
 const url = "events/bookings";
 
@@ -73,6 +73,24 @@ export const UPDATE = createAsyncThunk(`${url}/update`, (data, thunkAPI) => {
     return thunkAPI.rejectWithValue(message);
   }
 });
+
+export const CANCEL_CUSTOMER_BOOKING = createAsyncThunk(
+  `${url}/cancel-customer-booking`,
+  (data, thunkAPI) => {
+    try {
+      return axioKit.update(url, data, "cancel");
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 
 export const CALENDAR = createAsyncThunk(
   `${url}/calendar`,
@@ -726,6 +744,26 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(UPDATE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
+      })
+      .addCase(CANCEL_CUSTOMER_BOOKING.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(CANCEL_CUSTOMER_BOOKING.fulfilled, (state, { payload }) => {
+        const { data } = payload;
+        state.selected = {
+          ...state.selected,
+          status: "cancelled",
+          cancellation: data.cancellation,
+        };
+        state.formSubmitted = false;
+        state.isSuccess = true;
+      })
+      .addCase(CANCEL_CUSTOMER_BOOKING.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;

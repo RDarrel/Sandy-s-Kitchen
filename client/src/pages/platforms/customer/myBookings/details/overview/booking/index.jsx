@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import Cancellation from "./cancellation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +24,7 @@ const NOTICE_ICON_TONE = {
 
 const BookingOverview = ({ booking, status, date, action }) => {
   const navigate = useNavigate();
+  const [showCancellation, setShowCancellation] = useState(false);
 
   const StatusIcon = status.icon;
   const ActionIcon = action.icon;
@@ -47,10 +50,11 @@ const BookingOverview = ({ booking, status, date, action }) => {
   };
 
   const handleCancel = () => {
-    // Open cancellation confirmation modal here.
+    setShowCancellation(true);
   };
 
   return (
+    <>
     <section className="overflow-hidden rounded-lg border bg-card">
       {/* Booking identity */}
       <div className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -166,6 +170,10 @@ const BookingOverview = ({ booking, status, date, action }) => {
         )}
       </div>
     </section>
+    {showCancellation && (
+      <Cancellation booking={booking} onClose={() => setShowCancellation(false)} />
+    )}
+    </>
   );
 };
 

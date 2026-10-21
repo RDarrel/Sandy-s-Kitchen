@@ -72,6 +72,19 @@ const update = async ({ bookingToUpdate }) => {
   return bookingWithRecipes[0];
 };
 
+const cancel = async ({ role, bookingId, cancellation }) => {
+  const updated = await Booking.findByIdAndUpdate(
+    bookingId,
+    {
+      status: "cancelled",
+      cancellation,
+    },
+    { returnDocument: "after" },
+  ).lean();
+  return updated;
+};
+
 module.exports = {
   update,
+  cancel,
 };
