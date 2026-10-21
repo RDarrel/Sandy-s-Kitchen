@@ -30,9 +30,6 @@ import VenueDetails from "./service/venue";
 import CustomerInformation, { ContactSkeleton } from "./customerInformation";
 import NotesAndRequests from "./notes";
 import NotFound from "./notFound";
-/* -------------------------------------------------------------------------- */
-/* BOOKING DETAILS                                                            */
-/* -------------------------------------------------------------------------- */
 
 const BookingDetails = () => {
   const { selected: booking, isLoadingBookingDetails } = useSelector(

@@ -394,6 +394,56 @@ const bookingSchema = new mongoose.Schema(
       default: undefined,
     },
 
+    cancellation: {
+      reason: {
+        type: String,
+        trim: true,
+      },
+
+      cancelledAt: {
+        type: Date,
+        default: Date.now,
+      },
+
+      totalPaid: {
+        type: Number,
+        default: 0,
+      },
+
+      nonRefundableAmount: {
+        type: Number,
+        default: 0,
+      },
+
+      refund: {
+        amount: {
+          type: Number,
+          default: 0,
+        },
+
+        status: {
+          type: String,
+          enum: ["none", "pending", "completed"],
+          default: "none",
+        },
+
+        method: String,
+
+        accountName: String,
+        accountNumber: String,
+
+        reference: String,
+        proofImgId: String,
+
+        refundedAt: Date,
+
+        processedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      },
+    },
+
     statusHistory: [
       {
         status: {

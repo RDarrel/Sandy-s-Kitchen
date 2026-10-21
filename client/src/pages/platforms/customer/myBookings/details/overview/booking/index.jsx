@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Formatter } from "@/services/utilities";
 import { ChevronDown, Pencil, XCircle } from "lucide-react";
-import { prepareBookingEdt } from "../../utils";
+import { prepareBookingEdt } from "../../../utils";
 import { Button } from "@/components/ui/button";
 
 const NOTICE_ICON_TONE = {
