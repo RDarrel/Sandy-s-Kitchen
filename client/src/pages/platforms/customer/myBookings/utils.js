@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   Info,
   Clock,
+  AlertCircle,
 } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 
@@ -178,6 +179,7 @@ export const getBookingAction = (booking, payment) => {
 
     const refundAmount = refund?.amount ?? 0;
     const refundStatus = refund?.status ?? "none";
+    const correctionRequired = refund?.accountCorrection?.required === true;
 
     const formatCurrency = (amount) =>
       new Intl.NumberFormat("en-PH", {
@@ -186,7 +188,19 @@ export const getBookingAction = (booking, payment) => {
         maximumFractionDigits: 0,
       }).format(amount);
 
-    // 1. Cancelled with pending refund
+    // 1. Cancelled with account correction required
+    if (refundAmount > 0 && refundStatus === "pending" && correctionRequired) {
+      return {
+        title: "Refund Account Update Required",
+        message: `Your booking has been cancelled. Please update your refund account details so we can process your ${formatCurrency(refundAmount)} refund.`,
+        reason: null,
+        buttonLabel: null,
+        icon: AlertCircle,
+        variant: "danger",
+      };
+    }
+
+    // 2. Cancelled with pending refund
     if (refundAmount > 0 && refundStatus === "pending") {
       return {
         title: "Refund Pending",
@@ -198,7 +212,7 @@ export const getBookingAction = (booking, payment) => {
       };
     }
 
-    // 2. Cancelled with completed refund
+    // 3. Cancelled with completed refund
     if (refundAmount > 0 && refundStatus === "completed") {
       return {
         title: "Refund Completed",
@@ -210,7 +224,7 @@ export const getBookingAction = (booking, payment) => {
       };
     }
 
-    // 3. Cancelled with non-refundable payment
+    // 4. Cancelled with non-refundable payment
     if (totalPaid > 0 && nonRefundableAmount > 0) {
       const retainedAmount = Math.min(totalPaid, nonRefundableAmount);
 
@@ -224,7 +238,7 @@ export const getBookingAction = (booking, payment) => {
       };
     }
 
-    // 4. Cancelled without any payment
+    // 5. Cancelled without any payment
     return {
       title: "Booking Cancelled",
       message: "Your booking has been cancelled successfully.",

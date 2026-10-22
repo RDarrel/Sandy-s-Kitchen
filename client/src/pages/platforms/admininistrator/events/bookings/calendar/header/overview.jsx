@@ -60,7 +60,7 @@ export const Monthly = ({ overview, isLoading }) => {
   );
 };
 
-export const Financial = ({ monthlySummary, isLoading, overview }) => {
+export const Financial = ({ isLoading, overview }) => {
   if (isLoading) {
     return (
       <div className="flex w-full shrink-0 items-center gap-2 rounded-md border bg-background/70 px-2 py-1.5 sm:w-auto sm:gap-3 sm:border-0 sm:bg-transparent sm:p-0">
@@ -106,7 +106,7 @@ export const Financial = ({ monthlySummary, isLoading, overview }) => {
 
       <div className="min-w-0 flex-1 text-center sm:min-w-20 sm:flex-none sm:text-right">
         <p className="text-[9px] font-medium uppercase leading-[11px] tracking-wide text-muted-foreground">
-          Received
+          Net Collected
         </p>
         <p className="mt-0.5 text-sm font-semibold leading-5 tabular-nums text-foreground">
           {Formatter.amount(overview?.financial?.received || 0)}
@@ -117,7 +117,7 @@ export const Financial = ({ monthlySummary, isLoading, overview }) => {
 
       <div className="min-w-0 flex-1 text-center sm:min-w-20 sm:flex-none sm:text-right">
         <p className="text-[9px] font-medium uppercase leading-[11px] tracking-wide text-muted-foreground">
-          To Collect
+          Balance Due
         </p>
         <p className="mt-0.5 text-sm font-semibold leading-5 tabular-nums text-foreground">
           {Formatter.amount(
