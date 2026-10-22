@@ -78,6 +78,14 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
     ],
   });
 
+  // Only these statuses count toward Booking Value and Balance Due
+  const includedFinancialStatuses = [
+    "approved",
+    "confirmed",
+    "setup",
+    "completed",
+  ];
+
   const [result] = await Booking.aggregate([
     {
       $match: {
@@ -191,7 +199,9 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
                   amount: 1,
                 },
               },
+
               total: 1,
+
               statusCounts: {
                 $arrayToObject: "$statusCounts",
               },
@@ -205,7 +215,7 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
           },
         ],
 
-        // Unique bookings active during the selected month
+        // Unique bookings during selected month
         monthlyOverview: [
           {
             $match: scheduleMatch(selectedMonthStart, selectedMonthEnd),
@@ -229,7 +239,7 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
           },
         ],
 
-        // Total unique bookings active during the selected month
+        // Total unique bookings during selected month
         totalBookings: [
           {
             $match: scheduleMatch(selectedMonthStart, selectedMonthEnd),
@@ -240,13 +250,16 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
           },
         ],
 
-        // Financial overview for the selected month
+        // Financial overview for selected month
         financial: [
           {
             $match: {
               ...scheduleMatch(selectedMonthStart, selectedMonthEnd),
+
+              // Include cancelled bookings for
+              // verified payments and refund calculations.
               status: {
-                $in: ["approved", "confirmed", "setup", "completed"],
+                $in: [...includedFinancialStatuses, "cancelled"],
               },
             },
           },
@@ -261,18 +274,13 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
               pipeline: [
                 {
                   $match: {
+                    status: "verified",
                     $expr: {
-                      $and: [
-                        {
-                          $eq: ["$booking", "$$bookingId"],
-                        },
-                        {
-                          $eq: ["$status", "verified"],
-                        },
-                      ],
+                      $eq: ["$booking", "$$bookingId"],
                     },
                   },
                 },
+
                 {
                   $group: {
                     _id: null,
@@ -286,16 +294,24 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
             },
           },
 
-          // Calculate received payments per booking
+          // Prepare financial values per booking
           {
             $addFields: {
-              received: {
+              verifiedAmount: {
                 $ifNull: [
                   {
                     $arrayElemAt: ["$payments.total", 0],
                   },
                   0,
                 ],
+              },
+
+              isIncludedInBookingValue: {
+                $in: ["$status", includedFinancialStatuses],
+              },
+
+              isCancelled: {
+                $eq: ["$status", "cancelled"],
               },
             },
           },
@@ -304,20 +320,140 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
           {
             $group: {
               _id: null,
+
+              // BOOKING VALUE
+              // Approved, confirmed, setup, completed only
               totalValue: {
-                $sum: "$pricing.total",
+                $sum: {
+                  $cond: [
+                    "$isIncludedInBookingValue",
+                    {
+                      $ifNull: ["$pricing.total", 0],
+                    },
+                    0,
+                  ],
+                },
               },
-              received: {
-                $sum: "$received",
+
+              // VERIFIED PAYMENTS
+              // Includes cancelled bookings
+              verifiedPayments: {
+                $sum: "$verifiedAmount",
+              },
+
+              // COMPLETED REFUNDS
+              // Only successfully processed refunds
+              completedRefunds: {
+                $sum: {
+                  $cond: [
+                    {
+                      $and: [
+                        "$isCancelled",
+                        {
+                          $eq: ["$cancellation.refund.status", "completed"],
+                        },
+                      ],
+                    },
+                    {
+                      $ifNull: ["$cancellation.refund.amount", 0],
+                    },
+                    0,
+                  ],
+                },
+              },
+
+              // PENDING REFUNDS
+              // Not deducted from Net Collected
+              pendingRefunds: {
+                $sum: {
+                  $cond: [
+                    {
+                      $and: [
+                        "$isCancelled",
+                        {
+                          $eq: ["$cancellation.refund.status", "pending"],
+                        },
+                      ],
+                    },
+                    {
+                      $ifNull: ["$cancellation.refund.amount", 0],
+                    },
+                    0,
+                  ],
+                },
+              },
+
+              // RETAINED DEPOSITS
+              // Amount retained from cancelled bookings
+              retainedDeposits: {
+                $sum: {
+                  $cond: [
+                    "$isCancelled",
+                    {
+                      $min: [
+                        "$verifiedAmount",
+                        {
+                          $max: [
+                            {
+                              $ifNull: ["$cancellation.nonRefundableAmount", 0],
+                            },
+                            0,
+                          ],
+                        },
+                      ],
+                    },
+                    0,
+                  ],
+                },
+              },
+
+              // BALANCE DUE
+              // Remaining unpaid balance of eligible bookings only
+              balanceDue: {
+                $sum: {
+                  $cond: [
+                    "$isIncludedInBookingValue",
+                    {
+                      $max: [
+                        {
+                          $subtract: [
+                            {
+                              $ifNull: ["$pricing.total", 0],
+                            },
+                            "$verifiedAmount",
+                          ],
+                        },
+                        0,
+                      ],
+                    },
+                    0,
+                  ],
+                },
               },
             },
           },
 
+          // Final financial response
           {
             $project: {
               _id: 0,
+
+              // Existing key: Booking Value
               totalValue: 1,
-              received: 1,
+
+              // New key: Balance Due
+              balanceDue: 1,
+
+              // Tooltip breakdown
+              verifiedPayments: 1,
+              completedRefunds: 1,
+              retainedDeposits: 1,
+              pendingRefunds: 1,
+
+              // Existing key: Net Collected
+              received: {
+                $subtract: ["$verifiedPayments", "$completedRefunds"],
+              },
             },
           },
         ],
@@ -327,6 +463,7 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
 
   return {
     days: result.calendar,
+
     overview: {
       totalBookings: result.totalBookings[0]?.count ?? 0,
 
@@ -337,6 +474,11 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
       financial: result.financial[0] ?? {
         totalValue: 0,
         received: 0,
+        balanceDue: 0,
+        verifiedPayments: 0,
+        completedRefunds: 0,
+        retainedDeposits: 0,
+        pendingRefunds: 0,
       },
     },
   };
