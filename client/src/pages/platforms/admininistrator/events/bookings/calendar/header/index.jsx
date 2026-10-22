@@ -36,10 +36,10 @@ const Header = ({
   return (
     <div className="relative z-50 bg-muted/10 px-2 pb-2 sm:px-3">
       <EventCalendarNav className="flex min-w-0 flex-col items-stretch gap-2 py-2 sm:min-h-11 sm:flex-row sm:items-center sm:justify-between sm:py-0 xl:flex-nowrap xl:gap-3">
-        <div className="relative min-h-8 min-w-0 flex-1">
+        <div className="relative min-h-9 min-w-0 flex-1">
           {/* Calendar navigation */}
           <div
-            className={`absolute inset-y-0 left-0 flex min-w-0 origin-left items-center gap-1.5 transition-all duration-200 ease-out sm:gap-2 ${
+            className={`flex min-h-9 min-w-0 origin-left flex-wrap items-center gap-1.5 transition-all duration-200 ease-out sm:gap-2 ${
               searchOpen
                 ? "pointer-events-none -translate-x-2 scale-[0.98] opacity-0"
                 : "translate-x-0 scale-100 opacity-100"
@@ -74,6 +74,8 @@ const Header = ({
               </TooltipTrigger>
               <TooltipContent side="top">Search bookings</TooltipContent>
             </Tooltip>
+            <div aria-hidden="true" className="mx-0.5 h-5 w-px shrink-0 bg-border" />
+            <PendingRefunds />
           </div>
           {/* Global booking search */}
           <SearchCustomer
@@ -88,8 +90,6 @@ const Header = ({
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
-          <PendingRefunds />
-
           {/* Financial overview */}
           <Financial isLoading={isLoading} overview={overview} />
         </div>
