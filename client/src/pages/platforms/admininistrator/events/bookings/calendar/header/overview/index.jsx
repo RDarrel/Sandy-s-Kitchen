@@ -1,5 +1,6 @@
 import { CalendarCheck } from "lucide-react";
-import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../../constant";
+import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../../../constant";
+import NetCollected from "./netCollected";
 import { Formatter } from "@/services/utilities";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -104,14 +105,7 @@ export const Financial = ({ isLoading, overview }) => {
 
       <div className="h-7 w-px shrink-0 bg-border/80" />
 
-      <div className="min-w-0 flex-1 text-center sm:min-w-20 sm:flex-none sm:text-right">
-        <p className="text-[9px] font-medium uppercase leading-[11px] tracking-wide text-muted-foreground">
-          Net Collected
-        </p>
-        <p className="mt-0.5 text-sm font-semibold leading-5 tabular-nums text-foreground">
-          {Formatter.amount(overview?.financial?.received || 0)}
-        </p>
-      </div>
+      <NetCollected financial={overview?.financial} />
 
       <div className="h-7 w-px shrink-0 bg-border/80" />
 
@@ -120,13 +114,7 @@ export const Financial = ({ isLoading, overview }) => {
           Balance Due
         </p>
         <p className="mt-0.5 text-sm font-semibold leading-5 tabular-nums text-foreground">
-          {Formatter.amount(
-            Math.max(
-              0,
-              (overview?.financial?.totalValue || 0) -
-                (overview?.financial?.received || 0),
-            ),
-          )}
+          {Formatter.amount(Math.max(0, overview?.financial?.balanceDue))}
         </p>
       </div>
     </div>
