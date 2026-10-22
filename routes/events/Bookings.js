@@ -14,6 +14,8 @@ const router = require("express").Router(),
     cancel,
     refunds,
     accountCorrection,
+    cancelledBookings,
+    processRefund,
   } = require("../../controllers/events/Bookings"),
   { validate } = require("../../middleware/jwt");
 
@@ -23,6 +25,7 @@ router
   .get("/equipmentAvailability", validate, equipmentAvailability)
   .get("/me", validate, me)
   .get("/schedule", validate, schedule)
+  .get("/cancelled-collections", validate, cancelledBookings)
   .get("/search", validate, search)
 
   .get("/:reference/details", validate, bookingDetails)
@@ -32,6 +35,7 @@ router
   .put("/cancel", validate, cancel)
   .put("/approve", validate, approve)
   .put("/update", validate, update)
+  .put("/process-refund", validate, processRefund)
   .put("/refund/account-correction", validate, accountCorrection);
 
 module.exports = router;

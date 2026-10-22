@@ -7,9 +7,15 @@ import {
 } from "@/components/ui/hover-card";
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import CancelledDialog from "./cancelled";
 
-const NetCollected = ({ financial = {} }) => (
-  <HoverCard openDelay={200} closeDelay={100}>
+const NetCollected = ({ financial = {} }) => {
+  const [showCancelled, setShowCancelled] = useState(false);
+  const [hoverOpen, setHoverOpen] = useState(false);
+  return (
+    <>
+  <HoverCard open={hoverOpen && !showCancelled} onOpenChange={setHoverOpen} openDelay={200} closeDelay={100}>
     <HoverCardTrigger asChild>
       <button
         type="button"
@@ -87,6 +93,10 @@ const NetCollected = ({ financial = {} }) => (
             variant="outline"
             size="sm"
             className="w-full text-xs shadow-none"
+            onClick={() => {
+              setHoverOpen(false);
+              setShowCancelled(true);
+            }}
           >
             View Cancelled Bookings
           </Button>
@@ -94,7 +104,10 @@ const NetCollected = ({ financial = {} }) => (
       </HoverCardContent>
     </Portal>
   </HoverCard>
-);
+  <CancelledDialog open={showCancelled} onOpenChange={setShowCancelled} />
+    </>
+  );
+};
 
 const Amount = ({ label, value = 0, deduction = false, strong = false }) => (
   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3 text-xs leading-5">

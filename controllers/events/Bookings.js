@@ -287,6 +287,20 @@ exports.refunds = async (req, res) => {
   }
 };
 
+exports.cancelledBookings = async (req, res) => {
+  try {
+    const bookings = await BookingService.getCancelledCollections({
+      ...req.query,
+    });
+    res.status(200).json({ data: bookings });
+  } catch (error) {
+    console.log("error", error.message);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch refund list. Please try again" });
+  }
+};
+
 exports.accountCorrection = async (req, res) => {
   try {
     const correction = await BookingService.accountCorrection({
@@ -294,6 +308,21 @@ exports.accountCorrection = async (req, res) => {
       correction: req.body.correction,
     });
     res.status(200).json({ data: correction });
+  } catch (error) {
+    console.log("error", error.message);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch refund list. Please try again" });
+  }
+};
+
+exports.processRefund = async (req, res) => {
+  try {
+    const processed = await BookingService.processRefund({
+      bookingId: req.body?._id,
+      process: req.body.process,
+    });
+    res.status(200).json({ data: processed });
   } catch (error) {
     console.log("error", error.message);
     res

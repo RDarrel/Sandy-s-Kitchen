@@ -1,7 +1,15 @@
 import { createElement, useState } from "react";
 import ProcessRefund from "./processRefund";
 import RequestCorrection from "./requestCorrection";
-import { ArrowLeft, Clock3, FileText, Info, ReceiptText, TriangleAlert, Wallet } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock3,
+  FileText,
+  Info,
+  ReceiptText,
+  TriangleAlert,
+  Wallet,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DialogDescription,
@@ -25,7 +33,8 @@ const RefundDetails = ({
   const requestedBy = correction.requestedBy?.fullName
     ? fullName(correction.requestedBy.fullName)
     : null;
-  const hasRequestedDate = correction.requestedAt &&
+  const hasRequestedDate =
+    correction.requestedAt &&
     !Number.isNaN(new Date(correction.requestedAt).getTime());
   const totalPaid = Number(cancellation.totalPaid ?? 0);
   const retainedAmount = Math.min(
@@ -46,6 +55,10 @@ const RefundDetails = ({
   const cancelledAt = cancellation.cancelledAt;
   const hasDate = cancelledAt && !Number.isNaN(new Date(cancelledAt).getTime());
 
+  const goToList = () => {
+    setProcessing(false);
+    onBack();
+  };
   return (
     <>
       <DialogHeader className="shrink-0 space-y-0 border-b bg-muted/20 px-3 py-3 pr-12 text-left sm:px-4">
@@ -66,12 +79,15 @@ const RefundDetails = ({
             </DialogTitle>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
-          {needsCorrection && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
-              <TriangleAlert aria-hidden="true" className="size-3.5 shrink-0" />
-              Account Update Required
-            </span>
-          )}
+            {needsCorrection && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                <TriangleAlert
+                  aria-hidden="true"
+                  className="size-3.5 shrink-0"
+                />
+                Account Update Required
+              </span>
+            )}
           </div>
         </div>
         <DialogDescription className="sr-only">
@@ -145,26 +161,42 @@ const RefundDetails = ({
           <section className="overflow-hidden rounded-lg border bg-background">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/15 px-3 py-2">
               <h4 className="flex items-center gap-2 text-xs font-semibold text-foreground">
-                <TriangleAlert aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground" />
+                <TriangleAlert
+                  aria-hidden="true"
+                  className="size-3.5 shrink-0 text-muted-foreground"
+                />
                 Account Correction Request
               </h4>
-              <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">Awaiting Customer</span>
+              <span className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                Awaiting Customer
+              </span>
             </div>
             <div className="space-y-3 p-3">
               <div className="space-y-1.5">
-                <p className="text-xs text-muted-foreground">Reason for correction</p>
+                <p className="text-xs text-muted-foreground">
+                  Reason for correction
+                </p>
                 <p className="whitespace-pre-wrap break-words border-l-2 border-primary/25 pl-3 text-sm leading-6 text-foreground/85">
                   {correction.reason || "No reason provided."}
                 </p>
               </div>
               <dl className="space-y-2 border-t border-border/60 pt-2.5">
-                <Detail label="Requested by" value={requestedBy || "Not available"} />
-                {hasRequestedDate && <Detail label="Requested on" value={Formatter.date(correction.requestedAt, true)} />}
+                <Detail
+                  label="Requested by"
+                  value={requestedBy || "Not available"}
+                />
+                {hasRequestedDate && (
+                  <Detail
+                    label="Requested on"
+                    value={Formatter.date(correction.requestedAt, true)}
+                  />
+                )}
               </dl>
             </div>
             <p className="flex items-start gap-2 border-t bg-muted/10 px-3 py-2 text-xs leading-5 text-muted-foreground">
               <Info aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-              Waiting for the customer to update their refund account details before the refund can be processed.
+              Waiting for the customer to update their refund account details
+              before the refund can be processed.
             </p>
           </section>
         )}
@@ -198,6 +230,7 @@ const RefundDetails = ({
         onOpenChange={setProcessing}
         booking={booking}
         methodName={methodName}
+        goToList={goToList}
       />
       <RequestCorrection
         open={correcting}

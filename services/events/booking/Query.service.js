@@ -1,5 +1,6 @@
 const Booking = require("../../../models/events/Booking");
 const User = require("../../../models/persons/Users");
+const dateToUTC = require("../../../utilities/dateToUTC");
 const { attachPaymentsToBookings } = require("./helpers/attachPayments");
 const { attachRecipesToDishes } = require("./helpers/attachRecipesToDishes");
 
@@ -263,6 +264,7 @@ const getRefunds = async () => {
   const pendingRefunds = await Booking.find({
     status: "cancelled",
     "cancellation.refund.amount": { $gt: 0 },
+    "cancellation.refund.status": "pending",
   })
     .select("eventType customer reference cancellation")
     .populate({
@@ -273,6 +275,46 @@ const getRefunds = async () => {
 
   return pendingRefunds;
 };
+
+const getCancelledCollections = async ({ startDate, endDate }) => {
+  const start = dateToUTC({
+    date: startDate,
+    dateOnly: true,
+  });
+
+  const end = dateToUTC({
+    date: endDate,
+    dateOnly: true,
+    endOfDay: true,
+  });
+
+  const cancelledBookings = await Booking.find({
+    status: "cancelled",
+    $or: [
+      {
+        "catering.schedule.startAt": { $lte: end },
+        "catering.schedule.endAt": { $gte: start },
+      },
+      {
+        "venue.schedule.startAt": { $lte: end },
+        "venue.schedule.endAt": { $gte: start },
+      },
+    ],
+  })
+    .select("eventType customer reference cancellation")
+    .populate("customer", "fullName")
+    .populate({
+      path: "cancellation.refund.accountCorrection.requestedBy",
+      select: "fullName",
+    })
+    .populate({
+      path: "cancellation.refund.processedBy",
+      select: "fullName",
+    })
+    .lean();
+
+  return cancelledBookings;
+};
 module.exports = {
   search,
   getBookingDetails,
@@ -280,4 +322,5 @@ module.exports = {
   getMyBookings,
   getVenueConflicts,
   getRefunds,
+  getCancelledCollections,
 };

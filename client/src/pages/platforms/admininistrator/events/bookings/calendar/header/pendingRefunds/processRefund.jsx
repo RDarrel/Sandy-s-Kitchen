@@ -12,17 +12,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Formatter } from "@/services/utilities";
+import Cloudinary from "@/services/utilities/cloudinary";
+import { useDispatch, useSelector } from "react-redux";
+import { UPLOAD } from "@/services/redux/slices/persons/auth";
+import { PROCESS_REFUND } from "@/services/redux/slices/events/bookings";
+import { toast } from "sonner";
+import Spinner from "@/components/shared/spinner";
 
-const ProcessRefund = ({ open, onOpenChange, booking, methodName }) => {
-  const id = useId();
-  const fileInput = useRef(null);
+const ProcessRefund = ({
+  open,
+  onOpenChange,
+  booking,
+  methodName,
+  goToList,
+}) => {
+  const { auth } = useSelector(({ auth }) => auth);
+  const [isLoading, setIsLoading] = useState(false);
   const [reference, setReference] = useState("");
   const [proof, setProof] = useState(null);
   const [fileError, setFileError] = useState("");
   const [reviewing, setReviewing] = useState(false);
+  const dispatch = useDispatch();
   const refund = booking?.cancellation?.refund ?? {};
-  const canReview = Boolean(proof && !fileError);
-
+  const id = useId();
+  const fileInput = useRef(null);
   const close = () => {
     onOpenChange(false);
     setReviewing(false);
@@ -41,6 +54,74 @@ const ProcessRefund = ({ open, onOpenChange, booking, methodName }) => {
     setProof(file);
   };
 
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Failed to read image."));
+
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      setIsLoading(true);
+
+      const base64 = await fileToBase64(proof);
+
+      const proofForm = Cloudinary.buildFileForm(
+        base64,
+        "refunds",
+        booking?._id,
+        { bookingId: booking?._id },
+      );
+
+      // Step 1: Upload refund proof
+      try {
+        await dispatch(UPLOAD({ data: proofForm })).unwrap();
+      } catch (error) {
+        console.log("error", error);
+
+        toast.error("Failed to upload refund proof. Please try again.");
+        return;
+      }
+
+      // Step 2: Process refund
+      try {
+        await dispatch(
+          PROCESS_REFUND({
+            _id: booking?._id,
+            process: {
+              refundedAt: new Date(),
+              processedBy: auth?._id,
+              reference,
+              amount: refund?.amount,
+            },
+          }),
+        ).unwrap();
+
+        toast.success("Refund recorded successfully.");
+      } catch (error) {
+        console.log("error", error);
+
+        toast.error(
+          "Refund proof uploaded, but the refund could not be recorded. Please check the refund status before retrying.",
+        );
+      }
+    } catch (error) {
+      console.log("error", error);
+      toast.error(
+        "Something went wrong while processing the refund. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+      goToList();
+    }
+  };
   return (
     <AlertDialog
       open={open}
@@ -51,12 +132,7 @@ const ProcessRefund = ({ open, onOpenChange, booking, methodName }) => {
       <AlertDialogPortal>
         <AlertDialogOverlay className="z-[100] bg-black/60" />
         <Content className="fixed left-1/2 top-1/2 z-[110] max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain rounded-lg border border-border bg-background text-foreground shadow-xl outline-none">
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (canReview && !reviewing) setReviewing(true);
-            }}
-          >
+          <form onSubmit={handleSubmit}>
             <div className="space-y-0.5 px-3 pt-3 sm:px-4">
               <div className="flex items-center justify-between gap-3">
                 <AlertDialogTitle className="text-lg font-semibold leading-7">
@@ -224,6 +300,7 @@ const ProcessRefund = ({ open, onOpenChange, booking, methodName }) => {
                   size="sm"
                   className="rounded-md bg-background text-sm shadow-none"
                   onClick={() => (reviewing ? setReviewing(false) : close())}
+                  disabled={isLoading}
                 >
                   Back
                 </Button>
@@ -241,9 +318,9 @@ const ProcessRefund = ({ open, onOpenChange, booking, methodName }) => {
                     type="submit"
                     size="sm"
                     className="rounded-md text-sm shadow-none"
-                    disabled={!canReview}
+                    disabled={isLoading}
                   >
-                    Review &amp; Confirm
+                    Review &amp; Confirm <Spinner formSubmitted={isLoading} />
                   </Button>
                 )}
               </div>

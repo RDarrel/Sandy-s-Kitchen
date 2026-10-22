@@ -30,7 +30,7 @@ const Header = ({
   selectDate,
   isLoading,
 }) => {
-  const { calendar } = useSelector(({ bookings }) => bookings);
+  const { calendar, refunds } = useSelector(({ bookings }) => bookings);
   const { overview = {} } = calendar || {};
   const dispatch = useDispatch();
   return (
@@ -74,8 +74,16 @@ const Header = ({
               </TooltipTrigger>
               <TooltipContent side="top">Search bookings</TooltipContent>
             </Tooltip>
-            <div aria-hidden="true" className="mx-0.5 h-5 w-px shrink-0 bg-border" />
-            <PendingRefunds />
+
+            {refunds?.length > 0 && (
+              <>
+                <div
+                  aria-hidden="true"
+                  className="mx-0.5 h-5 w-px shrink-0 bg-border"
+                />
+                <PendingRefunds />
+              </>
+            )}
           </div>
           {/* Global booking search */}
           <SearchCustomer

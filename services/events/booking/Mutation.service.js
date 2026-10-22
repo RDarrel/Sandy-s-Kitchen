@@ -113,8 +113,27 @@ const accountCorrection = async ({ bookingId, correction }) => {
   };
 };
 
+const processRefund = async ({ bookingId, process }) => {
+  const updated = await Booking.findByIdAndUpdate(
+    bookingId,
+    {
+      $set: {
+        "cancellation.refund.reference": process?.reference || "",
+        "cancellation.refund.refundedAt": process?.refundedAt,
+        "cancellation.refund.processedBy": process?.processedBy,
+        "cancellation.refund.status": "completed",
+      },
+    },
+    { returnDocument: "after" },
+  )
+    .select("catering venue bookingType date")
+    .lean();
+  return { ...updated, amount: process.amount };
+};
+
 module.exports = {
   update,
   cancel,
   accountCorrection,
+  processRefund,
 };

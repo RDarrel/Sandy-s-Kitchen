@@ -1,5 +1,6 @@
 const Entity = require("../../models/persons/Users"),
   Menu = require("../../models/menu/Menu"),
+  Booking = require("../../models/events/Booking"),
   PaymentMethod = require("../../models/events/PaymentMethods"),
   Payment = require("../../models/events/Payment"),
   generateToken = require("../../config/generateToken"),
@@ -78,6 +79,7 @@ exports.upload = async (req, res) => {
       menuId = "",
       paymentMethodId = "",
       paymentID = "",
+      bookingId = "", //for uploading of proof of refund
     } = req.body;
     if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
@@ -138,6 +140,13 @@ exports.upload = async (req, res) => {
       await Payment.updateOne(
         { _id: paymentID },
         { $set: { proofImgId: `v${result.version}` } },
+      );
+    }
+
+    if (bookingId) {
+      await Booking.updateOne(
+        { _id: bookingId },
+        { $set: { "cancellation.refund.proofImgId": `v${result.version}` } },
       );
     }
 

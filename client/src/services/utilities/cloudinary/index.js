@@ -50,6 +50,8 @@ const Cloudinary = {
 
     if (toUpdate?.paymentID) formData.append("paymentID", toUpdate?.paymentID);
 
+    if (toUpdate?.bookingId) formData.append("bookingId", toUpdate?.bookingId);
+
     return formData;
   },
 };

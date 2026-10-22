@@ -6,6 +6,7 @@ const url = "events/bookings";
 const initialState = {
   collections: [],
   refunds: [],
+  cancelledBookings: [],
   schedule: {},
   equipmentAvailability: {},
   search: "",
@@ -33,6 +34,7 @@ const initialState = {
   isLoadingBookingDetails: false,
   isLoadingVenueConflicts: false,
   isLoadingRefunds: false,
+  isLoadingCancelledBookings: false,
   isLoadingSearch: false,
   message: "",
 };
@@ -81,6 +83,23 @@ export const CANCEL_CUSTOMER_BOOKING = createAsyncThunk(
   (data, thunkAPI) => {
     try {
       return axioKit.update(url, data, "cancel");
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+export const PROCESS_REFUND = createAsyncThunk(
+  `${url}/process-refund`,
+  (data, thunkAPI) => {
+    try {
+      return axioKit.update(url, data, "process-refund");
     } catch (error) {
       const message =
         (error.response &&
@@ -207,6 +226,24 @@ export const GET_REFUNDS = createAsyncThunk(
   (_, thunkAPI) => {
     try {
       return axioKit.universal(`${url}/refunds`);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+export const GET_CANCELLED_BOOKINGS = createAsyncThunk(
+  `${url}/get-cancelled-bookings`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/cancelled-collections`, query);
     } catch (error) {
       const message =
         (error.response &&
@@ -670,6 +707,22 @@ export const reduxSlice = createSlice({
         state.isLoadingRefunds = false;
       })
 
+      .addCase(GET_CANCELLED_BOOKINGS.pending, (state) => {
+        state.isLoadingCancelledBookings = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(GET_CANCELLED_BOOKINGS.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.cancelledBookings = data;
+        state.isLoadingCancelledBookings = false;
+      })
+      .addCase(GET_CANCELLED_BOOKINGS.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingCancelledBookings = false;
+      })
+
       .addCase(VENUE_CONFLICTS.pending, (state) => {
         state.isLoadingVenueConflicts = true;
         state.isSuccess = false;
@@ -817,6 +870,62 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(CANCEL_CUSTOMER_BOOKING.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
+      })
+
+      .addCase(PROCESS_REFUND.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(PROCESS_REFUND.fulfilled, (state, { payload }) => {
+        const { data } = payload;
+
+        const refunds = [...(state.refunds ?? [])];
+        const index = refunds?.findIndex(({ _id }) => _id === data?._id);
+        if (index > -1) {
+          refunds.splice(index, 1);
+        }
+
+        const { monthRange, overview = {} } = state.calendar;
+
+        const bookingRange = getBookingRange(data);
+
+        const isWithinMonth = isDateWithinRange(bookingRange, monthRange);
+
+        if (isWithinMonth) {
+          let financial = { ...overview.financial };
+
+          financial.completedRefunds = Math.max(
+            0,
+            (financial.completedRefunds ?? 0) + data?.amount,
+          );
+
+          financial.received = Math.max(
+            0,
+            (financial.received ?? 0) - data?.amount,
+          );
+
+          financial.pendingRefunds = Math.max(
+            0,
+            (financial.pendingRefunds ?? 0) - data?.amount,
+          );
+
+          state.calendar = {
+            ...state.calendar,
+            overview: {
+              ...overview,
+              financial,
+            },
+          };
+        }
+        state.refunds = refunds;
+        state.formSubmitted = false;
+        state.isSuccess = true;
+      })
+      .addCase(PROCESS_REFUND.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;

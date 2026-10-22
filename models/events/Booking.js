@@ -395,11 +395,19 @@ const bookingSchema = new mongoose.Schema(
     },
 
     cancellation: {
+      initiatedBy: {
+        type: String,
+        enum: ["customer", "staff"],
+        default: "customer",
+      },
       reason: {
         type: String,
         trim: true,
       },
-
+      cancelledBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+      },
       cancelledAt: {
         type: Date,
         default: Date.now,
@@ -442,7 +450,7 @@ const bookingSchema = new mongoose.Schema(
 
         processedBy: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
+          ref: "Users",
         },
 
         accountCorrection: {
