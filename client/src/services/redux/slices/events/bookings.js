@@ -5,6 +5,7 @@ const url = "events/bookings";
 
 const initialState = {
   collections: [],
+  refunds: [],
   schedule: {},
   equipmentAvailability: {},
   search: "",
@@ -31,6 +32,7 @@ const initialState = {
   isLoadingBookingPayment: false,
   isLoadingBookingDetails: false,
   isLoadingVenueConflicts: false,
+  isLoadingRefunds: false,
   isLoadingSearch: false,
   message: "",
 };
@@ -79,6 +81,24 @@ export const CANCEL_CUSTOMER_BOOKING = createAsyncThunk(
   (data, thunkAPI) => {
     try {
       return axioKit.update(url, data, "cancel");
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+export const REQUEST_ACCOUNT_CORRECTION = createAsyncThunk(
+  `${url}/request-account-correction`,
+  (data, thunkAPI) => {
+    try {
+      return axioKit.update(url, data, "refund/account-correction");
     } catch (error) {
       const message =
         (error.response &&
@@ -182,6 +202,23 @@ export const GET_BOOKING_PAYMENT = createAsyncThunk(
   },
 );
 
+export const GET_REFUNDS = createAsyncThunk(
+  `${url}/get-refunds`,
+  (_, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/refunds`);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 export const GET_BOOKING_DETAILS = createAsyncThunk(
   `${url}/GET_BOOKING_DETAILS`,
   (reference, thunkAPI) => {
@@ -617,6 +654,22 @@ export const reduxSlice = createSlice({
         state.isLoadingBookingDetails = false;
       })
 
+      .addCase(GET_REFUNDS.pending, (state) => {
+        state.isLoadingRefunds = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(GET_REFUNDS.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.refunds = data;
+        state.isLoadingRefunds = false;
+      })
+      .addCase(GET_REFUNDS.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingRefunds = false;
+      })
+
       .addCase(VENUE_CONFLICTS.pending, (state) => {
         state.isLoadingVenueConflicts = true;
         state.isSuccess = false;
@@ -764,6 +817,37 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(CANCEL_CUSTOMER_BOOKING.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
+      })
+      .addCase(REQUEST_ACCOUNT_CORRECTION.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(REQUEST_ACCOUNT_CORRECTION.fulfilled, (state, { payload }) => {
+        const { data } = payload;
+        const refunds = [...(state.refunds ?? [])];
+        const index = refunds.findIndex(({ _id }) => _id === data?._id);
+        console.log("index", index);
+        if (index > -1) {
+          refunds[index] = {
+            ...refunds[index],
+            cancellation: {
+              ...refunds[index]?.cancellation,
+              refund: {
+                ...refunds[index]?.cancellation?.refund,
+                accountCorrection: data.correction,
+              },
+            },
+          };
+        }
+        state.refunds = refunds;
+        state.formSubmitted = false;
+        state.isSuccess = true;
+      })
+      .addCase(REQUEST_ACCOUNT_CORRECTION.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;

@@ -258,10 +258,26 @@ const getVenueConflicts = async ({ reference }) => {
     },
   }));
 };
+
+const getRefunds = async () => {
+  const pendingRefunds = await Booking.find({
+    status: "cancelled",
+    "cancellation.refund.amount": { $gt: 0 },
+  })
+    .select("eventType customer reference cancellation")
+    .populate({
+      path: "cancellation.refund.accountCorrection.requestedBy",
+      select: "fullName",
+    })
+    .populate("customer", "fullName");
+
+  return pendingRefunds;
+};
 module.exports = {
   search,
   getBookingDetails,
   getPaymentDetails,
   getMyBookings,
   getVenueConflicts,
+  getRefunds,
 };

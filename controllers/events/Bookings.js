@@ -274,3 +274,30 @@ exports.cancel = async (req, res) => {
       .json({ message: "Failed to cancel the booking. Please try again" });
   }
 };
+
+exports.refunds = async (req, res) => {
+  try {
+    const refunds = await BookingService.getRefunds();
+    res.status(200).json({ data: refunds });
+  } catch (error) {
+    console.log("error", error.message);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch refund list. Please try again" });
+  }
+};
+
+exports.accountCorrection = async (req, res) => {
+  try {
+    const correction = await BookingService.accountCorrection({
+      bookingId: req.body?._id,
+      correction: req.body.correction,
+    });
+    res.status(200).json({ data: correction });
+  } catch (error) {
+    console.log("error", error.message);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch refund list. Please try again" });
+  }
+};

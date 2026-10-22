@@ -14,7 +14,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   GET_BOOKING_DETAILS,
   SEARCH,
-  SET_SELECTED,
 } from "@/services/redux/slices/events/bookings";
 import { fullName } from "@/services/utilities";
 import { capitalize } from "lodash";

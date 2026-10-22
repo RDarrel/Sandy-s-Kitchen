@@ -12,11 +12,14 @@ const router = require("express").Router(),
     search,
     venueConflicts,
     cancel,
+    refunds,
+    accountCorrection,
   } = require("../../controllers/events/Bookings"),
   { validate } = require("../../middleware/jwt");
 
 router
   .get("/calendar", validate, calendar)
+  .get("/refunds", validate, refunds)
   .get("/equipmentAvailability", validate, equipmentAvailability)
   .get("/me", validate, me)
   .get("/schedule", validate, schedule)
@@ -28,6 +31,7 @@ router
   .post("/save", validate, save)
   .put("/cancel", validate, cancel)
   .put("/approve", validate, approve)
-  .put("/update", validate, update);
+  .put("/update", validate, update)
+  .put("/refund/account-correction", validate, accountCorrection);
 
 module.exports = router;

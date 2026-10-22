@@ -444,6 +444,35 @@ const bookingSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
         },
+
+        accountCorrection: {
+          required: {
+            type: Boolean,
+            default: false,
+          },
+
+          reason: {
+            type: String,
+            trim: true,
+            maxlength: 1000,
+          },
+
+          requestedAt: {
+            type: Date,
+            default: null,
+          },
+
+          requestedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Users",
+            default: null,
+          },
+
+          resolvedAt: {
+            type: Date,
+            default: null,
+          },
+        },
       },
     },
 

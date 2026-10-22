@@ -84,7 +84,37 @@ const cancel = async ({ role, bookingId, cancellation }) => {
   return updated;
 };
 
+const accountCorrection = async ({ bookingId, correction }) => {
+  const updated = await Booking.findOneAndUpdate(
+    {
+      _id: bookingId,
+    },
+    {
+      $set: {
+        "cancellation.refund.accountCorrection.required": true,
+        "cancellation.refund.accountCorrection.reason":
+          correction?.reason.trim(),
+        "cancellation.refund.accountCorrection.requestedAt": correction?.date,
+        "cancellation.refund.accountCorrection.requestedBy": correction.userId,
+        "cancellation.refund.accountCorrection.resolvedAt": null,
+      },
+    },
+    { returnDocument: "after" },
+  )
+    .populate({
+      path: "cancellation.refund.accountCorrection.requestedBy",
+      select: "fullName",
+    })
+    .lean();
+
+  return {
+    _id: updated?._id,
+    correction: updated?.cancellation?.refund?.accountCorrection,
+  };
+};
+
 module.exports = {
   update,
   cancel,
+  accountCorrection,
 };

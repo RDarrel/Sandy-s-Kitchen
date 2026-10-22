@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Financial, Monthly } from "./overview";
 import { Search } from "lucide-react";
+import PendingRefunds from "./pendingRefunds";
 import SearchCustomer from "./search";
 import { useDispatch, useSelector } from "react-redux";
 import { SCHEDULE } from "@/services/redux/slices/events/bookings";
@@ -51,9 +52,7 @@ const Header = ({
                 selectDate(new Date());
               }}
             />
-
             <div className="mx-0.5 h-5 w-px shrink-0 bg-border" />
-
             <div className="flex min-w-0 items-center rounded-md border bg-background px-0.5 shadow-xs">
               <EventCalendarNavPrev />
 
@@ -61,7 +60,6 @@ const Header = ({
 
               <EventCalendarNavNext />
             </div>
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -77,7 +75,6 @@ const Header = ({
               <TooltipContent side="top">Search bookings</TooltipContent>
             </Tooltip>
           </div>
-
           {/* Global booking search */}
           <SearchCustomer
             searchOpen={searchOpen}
@@ -90,8 +87,12 @@ const Header = ({
           />
         </div>
 
-        {/* Financial overview */}
-        <Financial isLoading={isLoading} overview={overview} />
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+          <PendingRefunds />
+
+          {/* Financial overview */}
+          <Financial isLoading={isLoading} overview={overview} />
+        </div>
       </EventCalendarNav>
 
       {/* Monthly booking overview */}
