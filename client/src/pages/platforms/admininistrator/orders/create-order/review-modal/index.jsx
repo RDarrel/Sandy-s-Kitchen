@@ -130,33 +130,39 @@ const ReviewOrderModal = () => {
         groupsMap.set(key, {
           supplier: key,
           items: [],
-          ...(!Object.values(item?.deliveryWindow || {})?.length && {
-            deliveryWindow: {
-              from:
-                formatDate(item?.deliveryWindow?.from) || defaultWindow.from,
-              to: formatDate(item?.deliveryWindow?.to) || defaultWindow.to,
-            },
-          }),
+          deliveryWindow: {
+            from:
+              formatDateOnly(item?.deliveryWindow?.from) || defaultWindow.from,
+            to: formatDateOnly(item?.deliveryWindow?.to) || defaultWindow.to,
+          },
         });
       }
 
       groupsMap.get(key).items.push(item);
     });
 
-    const result = Array.from(groupsMap.values()).map((group) => {
-      const totalAmount = group.items.reduce((sum, item) => {
-        const unitCost = Number(item?.cost) || 0;
-        const qty = Number(item?.quantity) || 0;
-        return sum + unitCost * qty;
-      }, 0);
+    setFormattedCart((previousGroups) => {
+      return Array.from(groupsMap.values()).map((group) => {
+        const previousGroup = previousGroups.find(
+          (previous) => previous.supplier === group.supplier,
+        );
 
-      return {
-        ...group,
-        totalAmount,
-      };
+        const totalAmount = group.items.reduce((sum, item) => {
+          const unitCost = Number(item?.cost) || 0;
+          const qty = Number(item?.quantity) || 0;
+
+          return sum + unitCost * qty;
+        }, 0);
+
+        return {
+          ...group,
+          totalAmount,
+
+          // Preserve previously selected delivery dates
+          deliveryWindow: previousGroup?.deliveryWindow ?? group.deliveryWindow,
+        };
+      });
     });
-
-    setFormattedCart(result);
   }, [cart, reviewOpen]);
 
   useEffect(() => {
@@ -224,6 +230,7 @@ const ReviewOrderModal = () => {
         deliveryWindow: newDate,
       };
     }
+
     setFormattedCart(_formattedCart);
   };
 

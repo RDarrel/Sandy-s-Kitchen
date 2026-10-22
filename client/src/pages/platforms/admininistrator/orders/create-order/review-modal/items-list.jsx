@@ -49,7 +49,6 @@ const ItemRaw = memo(({ item, draftQtyById, setDraftQtyById }) => {
   }, [inventory, unitCost, qty, draftQtyById]);
   const dispatch = useDispatch();
 
-  console.log("item", item);
   return (
     <div className="grid grid-cols-1 gap-2 rounded-lg border border-border bg-background/30 px-3 py-3 text-sm shadow-sm transition-colors hover:bg-background/40 sm:grid-cols-[1fr_110px_130px_130px_120px] sm:items-center">
       <div className="min-w-0">
