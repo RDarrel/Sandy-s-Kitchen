@@ -193,17 +193,34 @@ export const getBookingAction = (booking, payment) => {
   }
 
   if (status === "cancelled") {
-    const { cancellation } = booking;
+    const cancellation = booking?.cancellation ?? {};
+    const refund = cancellation?.refund ?? {};
 
     const {
+      initiatedBy = "customer",
       totalPaid = 0,
       nonRefundableAmount = 0,
-      refund,
-    } = cancellation ?? {};
+    } = cancellation;
 
-    const refundAmount = refund?.amount ?? 0;
+    const isBusinessCancelled = initiatedBy === "business";
+
+    const paidAmount = Math.max(0, Number(totalPaid) || 0);
+    const retainedAmount = Math.max(
+      0,
+      Math.min(paidAmount, Number(nonRefundableAmount) || 0),
+    );
+
+    const refundAmount = Math.max(0, Number(refund?.amount) || 0);
+
     const refundStatus = refund?.status ?? "none";
+
     const correctionRequired = refund?.accountCorrection?.required === true;
+
+    const hasRefundDetails = Boolean(
+      refund?.method &&
+      refund?.accountName?.trim() &&
+      refund?.accountNumber?.trim(),
+    );
 
     const formatCurrency = (amount) =>
       new Intl.NumberFormat("en-PH", {
@@ -212,64 +229,99 @@ export const getBookingAction = (booking, payment) => {
         maximumFractionDigits: 0,
       }).format(amount);
 
-    // 1. Cancelled with account correction required
-    if (refundAmount > 0 && refundStatus === "pending" && correctionRequired) {
-      return {
-        title: "Refund Account Update Required",
-        message: `Your booking has been cancelled. Please update your refund account details so we can process your ${formatCurrency(refundAmount)} refund.`,
-        reason: null,
-        buttonLabel: null,
-        icon: AlertCircle,
-        variant: "danger",
-      };
-    }
+    const cancellationMessage = isBusinessCancelled
+      ? "Sandy's Kitchenette cancelled your booking."
+      : "Your booking has been cancelled.";
 
-    // 2. Cancelled with pending refund
-    if (refundAmount > 0 && refundStatus === "pending") {
-      return {
-        title: "Refund Pending",
-        message: `Your booking has been cancelled. Your refund of ${formatCurrency(refundAmount)} is awaiting processing.`,
-        reason: null,
-        buttonLabel: null,
-        icon: Clock,
-        variant: "payment",
-      };
-    }
+    const baseInfo = {
+      buttonLabel: null,
+    };
 
-    // 3. Cancelled with completed refund
+    // 1. Refund already completed
     if (refundAmount > 0 && refundStatus === "completed") {
       return {
+        ...baseInfo,
         title: "Refund Completed",
-        message: `Your booking has been cancelled. Your refund of ${formatCurrency(refundAmount)} has been processed.`,
-        reason: null,
-        buttonLabel: null,
+        message: `${cancellationMessage} Your refund of ${formatCurrency(refundAmount)} has been sent.`,
         icon: CheckCircle2,
         variant: "success",
       };
     }
 
-    // 4. Cancelled with non-refundable payment
-    if (totalPaid > 0 && nonRefundableAmount > 0) {
-      const retainedAmount = Math.min(totalPaid, nonRefundableAmount);
-
+    // 2. Refund account needs correction
+    if (refundAmount > 0 && refundStatus === "pending" && correctionRequired) {
       return {
+        ...baseInfo,
+        title: "Update Refund Details",
+        message: `${cancellationMessage} Please update your refund account details so we can send your ${formatCurrency(refundAmount)} refund.`,
+        icon: AlertCircle,
+        variant: "danger",
+      };
+    }
+
+    // 3. Refund pending but account details are missing
+    if (refundAmount > 0 && refundStatus === "pending" && !hasRefundDetails) {
+      return {
+        ...baseInfo,
+        title: "Refund Details Required",
+        message: `${cancellationMessage} Please add your refund account details so we can send your ${formatCurrency(refundAmount)} refund.`,
+        icon: AlertCircle,
+        variant: "payment",
+      };
+    }
+
+    // 4. Refund pending and account details are available
+    if (refundAmount > 0 && refundStatus === "pending") {
+      return {
+        ...baseInfo,
+        title: "Refund Pending",
+        message: `${cancellationMessage} Your refund of ${formatCurrency(refundAmount)} is waiting to be processed.`,
+        icon: Clock,
+        variant: "payment",
+      };
+    }
+
+    // 5. Business cancellation with no payment
+    if (isBusinessCancelled && paidAmount === 0) {
+      return {
+        ...baseInfo,
         title: "Booking Cancelled",
-        message: `Your booking has been cancelled. Your down payment of ${formatCurrency(retainedAmount)} is non-refundable.`,
-        reason: null,
-        buttonLabel: null,
+        message:
+          "Sandy's Kitchenette cancelled your booking. No refund is needed because you haven't made any payments.",
         icon: Info,
         variant: "danger",
       };
     }
 
-    // 5. Cancelled without any payment
+    // 6. Customer cancellation with non-refundable payment
+    if (!isBusinessCancelled && paidAmount > 0 && retainedAmount > 0) {
+      return {
+        ...baseInfo,
+        title: "Booking Cancelled",
+        message: `${cancellationMessage} ${formatCurrency(retainedAmount)} of your payment is non-refundable.`,
+        icon: Info,
+        variant: "danger",
+      };
+    }
+
+    // 7. Customer cancellation without payment
+    if (!isBusinessCancelled && paidAmount === 0) {
+      return {
+        ...baseInfo,
+        title: "Booking Cancelled",
+        message: "Your booking has been cancelled successfully.",
+        icon: Info,
+        variant: "danger",
+      };
+    }
+
+    // 8. Unexpected refund data
     return {
+      ...baseInfo,
       title: "Booking Cancelled",
-      message: "Your booking has been cancelled successfully.",
-      reason: null,
-      buttonLabel: null,
+      message: `${cancellationMessage} Your refund details are being reviewed. Please contact us if you need help.`,
       icon: Info,
-      variant: "danger",
+      variant: "payment",
     };
   }
 

@@ -567,6 +567,10 @@ const updateCalendar = ({
           0,
           (financial.received ?? 0) + amountReceived,
         );
+        financial.verifiedPayments = Math.max(
+          0,
+          (financial.verifiedPayments ?? 0) + amountReceived,
+        );
       }
 
       financial.balanceDue = Math.max(
@@ -1039,6 +1043,10 @@ export const reduxSlice = createSlice({
           financial.pendingRefunds = Math.max(
             0,
             (financial.pendingRefunds ?? 0) - data?.amount,
+          );
+          financial.pendingRefundCount = Math.max(
+            0,
+            (financial.pendingRefundCount ?? 0) - 1,
           );
 
           state.calendar = {

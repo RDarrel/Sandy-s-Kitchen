@@ -3,8 +3,44 @@ import { Formatter } from "@/services/utilities";
 import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const Summary = ({ payment, reference }) => {
+const Summary = ({ payment, reference, status, cancellation }) => {
   const isFullyPaid = payment.balance <= 0;
+  const refundAmount = Number(cancellation?.refund?.amount || 0);
+  const refundStatus = cancellation?.refund?.status;
+  const showRefund =
+    status === "cancelled" &&
+    refundAmount > 0 &&
+    ["pending", "completed"].includes(refundStatus);
+  const retainedAmount = Math.min(
+    Number(payment.verifiedAmount || 0),
+    Number(cancellation?.nonRefundableAmount ?? payment.downPayment ?? 0),
+  );
+  const showRetainedPayment =
+    status === "cancelled" &&
+    retainedAmount > 0 &&
+    !(Number(cancellation?.refund?.amount) > 0);
+  const showZeroPaid =
+    status === "rejected" ||
+    (status === "cancelled" && !payment.hasVerifiedPayments);
+  const totalLabel = showRetainedPayment || showRefund ? "Total Paid" : "Booking Total";
+  const totalValue = showRetainedPayment || showRefund ? payment.verifiedAmount : payment.total;
+  const balanceLabel = showRefund
+    ? refundStatus === "completed" ? "Amount Refunded" : "Refund Amount"
+    : showRetainedPayment
+    ? "Non-refundable amount"
+    : showZeroPaid ? "Total Paid" : "Balance";
+  const balanceValue = showRefund
+    ? Formatter.amount(refundAmount)
+    : showRetainedPayment
+    ? Formatter.amount(retainedAmount)
+    : showZeroPaid
+    ? Formatter.amount(0)
+    : isFullyPaid ? "Paid" : Formatter.amount(payment.balance);
+  const balanceColor = showRefund
+    ? refundStatus === "completed" ? "text-emerald-700" : "text-amber-700"
+    : showZeroPaid || showRetainedPayment
+    ? "text-foreground"
+    : isFullyPaid ? "text-emerald-700" : "text-amber-700";
   const navigate = useNavigate();
 
   const handleViewDetails = () => {
@@ -17,16 +53,14 @@ const Summary = ({ payment, reference }) => {
         <div className="flex min-w-0 items-center gap-2">
           <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
             <CompactAmountBlock
-              label="Total"
-              value={Formatter.amount(payment.total)}
+              label={totalLabel}
+              value={Formatter.amount(totalValue)}
             />
 
             <CompactAmountBlock
-              label="Balance"
-              value={isFullyPaid ? "Paid" : Formatter.amount(payment.balance)}
-              valueClassName={
-                isFullyPaid ? "text-emerald-700" : "text-amber-700"
-              }
+              label={balanceLabel}
+              value={balanceValue}
+              valueClassName={balanceColor}
             />
           </div>
 
@@ -47,12 +81,15 @@ const Summary = ({ payment, reference }) => {
       {/* Desktop financial sidebar */}
       <div className="hidden flex-col border-l bg-muted/10 p-3 xl:flex">
         <div className="grid grid-cols-1 gap-3">
-          <AmountBlock label="Total" value={Formatter.amount(payment.total)} />
+          <AmountBlock
+            label={totalLabel}
+            value={Formatter.amount(totalValue)}
+          />
 
           <AmountBlock
-            label="Balance"
-            value={isFullyPaid ? "Paid" : Formatter.amount(payment.balance)}
-            valueClassName={isFullyPaid ? "text-emerald-700" : "text-amber-700"}
+            label={balanceLabel}
+            value={balanceValue}
+            valueClassName={balanceColor}
           />
         </div>
 

@@ -57,6 +57,7 @@ describe("cancelled payment summary", () => {
     expect(screen.getByText("PHP 8000.00")).toBeInTheDocument();
     expect(screen.queryByText("Pay now")).not.toBeInTheDocument();
     expect(screen.queryByText("Remaining balance")).not.toBeInTheDocument();
+    expect(screen.queryByText("of PHP 10000.00 total")).not.toBeInTheDocument();
   });
 
   it("caps the retained amount at the actual payment and shows a zero refund", () => {
@@ -71,7 +72,8 @@ describe("cancelled payment summary", () => {
   it("handles absent cancellation data without redundant payment rows", () => {
     renderSummary(cancelledBooking());
     expect(screen.getByText("Total Paid")).toBeInTheDocument();
-    expect(screen.getByText("No payments were made for this booking.")).toBeInTheDocument();
+    expect(screen.getByText("No payments recorded")).toBeInTheDocument();
+    expect(screen.queryByText("of PHP 10000.00 total")).not.toBeInTheDocument();
     expect(screen.queryByText("Verified payments")).not.toBeInTheDocument();
     expect(screen.queryByText("Refund Amount")).not.toBeInTheDocument();
   });

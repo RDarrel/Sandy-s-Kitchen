@@ -1,7 +1,13 @@
 import { useId, useState } from "react";
 import { Content as AlertDialogContent } from "@radix-ui/react-alert-dialog";
 import { toast } from "sonner";
-import { ArrowDownLeft, CreditCard, LockKeyhole, X } from "lucide-react";
+import {
+  ArrowDownLeft,
+  CreditCard,
+  LockKeyhole,
+  TriangleAlert,
+  X,
+} from "lucide-react";
 
 import {
   AlertDialog,
@@ -56,6 +62,7 @@ const Field = ({ label, htmlFor, children }) => (
 );
 
 const Cancellation = ({ booking, onClose }) => {
+  const { auth } = useSelector(({ auth }) => auth);
   const { collections: paymentMethods = [], isLoading: isLoadingMethods } =
     useSelector(({ paymentMethods }) => paymentMethods);
   const { formSubmitted } = useSelector(({ bookings }) => bookings);
@@ -73,11 +80,13 @@ const Cancellation = ({ booking, onClose }) => {
     verifiedAmount = 0,
     downPayment = 0,
     pendingAmount = 0,
+    hasVerifiedPayments = false,
+    hasPendingPayment = false,
   } = getPaymentSummary(booking);
 
   // Preview only. The backend must calculate the final refund.
   const refundAmount = Math.max(0, verifiedAmount - downPayment);
-  const hasRefund = refundAmount > 0;
+  const hasRefund = hasVerifiedPayments && refundAmount > 0;
 
   const reason = quickReason === "Other" ? otherReason.trim() : quickReason;
   const refundMethods = paymentMethods.filter(
@@ -89,6 +98,7 @@ const Cancellation = ({ booking, onClose }) => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (hasPendingPayment) return;
 
     dispatch(
       CANCEL_CUSTOMER_BOOKING({
@@ -101,6 +111,10 @@ const Cancellation = ({ booking, onClose }) => {
           ...(hasRefund && {
             refund: {
               amount: refundAmount,
+              accountProvidedBy: "customer",
+              accountProvidedByUser: auth?._id,
+              accountProvidedAt: new Date(),
+              accountSource: "system",
               status: "pending",
               method,
               accountName,
@@ -154,61 +168,85 @@ const Cancellation = ({ booking, onClose }) => {
                   </AlertDialogCancel>
                 </div>
 
-                {/* REFUND BREAKDOWN: Paid − Deposit = Refund */}
-                <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
-                  <dl className="relative p-1">
-                    <div
+                {hasPendingPayment && (
+                  <div role="alert" className="mt-4 flex items-start gap-2">
+                    <TriangleAlert
                       aria-hidden="true"
-                      className="absolute bottom-5 left-[22px] top-5 w-px bg-border/80"
+                      className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
                     />
-                    <div className="relative flex items-center justify-between gap-3 px-2 py-1">
-                      <dt className="flex items-center gap-2 text-sm leading-5 text-foreground/80">
-                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground ring-2 ring-background">
-                          <CreditCard aria-hidden="true" className="size-3.5" />
-                        </span>
-                        Total paid
-                      </dt>
-                      <dd className="min-w-0 break-words text-right text-sm font-medium leading-5 tabular-nums">
-                        {Formatter.amount(verifiedAmount)}
-                      </dd>
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-sm font-semibold">
+                        Cancellation Unavailable
+                      </p>
+                      <p className="text-xs leading-5 text-muted-foreground">
+                        You can&apos;t cancel this booking while your payment is
+                        being reviewed. Please wait until it&apos;s approved or
+                        rejected before cancelling.
+                      </p>
                     </div>
-                    <div className="relative flex items-center justify-between gap-3 px-2 py-1">
-                      <dt className="flex items-center gap-2 text-sm leading-5 text-foreground/80">
-                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground ring-2 ring-background">
-                          <LockKeyhole
-                            aria-hidden="true"
-                            className="size-3.5"
-                          />
-                        </span>
-                        Non-refundable deposit
-                      </dt>
-                      <dd className="min-w-0 break-words text-right text-sm font-medium leading-5 tabular-nums">
-                        −{Formatter.amount(downPayment)}
-                      </dd>
-                    </div>
-                    <div className="relative mt-0.5 flex items-center justify-between gap-3 rounded bg-primary/[0.04] px-2 py-1.5">
-                      <dt className="flex items-center gap-2 text-sm font-medium leading-5">
-                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-primary">
-                          <ArrowDownLeft
-                            aria-hidden="true"
-                            className="size-3.5"
-                          />
-                        </span>
-                        Refund Amount
-                      </dt>
-                      <dd className="min-w-0 break-words text-right text-base font-semibold leading-5 text-primary tabular-nums">
-                        {Formatter.amount(refundAmount)}
-                      </dd>
-                    </div>
-                  </dl>
+                  </div>
+                )}
 
-                  {pendingAmount > 0 && (
-                    <p className="border-t border-border/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
-                      {pendingAmount > 0 &&
-                        `Pending payments (${Formatter.amount(pendingAmount)}) are not included.`}
-                    </p>
-                  )}
-                </div>
+                {/* REFUND BREAKDOWN: Paid − Deposit = Refund */}
+                {hasVerifiedPayments && (
+                  <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
+                    <dl className="relative p-1">
+                      <div
+                        aria-hidden="true"
+                        className="absolute bottom-5 left-[22px] top-5 w-px bg-border/80"
+                      />
+                      <div className="relative flex items-center justify-between gap-3 px-2 py-1">
+                        <dt className="flex items-center gap-2 text-sm leading-5 text-foreground/80">
+                          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground ring-2 ring-background">
+                            <CreditCard
+                              aria-hidden="true"
+                              className="size-3.5"
+                            />
+                          </span>
+                          Total paid
+                        </dt>
+                        <dd className="min-w-0 break-words text-right text-sm font-medium leading-5 tabular-nums">
+                          {Formatter.amount(verifiedAmount)}
+                        </dd>
+                      </div>
+                      <div className="relative flex items-center justify-between gap-3 px-2 py-1">
+                        <dt className="flex items-center gap-2 text-sm leading-5 text-foreground/80">
+                          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground ring-2 ring-background">
+                            <LockKeyhole
+                              aria-hidden="true"
+                              className="size-3.5"
+                            />
+                          </span>
+                          Non-refundable deposit
+                        </dt>
+                        <dd className="min-w-0 break-words text-right text-sm font-medium leading-5 tabular-nums">
+                          −{Formatter.amount(downPayment)}
+                        </dd>
+                      </div>
+                      <div className="relative mt-0.5 flex items-center justify-between gap-3 rounded bg-primary/[0.04] px-2 py-1.5">
+                        <dt className="flex items-center gap-2 text-sm font-medium leading-5">
+                          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-primary">
+                            <ArrowDownLeft
+                              aria-hidden="true"
+                              className="size-3.5"
+                            />
+                          </span>
+                          Refund Amount
+                        </dt>
+                        <dd className="min-w-0 break-words text-right text-base font-semibold leading-5 text-primary tabular-nums">
+                          {Formatter.amount(refundAmount)}
+                        </dd>
+                      </div>
+                    </dl>
+
+                    {pendingAmount > 0 && (
+                      <p className="border-t border-border/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
+                        {pendingAmount > 0 &&
+                          `Pending payments (${Formatter.amount(pendingAmount)}) are not included.`}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* REASON */}
                 <div className="mt-3 space-y-2.5">
@@ -219,6 +257,7 @@ const Cancellation = ({ booking, onClose }) => {
                     <Select
                       value={quickReason}
                       onValueChange={setQuickReason}
+                      disabled={hasPendingPayment}
                       required
                     >
                       <SelectTrigger
@@ -245,6 +284,7 @@ const Cancellation = ({ booking, onClose }) => {
                       <Textarea
                         id={`${id}-other-reason`}
                         value={otherReason}
+                        disabled={hasPendingPayment}
                         onChange={(event) => setOtherReason(event.target.value)}
                         required
                         maxLength={1000}
@@ -257,7 +297,10 @@ const Cancellation = ({ booking, onClose }) => {
 
                 {/* REFUND DESTINATION */}
                 {hasRefund && (
-                  <fieldset className="mt-3 space-y-2.5 border-0 border-t border-solid border-border pt-3">
+                  <fieldset
+                    disabled={hasPendingPayment}
+                    className="mt-3 space-y-2.5 border-0 border-t border-solid border-border pt-3"
+                  >
                     <legend className="sr-only">Refund destination</legend>
 
                     <div className="space-y-0.5">
@@ -276,7 +319,9 @@ const Cancellation = ({ booking, onClose }) => {
                       <Select
                         value={selectedMethod?._id || ""}
                         disabled={
-                          isLoadingMethods || refundMethods.length === 0
+                          hasPendingPayment ||
+                          isLoadingMethods ||
+                          refundMethods.length === 0
                         }
                         onValueChange={(value) => {
                           setMethod(value);
@@ -374,6 +419,7 @@ const Cancellation = ({ booking, onClose }) => {
                   <Checkbox
                     id={`${id}-acknowledgment`}
                     checked={acknowledged}
+                    disabled={hasPendingPayment}
                     onCheckedChange={(checked) =>
                       setAcknowledged(checked === true)
                     }
@@ -384,8 +430,9 @@ const Cancellation = ({ booking, onClose }) => {
                     htmlFor={`${id}-acknowledgment`}
                     className="block cursor-pointer text-sm font-normal leading-5 text-muted-foreground"
                   >
-                    I understand that my {Formatter.amount(downPayment)} payment
-                    will not be refunded and this cancellation cannot be undone.
+                    {hasVerifiedPayments
+                      ? `I understand that my ${Formatter.amount(downPayment)} payment will not be refunded and this cancellation cannot be undone.`
+                      : "I understand that this booking cannot be restored once cancelled."}
                   </Label>
                 </div>
 
@@ -395,13 +442,13 @@ const Cancellation = ({ booking, onClose }) => {
                     type="button"
                     className="mt-0 h-9 rounded-md bg-background px-3 text-sm shadow-none"
                   >
-                    Keep booking
+                    {hasPendingPayment ? "Close" : "Keep booking"}
                   </AlertDialogCancel>
 
                   <Button
                     type="submit"
                     variant="destructive"
-                    disabled={formSubmitted}
+                    disabled={formSubmitted || hasPendingPayment}
                     className="h-9 rounded-md px-3 text-sm font-medium shadow-none"
                   >
                     Confirm Cancellation{" "}

@@ -99,7 +99,10 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
         // Calendar visible range
         calendar: [
           {
-            $match: scheduleMatch(calendarStart, calendarEnd),
+            $match: {
+              ...scheduleMatch(calendarStart, calendarEnd),
+              status: { $ne: "cancelled" },
+            },
           },
 
           // Create one calendar entry per matching booking per day
@@ -217,7 +220,10 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
         // Unique bookings during selected month
         monthlyOverview: [
           {
-            $match: scheduleMatch(selectedMonthStart, selectedMonthEnd),
+            $match: {
+              ...scheduleMatch(selectedMonthStart, selectedMonthEnd),
+              status: { $ne: "cancelled" },
+            },
           },
 
           {
@@ -241,7 +247,10 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
         // Total unique bookings during selected month
         totalBookings: [
           {
-            $match: scheduleMatch(selectedMonthStart, selectedMonthEnd),
+            $match: {
+              ...scheduleMatch(selectedMonthStart, selectedMonthEnd),
+              status: { $ne: "cancelled" },
+            },
           },
 
           {
@@ -579,7 +588,7 @@ const schedule = async ({ date }) => {
     ],
 
     status: {
-      $nin: ["rejected", "changes_requested"],
+      $nin: ["rejected", "changes_requested", "cancelled"],
     },
   })
     .populate("customer", "fullName")

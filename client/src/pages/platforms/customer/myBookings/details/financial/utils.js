@@ -91,7 +91,7 @@ export const getCancellationSummary = (booking) => {
     message: retainedAmount > 0
       ? "This amount will not be refunded."
       : totalPaid === 0
-        ? "No payments were made for this booking."
+        ? "No payments recorded"
         : "",
   };
 };

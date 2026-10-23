@@ -12,6 +12,7 @@ import {
 
 const PaymentSummary = ({ booking, payment, action }) => {
   const navigate = useNavigate();
+  const isRejected = booking?.status === "rejected";
   const cancellation = getCancellationSummary(booking);
   const totalAmount = cancellation
     ? (booking?.pricing?.total ?? 0)
@@ -46,16 +47,27 @@ const PaymentSummary = ({ booking, payment, action }) => {
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-medium text-muted-foreground">
-              {cancellation
-                ? cancellation.label
-                : isFullyPaid
-                  ? "Status"
-                  : hasPendingPayment
-                    ? "Balance after verification"
-                    : "Remaining balance"}
+              {isRejected
+                ? "Total Paid"
+                : cancellation
+                  ? cancellation.label
+                  : isFullyPaid
+                    ? "Status"
+                    : hasPendingPayment
+                      ? "Balance after verification"
+                      : "Remaining balance"}
             </p>
 
-            {cancellation ? (
+            {isRejected ? (
+              <>
+                <p className="mt-1 text-xl font-semibold leading-none tracking-tight">
+                  {Formatter.amount(0)}
+                </p>
+                <p className="mt-1 text-[10px] leading-4 text-muted-foreground">
+                  No payments recorded
+                </p>
+              </>
+            ) : cancellation ? (
               <>
                 <p className="mt-1 text-xl font-semibold leading-none tracking-tight">
                   {Formatter.amount(cancellation.amount)}
@@ -78,9 +90,11 @@ const PaymentSummary = ({ booking, payment, action }) => {
             )}
           </div>
 
-          <p className="shrink-0 text-right text-[11px] text-muted-foreground">
-            of {Formatter.amount(totalAmount)} total
-          </p>
+          {!cancellation && !isRejected && (
+            <p className="shrink-0 text-right text-[11px] text-muted-foreground">
+              of {Formatter.amount(totalAmount)} total
+            </p>
+          )}
         </div>
 
         <div className="my-3 border-t" />
