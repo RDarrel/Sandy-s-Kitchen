@@ -424,6 +424,29 @@ const bookingSchema = new mongoose.Schema(
       },
 
       refund: {
+        accountProvidedBy: {
+          type: String,
+          enum: ["customer", "staff"],
+          default: null,
+        },
+
+        accountProvidedByUser: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Users",
+          default: null,
+        },
+
+        accountProvidedAt: {
+          type: Date,
+          default: null,
+        },
+
+        accountSource: {
+          type: String,
+          enum: ["system", "phone", "messenger", "in_person", "other"],
+          default: null,
+        },
+
         amount: {
           type: Number,
           default: 0,

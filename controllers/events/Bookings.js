@@ -262,11 +262,21 @@ exports.search = async (req, res) => {
 
 exports.cancel = async (req, res) => {
   try {
+    const {
+      statusTransaction = {},
+      totalValueChange = 0,
+      amountReceived = 0,
+    } = req.body;
     const result = await BookingService.cancel({
       bookingId: req.body?._id,
       cancellation: req.body.cancellation,
     });
-    res.status(200).json({ data: result });
+    res
+      .status(200)
+      .json({
+        data: { ...result, totalValueChange, amountReceived },
+        statusTransaction,
+      });
   } catch (error) {
     console.log("error", error.message);
     res

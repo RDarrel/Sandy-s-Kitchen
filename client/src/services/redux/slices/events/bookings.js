@@ -95,6 +95,24 @@ export const CANCEL_CUSTOMER_BOOKING = createAsyncThunk(
     }
   },
 );
+
+export const CANCEL_BUSINESS_BOOKING = createAsyncThunk(
+  `${url}/cancel-admin-booking`,
+  (data, thunkAPI) => {
+    try {
+      return axioKit.update(url, data, "cancel");
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
 export const PROCESS_REFUND = createAsyncThunk(
   `${url}/process-refund`,
   (data, thunkAPI) => {
@@ -352,7 +370,7 @@ const updateSchedule = (state, statusTransaction, booking) => {
 
   state.schedule = {
     ...schedule,
-    ...(!["changes_requested", "update", "rejected"].includes(
+    ...(!["changes_requested", "update", "rejected", "cancelled"].includes(
       statusTransaction?.new,
     ) && {
       [statusTransaction.new]: [
@@ -416,7 +434,12 @@ const updateCalendar = ({
 
   const hasStatusChanged = oldStatus && newStatus && oldStatus !== newStatus;
 
-  const excludedStatuses = ["changes_requested", "update", "rejected"];
+  const excludedStatuses = [
+    "changes_requested",
+    "update",
+    "rejected",
+    "cancelled",
+  ];
 
   // CALENDAR DAYS
   let updatedDays = days;
@@ -447,7 +470,7 @@ const updateCalendar = ({
         statusCounts[newStatus] = (statusCounts[newStatus] ?? 0) + 1;
       }
 
-      if (["changes_requested", "rejected"].includes(newStatus)) {
+      if (["changes_requested", "rejected", "cancelled"].includes(newStatus)) {
         day.total = Number(day.total ?? 0) - 1;
       }
 
@@ -491,16 +514,30 @@ const updateCalendar = ({
 
     // amountReceived represents the CHANGE in verified payments
     if (amountReceived !== 0) {
-      financial.received = Math.max(
+      if (newStatus !== "cancelled") {
+        financial.received = Math.max(
+          0,
+          (financial.received ?? 0) + amountReceived,
+        );
+      }
+
+      financial.balanceDue = Math.max(
         0,
-        (financial.received ?? 0) + amountReceived,
+        (financial.balanceDue ?? 0) - amountReceived,
       );
     }
 
-    financial.totalValue = Math.max(
-      0,
-      (financial.totalValue ?? 0) + totalValueChange,
-    );
+    if (newStatus === "cancelled") {
+      financial.totalValue = Math.max(
+        0,
+        (financial.totalValue ?? 0) - totalValueChange,
+      );
+    } else {
+      financial.totalValue = Math.max(
+        0,
+        (financial.totalValue ?? 0) + totalValueChange,
+      );
+    }
 
     updatedOverview = {
       ...overview,
@@ -870,6 +907,49 @@ export const reduxSlice = createSlice({
         state.isSuccess = true;
       })
       .addCase(CANCEL_CUSTOMER_BOOKING.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.formSubmitted = false;
+      })
+      .addCase(CANCEL_BUSINESS_BOOKING.pending, (state) => {
+        state.formSubmitted = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(CANCEL_BUSINESS_BOOKING.fulfilled, (state, { payload }) => {
+        const { data, statusTransaction } = payload;
+        updateBookingStatus({ state, booking: data, statusTransaction });
+
+        if (
+          data?.cancellation?.refund?.amount > 0 &&
+          data?.cancellation?.refund?.status === "pending"
+        ) {
+          const { overview } = state.calendar;
+          const financial = { ...(overview?.financial ?? {}) };
+
+          financial.pendingRefunds = Math.max(
+            0,
+            (financial?.pendingRefunds ?? 0) +
+              (data?.cancellation?.refund?.amount ?? 0),
+          );
+
+          financial.pendingRefundCount = Math.max(
+            0,
+            (financial?.pendingRefundCount ?? 0) + 1,
+          );
+
+          state.calendar = {
+            ...state.calendar,
+            overview: {
+              ...overview,
+              financial,
+            },
+          };
+        }
+        state.formSubmitted = false;
+        state.isSuccess = true;
+      })
+      .addCase(CANCEL_BUSINESS_BOOKING.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;
