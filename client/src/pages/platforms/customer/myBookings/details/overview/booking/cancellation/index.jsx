@@ -97,6 +97,7 @@ const Cancellation = ({ booking, onClose }) => {
           reason: quickReason === "other" ? reason : quickReason,
           totalPaid: verifiedAmount,
           nonRefundableAmount: downPayment,
+          cancelledAt: new Date(),
           ...(hasRefund && {
             refund: {
               amount: refundAmount,
@@ -193,7 +194,7 @@ const Cancellation = ({ booking, onClose }) => {
                             className="size-3.5"
                           />
                         </span>
-                        Your refund
+                        Refund Amount
                       </dt>
                       <dd className="min-w-0 break-words text-right text-base font-semibold leading-5 text-primary tabular-nums">
                         {Formatter.amount(refundAmount)}
@@ -201,10 +202,8 @@ const Cancellation = ({ booking, onClose }) => {
                     </div>
                   </dl>
 
-                  {(!hasRefund || pendingAmount > 0) && (
+                  {pendingAmount > 0 && (
                     <p className="border-t border-border/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
-                      {!hasRefund &&
-                        "Verified payments do not exceed the non-refundable deposit, so no refund is due. "}
                       {pendingAmount > 0 &&
                         `Pending payments (${Formatter.amount(pendingAmount)}) are not included.`}
                     </p>
@@ -385,8 +384,8 @@ const Cancellation = ({ booking, onClose }) => {
                     htmlFor={`${id}-acknowledgment`}
                     className="block cursor-pointer text-sm font-normal leading-5 text-muted-foreground"
                   >
-                    I understand the deposit is non-refundable and this
-                    cancellation cannot be undone.
+                    I understand that my {Formatter.amount(downPayment)} payment
+                    will not be refunded and this cancellation cannot be undone.
                   </Label>
                 </div>
 

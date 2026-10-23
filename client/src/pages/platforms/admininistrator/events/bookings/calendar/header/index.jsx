@@ -75,7 +75,7 @@ const Header = ({
               <TooltipContent side="top">Search bookings</TooltipContent>
             </Tooltip>
 
-            {refunds?.length > 0 && (
+            {overview?.financial?.pendingRefundCount > 0 && (
               <>
                 <div
                   aria-hidden="true"
