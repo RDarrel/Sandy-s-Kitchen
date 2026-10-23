@@ -5,7 +5,7 @@ const dateToUTC = require("../../utilities/dateToUTC");
 exports.save = async (req, res) => {
   try {
     const { _id, ...data } = req.body;
-
+    console.log("req.body", req.body);
     let booking;
 
     if (_id) {
@@ -271,12 +271,10 @@ exports.cancel = async (req, res) => {
       bookingId: req.body?._id,
       cancellation: req.body.cancellation,
     });
-    res
-      .status(200)
-      .json({
-        data: { ...result, totalValueChange, amountReceived },
-        statusTransaction,
-      });
+    res.status(200).json({
+      data: { ...result, totalValueChange, amountReceived },
+      statusTransaction,
+    });
   } catch (error) {
     console.log("error", error.message);
     res

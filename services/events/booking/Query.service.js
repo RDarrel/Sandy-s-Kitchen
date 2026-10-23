@@ -276,6 +276,11 @@ const getRefunds = async () => {
       select: "fullName",
     })
 
+    .populate({
+      path: "cancellation.refund.accountProvidedByUser",
+      select: "fullName",
+    })
+
     .populate("customer", "fullName");
 
   return pendingRefunds;
@@ -314,6 +319,14 @@ const getCancelledCollections = async ({ startDate, endDate }) => {
     })
     .populate({
       path: "cancellation.refund.processedBy",
+      select: "fullName",
+    })
+    .populate({
+      path: "cancellation.cancelledBy",
+      select: "fullName",
+    })
+    .populate({
+      path: "cancellation.refund.accountProvidedByUser",
       select: "fullName",
     })
     .lean();
