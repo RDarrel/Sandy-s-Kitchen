@@ -184,7 +184,7 @@ export const getBookingAction = (booking, payment) => {
     return {
       title: "Booking Changes Required",
       message:
-        "Changes were requested. Please review and update your booking to continue.",
+        "Please review and update your booking details so we can proceed with your request.",
       reason,
       buttonLabel: "Review & Update",
       icon: AlertTriangle,
@@ -286,8 +286,7 @@ export const getBookingAction = (booking, payment) => {
       return {
         ...baseInfo,
         title: "Booking Cancelled",
-        message:
-          "Sandy's Kitchenette cancelled your booking. No refund is needed because you haven't made any payments.",
+        message: "Sandy's Kitchenette has cancelled your booking.",
         icon: Info,
         variant: "danger",
       };

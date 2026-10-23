@@ -1,7 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import { Content as AlertDialogContent } from "@radix-ui/react-alert-dialog";
 import { toast } from "sonner";
-import { ArrowDownLeft, CreditCard, LockKeyhole, X } from "lucide-react";
+import { ArrowDownLeft, CreditCard, LockKeyhole, TriangleAlert, X } from "lucide-react";
 
 import {
   AlertDialog,
@@ -89,7 +89,12 @@ const Cancellation = ({ booking, onClose }) => {
     dispatch(BROWSE());
   }, [dispatch]);
 
-  const { verifiedAmount = 0, pendingAmount = 0 } = getPaymentSummary(booking);
+  const {
+    verifiedAmount = 0,
+    pendingAmount = 0,
+    hasVerifiedPayments = false,
+    hasPendingPayment = false,
+  } = getPaymentSummary(booking);
 
   // Business-initiated cancellation:
   // Full refund of verified payments.
@@ -121,10 +126,12 @@ const Cancellation = ({ booking, onClose }) => {
     Boolean(reason) &&
     acknowledged &&
     !formSubmitted &&
+    !hasPendingPayment &&
     (!hasRefund || !includeAccount || accountDetailsComplete);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (hasPendingPayment) return;
 
     if (!canSubmit) {
       toast.error("Please complete the required fields.");
@@ -223,6 +230,23 @@ const Cancellation = ({ booking, onClose }) => {
                 </div>
 
                 {/* REFUND SUMMARY */}
+                {hasPendingPayment && (
+                  <div role="alert" className="mt-4 flex items-start gap-2">
+                    <TriangleAlert
+                      aria-hidden="true"
+                      className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                    />
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-sm font-semibold">Cancellation Unavailable</p>
+                      <p className="text-xs leading-5 text-muted-foreground">
+                        This booking can&apos;t be cancelled while a payment is
+                        being reviewed. Please approve or reject the pending
+                        payment before cancelling.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {(hasVerifiedPayments || hasPendingPayment) && !(hasPendingPayment && !hasRefund) && (
                 <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
                   <dl className="relative p-1">
                     <div
@@ -283,11 +307,12 @@ const Cancellation = ({ booking, onClose }) => {
                     </p>
                   )}
                 </div>
+                )}
 
                 {/* CANCELLATION REASON */}
                 <div className="mt-3 space-y-2.5">
                   <Field label="Cancellation Reason *" htmlFor={`${id}-reason`}>
-                    <Select value={quickReason} onValueChange={setQuickReason}>
+                    <Select value={quickReason} onValueChange={setQuickReason} disabled={hasPendingPayment}>
                       <SelectTrigger
                         id={`${id}-reason`}
                         className={controlClass}
@@ -313,6 +338,7 @@ const Cancellation = ({ booking, onClose }) => {
                       <Textarea
                         id={`${id}-other-reason`}
                         value={otherReason}
+                        disabled={hasPendingPayment}
                         onChange={(event) => setOtherReason(event.target.value)}
                         required
                         maxLength={1000}
@@ -351,7 +377,7 @@ const Cancellation = ({ booking, onClose }) => {
                         <Checkbox
                           id={`${id}-include-account`}
                           checked={includeAccount}
-                          disabled={formSubmitted}
+                          disabled={formSubmitted || hasPendingPayment}
                           onCheckedChange={(checked) =>
                             setIncludeAccount(checked === true)
                           }
@@ -389,7 +415,7 @@ const Cancellation = ({ booking, onClose }) => {
                             <Select
                               value={method}
                               disabled={
-                                isLoadingMethods || refundMethods.length === 0
+                                hasPendingPayment || isLoadingMethods || refundMethods.length === 0
                               }
                               onValueChange={(value) => {
                                 setMethod(value);
@@ -441,6 +467,7 @@ const Cancellation = ({ booking, onClose }) => {
                                 <Input
                                   id={`${id}-account-name`}
                                   value={accountName}
+                                  disabled={hasPendingPayment}
                                   onChange={(event) =>
                                     setAccountName(event.target.value)
                                   }
@@ -462,6 +489,7 @@ const Cancellation = ({ booking, onClose }) => {
                                 <Input
                                   id={`${id}-account-number`}
                                   value={accountNumber}
+                                  disabled={hasPendingPayment}
                                   onChange={(event) =>
                                     setAccountNumber(event.target.value)
                                   }
@@ -483,6 +511,7 @@ const Cancellation = ({ booking, onClose }) => {
                           >
                             <Select
                               value={accountSource}
+                              disabled={hasPendingPayment}
                               onValueChange={setAccountSource}
                             >
                               <SelectTrigger
@@ -519,6 +548,7 @@ const Cancellation = ({ booking, onClose }) => {
                   <Checkbox
                     id={`${id}-acknowledgment`}
                     checked={acknowledged}
+                    disabled={hasPendingPayment}
                     onCheckedChange={(checked) =>
                       setAcknowledged(checked === true)
                     }
@@ -542,7 +572,7 @@ const Cancellation = ({ booking, onClose }) => {
                     disabled={formSubmitted}
                     className="mt-0 h-9 rounded-md bg-background px-3 text-sm shadow-none"
                   >
-                    Keep Booking
+                    {hasPendingPayment ? "Close" : "Keep Booking"}
                   </AlertDialogCancel>
 
                   <Button

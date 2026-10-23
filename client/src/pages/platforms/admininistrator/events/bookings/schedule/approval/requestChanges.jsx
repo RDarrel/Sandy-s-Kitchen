@@ -12,6 +12,30 @@ import Spinner from "@/components/shared/spinner";
 import { useSelector } from "react-redux";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const QUICK_REASONS = [
+  {
+    label: "Schedule Conflict",
+    message:
+      "Your selected date or time is unavailable. Please choose another schedule for your booking.",
+  },
+  {
+    label: "Guest Count",
+    message:
+      "Please review and update your guest count to meet the requirements of your selected package or venue.",
+  },
+  {
+    label: "Menu Availability",
+    message:
+      "Some of your selected dishes are unavailable. Please review and update your menu selections.",
+  },
+  {
+    label: "Package Selection",
+    message:
+      "Your selected package may not meet your event requirements. Please review and update your package selection.",
+  },
+];
 
 const RequestChanges = ({
   changeRequestOpen,
@@ -50,6 +74,34 @@ const RequestChanges = ({
         </AlertDialogHeader>
 
         <div className="space-y-2">
+          <fieldset className="space-y-2" disabled={formSubmitted}>
+            <legend className="text-xs font-medium text-muted-foreground">
+              Suggested Reasons
+            </legend>
+            <div className="flex flex-wrap gap-1.5">
+              {QUICK_REASONS.map(({ label, message }) => (
+                <Button
+                  key={label}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className={
+                    "h-auto rounded-md px-2 py-1 text-xs shadow-none " +
+                    (changeRequestReason === message
+                      ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                      : "")
+                  }
+                  aria-pressed={changeRequestReason === message}
+                  onClick={() => {
+                    setChangeRequestReason(message);
+                    setChangeRequestError("");
+                  }}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </fieldset>
           <Textarea
             value={changeRequestReason}
             onChange={(e) => {
