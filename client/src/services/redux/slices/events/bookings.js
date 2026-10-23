@@ -52,6 +52,25 @@ export const SAVE = createAsyncThunk(`${url}/save`, (data, thunkAPI) => {
   }
 });
 
+export const SAVE_REFUND_ACCOUNT = createAsyncThunk(
+  `${url}/save-refund-account`,
+  async ({ _id, account }, thunkAPI) => {
+    try {
+      const fields = Object.fromEntries(
+        Object.entries(account).map(([key, value]) => [
+          `cancellation.refund.${key}`,
+          value,
+        ]),
+      );
+      return await axioKit.save(url, { _id, ...fields });
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.error || error.message,
+      );
+    }
+  },
+);
+
 export const APPROVE = createAsyncThunk(`${url}/approve`, (data, thunkAPI) => {
   try {
     return axioKit.update(url, data, "approve");
@@ -1009,6 +1028,13 @@ export const reduxSlice = createSlice({
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;
+      })
+      .addCase(SAVE_REFUND_ACCOUNT.fulfilled, (state, { payload }) => {
+        const { data } = payload;
+        const booking = state.refunds.find(({ _id }) => _id === data?._id);
+        if (booking) {
+          booking.cancellation.refund = data.cancellation.refund;
+        }
       })
       .addCase(REQUEST_ACCOUNT_CORRECTION.pending, (state) => {
         state.formSubmitted = true;

@@ -1,6 +1,7 @@
 import { createElement, useState } from "react";
 import ProcessRefund from "./processRefund";
 import RequestCorrection from "./requestCorrection";
+import AddAccountDetails from "./addAccountDetails";
 import {
   ArrowLeft,
   Clock3,
@@ -11,6 +12,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DialogDescription,
   DialogHeader,
@@ -26,8 +28,14 @@ const RefundDetails = ({
 }) => {
   const [processing, setProcessing] = useState(false);
   const [correcting, setCorrecting] = useState(false);
+  const [addingAccount, setAddingAccount] = useState(false);
   const cancellation = booking?.cancellation ?? {};
+  const isBusinessCancellation = cancellation.initiatedBy === "business";
+  const cancellingStaff = cancellation.cancelledBy?.fullName
+    ? fullName(cancellation.cancelledBy.fullName)
+    : "Staff name unavailable";
   const refund = cancellation.refund ?? {};
+  const hasRefundAccount = Boolean(refund.accountProvidedBy);
   const correction = refund.accountCorrection ?? {};
   const needsCorrection = correction.required === true;
   const requestedBy = correction.requestedBy?.fullName
@@ -79,7 +87,7 @@ const RefundDetails = ({
             </DialogTitle>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
-            {needsCorrection && (
+            {hasRefundAccount && needsCorrection && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
                 <TriangleAlert
                   aria-hidden="true"
@@ -118,7 +126,34 @@ const RefundDetails = ({
           )}
         </div>
 
-        <Section title="Reason for cancellation" icon={FileText}>
+        <Section
+          title={
+            isBusinessCancellation
+              ? "Cancellation details"
+              : "Reason for cancellation"
+          }
+          icon={FileText}
+          badge={
+            isBusinessCancellation ? (
+              <Badge
+                variant="secondary"
+                className="shrink-0 border-primary/20 bg-primary/10 px-1.5 py-0 text-[10px] leading-4 text-primary"
+              >
+                Business
+              </Badge>
+            ) : null
+          }
+        >
+          {isBusinessCancellation && (
+            <>
+              <dl>
+                <Detail label="Cancelled by" value={cancellingStaff} />
+              </dl>
+              <p className="border-t border-border/60 pt-2.5 text-xs text-muted-foreground">
+                Reason for cancellation
+              </p>
+            </>
+          )}
           <p className="whitespace-pre-wrap break-words border-l-2 border-primary/25 pl-3 text-sm leading-6 text-foreground/85">
             {cancellation.reason || "No reason provided."}
           </p>
@@ -145,19 +180,36 @@ const RefundDetails = ({
         </Section>
 
         <Section title="Refund destination" icon={Wallet}>
-          <dl className="space-y-2.5">
-            <Detail
-              label="Refund Method"
-              value={methodName || "Not available"}
-            />
-            <Detail
-              label="Account Name"
-              value={refund.accountName || "Not available"}
-            />
-            <Detail label="Account Number" value={maskedAccount} />
-          </dl>
+          {hasRefundAccount ? (
+            <dl className="space-y-2.5">
+              <Detail
+                label="Refund Method"
+                value={methodName || "Not available"}
+              />
+              <Detail
+                label="Account Name"
+                value={refund.accountName || "Not available"}
+              />
+              <Detail label="Account Number" value={maskedAccount} />
+            </dl>
+          ) : (
+            <div className="space-y-1.5">
+              <p className="flex items-center gap-2 text-xs font-semibold">
+                <Clock3
+                  aria-hidden="true"
+                  className="size-3.5 shrink-0 text-amber-500"
+                />
+                Awaiting Account Details
+              </p>
+              <p className="text-xs leading-5 text-muted-foreground">
+                The customer has not provided their refund account details yet.
+                Add the details if the customer has already shared them, or wait
+                for the customer to submit them.
+              </p>
+            </div>
+          )}
         </Section>
-        {needsCorrection && (
+        {hasRefundAccount && needsCorrection && (
           <section className="overflow-hidden rounded-lg border bg-background">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/15 px-3 py-2">
               <h4 className="flex items-center gap-2 text-xs font-semibold text-foreground">
@@ -204,52 +256,85 @@ const RefundDetails = ({
 
       <div className="shrink-0 border-t bg-muted/10 px-3 py-3 sm:px-4">
         <div className="flex flex-wrap justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="rounded-md bg-background text-sm shadow-none"
-            onClick={() => setCorrecting(true)}
-            disabled={needsCorrection}
-          >
-            {needsCorrection ? "Correction Requested" : "Request Correction"}
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            className="rounded-md text-sm shadow-none"
-            onClick={() => setProcessing(true)}
-            disabled={needsCorrection}
-          >
-            Process Refund
-          </Button>
+          {hasRefundAccount ? (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-md bg-background text-sm shadow-none"
+                onClick={() => setCorrecting(true)}
+                disabled={needsCorrection}
+              >
+                {needsCorrection ? "Correction Requested" : "Request Correction"}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="rounded-md text-sm shadow-none"
+                onClick={() => setProcessing(true)}
+                disabled={needsCorrection}
+              >
+                Process Refund
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-md bg-background text-sm shadow-none"
+                onClick={onBack}
+              >
+                Back
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="rounded-md text-sm shadow-none"
+                onClick={() => setAddingAccount(true)}
+              >
+                Add Account Details
+              </Button>
+            </>
+          )}
         </div>
       </div>
       <ProcessRefund
-        open={processing}
+        open={hasRefundAccount && processing}
         onOpenChange={setProcessing}
         booking={booking}
         methodName={methodName}
         goToList={goToList}
       />
       <RequestCorrection
-        open={correcting}
+        open={hasRefundAccount && correcting}
         onOpenChange={setCorrecting}
         booking={booking}
         setBooking={setBooking}
+      />
+      <AddAccountDetails
+        key={booking?._id}
+        open={addingAccount}
+        onOpenChange={setAddingAccount}
+        booking={booking}
+        setBooking={setBooking}
+        paymentMethods={paymentMethods}
       />
     </>
   );
 };
 
-const Section = ({ title, icon: Icon, children }) => (
+const Section = ({ title, icon: Icon, badge, children }) => (
   <section className="overflow-hidden rounded-lg border bg-background">
     <h4 className="flex items-center gap-2 border-b bg-muted/15 px-3 py-2 text-xs font-semibold text-foreground">
       {createElement(Icon, {
         "aria-hidden": true,
-        className: "size-3.5 text-muted-foreground",
+        className: "size-3.5 shrink-0 text-muted-foreground",
       })}
-      {title}
+      <span className="min-w-0 flex-1">{title}</span>
+      {badge}
     </h4>
     <div className="space-y-3 p-3">{children}</div>
   </section>

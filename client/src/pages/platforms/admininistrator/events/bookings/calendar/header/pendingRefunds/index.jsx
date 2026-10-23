@@ -2,8 +2,9 @@ import { GET_REFUNDS } from "@/services/redux/slices/events/bookings";
 import { BROWSE as GET_PAYMENT_METHODS } from "@/services/redux/slices/events/paymentMethods";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { ArrowRight, Loader2, TriangleAlert, Wallet } from "lucide-react";
+import { ArrowRight, Clock3, Loader2, TriangleAlert, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -48,11 +49,6 @@ const PendingRefunds = () => {
 
   console.log("refunds", refunds);
 
-  const pendingRefunds = (Array.isArray(refunds) ? refunds : []).filter(
-    (booking) =>
-      booking?.cancellation?.refund?.status === "pending" &&
-      Number(booking.cancellation.refund.amount) > 0,
-  );
   const count = refunds.length;
 
   return (
@@ -188,7 +184,17 @@ const PendingRefunds = () => {
                   </div>
                 ) : (
                   refunds.map((booking) => {
-                    const { refund, cancelledAt } = booking.cancellation;
+                    const { refund, cancelledAt, initiatedBy } =
+                      booking.cancellation;
+                    const hasRefundAccount = Boolean(
+                      booking.cancellation?.refund?.accountProvidedBy,
+                    );
+                    const cancelledByLabel =
+                      initiatedBy === "customer"
+                        ? "Customer"
+                        : initiatedBy === "business"
+                          ? "Business"
+                          : "Not available";
                     const needsCorrection =
                       refund.accountCorrection?.required === true;
                     const methodId = refund.method?._id ?? refund.method;
@@ -240,6 +246,19 @@ const PendingRefunds = () => {
                               {hasDate &&
                                 `${booking.reference ? " · " : ""}Cancelled ${Formatter.date(cancelledAt, true)}`}
                             </p>
+                            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs leading-5 text-muted-foreground">
+                              Cancelled by:
+                              <Badge
+                                variant="secondary"
+                                className={
+                                  initiatedBy === "business"
+                                    ? "border-primary/20 bg-primary/10 px-1.5 py-0 text-primary"
+                                    : "border-secondary-foreground/10 px-1.5 py-0"
+                                }
+                              >
+                                {cancelledByLabel}
+                              </Badge>
+                            </p>
                           </div>
                           <div className="text-right">
                             <p className="text-xs font-medium leading-5 text-muted-foreground">
@@ -253,21 +272,34 @@ const PendingRefunds = () => {
 
                         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border/60 bg-muted/20 px-3 py-1.5">
                           <div className="flex min-w-0 flex-1 items-center gap-2 text-xs leading-5">
-                            <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground">
-                              <Wallet aria-hidden="true" className="size-3" />
-                            </span>
-                            <div className="min-w-0">
-                              <span className="break-words font-medium text-foreground">
-                                <span className="sr-only">Refund method: </span>
-                                {methodName || "Method unavailable"}
-                              </span>
-                              <span className="ml-2 inline-block text-muted-foreground tabular-nums">
-                                <span className="sr-only">
-                                  Account number:{" "}
+                            {hasRefundAccount ? (
+                              <>
+                                <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground">
+                                  <Wallet aria-hidden="true" className="size-3" />
                                 </span>
-                                {maskedNumber}
-                              </span>
-                            </div>
+                                <div className="min-w-0">
+                                  <span className="break-words font-medium text-foreground">
+                                    <span className="sr-only">Refund method: </span>
+                                    {methodName || "Method unavailable"}
+                                  </span>
+                                  <span className="ml-2 inline-block text-muted-foreground tabular-nums">
+                                    <span className="sr-only">
+                                      Account number:{" "}
+                                    </span>
+                                    {maskedNumber}
+                                  </span>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                                  <Clock3 aria-hidden="true" className="size-3.5" />
+                                </span>
+                                <p className="min-w-0 font-medium text-amber-700 dark:text-amber-400">
+                                  Awaiting refund account details
+                                </p>
+                              </>
+                            )}
                           </div>
                           <Button
                             type="button"

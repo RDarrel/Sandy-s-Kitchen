@@ -271,6 +271,11 @@ const getRefunds = async () => {
       path: "cancellation.refund.accountCorrection.requestedBy",
       select: "fullName",
     })
+    .populate({
+      path: "cancellation.cancelledBy",
+      select: "fullName",
+    })
+
     .populate("customer", "fullName");
 
   return pendingRefunds;
