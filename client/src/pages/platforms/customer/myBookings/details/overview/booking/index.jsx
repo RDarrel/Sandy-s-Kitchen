@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Formatter } from "@/services/utilities";
 import { ChevronDown, Pencil, XCircle } from "lucide-react";
-import { prepareBookingEdt } from "../../../utils";
+import { getBookingUpdateTitle, prepareBookingEdt } from "../../../utils";
 import { Button } from "@/components/ui/button";
 
 const NOTICE_ICON_TONE = {
@@ -30,6 +30,11 @@ const BookingOverview = ({ booking, status, date, action }) => {
   const ActionIcon = action.icon;
   const iconTone = NOTICE_ICON_TONE[action.variant] || NOTICE_ICON_TONE.default;
   const actionMessage = action?.reason?.trim() || action.message;
+  const updateTitle = getBookingUpdateTitle(booking, action);
+  const isCancelled = booking?.status === "cancelled";
+  const cancelledAt = booking?.cancellation?.cancelledAt;
+  const hasCancellationDate =
+    cancelledAt && !Number.isNaN(new Date(cancelledAt).getTime());
 
   const canEditBooking = ["pending", "changes_requested"].includes(
     booking?.status,
@@ -115,23 +120,15 @@ const BookingOverview = ({ booking, status, date, action }) => {
       </div>
 
       {/* Current booking state */}
-      <div className="flex flex-col gap-2 border-t bg-muted/20 px-3 py-2.5 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex min-w-0 items-start gap-2">
-          <ActionIcon className={`size-4 shrink-0 ${iconTone}`} />
-
-          <div className="min-w-0">
-            {action?.title && (
-              <p className="mb-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
-                {action?.title}
-              </p>
-            )}
-
-            <p className="min-w-0 whitespace-pre-wrap text-xs font-medium leading-5">
-              {actionMessage}
-            </p>
-          </div>
-        </div>
-
+      <div className="border-t border-border/60">
+        <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-3 gap-y-2 bg-muted/20 px-3 py-2">
+          <p className="flex min-w-0 items-center gap-2 text-xs font-semibold leading-5">
+            <ActionIcon
+              aria-hidden="true"
+              className={`size-4 shrink-0 ${iconTone}`}
+            />
+            <span className="min-w-0 break-words">{updateTitle}</span>
+          </p>
         {canManageBooking && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -139,10 +136,9 @@ const BookingOverview = ({ booking, status, date, action }) => {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-7 shrink-0 gap-1.5 bg-background px-2.5 text-xs"
               >
                 Manage booking
-                <ChevronDown className="size-3.5" />
+                <ChevronDown className="size-4" />
               </Button>
             </DropdownMenuTrigger>
 
@@ -168,6 +164,34 @@ const BookingOverview = ({ booking, status, date, action }) => {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+        </div>
+        <div className="space-y-2 px-3 py-2.5">
+          <p className="whitespace-pre-wrap break-words text-xs leading-5 text-muted-foreground">
+            {actionMessage}
+          </p>
+          {isCancelled && (
+            <dl className="grid gap-3 border-t border-border/50 pt-2.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4">
+              <div className="min-w-0 space-y-0.5">
+                <dt className="text-[11px] leading-4 text-muted-foreground">
+                  Reason for cancellation
+                </dt>
+                <dd className="whitespace-pre-wrap break-words text-xs font-medium leading-5 text-foreground">
+                  {booking?.cancellation?.reason?.trim() || "No reason provided."}
+                </dd>
+              </div>
+              <div className="min-w-0 space-y-0.5 text-right">
+                <dt className="text-[11px] leading-4 text-muted-foreground">
+                  Cancelled on
+                </dt>
+                <dd className="text-xs font-medium leading-5 text-foreground">
+                  {hasCancellationDate
+                    ? Formatter.date(cancelledAt, true)
+                    : "Not available"}
+                </dd>
+              </div>
+            </dl>
+          )}
+        </div>
       </div>
     </section>
     {showCancellation && (

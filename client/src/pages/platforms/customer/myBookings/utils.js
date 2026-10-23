@@ -129,6 +129,30 @@ export const getPaymentSummary = (booking) => {
     isFullyPaid: balance <= 0,
   };
 };
+const BOOKING_UPDATE_TITLES = {
+  pending: "Awaiting review",
+  approved: "Down payment required",
+  confirmed: "Preparing for your event",
+  setup: "Event setup in progress",
+  completed: "Thank you for celebrating with us",
+  changes_requested: "Please review the requested changes",
+  cancelled: "Cancellation details",
+  rejected: "Please review the booking feedback",
+};
+
+export const getBookingUpdateTitle = (booking, action) => {
+  if (action?.title?.trim()) return action.title;
+
+  if (booking?.status === "approved") {
+    const payment = getPaymentSummary(booking);
+    if (payment.hasPendingPayment) return "Payment verification pending";
+    if (payment.isLatestPaymentVoided) return "Please review your payment";
+    if (payment.isDownPaymentSatisfied) return "Awaiting booking confirmation";
+  }
+
+  return BOOKING_UPDATE_TITLES[booking?.status] || "Booking update";
+};
+
 export const getBookingAction = (booking, payment) => {
   const status = booking?.status;
   /*
