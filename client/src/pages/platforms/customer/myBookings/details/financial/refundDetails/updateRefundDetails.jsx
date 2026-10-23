@@ -42,8 +42,10 @@ const UpdateRefundDetails = ({ booking, onClose }) => {
     ({ paymentMethods }) => paymentMethods,
   );
   const { formSubmitted } = useSelector(({ bookings }) => bookings);
+  const { auth } = useSelector(({ auth }) => auth);
   const dispatch = useDispatch();
   const refund = booking?.cancellation?.refund ?? {};
+  const isProvidingAccount = !refund.accountProvidedBy;
   const totalPaid = Number(booking?.cancellation?.totalPaid ?? 0);
   const retainedAmount = Math.min(
     totalPaid,
@@ -76,11 +78,19 @@ const UpdateRefundDetails = ({ booking, onClose }) => {
             method,
             accountName,
             accountNumber,
-            accountCorrection: {
-              ...booking?.cancellation?.refund?.accountCorrection,
-              required: false,
-              resolvedAt: new Date(),
-            },
+            ...(isProvidingAccount && {
+              accountProvidedBy: "customer",
+              accountProvidedByUser: auth?._id,
+              accountProvidedAt: new Date(),
+              accountSource: "system",
+            }),
+            ...(!isProvidingAccount && {
+              accountCorrection: {
+                ...booking?.cancellation?.refund?.accountCorrection,
+                required: false,
+                resolvedAt: new Date(),
+              },
+            }),
           },
         },
       }),
@@ -110,7 +120,9 @@ const UpdateRefundDetails = ({ booking, onClose }) => {
                 <div className="flex items-start justify-between gap-3">
                   <AlertDialogHeader className="min-w-0 gap-0.5 text-left">
                     <AlertDialogTitle className="text-lg font-semibold leading-6">
-                      Update Refund Details
+                      {isProvidingAccount
+                        ? "Provide Refund Details"
+                        : "Update Refund Details"}
                     </AlertDialogTitle>
                     <AlertDialogDescription className="break-words text-sm leading-5 text-muted-foreground">
                       {booking?.eventType || "Event booking"}

@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import { useState } from "react";
-import { ArrowDownLeft, Image, TriangleAlert } from "lucide-react";
+import { ArrowDownLeft, CircleAlert, Image, TriangleAlert } from "lucide-react";
 import Cloudinary from "@/services/utilities/cloudinary";
 import {
   AlertDialog,
@@ -32,6 +32,8 @@ const RefundDetails = ({ booking }) => {
 
   const completed = refund.status === "completed";
   const pending = refund.status === "pending";
+  const hasRefundAccount = Boolean(refund.accountProvidedBy);
+  const needsAccount = !hasRefundAccount && !completed;
 
   const proofSrc =
     completed && refund.proofImgId && booking?._id
@@ -55,17 +57,17 @@ const RefundDetails = ({ booking }) => {
         <FrameTitle
           title="Refund Details"
           afterTitle={
-            (needsCorrection || pending || completed) && (
+            (needsAccount || needsCorrection || pending || completed) && (
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold leading-none ${
-                  needsCorrection
+                  needsAccount || needsCorrection
                     ? "bg-destructive/10 text-destructive"
                     : completed
                       ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                       : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
                 }`}
               >
-                {needsCorrection
+                {needsAccount || needsCorrection
                   ? "Action required"
                   : completed
                     ? "Completed"
@@ -85,9 +87,27 @@ const RefundDetails = ({ booking }) => {
           value={refund.amount}
           strong
         />
-        <Detail label="Refund Method" value={methodName} />
-        <Detail label="Account Name" value={refund.accountName} />
-        <Detail label="Account Number" value={accountNumber} />
+        {needsAccount && (
+          <div className="flex items-start gap-2 border-t border-border/60 pt-3">
+              <CircleAlert
+                aria-hidden="true"
+                className="mt-0.5 size-3.5 shrink-0 text-primary"
+              />
+              <div className="min-w-0 space-y-1">
+                <p className="text-xs font-medium">Refund account needed</p>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Add your GCash or bank account so we can send your refund.
+                </p>
+              </div>
+          </div>
+        )}
+        {hasRefundAccount && (
+          <>
+            <Detail label="Refund Method" value={methodName} />
+            <Detail label="Account Name" value={refund.accountName} />
+            <Detail label="Account Number" value={accountNumber} />
+          </>
+        )}
         {hasRefundedDate && (
           <Detail
             label="Refunded Date"
@@ -98,6 +118,19 @@ const RefundDetails = ({ booking }) => {
           <Detail label="Refund Reference Number" value={refund.reference} />
         )}
       </div>
+      {needsAccount && (
+        <div className="border-t px-3 py-2.5">
+          <Button
+            type="button"
+            size="sm"
+            className="w-full"
+            aria-haspopup="dialog"
+            onClick={() => setShowUpdateDialog(true)}
+          >
+            Provide Refund Details
+          </Button>
+        </div>
+      )}
       {completed && (
         <div className="border-t p-3">
           <Button
@@ -117,7 +150,7 @@ const RefundDetails = ({ booking }) => {
           </Button>
         </div>
       )}
-      {needsCorrection && (
+      {hasRefundAccount && needsCorrection && (
         <div className="space-y-3 border-t p-3">
           <div className="flex items-start gap-2">
             <TriangleAlert

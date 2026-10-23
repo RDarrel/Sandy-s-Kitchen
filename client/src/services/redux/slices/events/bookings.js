@@ -62,7 +62,36 @@ export const SAVE_REFUND_ACCOUNT = createAsyncThunk(
           value,
         ]),
       );
-      return await axioKit.save(url, { _id, ...fields });
+      const response = await axioKit.save(url, { _id, ...fields });
+      const refund = response.data.cancellation.refund;
+      const { auth } = thunkAPI.getState().auth;
+      const providedByUser = refund.accountProvidedByUser;
+      const providedByUserId = providedByUser?._id ?? providedByUser;
+
+      if (
+        !providedByUser?.fullName &&
+        auth?._id &&
+        String(providedByUserId) === String(auth._id)
+      ) {
+        return {
+          ...response,
+          data: {
+            ...response.data,
+            cancellation: {
+              ...response.data.cancellation,
+              refund: {
+                ...refund,
+                accountProvidedByUser: {
+                  _id: auth._id,
+                  fullName: auth.fullName,
+                },
+              },
+            },
+          },
+        };
+      }
+
+      return response;
     } catch (error) {
       return thunkAPI.rejectWithValue(
         error.response?.data?.error || error.message,

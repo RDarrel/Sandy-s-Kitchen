@@ -7,6 +7,7 @@ import duration from "./duration";
 import preferredContact from "./preferredContact";
 import localDate from "./localDate";
 import bookingDateRange from "./bookingDateRange";
+import monthRange from "./monthRange";
 const Formatter = {
   amount,
   date,
@@ -17,6 +18,7 @@ const Formatter = {
   preferredContact,
   localDate,
   bookingDateRange,
+  monthRange,
 };
 
 export default Formatter;

@@ -5,8 +5,17 @@ import { AlertDialog, AlertDialogPortal, AlertDialogOverlay, AlertDialogTitle, A
 import { ArrowLeft, CircleCheck, CircleMinus, Clock3, ExternalLink, FileText, ReceiptText, Wallet } from "lucide-react";
 import Cloudinary from "@/services/utilities/cloudinary";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Formatter, fullName } from "@/services/utilities";
+
+const ACCOUNT_SOURCE_LABELS = {
+  system: "System",
+  phone: "Phone Call",
+  messenger: "Messenger",
+  in_person: "In Person",
+  other: "Other",
+};
 
 const CancelledDetails = ({ booking, onBack }) => {
   const [showProof, setShowProof] = useState(false);
@@ -14,6 +23,15 @@ const CancelledDetails = ({ booking, onBack }) => {
   const methods = useSelector((state) => state.paymentMethods?.collections ?? []);
   const cancellation = booking?.cancellation ?? {};
   const refund = cancellation.refund ?? {};
+  const isBusinessCancellation = cancellation.initiatedBy === "business";
+  const hasRefundAccount = Boolean(refund.accountProvidedBy);
+  const isCustomerProvided = refund.accountProvidedBy === "customer";
+  const cancellingStaff = cancellation.cancelledBy?.fullName
+    ? fullName(cancellation.cancelledBy.fullName)
+    : "Staff name unavailable";
+  const enteredBy = refund.accountProvidedByUser?.fullName
+    ? fullName(refund.accountProvidedByUser.fullName)
+    : "Not available";
   const totalPaid = Number(cancellation.totalPaid ?? 0);
   const retained = Math.min(totalPaid, Number(cancellation.nonRefundableAmount ?? 0));
   const hasRefundStatus = (refund.status ?? "none") !== "none";
@@ -52,25 +70,78 @@ const CancelledDetails = ({ booking, onBack }) => {
           {hasDate(cancellation.cancelledAt) && <p className="flex items-start gap-1.5 text-xs leading-5 text-muted-foreground"><Clock3 aria-hidden="true" className="mt-1 size-3 shrink-0" />Cancelled on {Formatter.date(cancellation.cancelledAt, true)}</p>}
         </div>
 
-        <Section title="Reason for cancellation" icon={<FileText className="size-3.5" />}>
+        <Section
+          title={isBusinessCancellation ? "Cancellation details" : "Reason for cancellation"}
+          icon={<FileText className="size-3.5" />}
+          action={isBusinessCancellation && (
+            <Badge
+              variant="secondary"
+              className="shrink-0 border-primary/20 bg-primary/10 px-1.5 py-0 text-[10px] leading-4 text-primary"
+            >
+              Business
+            </Badge>
+          )}
+        >
+          {isBusinessCancellation && (
+            <>
+              <dl>
+                <Detail label="Cancelled by" value={cancellingStaff} />
+              </dl>
+              <p className="border-t border-border/60 pt-2.5 text-xs text-muted-foreground">
+                Reason for cancellation
+              </p>
+            </>
+          )}
           <p className="whitespace-pre-wrap break-words border-l-2 border-primary/25 pl-3 text-sm leading-6 text-foreground/85">{cancellation.reason || "No reason provided."}</p>
         </Section>
 
-        <Section title="Payment breakdown" icon={<ReceiptText className="size-3.5" />}>
+        <Section title="Refund breakdown" icon={<ReceiptText className="size-3.5" />}>
           <dl className="space-y-2.5">
-            <Detail label="Total Paid" value={Formatter.amount(totalPaid)} />
-            <Detail label="Retained Payment" value={`${retained > 0 ? "−" : ""}${Formatter.amount(retained)}`} />
+            <Detail label="Verified Payments" value={Formatter.amount(totalPaid)} />
+            <Detail label="Non-refundable Amount" value={`${retained > 0 ? "−" : ""}${Formatter.amount(retained)}`} />
             <div className="-mx-3 -mb-3 border-t border-primary/10 bg-primary/5 px-3 py-3"><Detail label="Refund Amount" value={Formatter.amount(refund.amount ?? 0)} strong /></div>
           </dl>
         </Section>
 
         {hasRefund && (
-          <Section title="Refund details" icon={<Wallet className="size-3.5" />}>
+          <Section title="Refund destination" icon={<Wallet className="size-3.5" />}>
+            {hasRefundAccount ? (
             <dl className="space-y-2.5">
               <Detail label="Refund Method" value={methodName || "Not available"} />
               <Detail label="Account Name" value={refund.accountName || "Not available"} />
               <Detail label="Account Number" value={refund.accountNumber || "Not available"} />
+              {isBusinessCancellation && (
+                <div className="space-y-2.5 border-t border-border/60 pt-2.5">
+                  <Detail label="Provided By" value={isCustomerProvided ? "Customer" : "Staff"} />
+                  {!isCustomerProvided && (
+                    <>
+                      <Detail label="Entered By" value={enteredBy} />
+                      <Detail
+                        label="Details Received Via"
+                        value={ACCOUNT_SOURCE_LABELS[refund.accountSource] || "Not available"}
+                      />
+                    </>
+                  )}
+                  <Detail
+                    label="Provided On"
+                    value={hasDate(refund.accountProvidedAt)
+                      ? Formatter.date(refund.accountProvidedAt, true)
+                      : "Not available"}
+                  />
+                </div>
+              )}
             </dl>
+            ) : (
+              <div className="space-y-1.5">
+                <p className="flex items-center gap-2 text-xs font-semibold">
+                  <Clock3 aria-hidden="true" className="size-3.5 shrink-0 text-amber-500" />
+                  Awaiting Account Details
+                </p>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  The customer has not provided their refund account details yet.
+                </p>
+              </div>
+            )}
           </Section>
         )}
 
@@ -105,7 +176,7 @@ const CancelledDetails = ({ booking, onBack }) => {
           </Section>
         )}
 
-        {hasRefund && correction?.required === true && (
+        {hasRefund && hasRefundAccount && correction?.required === true && (
           <Section title="Account correction request" icon={<FileText className="size-3.5" />}>
             <p className="text-xs font-medium text-muted-foreground">Awaiting Customer</p>
             <p className="whitespace-pre-wrap break-words text-sm leading-5">{correction.reason || "No reason provided."}</p>

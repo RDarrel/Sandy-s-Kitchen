@@ -20,6 +20,14 @@ import {
 } from "@/components/ui/dialog";
 import { Formatter, fullName } from "@/services/utilities";
 
+const ACCOUNT_SOURCE_LABELS = {
+  system: "System",
+  phone: "Phone Call",
+  messenger: "Messenger",
+  in_person: "In Person",
+  other: "Other",
+};
+
 const RefundDetails = ({
   booking,
   setBooking,
@@ -36,6 +44,13 @@ const RefundDetails = ({
     : "Staff name unavailable";
   const refund = cancellation.refund ?? {};
   const hasRefundAccount = Boolean(refund.accountProvidedBy);
+  const isCustomerProvided = refund.accountProvidedBy === "customer";
+  const enteredBy = refund.accountProvidedByUser?.fullName
+    ? fullName(refund.accountProvidedByUser.fullName)
+    : "Not available";
+  const hasProvidedDate =
+    refund.accountProvidedAt &&
+    !Number.isNaN(new Date(refund.accountProvidedAt).getTime());
   const correction = refund.accountCorrection ?? {};
   const needsCorrection = correction.required === true;
   const requestedBy = correction.requestedBy?.fullName
@@ -54,12 +69,6 @@ const RefundDetails = ({
     refund.method?.name ||
     paymentMethods.find(({ _id }) => _id === methodId)?.name;
   const accountNumber = String(refund.accountNumber ?? "").replace(/\s/g, "");
-  const maskedAccount =
-    accountNumber.length > 4
-      ? `•••• ${accountNumber.slice(-4)}`
-      : accountNumber
-        ? "•".repeat(accountNumber.length)
-        : "Not available";
   const cancelledAt = cancellation.cancelledAt;
   const hasDate = cancelledAt && !Number.isNaN(new Date(cancelledAt).getTime());
 
@@ -190,7 +199,38 @@ const RefundDetails = ({
                 label="Account Name"
                 value={refund.accountName || "Not available"}
               />
-              <Detail label="Account Number" value={maskedAccount} />
+              <Detail
+                label="Account Number"
+                value={accountNumber || "Not available"}
+              />
+              {isBusinessCancellation && (
+                <div className="space-y-2.5 border-t border-border/60 pt-2.5">
+                  <Detail
+                    label="Provided By"
+                    value={isCustomerProvided ? "Customer" : "Staff"}
+                  />
+                  {!isCustomerProvided && (
+                    <>
+                      <Detail label="Entered By" value={enteredBy} />
+                      <Detail
+                        label="Details Received Via"
+                        value={
+                          ACCOUNT_SOURCE_LABELS[refund.accountSource] ||
+                          "Not available"
+                        }
+                      />
+                    </>
+                  )}
+                  <Detail
+                    label="Provided On"
+                    value={
+                      hasProvidedDate
+                        ? Formatter.date(refund.accountProvidedAt, true)
+                        : "Not available"
+                    }
+                  />
+                </div>
+              )}
             </dl>
           ) : (
             <div className="space-y-1.5">
