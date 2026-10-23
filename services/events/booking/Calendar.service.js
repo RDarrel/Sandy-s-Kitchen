@@ -4,7 +4,6 @@ const { DateTime } = require("luxon");
 const { attachPaymentsToBookings } = require("./helpers/attachPayments");
 const dateToUTC = require("../../../utilities/dateToUTC");
 const { attachRecipes } = require("../menu/helpers/attachRecipe");
-
 const calendar = async ({ start, end, monthStart, monthEnd }) => {
   const timezone = "Asia/Manila";
 
@@ -383,6 +382,25 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
                 },
               },
 
+              // NEW: PENDING REFUND COUNT
+              // Number of cancelled bookings with pending refunds
+              pendingRefundCount: {
+                $sum: {
+                  $cond: [
+                    {
+                      $and: [
+                        "$isCancelled",
+                        {
+                          $eq: ["$cancellation.refund.status", "pending"],
+                        },
+                      ],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+
               // RETAINED DEPOSITS
               // Amount retained from cancelled bookings
               retainedDeposits: {
@@ -441,7 +459,7 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
               // Existing key: Booking Value
               totalValue: 1,
 
-              // New key: Balance Due
+              // Existing key: Balance Due
               balanceDue: 1,
 
               // Tooltip breakdown
@@ -449,6 +467,9 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
               completedRefunds: 1,
               retainedDeposits: 1,
               pendingRefunds: 1,
+
+              // NEW
+              pendingRefundCount: 1,
 
               // Existing key: Net Collected
               received: {
@@ -479,6 +500,9 @@ const calendar = async ({ start, end, monthStart, monthEnd }) => {
         completedRefunds: 0,
         retainedDeposits: 0,
         pendingRefunds: 0,
+
+        // NEW
+        pendingRefundCount: 0,
       },
     },
   };
