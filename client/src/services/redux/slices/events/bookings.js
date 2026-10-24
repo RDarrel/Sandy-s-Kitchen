@@ -21,6 +21,7 @@ const initialState = {
   venueConflicts: [],
   searchResults: [],
   selected: {},
+  scheduleRequestId: null,
   willCreate: false,
   showModal: false,
   formSubmitted: false,
@@ -861,20 +862,32 @@ export const reduxSlice = createSlice({
         state.message = error.message;
         state.isLoadingEquipAvailability = false;
       })
-      .addCase(SCHEDULE.pending, (state) => {
+      .addCase(SCHEDULE.pending, (state, action) => {
         state.isLoadingSchedule = true;
+        state.scheduleRequestId = action.meta.requestId;
         state.isSuccess = false;
         state.message = "";
       })
       .addCase(SCHEDULE.fulfilled, (state, action) => {
+        if (state.scheduleRequestId !== action.meta.requestId) {
+          return;
+        }
+
         const { data } = action.payload;
         state.schedule = data;
         state.isLoadingSchedule = false;
       })
       .addCase(SCHEDULE.rejected, (state, action) => {
-        const { error } = action;
-        state.message = error.message;
+        if (state.scheduleRequestId !== action.meta.requestId) {
+          return;
+        }
+
         state.isLoadingSchedule = false;
+        state.scheduleRequestId = null;
+
+        if (!action.meta.aborted) {
+          state.message = action.payload || action.error.message;
+        }
       })
       .addCase(SAVE.pending, (state) => {
         state.formSubmitted = true;
