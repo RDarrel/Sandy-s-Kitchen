@@ -6,6 +6,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { format } from "date-fns";
+import { Maximize2, Minimize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../constant";
 import EmptySchedule from "./emptySchedule";
 import Booking from "./booking";
@@ -17,6 +19,9 @@ import { Formatter } from "@/services/utilities";
 import Approval from "./approval";
 import ReviewPayment from "./reviewPayment";
 import RecordPayment from "./recordPayment";
+import grabCursor from "./cursors/grab.svg";
+import grabbingCursor from "./cursors/grabbing.svg";
+import useHorizontalDrag from "./useHorizontalDrag";
 
 import {
   CompletedConfirmation,
@@ -24,11 +29,21 @@ import {
   CancelConfirmation,
 } from "./confirmation";
 
+const EXPANDED_STATUSES = [
+  "pending",
+  "approved",
+  "confirmed",
+  "setup",
+  "completed",
+];
+
 const Schedule = ({
   selectedDate,
   highlightedBookingId,
   onHighlightReady = () => {},
   onHighlightComplete = () => {},
+  isExpanded = false,
+  onToggleExpand,
 }) => {
   const { isLoadingSchedule: isLoading, schedule = {} } = useSelector(
     ({ bookings }) => bookings,
@@ -49,6 +64,9 @@ const Schedule = ({
   const dispatch = useDispatch();
   const bookingRefs = useRef({});
   const highlightTimeoutRef = useRef(null);
+  const scheduleBodyRef = useRef(null);
+  const statusFiltersRef = useRef(null);
+  const statusColumnRefs = useRef({});
 
   const { filtered, count, statusHeader, bookingsArray } = useMemo(() => {
     const sortedSchedule = Object.fromEntries(
@@ -74,6 +92,55 @@ const Schedule = ({
       statusHeader: { all: bookingsArray, ...sortedSchedule },
     };
   }, [activeStatus, schedule]);
+
+  useHorizontalDrag(scheduleBodyRef, isExpanded && !isLoading);
+  useHorizontalDrag(statusFiltersRef, !isExpanded && !isLoading && count > 0, true);
+
+  const populatedStatuses = Object.keys(schedule).filter(
+    (status) => schedule[status]?.length > 0,
+  );
+  const solePopulatedStatus =
+    populatedStatuses.length === 1 ? populatedStatuses[0] : null;
+
+  useEffect(() => {
+    const body = scheduleBodyRef.current;
+    if (!body || isLoading) return;
+    if (!isExpanded) {
+      body.scrollLeft = 0;
+      return;
+    }
+    if (activeStatus !== "all" || !solePopulatedStatus) return;
+
+    // Let the width transition finish before centering the populated column.
+    const timeoutId = setTimeout(() => {
+      const column = statusColumnRefs.current[solePopulatedStatus];
+      if (!column) return;
+
+      const columnBounds = column.getBoundingClientRect();
+      const bodyBounds = body.getBoundingClientRect();
+      body.scrollTo({
+        left:
+          body.scrollLeft + columnBounds.left - bodyBounds.left -
+          (body.clientWidth - columnBounds.width) / 2,
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "instant"
+          : "smooth",
+      });
+    }, 220);
+
+    return () => clearTimeout(timeoutId);
+  }, [activeStatus, isExpanded, isLoading, solePopulatedStatus]);
+
+  useEffect(() => {
+    if (!isLoading && count === 0 && isExpanded) {
+      onToggleExpand?.();
+    }
+  }, [count, isExpanded, isLoading, onToggleExpand]);
+
+  const displayGroups =
+    isExpanded && activeStatus === "all"
+      ? EXPANDED_STATUSES.map((status) => [status, schedule[status] || []])
+      : Object.entries(filtered);
 
   useEffect(() => {
     const promise = dispatch(
@@ -157,7 +224,13 @@ const Schedule = ({
   return (
     <>
       <Card className="flex h-[650px] flex-col gap-0 overflow-hidden py-0 shadow-sm">
-        <CardHeader className="gap-3 border-b px-3 !pb-0 pt-2.5">
+        <CardHeader
+          className="min-w-0 gap-3 border-b px-3 !pb-0 pt-2.5"
+          style={{
+            "--schedule-grab-cursor": `url("${grabCursor}") 12 12, grab`,
+            "--schedule-grabbing-cursor": `url("${grabbingCursor}") 12 12, grabbing`,
+          }}
+        >
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <CardTitle className="truncate text-sm">
@@ -170,14 +243,38 @@ const Schedule = ({
               </CardDescription>
             </div>
 
-            <span className="shrink-0 rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
-              {count} booking
-              {count !== 1 ? "s" : ""}
-            </span>
+            {count > 0 && (
+            <div className="flex shrink-0 items-center gap-1">
+              <span className="rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                {count} booking
+                {count !== 1 ? "s" : ""}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className={`h-6 w-6 rounded-md text-muted-foreground hover:text-foreground [&_svg]:size-3.5 ${
+                  isExpanded ? "bg-muted text-foreground" : ""
+                }`}
+                onClick={() => {
+                  setActiveStatus("all");
+                  onToggleExpand();
+                }}
+                aria-label={isExpanded ? "Collapse schedule" : "Expand schedule"}
+                aria-pressed={isExpanded}
+                title={isExpanded ? "Collapse schedule" : "Expand schedule"}
+              >
+                {isExpanded ? <Minimize2 /> : <Maximize2 />}
+              </Button>
+            </div>
+            )}
           </div>
 
-          {count > 0 && (
-            <div className="mb-3 flex flex-wrap gap-1">
+          {!isExpanded && count > 0 && (
+            <div
+              ref={statusFiltersRef}
+              className="booking-schedule-draggable mb-3 flex min-w-0 flex-nowrap gap-1 overflow-x-hidden select-none [&_button]:cursor-[inherit]"
+            >
               {["all", ...STATUS_ORDER]
                 .filter((status) => statusHeader[status])
                 .map((status) => (
@@ -185,7 +282,7 @@ const Schedule = ({
                     key={status}
                     type="button"
                     onClick={() => setActiveStatus(status)}
-                    className={`inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[11px] font-medium capitalize transition-colors ${
+                    className={`inline-flex h-6 shrink-0 items-center gap-1 whitespace-nowrap rounded-md border px-2 text-[11px] font-medium capitalize transition-colors ${
                       activeStatus === status
                         ? "border-primary bg-primary text-primary-foreground shadow-xs"
                         : "bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -209,12 +306,37 @@ const Schedule = ({
           )}
         </CardHeader>
 
-        <CardContent className="booking-schedule-scroll min-h-0 flex-1 overflow-y-auto p-3">
-          {count > 0 ? (
-            <div className="space-y-3">
-              {Object.entries(filtered).map(([status, bookings]) => (
-                <section key={status} className="space-y-2">
-                  {activeStatus === "all" && (
+        <CardContent
+          ref={scheduleBodyRef}
+          className={`booking-schedule-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3 ${
+            isExpanded ? "booking-schedule-draggable select-none" : ""
+          }`}
+          style={{
+            "--schedule-grab-cursor": `url("${grabCursor}") 12 12, grab`,
+            "--schedule-grabbing-cursor": `url("${grabbingCursor}") 12 12, grabbing`,
+          }}
+        >
+          {count > 0 || isExpanded ? (
+            <div
+              className={
+                isExpanded && activeStatus === "all"
+                  ? "grid min-h-full grid-cols-[repeat(5,332px)] items-start gap-3"
+                  : "space-y-3"
+              }
+            >
+              {displayGroups.map(([status, bookings]) => (
+                <section
+                  key={status}
+                  ref={(node) => {
+                    statusColumnRefs.current[status] = node;
+                  }}
+                  className={
+                    isExpanded
+                      ? "w-[332px] min-w-0 space-y-2 rounded-lg border bg-muted/20 p-2"
+                      : "space-y-2"
+                  }
+                >
+                  {(activeStatus === "all" || isExpanded) && (
                     <div className="sticky top-0 z-10 flex items-center justify-between rounded-md bg-background/95 px-2 py-1 backdrop-blur">
                       <div className="flex items-center gap-2">
                         <span
@@ -234,6 +356,9 @@ const Schedule = ({
                   )}
 
                   <div className="space-y-1.5">
+                    {isExpanded && bookings.length === 0 && (
+                      <EmptySchedule status={status} />
+                    )}
                     {bookings.map((booking) => (
                       <Booking
                         key={booking._id}

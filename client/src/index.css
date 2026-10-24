@@ -44,6 +44,14 @@
   width: 4px;
 }
 
+.booking-schedule-draggable {
+  cursor: var(--schedule-grab-cursor);
+}
+
+.booking-schedule-draggable[data-dragging="true"] {
+  cursor: var(--schedule-grabbing-cursor);
+}
+
 .booking-schedule-scroll::-webkit-scrollbar-track {
   background: transparent;
 }

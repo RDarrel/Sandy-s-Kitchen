@@ -6,11 +6,11 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 
-function CalendarIllustration() {
+function CalendarIllustration({ compact = false }) {
   return (
     <svg
-      width="140"
-      height="120"
+      width={compact ? 84 : 140}
+      height={compact ? 72 : 120}
       viewBox="0 0 160 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -91,18 +91,65 @@ function CalendarIllustration() {
   );
 }
 
-const EmptySchedule = () => {
+const STATUS_EMPTY_CONTENT = {
+  pending: {
+    title: "No pending bookings",
+    description: "Bookings awaiting approval for this day will appear here.",
+  },
+  approved: {
+    title: "No approved bookings",
+    description: "Approved bookings for this day will appear here.",
+  },
+  confirmed: {
+    title: "No confirmed bookings",
+    description: "Confirmed bookings for this day will appear here.",
+  },
+  setup: {
+    title: "No bookings in setup",
+    description: "Bookings being prepared for this day will appear here.",
+  },
+  completed: {
+    title: "No completed bookings",
+    description: "Completed bookings for this day will appear here.",
+  },
+  cancelled: {
+    title: "No cancelled bookings",
+    description: "Cancelled bookings for this day will appear here.",
+  },
+};
+
+const EmptySchedule = ({ status } = {}) => {
+  const compact = Boolean(status);
+  const { title, description } = STATUS_EMPTY_CONTENT[status] || {
+    title: "No bookings",
+    description: "Select another day to review its bookings.",
+  };
+
   return (
-    <div className="flex items-center border border-dashed rounded-md justify-center h-full  p-4">
-      <Empty className="py-12">
-        <EmptyHeader>
-          <EmptyMedia>
-            <CalendarIllustration />
+    <div
+      className={`flex items-center justify-center rounded-md border border-dashed ${
+        compact ? "p-2" : "h-full p-4"
+      }`}
+    >
+      <Empty className={compact ? "p-3 md:p-3" : "py-12"}>
+        <EmptyHeader className={compact ? "gap-1" : undefined}>
+          <EmptyMedia className={compact ? "mb-1" : undefined}>
+            <CalendarIllustration compact={compact} />
           </EmptyMedia>
-          <EmptyTitle className={"text-sm"}>No bookings</EmptyTitle>
-          <EmptyDescription className="whitespace-nowrap text-xs text-muted-foreground">
-            Select another day to review its bookings.
-          </EmptyDescription>
+          <EmptyTitle
+            className={
+              compact
+                ? "text-sm font-normal text-muted-foreground"
+                : "text-sm"
+            }
+          >
+            {title}
+          </EmptyTitle>
+          {!compact && (
+            <EmptyDescription className="text-xs text-muted-foreground">
+              {description}
+            </EmptyDescription>
+          )}
         </EmptyHeader>
       </Empty>
     </div>

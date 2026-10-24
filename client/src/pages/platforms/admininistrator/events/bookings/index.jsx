@@ -7,6 +7,7 @@ function Bookings() {
   const [bookingSearch, setBookingSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [highlightedBookingId, setHighlightedBookingId] = useState(null);
+  const [isScheduleExpanded, setIsScheduleExpanded] = useState(false);
   const isLoadingBookings = false;
 
   const selectDate = (date) => {
@@ -28,9 +29,10 @@ function Bookings() {
 
   return (
     <div className="w-full p-4">
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="relative grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         {/* Calendar */}
-        <Calendar
+        <div className="relative z-0 col-start-1 row-start-1 min-w-0">
+          <Calendar
           selectedDate={selectedDate}
           selectDate={selectDate}
           searchOpen={searchOpen}
@@ -40,15 +42,26 @@ function Bookings() {
           setBookingSearch={setBookingSearch}
           setSearchOpen={setSearchOpen}
           isLoading={isLoadingBookings}
-        />
+          />
+        </div>
 
         {/* Selected date bookings */}
-        <Schedule
-          selectedDate={selectedDate}
-          highlightedBookingId={highlightedBookingId}
-          onHighlightReady={handleHighlightReady}
-          onHighlightComplete={handleHighlightComplete}
-        />
+        <div
+          className={`relative z-20 col-span-full min-w-0 justify-self-end transition-[width] duration-200 ease-out motion-reduce:transition-none ${
+            isScheduleExpanded
+              ? "row-start-1 w-full"
+              : "row-start-2 w-full xl:row-start-1 xl:w-[340px]"
+          }`}
+        >
+          <Schedule
+            selectedDate={selectedDate}
+            highlightedBookingId={highlightedBookingId}
+            onHighlightReady={handleHighlightReady}
+            onHighlightComplete={handleHighlightComplete}
+            isExpanded={isScheduleExpanded}
+            onToggleExpand={() => setIsScheduleExpanded((expanded) => !expanded)}
+          />
+        </div>
       </div>
     </div>
   );
