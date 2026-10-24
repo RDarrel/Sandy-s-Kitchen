@@ -76,7 +76,12 @@ const Schedule = ({
   }, [activeStatus, schedule]);
 
   useEffect(() => {
-    dispatch(SCHEDULE({ date: Formatter.localDate(new Date(selectedDate)) }));
+    const promise = dispatch(
+      SCHEDULE({ date: Formatter.localDate(new Date(selectedDate)) }),
+    );
+    return () => {
+      promise.abort();
+    };
   }, [dispatch, selectedDate]);
 
   useEffect(() => {

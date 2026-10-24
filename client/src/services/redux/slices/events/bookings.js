@@ -217,10 +217,14 @@ export const CALENDAR = createAsyncThunk(
 
 export const SCHEDULE = createAsyncThunk(
   `${url}/schedule`,
-  (query, thunkAPI) => {
+  (query, { signal, rejectWithValue }) => {
     try {
-      return axioKit.universal(`${url}/schedule`, query);
+      return axioKit.universal(`${url}/schedule`, query, signal);
     } catch (error) {
+      if (signal.aborted) {
+        throw error;
+      }
+
       const message =
         (error.response &&
           error.response.data &&
@@ -228,7 +232,7 @@ export const SCHEDULE = createAsyncThunk(
         error.message ||
         error.toString();
 
-      return thunkAPI.rejectWithValue(message);
+      return rejectWithValue(message);
     }
   },
 );

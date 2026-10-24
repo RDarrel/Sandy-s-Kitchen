@@ -134,7 +134,9 @@ const MenuItemPanel = memo(
       <Collapsible
         open={isOpen}
         onOpenChange={() =>
-          isReport ? console.log("clicked") : onOpenChange(true)
+          isReport
+            ? console.log("clicked")
+            : onOpenChange(isOpen ? false : true)
         }
         className="rounded-md border bg-background transition-colors data-[state=open]:border-primary/25 data-[state=open]:bg-primary/5 data-[state=open]:shadow-xs"
       >

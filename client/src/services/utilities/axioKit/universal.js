@@ -8,7 +8,7 @@ import axios from "axios";
  * @returns {{ success: boolean, payload: Array<any>|object }} - The result object containing success and payload.
  */
 
-const universal = async (name, key = "") => {
+const universal = async (name, key = "", signal) => {
   let queryString = "";
 
   if (typeof key === "object") {
@@ -22,6 +22,7 @@ const universal = async (name, key = "") => {
   try {
     const response = await axios.get(`${name}${queryString}`, {
       withCredentials: true,
+      signal,
     });
 
     return response.data;
