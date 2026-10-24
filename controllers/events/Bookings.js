@@ -5,7 +5,6 @@ const dateToUTC = require("../../utilities/dateToUTC");
 exports.save = async (req, res) => {
   try {
     const { _id, ...data } = req.body;
-    console.log("req.body", req.body);
     let booking;
 
     if (_id) {

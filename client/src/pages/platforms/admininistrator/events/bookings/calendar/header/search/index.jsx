@@ -210,7 +210,11 @@ const SearchCustomer = ({
                           key={bookingId}
                           type="button"
                           onClick={() =>
-                            ["rejected", "cancelled"].includes(booking?.status)
+                            [
+                              "rejected",
+                              "cancelled",
+                              "changes_requested",
+                            ].includes(booking?.status)
                               ? handleViewClosedBooking(booking)
                               : handleSearchResultClick(booking)
                           }

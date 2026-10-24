@@ -54,6 +54,8 @@ const getBookingDetails = async ({ reference, role }) => {
     })
     .populate("customer", "fullName")
     .populate("statusHistory.changedBy", "fullName")
+    .populate("cancellation.cancelledBy", "fullName")
+    .populate("cancellation.refund.method", "name")
     .populate("catering.inclusions.item", "name category")
     .populate("venue.inclusions.item", "name category")
     .populate("catering.mainDishes.menu")

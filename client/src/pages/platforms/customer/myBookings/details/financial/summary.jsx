@@ -10,7 +10,7 @@ import {
   getPaymentBreakdownRows,
 } from "./utils";
 
-const PaymentSummary = ({ booking, payment, action }) => {
+const PaymentSummary = ({ booking, payment, action = {} }) => {
   const navigate = useNavigate();
   const isRejected = booking?.status === "rejected";
   const cancellation = getCancellationSummary(booking);
@@ -136,7 +136,7 @@ const PaymentSummary = ({ booking, payment, action }) => {
               />
 
               <p className="pt-1 text-[10px] leading-4 text-muted-foreground">
-                Your balance will be updated after this payment is verified.
+                Balance updates after the payment is verified.
               </p>
             </>
           )}

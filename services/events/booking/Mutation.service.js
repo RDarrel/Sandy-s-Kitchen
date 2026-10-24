@@ -80,7 +80,9 @@ const cancel = async ({ role, bookingId, cancellation }) => {
       cancellation,
     },
     { returnDocument: "after" },
-  ).lean();
+  )
+    .populate("cancellation.cancelledBy", "fullName")
+    .lean();
   return updated;
 };
 

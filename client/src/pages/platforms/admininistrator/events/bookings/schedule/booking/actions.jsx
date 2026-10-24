@@ -62,17 +62,15 @@ const Actions = ({ booking, handleAction = () => {} }) => {
           </Button>
         )}
 
-        {!isBookingLocked && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleAction(booking, "view")}
-            size="sm"
-            className="h-7 px-2 hover:bg-accent/40 hover:text-accent-foreground"
-          >
-            View
-          </Button>
-        )}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => handleAction(booking, "view")}
+          size="sm"
+          className="h-7 px-2 hover:bg-accent/40 hover:text-accent-foreground"
+        >
+          View
+        </Button>
 
         {booking?.status === "pending" ? (
           <>

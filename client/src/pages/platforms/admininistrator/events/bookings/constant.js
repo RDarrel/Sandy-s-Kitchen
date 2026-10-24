@@ -24,6 +24,8 @@ export const STATUS_STYLES = {
   completed: "border-violet-200 bg-violet-50 text-violet-700",
   rejected: "border-red-200 bg-red-50 text-red-700",
   cancelled: "border-slate-200 bg-slate-50 text-slate-700",
+  changes_requested:
+    "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-900/60 dark:bg-orange-950/20 dark:text-orange-400",
 };
 
 export const STATUS_LABELS = {
@@ -33,6 +35,7 @@ export const STATUS_LABELS = {
   setup: "setup",
   completed: "completed",
   cancelled: "cancelled",
+  changes_requested: "Changes Requested",
 };
 
 export const STATUS_DOTS = {

@@ -58,6 +58,8 @@ const BookingOverview = ({ booking, status, date, action }) => {
 
   const canManageBooking = canEditBooking || canCancelBooking;
 
+  console.log("canEditBooking", canCancelBooking);
+
   const handleEdit = () => {
     const path = prepareBookingEdt(booking, action?.reason);
     navigate(path);

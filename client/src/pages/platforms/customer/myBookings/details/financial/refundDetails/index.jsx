@@ -17,7 +17,7 @@ import AmountRow from "../amountRow";
 import { Button } from "@/components/ui/button";
 import UpdateRefundDetails from "./updateRefundDetails";
 
-const RefundDetails = ({ booking }) => {
+const RefundDetails = ({ booking, readOnly = false }) => {
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showProof, setShowProof] = useState(false);
   const [proofError, setProofError] = useState(false);
@@ -96,7 +96,9 @@ const RefundDetails = ({ booking }) => {
               <div className="min-w-0 space-y-1">
                 <p className="text-xs font-medium">Refund account needed</p>
                 <p className="text-xs leading-5 text-muted-foreground">
-                  Add your GCash or bank account so we can send your refund.
+                  {readOnly
+                    ? "Refund account details have not been provided yet."
+                    : "Add your GCash or bank account so we can send your refund."}
                 </p>
               </div>
           </div>
@@ -118,7 +120,7 @@ const RefundDetails = ({ booking }) => {
           <Detail label="Refund Reference Number" value={refund.reference} />
         )}
       </div>
-      {needsAccount && (
+      {needsAccount && !readOnly && (
         <div className="border-t px-3 py-2.5">
           <Button
             type="button"
@@ -171,14 +173,16 @@ const RefundDetails = ({ booking }) => {
               )}
             </div>
           </div>
-          <Button
-            type="button"
-            size="sm"
-            className="h-8 w-full text-xs"
-            onClick={() => setShowUpdateDialog(true)}
-          >
-            Update Refund Details
-          </Button>
+          {!readOnly && (
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 w-full text-xs"
+              onClick={() => setShowUpdateDialog(true)}
+            >
+              Update Refund Details
+            </Button>
+          )}
         </div>
       )}
       {showUpdateDialog && (

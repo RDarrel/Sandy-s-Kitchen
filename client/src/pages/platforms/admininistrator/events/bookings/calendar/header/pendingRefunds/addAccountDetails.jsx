@@ -12,6 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Spinner from "@/components/shared/spinner";
 import { SAVE_REFUND_ACCOUNT } from "@/services/redux/slices/events/bookings";
 
@@ -104,22 +111,29 @@ const AddAccountDetails = ({
             </div>
             <fieldset disabled={saving} className="space-y-3 p-4">
               <div className="space-y-1">
-                <Label htmlFor={`${id}-method`} className="text-xs">Refund Method *</Label>
-                <select
-                  id={`${id}-method`}
-                  className={controlClass}
+                <Label htmlFor={`${id}-method`} className="text-xs">
+                  Refund Method *
+                </Label>
+                <Select
                   required
+                  disabled={saving}
                   value={method}
-                  onChange={(event) => {
-                    setMethod(event.target.value);
+                  onValueChange={(value) => {
+                    setMethod(value);
                     setAccountNumber("");
                   }}
                 >
-                  <option value="" disabled>Select a method</option>
-                  {methods.map((option) => (
-                    <option key={option._id} value={option._id}>{option.name}</option>
-                  ))}
-                </select>
+                  <SelectTrigger id={`${id}-method`} className={controlClass}>
+                    <SelectValue placeholder="Select a method" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[120]">
+                    {methods.map((option) => (
+                      <SelectItem key={option._id} value={option._id}>
+                        {option.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {methods.length === 0 && (
                   <p role="status" className="text-xs text-muted-foreground">
                     No refund methods available. Please try again later.
@@ -127,7 +141,9 @@ const AddAccountDetails = ({
                 )}
               </div>
               <div className="space-y-1">
-                <Label htmlFor={`${id}-name`} className="text-xs">Account Name *</Label>
+                <Label htmlFor={`${id}-name`} className="text-xs">
+                  Account Name *
+                </Label>
                 <Input
                   id={`${id}-name`}
                   className={controlClass}
@@ -139,7 +155,9 @@ const AddAccountDetails = ({
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor={`${id}-number`} className="text-xs">Account Number *</Label>
+                <Label htmlFor={`${id}-number`} className="text-xs">
+                  Account Number *
+                </Label>
                 <Input
                   id={`${id}-number`}
                   className={controlClass}
@@ -152,27 +170,42 @@ const AddAccountDetails = ({
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor={`${id}-source`} className="text-xs">Details Received Via *</Label>
-                <select
-                  id={`${id}-source`}
-                  className={controlClass}
+                <Label htmlFor={`${id}-source`} className="text-xs">
+                  Details Received Via *
+                </Label>
+                <Select
                   required
+                  disabled={saving}
                   value={accountSource}
-                  onChange={(event) => setAccountSource(event.target.value)}
+                  onValueChange={setAccountSource}
                 >
-                  <option value="" disabled>Select a source</option>
-                  <option value="phone">Phone Call</option>
-                  <option value="messenger">Messenger</option>
-                  <option value="in_person">In Person</option>
-                  <option value="other">Other</option>
-                </select>
+                  <SelectTrigger id={`${id}-source`} className={controlClass}>
+                    <SelectValue placeholder="Select a source" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[120]">
+                    <SelectItem value="phone">Phone Call</SelectItem>
+                    <SelectItem value="messenger">Messenger</SelectItem>
+                    <SelectItem value="in_person">In Person</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </fieldset>
             <div className="flex flex-wrap justify-end gap-2 border-t px-4 py-3">
-              <Button type="button" variant="outline" size="sm" onClick={close} disabled={saving}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={close}
+                disabled={saving}
+              >
                 Back
               </Button>
-              <Button type="submit" size="sm" disabled={saving || !method || !auth?._id}>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={saving || !method || !auth?._id}
+              >
                 Save Account Details <Spinner formSubmitted={saving} />
               </Button>
             </div>

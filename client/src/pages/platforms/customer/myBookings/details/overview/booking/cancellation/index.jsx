@@ -104,6 +104,8 @@ const Cancellation = ({ booking, onClose }) => {
       CANCEL_CUSTOMER_BOOKING({
         _id: booking?._id,
         cancellation: {
+          initiatedBy: "customer",
+          cancelledBy: auth?._id,
           reason: quickReason === "other" ? reason : quickReason,
           totalPaid: verifiedAmount,
           nonRefundableAmount: downPayment,

@@ -14,7 +14,6 @@ import { Formatter } from "@/services/utilities";
 import {
   ArrowUpRight,
   Check,
-  CheckCircle2,
   Clock3,
   CreditCard,
   ReceiptText,
@@ -22,15 +21,18 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import PaymentDetails from "./paymentDetails";
+import PaymentSummary from "@/pages/platforms/customer/myBookings/details/financial/summary";
+import RefundDetails from "@/pages/platforms/customer/myBookings/details/financial/refundDetails";
+import { getPaymentSummary } from "@/pages/platforms/customer/myBookings/utils";
 
-const FinancialDetails = ({ booking = {}, payment = {} }) => {
+const FinancialDetails = ({ booking = {} }) => {
   const payments = booking?.payments || [];
-  const paymentSummary = getDetailedPaymentSummary(booking, payment);
-  const serviceRows = getPaymentBreakdownRows(booking?.pricing);
+  const paymentSummary = getPaymentSummary(booking);
 
   return (
     <aside className="space-y-3">
-      <PaymentSummary payment={paymentSummary} serviceRows={serviceRows} />
+      <PaymentSummary booking={booking} payment={paymentSummary} />
+      <RefundDetails booking={booking} readOnly />
       <PaymentHistory booking={booking} payments={payments} />
       <TermsSummary terms={booking?.terms} />
     </aside>
@@ -38,91 +40,6 @@ const FinancialDetails = ({ booking = {}, payment = {} }) => {
 };
 
 export default FinancialDetails;
-
-const PaymentSummary = ({ payment, serviceRows }) => {
-  const isFullyPaid = payment.total > 0 && payment.balance === 0;
-  const hasPendingPayment = Number(payment.pendingAmount || 0) > 0;
-  const displayedBalance = hasPendingPayment
-    ? Math.max(
-        Number(payment.balance || 0) - Number(payment.pendingAmount || 0),
-        0,
-      )
-    : Number(payment.balance || 0);
-
-  return (
-    <FramedCard
-      header={
-        <FrameTitle
-          title="Payment summary"
-          trailing={<CreditCard className="size-3.5 text-muted-foreground" />}
-        />
-      }
-    >
-      <div className="p-3">
-        <div className="flex items-end justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[11px] font-medium text-muted-foreground">
-              {isFullyPaid
-                ? "Status"
-                : hasPendingPayment
-                  ? "Balance after verification"
-                  : "Remaining balance"}
-            </p>
-
-            {isFullyPaid ? (
-              <p className="mt-1 flex items-center gap-1.5 text-base font-semibold text-emerald-700 dark:text-emerald-400">
-                <CheckCircle2 className="size-4" />
-                Fully paid
-              </p>
-            ) : (
-              <p className="mt-1 text-xl font-semibold leading-none tracking-tight">
-                {Formatter.amount(displayedBalance)}
-              </p>
-            )}
-          </div>
-
-          <p className="shrink-0 text-right text-[11px] text-muted-foreground">
-            of {Formatter.amount(payment.total)} total
-          </p>
-        </div>
-
-        <div className="my-3 border-t" />
-
-        <div className="space-y-3">
-          {serviceRows.map((service) => (
-            <PaymentServiceBreakdown key={service.label} service={service} />
-          ))}
-
-          <div className="border-t pt-2">
-            <AmountRow label="Total amount" value={payment.total} strong />
-          </div>
-
-          {payment.verifiedAmount > 0 && (
-            <AmountRow
-              label="Verified payments"
-              value={payment.verifiedAmount}
-              positive
-            />
-          )}
-
-          {payment.pendingAmount > 0 && (
-            <>
-              <AmountRow
-                label="Pending verification"
-                value={payment.pendingAmount}
-                pending
-              />
-
-              <p className="pt-1 text-[10px] leading-4 text-muted-foreground">
-                Balance updates after the payment is verified.
-              </p>
-            </>
-          )}
-        </div>
-      </div>
-    </FramedCard>
-  );
-};
 
 const PaymentHistory = ({ booking, payments = [] }) => {
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -319,84 +236,6 @@ const FramedCard = ({ header, children }) => (
   </Frame>
 );
 
-const PaymentServiceBreakdown = ({ service }) => (
-  <div>
-    <AmountRow label={service.label} value={service.total} strong />
-
-    <div className="ml-2 mt-1.5 space-y-1.5 border-l pl-3">
-      {service.guestCharge > 0 && (
-        <PaymentChargeRow
-          label="Extra guests"
-          detail={`${service.guests.extra} pax`}
-          value={service.guestCharge}
-        />
-      )}
-
-      {service.durationCharge > 0 && (
-        <PaymentChargeRow
-          label="Extra hours"
-          detail={formatHours(service.duration.extra)}
-          value={service.durationCharge}
-        />
-      )}
-    </div>
-  </div>
-);
-
-const PaymentChargeRow = ({ label, detail, value }) => (
-  <div className="relative flex items-start justify-between gap-3 text-xs">
-    <span className="absolute -left-3 top-2 h-px w-2.5 bg-border" />
-
-    <span className="text-muted-foreground">
-      <span>{label}</span>
-      <span className="ml-1 text-[11px]">{detail}</span>
-    </span>
-
-    <span>{Formatter.amount(value || 0)}</span>
-  </div>
-);
-
-const AmountRow = ({
-  label,
-  value,
-  detail,
-  strong = false,
-  positive = false,
-  pending = false,
-}) => (
-  <div className="flex items-center justify-between gap-3 text-xs">
-    <span
-      className={
-        strong ? "font-semibold text-foreground" : "text-muted-foreground"
-      }
-    >
-      {detail ? (
-        <span className="inline-flex items-center gap-1.5">
-          <span className="size-1 rounded-full bg-muted-foreground/40" />
-          {label}
-          <span className="text-[11px] font-normal text-muted-foreground/80">
-            {detail}
-          </span>
-        </span>
-      ) : (
-        label
-      )}
-    </span>
-
-    <span
-      className={[
-        strong ? "font-semibold" : "font-medium",
-        positive ? "text-emerald-700 dark:text-emerald-400" : "",
-        pending ? "text-amber-700 dark:text-amber-400" : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
-      {Formatter.amount(value || 0)}
-    </span>
-  </div>
-);
-
 const Term = ({ label, value }) => (
   <div className="flex items-start justify-between gap-4 text-xs">
     <span className="text-muted-foreground">{label}</span>
@@ -455,91 +294,8 @@ const PaymentStatus = ({ status }) => (
   </span>
 );
 
-const getDetailedPaymentSummary = (booking, fallbackPayment = {}) => {
-  const payments = booking?.payments || [];
-  const total = Number(fallbackPayment?.total || booking?.pricing?.total || 0);
-  const downPayment = Number(booking?.terms?.requiredDeposit || 0);
-
-  const verifiedPayments = payments.filter(
-    ({ status }) => status === "verified",
-  );
-  const pendingPayments = payments.filter(({ status }) => status === "pending");
-  const voidedPayments = payments.filter(({ status }) => status === "voided");
-
-  const verifiedAmount =
-    verifiedPayments.reduce(
-      (sum, item) => sum + Number(item?.amount || 0),
-      0,
-    ) || Number(fallbackPayment?.received || 0);
-
-  const pendingAmount = pendingPayments.reduce(
-    (sum, item) => sum + Number(item?.amount || 0),
-    0,
-  );
-
-  const balance = Math.max(total - verifiedAmount, 0);
-
-  return {
-    total,
-    downPayment,
-    verifiedAmount,
-    pendingAmount,
-    balance,
-    verifiedPayments,
-    pendingPayments,
-    voidedPayments,
-  };
-};
-
-const getPaymentBreakdownRows = (pricing = {}) =>
-  [
-    getServicePricingBreakdown("Catering Package", pricing?.catering),
-    getServicePricingBreakdown("Venue", pricing?.venue),
-  ].filter(Boolean);
-
-const getServicePricingBreakdown = (label, pricing = {}) => {
-  const total = Number(pricing?.total || 0);
-
-  if (total <= 0) {
-    return null;
-  }
-
-  const guests = getPricingMetric(pricing?.guests);
-  const duration = getPricingMetric(pricing?.duration);
-  const guestCharge =
-    guests.extra > 0 ? Number(pricing?.guests?.charge || 0) : 0;
-  const durationCharge =
-    duration.extra > 0 ? Number(pricing?.duration?.charge || 0) : 0;
-  const baseAmount = Number(pricing?.basePrice || 0);
-
-  return {
-    label,
-    total:
-      baseAmount > 0
-        ? baseAmount
-        : Math.max(total - guestCharge - durationCharge, 0),
-    guests,
-    duration,
-    guestCharge,
-    durationCharge,
-  };
-};
-
-const getPricingMetric = (breakdown = {}) => {
-  const included = Number(breakdown?.included || 0);
-  const booked = Number(breakdown?.booked || 0);
-  const extra = Number(breakdown?.extra || 0);
-  const computedExtra = Math.max(booked - included, 0);
-
-  return {
-    extra: extra > 0 ? extra : computedExtra,
-  };
-};
-
 const getPaymentMethodName = (payment = {}) =>
   capitalizeText(payment?.method?.name || payment?.method || "Payment method");
-
-const formatHours = (hours) => `${hours} hr${hours === 1 ? "" : "s"}`;
 
 const formatDate = (value) => {
   if (!value) return "-";

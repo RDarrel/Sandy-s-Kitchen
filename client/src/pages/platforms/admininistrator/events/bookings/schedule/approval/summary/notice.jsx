@@ -1,7 +1,17 @@
 import { Formatter, fullName } from "@/services/utilities";
 import { cn } from "cn";
-import { Ban, CircleX } from "lucide-react";
+import { Ban, CircleX, MessageSquareWarning } from "lucide-react";
 const REASON_STYLES = {
+  changes_requested: {
+    title: "Changes Requested",
+    actorLabel: "Requested by",
+    icon: MessageSquareWarning,
+    container:
+      "border-amber-200 bg-amber-50/70 dark:border-amber-900/60 dark:bg-amber-950/20",
+    titleColor: "text-amber-700 dark:text-amber-400",
+    iconColor: "text-amber-600 dark:text-amber-400",
+    divider: "border-amber-200/70 dark:border-amber-900/60",
+  },
   rejected: {
     title: "Booking request declined",
     actorLabel: "Rejected by",
@@ -16,11 +26,10 @@ const REASON_STYLES = {
     title: "Booking cancelled",
     actorLabel: "Cancelled by",
     icon: Ban,
-    container:
-      "border-slate-200 bg-slate-50/70 dark:border-slate-700 dark:bg-slate-900/20",
-    titleColor: "text-slate-700 dark:text-slate-300",
-    iconColor: "text-slate-600 dark:text-slate-400",
-    divider: "border-slate-200/70 dark:border-slate-700",
+    container: "border-border bg-muted/30",
+    titleColor: "text-foreground",
+    iconColor: "text-muted-foreground",
+    divider: "border-border",
   },
 };
 const Notice = ({ booking }) => {
@@ -36,17 +45,31 @@ const Notice = ({ booking }) => {
         .find((history) => history?.status?.toLowerCase() === status)
     : null;
 
-  const statusReason =
+  const cancellation = status === "cancelled" ? booking?.cancellation : null;
+  const cancellationReason =
+    typeof cancellation?.reason === "string" ? cancellation.reason.trim() : "";
+  const historyReason =
     typeof statusHistory?.reason === "string"
       ? statusHistory.reason.trim()
       : "";
 
-  // Assumes changedBy is populated with user information.
-  const actorName = fullName(statusHistory?.changedBy);
+  const statusReason = cancellationReason || historyReason;
+  const actorFullName =
+    cancellation?.cancelledBy?.fullName || statusHistory?.changedBy?.fullName;
+  const actorName = actorFullName ? fullName(actorFullName) : "";
+  const noticeTitle =
+    cancellation?.initiatedBy === "business"
+      ? "Booking cancelled by Sandy's Kitchenette"
+      : cancellation?.initiatedBy === "customer"
+        ? "Booking cancelled by customer"
+        : reasonConfig?.title;
 
-  const statusDate = Formatter.date(statusHistory?.changedAt, true);
+  const changedAt = cancellation?.cancelledAt || statusHistory?.changedAt;
+  const statusDate = changedAt ? Formatter.date(changedAt, true) : "";
 
   const ReasonIcon = reasonConfig?.icon;
+  if (!showReason) return null;
+
   return (
     <div
       className={cn(
@@ -61,7 +84,7 @@ const Notice = ({ booking }) => {
 
       <div className="min-w-0 flex-1 space-y-1">
         <p className={cn("text-xs font-semibold", reasonConfig.titleColor)}>
-          {reasonConfig.title}
+          {noticeTitle}
         </p>
 
         <p className="whitespace-pre-wrap break-words text-xs leading-relaxed text-foreground/80 [overflow-wrap:anywhere]">

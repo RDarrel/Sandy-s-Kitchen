@@ -616,7 +616,7 @@ const Approval = ({
 
               {isViewOnly && (
                 <div className="self-start xl:sticky xl:top-3">
-                  <FinancialDetails booking={booking} payment={payment} />
+                  <FinancialDetails booking={booking} />
                 </div>
               )}
             </div>

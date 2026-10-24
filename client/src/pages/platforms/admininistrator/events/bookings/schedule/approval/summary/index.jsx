@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, CheckCircle2, UsersRound, Wallet } from "lucide-react";
 import { Metric } from "../components";
-import { STATUS_STYLES } from "../../../constant";
+import { STATUS_LABELS, STATUS_STYLES } from "../../../constant";
 import { Formatter } from "@/services/utilities";
 import { formatDate, getTotalPax } from "../utils";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,7 @@ const Summary = ({
             variant="outline"
             className={cn("capitalize", STATUS_STYLES[booking?.status])}
           >
-            {booking?.status || "pending"}
+            {STATUS_LABELS[booking?.status] || "pending"}
           </Badge>
         </div>
       </div>
@@ -96,9 +96,9 @@ const Summary = ({
         />
       </div>
 
-      {["rejected", "declined"].includes(booking?.status) && (
-        <Notice booking={booking} />
-      )}
+      {["rejected", "declined", "changes_requested", "cancelled"].includes(
+        booking?.status,
+      ) && <Notice booking={booking} />}
     </section>
   );
 };
