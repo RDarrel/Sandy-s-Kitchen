@@ -1,10 +1,10 @@
 import { ArrowUpRight } from "lucide-react";
 
-const Proof = ({ proofSrc }) => {
+const Proof = ({ proofSrc, title = "Payment proof", alt = "Customer payment proof" }) => {
   return (
     <section className="flex min-w-0 flex-col overflow-hidden rounded-lg border bg-background">
       <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
-        <h3 className="text-sm font-medium">Payment proof</h3>
+        <h3 className="text-sm font-medium">{title}</h3>
 
         {proofSrc && (
           <a
@@ -25,12 +25,12 @@ const Proof = ({ proofSrc }) => {
             href={proofSrc}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Open payment proof"
+            aria-label={`Open ${title.toLowerCase()}`}
             className="flex h-full w-full items-center justify-center"
           >
             <img
               src={proofSrc}
-              alt="Customer payment proof"
+              alt={alt}
               className="h-full w-full object-contain"
             />
           </a>

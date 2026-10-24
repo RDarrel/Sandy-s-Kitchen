@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSelector } from "react-redux";
-import { Clock3, CreditCard, Wallet, XCircle } from "lucide-react";
+import { ChartNoAxesColumnIncreasing, Clock3, RotateCcw, Wallet } from "lucide-react";
 import { Formatter } from "@/services/utilities";
 
 const Summary = () => {
@@ -8,36 +8,38 @@ const Summary = () => {
     ({ bookingReport }) => bookingReport,
   );
 
-  const { summary } = paymentReport;
+  const summary = paymentReport?.summary ?? {};
+  const totalCollected = Number(summary.totalCollected ?? 0);
+  const totalRefunded = Number(summary.totalRefundedAmount ?? 0);
 
   const summaryCards = [
     {
       title: "Payments Collected",
-      value: Formatter.amount(summary.totalCollected),
+      value: Formatter.amount(totalCollected),
       description: `${summary.totalVerified ?? 0} verified payments`,
       icon: Wallet,
       tone: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     },
     {
-      title: "Pending Review",
-      value: Formatter.amount(summary.pendingAmount),
-      description: `${summary.totalPending ?? 0} pending payments`,
-      icon: Clock3,
-      tone: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    },
-    {
-      title: "Voided Payments",
-      value: Formatter.amount(summary.voidedAmount),
-      description: `${summary.totalVoided ?? 0} voided payments`,
-      icon: XCircle,
+      title: "Total Refunds",
+      value: Formatter.amount(totalRefunded),
+      description: "Successfully refunded",
+      icon: RotateCcw,
       tone: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
     },
     {
-      title: "Total Payments",
-      value: summary.totalPayments ?? 0,
-      description: "All recorded payment transactions",
-      icon: CreditCard,
-      tone: "bg-muted text-muted-foreground",
+      title: "Net Collections",
+      value: Formatter.amount(totalCollected - totalRefunded),
+      description: "Collected minus refunded",
+      icon: ChartNoAxesColumnIncreasing,
+      tone: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    },
+    {
+      title: "Pending Review",
+      value: Formatter.amount(summary.pendingAmount ?? 0),
+      description: `${summary.totalPending ?? 0} pending payments`,
+      icon: Clock3,
+      tone: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
     },
   ];
   return (

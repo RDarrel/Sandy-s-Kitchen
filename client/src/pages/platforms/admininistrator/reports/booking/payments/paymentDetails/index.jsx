@@ -12,15 +12,21 @@ import { ReceiptText } from "lucide-react";
 
 import Cloudinary from "@/services/utilities/cloudinary";
 import PaymentSlip from "./slip";
+import RefundSlip from "./refundSlip";
 import Proof from "../../../../events/bookings/schedule/approval/financialDetails/proof";
 
 const PaymentDetails = ({ isOpen, setIsOpen, booking, payment }) => {
   const paymentAmount = toAmount(payment?.amount);
+  const isRefund = payment?.transactionType === "refund";
 
   const methodId = getPaymentMethodId(payment);
-  const proofSrc = payment?.proofImgId
-    ? Cloudinary.getPaymentProofImgId(payment.proofImgId, payment._id, methodId)
-    : "";
+  const proofSrc = isRefund
+    ? payment?.status === "completed" && payment?.proofImgId && booking?._id
+      ? `${Cloudinary.getEndpoint()}/${payment.proofImgId}/refunds/${booking._id}`
+      : ""
+    : payment?.proofImgId
+      ? Cloudinary.getPaymentProofImgId(payment.proofImgId, payment._id, methodId)
+      : "";
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -37,7 +43,7 @@ const PaymentDetails = ({ isOpen, setIsOpen, booking, payment }) => {
 
             <div className="min-w-0">
               <DialogTitle className="text-base leading-tight">
-                Payment details
+                {isRefund ? "Refund details" : "Payment details"}
               </DialogTitle>
 
               <DialogDescription className="mt-0.5 break-words text-xs">
@@ -57,12 +63,18 @@ const PaymentDetails = ({ isOpen, setIsOpen, booking, payment }) => {
               proofSrc ? "md:grid-cols-2" : "md:grid-cols-1",
             )}
           >
-            {proofSrc && <Proof proofSrc={proofSrc} />}
+            {proofSrc && (
+              <Proof
+                proofSrc={proofSrc}
+                {...(isRefund ? { title: "Proof of refund", alt: "Refund proof" } : {})}
+              />
+            )}
 
-            <PaymentSlip
-              payment={payment}
-              paymentAmount={paymentAmount}
-            />
+            {isRefund ? (
+              <RefundSlip refund={payment} />
+            ) : (
+              <PaymentSlip payment={payment} paymentAmount={paymentAmount} />
+            )}
           </div>
         </div>
 

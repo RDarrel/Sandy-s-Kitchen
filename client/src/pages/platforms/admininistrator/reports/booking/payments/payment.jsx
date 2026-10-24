@@ -20,6 +20,9 @@ const Payment = ({
 }) => {
   const formatDate = (date) => Formatter.date(date, true);
   const isRefund = payment?.transactionType === "refund";
+  const amountPrefix = isRefund
+    ? payment?.status === "completed" ? "- " : ""
+    : payment?.status === "verified" ? "+ " : "";
   return (
     <TableRow>
       <TableCell className="py-3 text-xs">
@@ -60,7 +63,7 @@ const Payment = ({
         </Badge>
       </TableCell>
       <TableCell className=" font-medium tabular-nums">
-        {isRefund ? "-" : "+"} {Formatter.amount(payment.amount)}
+        {amountPrefix}{Formatter.amount(payment.amount)}
       </TableCell>
       <TableCell className="text-right">
         <Button
