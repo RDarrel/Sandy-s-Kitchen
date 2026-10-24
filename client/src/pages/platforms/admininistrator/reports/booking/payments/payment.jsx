@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Formatter, fullName } from "@/services/utilities";
+import { capitalize } from "lodash";
 import { Eye } from "lucide-react";
 
 const STATUS_STYLES = {
@@ -18,6 +19,7 @@ const Payment = ({
   getCustomerName = () => {},
 }) => {
   const formatDate = (date) => Formatter.date(date, true);
+  const isRefund = payment?.transactionType === "refund";
   return (
     <TableRow>
       <TableCell className="py-3 text-xs">
@@ -25,6 +27,9 @@ const Payment = ({
           {payment.booking?.reference || "Unavailable"}
         </p>
         <p className="mt-1 text-muted-foreground">{getCustomerName(payment)}</p>
+      </TableCell>
+      <TableCell className="py-3 text-xs">
+        {capitalize(payment?.transactionType || "payment")}
       </TableCell>
       <TableCell className="py-3 text-xs">
         <p className="font-medium capitalize">
@@ -42,7 +47,7 @@ const Payment = ({
         </p>
         <p className="mt-1 text-muted-foreground">
           {payment.reviewedAt
-            ? formatDate(payment.reviewedAt)
+            ? formatDate(new Date(payment.reviewedAt))
             : "Not yet reviewed"}
         </p>
       </TableCell>
@@ -55,7 +60,7 @@ const Payment = ({
         </Badge>
       </TableCell>
       <TableCell className=" font-medium tabular-nums">
-        {Formatter.amount(payment.amount)}
+        {isRefund ? "-" : "+"} {Formatter.amount(payment.amount)}
       </TableCell>
       <TableCell className="text-right">
         <Button

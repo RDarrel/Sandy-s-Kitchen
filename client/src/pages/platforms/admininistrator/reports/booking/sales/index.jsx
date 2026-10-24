@@ -163,8 +163,8 @@ const BookingSalesReport = () => {
               </CardTitle>
 
               <CardDescription>
-                Monitor booking sales, verified payments, and outstanding
-                balances.
+                View booking sales, payments received, and outstanding balances
+                for events within the selected period.
               </CardDescription>
             </div>
 

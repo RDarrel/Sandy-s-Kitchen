@@ -71,7 +71,8 @@ const Payment = () => {
                 <TableHeader className="bg-muted/40">
                   <TableRow>
                     <TableHead>Booking / Customer</TableHead>
-                    <TableHead>Payment Method / Date</TableHead>
+                    <TableHead>Transaction</TableHead>
+                    <TableHead>Method / Date</TableHead>
                     <TableHead>Reviewed By</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Amount</TableHead>
@@ -102,10 +103,10 @@ const Payment = () => {
                     </TableRow>
                   ) : (
                     handlePagination(filteredPayments, page, maxPage).map(
-                      (payment) => (
+                      (payment, idx) => (
                         <PaymentItem
                           payment={payment}
-                          key={payment?._id}
+                          key={`${payment?._id}-${idx}`}
                           setSelectedPayment={setSelectedPayment}
                           getCustomerName={getCustomerName}
                         />

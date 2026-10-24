@@ -189,8 +189,133 @@ const getPaymentReport = async ({ startDate, endDate }) => {
     },
   ]);
 
+  const [refundResult] = await Booking.aggregate([
+    {
+      $match: {
+        "cancellation.refund.status": "completed",
+
+        ...(start &&
+          end && {
+            "cancellation.refund.refundedAt": {
+              $gte: start,
+              $lte: end,
+            },
+          }),
+      },
+    },
+
+    {
+      $facet: {
+        summary: [
+          {
+            $group: {
+              _id: null,
+
+              totalRefunds: {
+                $sum: 1,
+              },
+
+              totalRefundedAmount: {
+                $sum: {
+                  $ifNull: ["$cancellation.refund.amount", 0],
+                },
+              },
+            },
+          },
+
+          {
+            $project: {
+              _id: 0,
+            },
+          },
+        ],
+
+        refunds: [
+          {
+            $sort: {
+              "cancellation.refund.refundedAt": -1,
+            },
+          },
+
+          {
+            $lookup: {
+              from: "users",
+              localField: "customer",
+              foreignField: "_id",
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                  },
+                },
+              ],
+              as: "customer",
+            },
+          },
+
+          {
+            $unwind: {
+              path: "$customer",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+
+          {
+            $project: {
+              reference: 1,
+              customer: 1,
+              totalAmount: 1,
+              status: 1,
+              cancellation: 1,
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  const refunds = await Booking.populate(refundResult?.refunds || [], [
+    {
+      path: "customer",
+      select: "fullName",
+    },
+    {
+      path: "cancellation.refund.processedBy",
+      select: "fullName",
+    },
+    {
+      path: "cancellation.refund.method",
+    },
+    {
+      path: "cancellation.refund.accountProvidedByUser",
+      select: "fullName",
+    },
+  ]);
+
+  const refundSummary = refundResult?.summary?.[0] || {
+    totalRefunds: 0,
+    totalRefundedAmount: 0,
+  };
+
+  const formattedRefunds = refunds?.map((res) => {
+    const { cancellation } = res;
+    const { refund } = cancellation;
+    return {
+      booking: {
+        _id: res?._id,
+        reference: res?.reference,
+        customer: res?.customer,
+      },
+      transactionType: "refund",
+      ...refund,
+      reviewedAt: refund?.refundedAt,
+      reviewedBy: refund?.processedBy,
+      createdAt: refund?.accountProvidedAt,
+    };
+  });
+
   return {
-    summary: result?.summary?.[0] || {
+    summary: {
       totalCollected: 0,
       totalVerified: 0,
       totalPending: 0,
@@ -199,8 +324,13 @@ const getPaymentReport = async ({ startDate, endDate }) => {
       voidedAmount: 0,
       totalPayments: 0,
       averagePayment: 0,
+
+      ...(result?.summary?.[0] || {}),
+      ...refundSummary,
     },
-    payments: result?.payments || [],
+    refundSummary,
+    payments: [...(result?.payments ?? []), ...(formattedRefunds ?? [])],
+    refundsss: formattedRefunds[0],
   };
 };
 
