@@ -14,7 +14,18 @@ const Filter = ({
   search,
   setStatusFilter,
   statusFilter,
+  transactionType,
+  setTransactionType,
 }) => {
+  const statusOptions = [
+    { value: "pending", label: "Pending" },
+    ...(transactionType !== "refund"
+      ? [{ value: "verified", label: "Verified" }, { value: "voided", label: "Voided" }]
+      : []),
+    ...(transactionType !== "payment"
+      ? [{ value: "completed", label: "Completed" }]
+      : []),
+  ];
   return (
     <>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -35,6 +46,23 @@ const Filter = ({
           />
         </div>
         <Select
+          value={transactionType}
+          onValueChange={(value) => {
+            setTransactionType(value);
+            setStatusFilter("all");
+            setPage(1);
+          }}
+        >
+          <SelectTrigger aria-label="Transaction type" className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Transaction type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All transactions</SelectItem>
+            <SelectItem value="payment">Payment</SelectItem>
+            <SelectItem value="refund">Refund</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
           value={statusFilter}
           onValueChange={(value) => {
             setStatusFilter(value);
@@ -42,16 +70,16 @@ const Filter = ({
           }}
         >
           <SelectTrigger
-            aria-label="Payment status"
+            aria-label="Transaction status"
             className="w-full sm:w-[150px]"
           >
-            <SelectValue placeholder="Payment status" />
+            <SelectValue placeholder="Transaction status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="verified">Verified</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="voided">Voided</SelectItem>
+            {statusOptions.map(({ value, label }) => (
+              <SelectItem key={value} value={value}>{label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

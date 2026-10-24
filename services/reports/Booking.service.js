@@ -192,11 +192,25 @@ const getPaymentReport = async ({ startDate, endDate }) => {
   const [refundResult] = await Booking.aggregate([
     {
       $match: {
-        "cancellation.refund.status": "completed",
-
+        "cancellation.refund.status": { $in: ["pending", "completed"] },
+      },
+    },
+    {
+      $addFields: {
+        transactionDate: {
+          $cond: [
+            { $eq: ["$cancellation.refund.status", "completed"] },
+            "$cancellation.refund.refundedAt",
+            { $ifNull: ["$cancellation.refund.accountProvidedAt", "$cancellation.cancelledAt"] },
+          ],
+        },
+      },
+    },
+    {
+      $match: {
         ...(start &&
           end && {
-            "cancellation.refund.refundedAt": {
+            transactionDate: {
               $gte: start,
               $lte: end,
             },
@@ -207,6 +221,7 @@ const getPaymentReport = async ({ startDate, endDate }) => {
     {
       $facet: {
         summary: [
+          { $match: { "cancellation.refund.status": "completed" } },
           {
             $group: {
               _id: null,
@@ -233,7 +248,8 @@ const getPaymentReport = async ({ startDate, endDate }) => {
         refunds: [
           {
             $sort: {
-              "cancellation.refund.refundedAt": -1,
+              transactionDate: -1,
+              _id: -1,
             },
           },
 
@@ -268,6 +284,7 @@ const getPaymentReport = async ({ startDate, endDate }) => {
               status: 1,
               cancellation: 1,
               eventType: 1,
+              transactionDate: 1,
             },
           },
         ],
@@ -315,9 +332,21 @@ const getPaymentReport = async ({ startDate, endDate }) => {
       cancellationReason: cancellation?.reason,
       reviewedAt: refund?.refundedAt,
       reviewedBy: refund?.processedBy,
-      createdAt: refund?.accountProvidedAt,
+      createdAt: res.transactionDate,
     };
   });
+
+  const payments = [...(result?.payments ?? []), ...(formattedRefunds ?? [])].sort(
+    (a, b) => {
+      const dateDifference =
+        (new Date(b.createdAt).getTime() || 0) -
+        (new Date(a.createdAt).getTime() || 0);
+      if (dateDifference) return dateDifference;
+      const aKey = `${a.transactionType || "payment"}:${a._id || a.booking?._id || ""}`;
+      const bKey = `${b.transactionType || "payment"}:${b._id || b.booking?._id || ""}`;
+      return bKey.localeCompare(aKey);
+    },
+  );
 
   return {
     summary: {
@@ -334,7 +363,7 @@ const getPaymentReport = async ({ startDate, endDate }) => {
       ...refundSummary,
     },
     refundSummary,
-    payments: [...(result?.payments ?? []), ...(formattedRefunds ?? [])],
+    payments,
     refundsss: formattedRefunds[0],
   };
 };

@@ -24,11 +24,10 @@ const Header = ({ setPage = () => {} }) => {
     <CardHeader className="gap-4 sm:flex sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 space-y-1.5">
         <CardTitle className="text-2xl text-foreground">
-          Booking Payments Report
+          Booking Transactions Report
         </CardTitle>
         <CardDescription>
-          View payment collections, statuses, and transaction history for
-          bookings.
+          Track booking payments, refunds, and transaction history.
         </CardDescription>
       </div>
       <div

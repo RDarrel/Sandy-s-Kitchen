@@ -183,8 +183,8 @@ export const ADMIN_MANAGEMENT = [
 
           //it's about in every payments
           {
-            name: "Payments",
-            path: "/payments",
+            name: "Transactions",
+            path: "/transactions",
             component: PaymentReport,
           },
         ],

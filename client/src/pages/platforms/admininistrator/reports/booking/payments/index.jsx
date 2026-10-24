@@ -29,13 +29,14 @@ const Payment = () => {
   );
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [transactionType, setTransactionType] = useState("all");
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(10);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
   const filteredPayments = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return report?.payments.filter((payment) => {
+    return (report?.payments ?? []).filter((payment) => {
       const matchesSearch = [
         payment.booking?.reference,
         getCustomerName(payment),
@@ -46,10 +47,12 @@ const Payment = () => {
       );
       return (
         matchesSearch &&
+        (transactionType === "all" ||
+          (payment.transactionType || "payment") === transactionType) &&
         (statusFilter === "all" || payment.status === statusFilter)
       );
     });
-  }, [report?.payments, search, statusFilter]);
+  }, [report?.payments, search, statusFilter, transactionType]);
 
   return (
     <div className="bg-background p-4 md:p-6">
@@ -60,6 +63,8 @@ const Payment = () => {
           <CardContent className="space-y-6" aria-busy={isLoading}>
             <Summary />
             <Filter
+              transactionType={transactionType}
+              setTransactionType={setTransactionType}
               search={search}
               statusFilter={statusFilter}
               setSearch={setSearch}
@@ -70,8 +75,8 @@ const Payment = () => {
               <Table>
                 <TableHeader className="bg-muted/40">
                   <TableRow>
-                    <TableHead>Booking / Customer</TableHead>
-                    <TableHead>Transaction</TableHead>
+                    <TableHead>Booking</TableHead>
+                    <TableHead className="whitespace-nowrap">Transaction Type</TableHead>
                     <TableHead>Method / Date</TableHead>
                     <TableHead>Reviewed By</TableHead>
                     <TableHead>Status</TableHead>
@@ -83,7 +88,7 @@ const Payment = () => {
                   {isLoading || filteredPayments.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={6}
+                        colSpan={7}
                         className="h-32 text-center text-muted-foreground"
                       >
                         <div
@@ -97,7 +102,7 @@ const Payment = () => {
                             ? "Loading payments…"
                             : report.payments.length === 0
                               ? "No payments recorded yet."
-                              : "No payments match your search or status filter."}
+                              : "No transactions match your filters."}
                         </div>
                       </TableCell>
                     </TableRow>

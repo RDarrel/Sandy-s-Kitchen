@@ -2,7 +2,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Formatter, fullName } from "@/services/utilities";
-import { capitalize } from "lodash";
 import { Eye } from "lucide-react";
 
 const STATUS_STYLES = {
@@ -31,8 +30,8 @@ const Payment = ({
         </p>
         <p className="mt-1 text-muted-foreground">{getCustomerName(payment)}</p>
       </TableCell>
-      <TableCell className="py-3 text-xs">
-        {capitalize(payment?.transactionType || "payment")}
+      <TableCell className="whitespace-nowrap py-3 text-xs font-medium">
+        {isRefund ? "Refund" : "Payment"}
       </TableCell>
       <TableCell className="py-3 text-xs">
         <p className="font-medium capitalize">
