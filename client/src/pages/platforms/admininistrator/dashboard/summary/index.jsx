@@ -23,6 +23,8 @@ const Summary = ({ errors }) => {
     posSales = 0,
     posTransactions = 0,
     verifiedPayments = 0,
+    completedRefunds = 0,
+    bookingTransactions = Number(verifiedPayments) + Number(completedRefunds),
   } = summary;
 
   const money = (value) => Formatter.amount(value);
@@ -35,12 +37,12 @@ const Summary = ({ errors }) => {
       <Metric
         isLoading={isLoadingSummary}
         showTrend
-        title="Total Collections"
+        title="Net Collections"
         value={errors.summary ? "—" : money(totalCollections)}
         icon={PhilippinePeso}
         featured
         description="Booking + POS"
-        detail="Total payments received"
+        detail="Collections after refunds"
         points={summaryTrends.map((entry) => Number(entry.total ?? 0))}
         to="/platforms/dashboard"
       />
@@ -50,10 +52,10 @@ const Summary = ({ errors }) => {
         title="Booking Collections"
         value={errors.summary ? "—" : money(bookingCollections)}
         icon={CalendarDays}
-        description={`${verifiedPayments} verified payments`}
-        detail="Payments from bookings"
+        description={`${bookingTransactions} transactions`}
+        detail="Booking payments after refunds"
         points={summaryTrends.map((entry) => Number(entry.booking ?? 0))}
-        to="/platforms/reports/booking/payments"
+        to="/platforms/reports/booking/transactions"
       />
       <Metric
         isLoading={isLoadingSummary}
@@ -98,8 +100,9 @@ const Metric = ({
   showTrend = false,
 }) => {
   const Icon = icon;
-  const min = Math.min(...points);
-  const max = Math.max(...points);
+  const min = Math.min(0, ...points);
+  const max = Math.max(0, ...points);
+  const zeroY = 30 - ((0 - min) / (max - min || 1)) * 24;
   const chartPoints = points.map((point, index) => ({
     x: 4 + (index / Math.max(points.length - 1, 1)) * 96,
     y: 30 - ((point - min) / (max - min || 1)) * 24,
@@ -176,8 +179,19 @@ const Metric = ({
             className={`h-6 w-[72px] shrink-0 ${gold ? "text-chart-3" : "text-primary"}`}
             aria-hidden="true"
           >
+            {min < 0 && (
+              <line
+                x1="4"
+                x2="100"
+                y1={zeroY}
+                y2={zeroY}
+                stroke="currentColor"
+                strokeDasharray="3 3"
+                opacity="0.3"
+              />
+            )}
             <polygon
-              points={`4,36 ${coordinates} 100,36`}
+              points={`4,${zeroY} ${coordinates} 100,${zeroY}`}
               fill="currentColor"
               opacity="0.07"
             />

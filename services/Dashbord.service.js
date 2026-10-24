@@ -490,7 +490,7 @@ const getCollections = async ({ startDate, endDate, frequency = "daily" }) => {
     },
   });
 
-  const [orderResult, paymentResult] = await Promise.all([
+  const [orderResult, paymentResult, refundResult] = await Promise.all([
     // POS Collections
     Order.aggregate([
       {
@@ -544,9 +544,25 @@ const getCollections = async ({ startDate, endDate, frequency = "daily" }) => {
         $sort: { _id: 1 },
       },
     ]),
+    // Completed booking refunds are outflows on the refund date.
+    Booking.aggregate([
+      {
+        $match: {
+          "cancellation.refund.status": "completed",
+          "cancellation.refund.refundedAt": { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: dateGroup("$cancellation.refund.refundedAt"),
+          totalAmount: { $sum: { $ifNull: ["$cancellation.refund.amount", 0] } },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]),
   ]);
 
-  // Combine POS and Booking collections by period
+  // Combine POS and net Booking collections by period
   const collectionsMap = new Map();
 
   for (const item of orderResult) {
@@ -571,6 +587,14 @@ const getCollections = async ({ startDate, endDate, frequency = "daily" }) => {
     }
 
     collectionsMap.get(key).booking += item.totalAmount;
+  }
+
+  for (const item of refundResult) {
+    const key = item._id.toISOString();
+    if (!collectionsMap.has(key)) {
+      collectionsMap.set(key, { period: key, booking: 0, pos: 0 });
+    }
+    collectionsMap.get(key).booking -= item.totalAmount;
   }
 
   const overview = [...collectionsMap.values()].sort(
@@ -656,7 +680,7 @@ const getSummary = async ({ startDate, endDate }) => {
     },
   });
 
-  const [orderResult, paymentResult, outstandingResult] = await Promise.all([
+  const [orderResult, paymentResult, refundResult, outstandingResult] = await Promise.all([
     // 1. POS collections and trends
     Order.aggregate([
       {
@@ -747,7 +771,39 @@ const getSummary = async ({ startDate, endDate }) => {
       },
     ]),
 
-    // 3. Current outstanding balance
+    // 3. Completed refunds and their trends
+    Booking.aggregate([
+      {
+        $match: {
+          "cancellation.refund.status": "completed",
+          "cancellation.refund.refundedAt": { $gte: start, $lte: end },
+        },
+      },
+      {
+        $facet: {
+          summary: [
+            {
+              $group: {
+                _id: null,
+                totalAmount: { $sum: { $ifNull: ["$cancellation.refund.amount", 0] } },
+                completedRefunds: { $sum: 1 },
+              },
+            },
+          ],
+          trends: [
+            {
+              $group: {
+                _id: dateGroup("$cancellation.refund.refundedAt"),
+                amount: { $sum: { $ifNull: ["$cancellation.refund.amount", 0] } },
+              },
+            },
+            { $sort: { _id: 1 } },
+          ],
+        },
+      },
+    ]),
+
+    // 4. Current outstanding balance across all eligible bookings
     Booking.aggregate([
       {
         $match: {
@@ -838,10 +894,13 @@ const getSummary = async ({ startDate, endDate }) => {
 
   const orderData = orderResult[0] ?? {};
   const paymentData = paymentResult[0] ?? {};
+  const refundData = refundResult[0] ?? {};
 
   const posSales = orderData.summary?.[0]?.totalAmount ?? 0;
 
-  const bookingCollections = paymentData.summary?.[0]?.totalAmount ?? 0;
+  const bookingCollections =
+    (paymentData.summary?.[0]?.totalAmount ?? 0) -
+    (refundData.summary?.[0]?.totalAmount ?? 0);
 
   const outstandingBalance = outstandingResult[0]?.outstandingBalance ?? 0;
 
@@ -875,6 +934,16 @@ const getSummary = async ({ startDate, endDate }) => {
 
     trend.booking += item.amount;
     trend.total += item.amount;
+  }
+
+  for (const item of refundData.trends ?? []) {
+    const key = item._id.toISOString();
+    if (!trendsMap.has(key)) {
+      trendsMap.set(key, { date: key, booking: 0, pos: 0, total: 0 });
+    }
+    const trend = trendsMap.get(key);
+    trend.booking -= item.amount;
+    trend.total -= item.amount;
   }
 
   // Fill missing periods with zero values
@@ -940,6 +1009,10 @@ const getSummary = async ({ startDate, endDate }) => {
     posSales,
     outstandingBalance,
     verifiedPayments: paymentData.summary?.[0]?.verifiedPayments ?? 0,
+    completedRefunds: refundData.summary?.[0]?.completedRefunds ?? 0,
+    bookingTransactions:
+      (paymentData.summary?.[0]?.verifiedPayments ?? 0) +
+      (refundData.summary?.[0]?.completedRefunds ?? 0),
     posTransactions: orderData.summary?.[0]?.transactions ?? 0,
     bookingsWithBalance: outstandingResult[0]?.bookingsWithBalance ?? 0,
     trends,

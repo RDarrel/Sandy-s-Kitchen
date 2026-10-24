@@ -66,7 +66,7 @@ const Overview = ({ range, errors }) => {
               </span>
               <div>
                 <CardTitle className="text-sm font-semibold leading-5 tracking-tight">
-                  Collections Overview
+                  Net Collections Overview
                 </CardTitle>
                 <p className="text-xs leading-4 text-muted-foreground">
                   {revenueData.label}
@@ -119,7 +119,7 @@ const Overview = ({ range, errors }) => {
             </span>
             <div>
               <CardTitle className="text-sm font-semibold leading-5 tracking-tight">
-                Collections by Source
+                Net Collections by Source
               </CardTitle>
               <p className="text-xs leading-4 text-muted-foreground">
                 {revenueData.label}

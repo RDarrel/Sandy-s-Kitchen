@@ -68,7 +68,7 @@ const Donut = ({ revenueFrequency, channelData, totalRevenue }) => {
                     fill="var(--muted-foreground)"
                     className="text-xs"
                   >
-                    Total Collections
+                    Net Collections
                   </tspan>
                 </text>
               );
