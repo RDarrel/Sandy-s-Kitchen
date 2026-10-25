@@ -96,11 +96,12 @@ const ImageDialog = ({ venue, images, initialIndex, onClose, triggerRef }) => {
               setApi={setThumbApi}
               opts={{ containScroll: "keepSnaps", dragFree: true }}
               className="mx-auto max-w-lg"
+              style={{ width: `min(100%, ${images.length * 80 - 8}px)` }}
               aria-label="Photo thumbnails"
             >
-              <CarouselContent className="-ml-2">
+              <CarouselContent className="ml-0 gap-2">
                 {images.map((image, index) => (
-                  <CarouselItem key={image.id || index} className="basis-1/4 pl-2 sm:basis-1/6">
+                  <CarouselItem key={image.id || index} className="basis-[72px] pl-0">
                     <button
                       type="button"
                       onClick={() => mainApi?.scrollTo(index)}
