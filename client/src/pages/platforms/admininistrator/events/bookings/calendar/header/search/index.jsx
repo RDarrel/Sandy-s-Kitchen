@@ -176,9 +176,19 @@ const SearchCustomer = ({
       }`}
     >
       <div className="flex w-full items-center gap-1.5">
-        <div className="relative min-w-0 flex-1">
+        <div className={isTopbar ? "group/search relative min-w-0 flex-1" : "relative min-w-0 flex-1"}>
           {/* Search icon */}
-          <Search className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground ${isTopbar ? "left-3.5 size-4" : "left-2.5 size-3.5"}`} aria-hidden="true" />
+          {isTopbar ? (
+            <span className="pointer-events-none absolute left-1.5 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md bg-muted/70 text-muted-foreground transition-colors group-focus-within/search:bg-primary/10 group-focus-within/search:text-primary">
+              {isSearching && searchOpen ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Search className="size-4" strokeWidth={1.75} aria-hidden="true" />
+              )}
+            </span>
+          ) : (
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          )}
 
           <Input
             ref={inputRef}
@@ -192,16 +202,16 @@ const SearchCustomer = ({
                 inputRef.current?.blur();
               }
             }}
-            placeholder={isTopbar ? "Search by customer or booking reference…" : "Search bookings..."}
+            placeholder={isTopbar ? "Search customer or booking reference..." : "Search bookings..."}
             className={isTopbar
-              ? "h-10 rounded-xl border-border/80 bg-muted/35 pl-10 pr-3 text-xs shadow-xs transition-colors placeholder:text-muted-foreground/80 hover:border-primary/30 focus-visible:border-primary/50 focus-visible:bg-background focus-visible:ring-primary/15"
+              ? "h-11 rounded-lg border-border/70 bg-card pl-12 pr-4 text-[13px] shadow-[0_1px_3px_rgb(0_0_0/0.04)] transition-[border-color,box-shadow] placeholder:text-muted-foreground/70 hover:border-primary/25 focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/10 md:text-[13px]"
               : "h-8 bg-background/95 pl-8 pr-3 text-xs"}
             aria-label="Search bookings"
           />
 
           {/* Search dropdown */}
           {searchOpen && hasSearch && (
-            <div className={`absolute left-0 right-0 top-full z-[80] overflow-hidden border bg-popover text-popover-foreground shadow-lg ${isTopbar ? "mt-2 rounded-xl" : "mt-1 rounded-md"}`}>
+            <div className={`absolute left-0 right-0 top-full z-[80] overflow-hidden border bg-popover text-popover-foreground ${isTopbar ? "mt-2 rounded-lg border-border/70 shadow-[0_8px_30px_rgb(0_0_0/0.08)]" : "mt-1 rounded-md shadow-lg"}`}>
               {isSearching ? (
                 <SearchResultsSkeleton />
               ) : searchResults.length > 0 ? (

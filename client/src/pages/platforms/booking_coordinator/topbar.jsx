@@ -71,7 +71,7 @@ const CoordinatorTopbar = ({ searchProps }) => {
 
   return (
     <header className="sticky inset-x-0 top-0 z-30 border-b border-border/70 bg-background/95 backdrop-blur-md">
-      <div className="mx-auto grid min-h-16 w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-2 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,440px)_minmax(0,1fr)] lg:gap-x-8">
+      <div className="mx-auto grid min-h-16 w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-2 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,480px)_minmax(0,1fr)] lg:gap-x-8">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
             <CalendarCheck2 className="size-5" aria-hidden="true" />
@@ -80,7 +80,7 @@ const CoordinatorTopbar = ({ searchProps }) => {
             <p className="truncate text-sm font-semibold leading-tight sm:text-base">
               Sandy&apos;s Kitchenette
             </p>
-            <p className="mt-1 truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+            <p className="mt-1 truncate text-[10px] font-medium tracking-[0.14em] text-muted-foreground">
               Booking coordinator
             </p>
           </div>
