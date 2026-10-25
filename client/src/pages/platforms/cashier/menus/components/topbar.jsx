@@ -152,7 +152,7 @@ const CashierTopbar = () => {
                 value="menus"
                 className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm"
               >
-                <ChefHat className="h-4 w-4" />
+                <ChefHat className="h-4 w-4 mr-2" />
                 Menus
               </TabsTrigger>
 
@@ -160,7 +160,7 @@ const CashierTopbar = () => {
                 value="sales"
                 className="h-8 rounded-lg px-3 text-xs font-semibold text-muted-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm"
               >
-                <TrendingUp className="h-4 w-4" />
+                <TrendingUp className="h-4 w-4 mr-2" />
                 Transactions
               </TabsTrigger>
             </TabsList>

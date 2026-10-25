@@ -10,6 +10,10 @@ const modelSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    method: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PaymentMethod",
+    },
     orderType: {
       type: String,
       enum: ["dine-in", "take-out"],

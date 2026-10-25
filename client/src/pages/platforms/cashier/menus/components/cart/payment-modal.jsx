@@ -1,6 +1,13 @@
 import { Formatter } from "@/services/utilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { CartClear, SAVE } from "@/services/redux/slices/stations/cashier";
 import { useEffect, useMemo, useState } from "react";
@@ -34,13 +41,34 @@ const formatDateTime = (value) => {
 const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
   const { token, auth } = useSelector(({ auth }) => auth);
   const { formSubmitted } = useSelector(({ cashier }) => cashier);
+  const { collections: paymentMethods } = useSelector(
+    ({ paymentMethods }) => paymentMethods,
+  );
   const nowLabel = formatDateTime(Date.now());
   const safeEntries = Array.isArray(entries) ? entries : [];
   const [tenderedRaw, setTenderedRaw] = useState("");
+  const [paymentMethodId, setPaymentMethodId] = useState("");
+  const activePaymentMethods = useMemo(
+    () => paymentMethods.filter((method) => method.isActive),
+    [paymentMethods],
+  );
+  const selectedPaymentMethodId =
+    activePaymentMethods.find((method) => method._id === paymentMethodId)
+      ?._id ||
+    activePaymentMethods.find((method) => method.type === "cash")?._id ||
+    activePaymentMethods[0]?._id ||
+    "";
+  const isCashPayment = activePaymentMethods.some(
+    (method) =>
+      method._id === selectedPaymentMethodId && method.type === "cash",
+  );
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (open) setTenderedRaw("");
+    if (open) {
+      setTenderedRaw("");
+      setPaymentMethodId("");
+    }
   }, [open]);
 
   const tendered = useMemo(() => {
@@ -57,10 +85,13 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
   const change = tendered == null ? null : tendered - totalAmount;
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!selectedPaymentMethodId || formSubmitted) return;
+    if (isCashPayment && (tendered == null || tendered < totalAmount)) return;
     const items = entries.map(({ line }) => ({ ...line }));
     const order = {
       amount: totalAmount,
-      cash: Number(tendered),
+      cash: isCashPayment ? Number(tendered) : totalAmount,
+      method: selectedPaymentMethodId,
       created: {
         by: auth?._id,
         at: Date.now(),
@@ -217,42 +248,78 @@ const CashierPaymentModal = ({ open, onOpenChange, totals, entries = [] }) => {
                 </div>
 
                 <div className="mt-3 border-t border-dashed border-muted-foreground/40 pt-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-bold tracking-wide">Tendered</span>
-                    <div className="w-[160px]">
-                      <Input
-                        inputMode="decimal"
-                        type="number"
-                        required
-                        value={tenderedRaw}
-                        min={Number(totalAmount)}
-                        onChange={(e) => setTenderedRaw(e.target.value)}
-                        placeholder="0.00"
-                        className="h-10 rounded-lg bg-white text-right text-[14px] font-semibold tabular-nums text-slate-900 placeholder:text-slate-400"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-[14px]">
-                    <span className="font-bold tracking-wide">Change</span>
-                    <span
-                      className={
-                        change != null && change < 0
-                          ? "font-bold text-[16px] tabular-nums text-destructive"
-                          : "font-bold text-[16px] tabular-nums"
-                      }
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <label
+                      htmlFor="cashier-payment-method"
+                      className="shrink-0 font-bold tracking-wide"
                     >
-                      {change == null
-                        ? "—"
-                        : Formatter.amount(Math.max(0, change))}
-                    </span>
+                      Payment method
+                    </label>
+                    <Select
+                      name="paymentMethod"
+                      required
+                      value={selectedPaymentMethodId}
+                      onValueChange={setPaymentMethodId}
+                      disabled={formSubmitted || !activePaymentMethods.length}
+                    >
+                      <SelectTrigger
+                        id="cashier-payment-method"
+                        className="w-[160px] min-w-0 rounded-lg bg-white"
+                      >
+                        <SelectValue placeholder="No active payment methods" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {activePaymentMethods.map((method) => (
+                          <SelectItem key={method._id} value={method._id}>
+                            {capitalize(method.name)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="mt-3 border-t border-dashed border-muted-foreground/40" />
+                  {isCashPayment && (
+                    <>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-bold tracking-wide">
+                          Tendered
+                        </span>
+                        <div className="w-[160px]">
+                          <Input
+                            inputMode="decimal"
+                            type="number"
+                            step="0.01"
+                            required
+                            value={tenderedRaw}
+                            min={Number(totalAmount)}
+                            onChange={(e) => setTenderedRaw(e.target.value)}
+                            placeholder="0.00"
+                            className="h-9 rounded-lg bg-white text-right text-[14px] font-semibold tabular-nums text-slate-900 placeholder:text-slate-400"
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between text-[14px]">
+                        <span className="font-bold tracking-wide">Change</span>
+                        <span
+                          className={
+                            change != null && change < 0
+                              ? "font-bold text-[16px] tabular-nums text-destructive"
+                              : "font-bold text-[16px] tabular-nums"
+                          }
+                        >
+                          {change == null
+                            ? "—"
+                            : Formatter.amount(Math.max(0, change))}
+                        </span>
+                      </div>
+                      <div className="mt-3 border-t border-dashed border-muted-foreground/40" />
+                    </>
+                  )}
                 </div>
               </div>
             </div>
             <Button
               type="submit"
-              disabled={formSubmitted}
+              disabled={formSubmitted || !selectedPaymentMethodId}
               className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-base  font-sans"
             >
               <CreditCard className="h-4 w-4" />

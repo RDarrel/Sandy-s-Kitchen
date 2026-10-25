@@ -165,6 +165,7 @@ const Sales = () => {
                   <TableHead className="w-[130px] whitespace-nowrap text-right">
                     Total Amount
                   </TableHead>
+
                   <TableHead className="w-[96px] whitespace-nowrap text-center">
                     Actions
                   </TableHead>

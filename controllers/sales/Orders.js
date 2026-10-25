@@ -1,11 +1,7 @@
 const { default: mongoose } = require("mongoose");
-const InventoryItem = require("../../models/inventory/Item");
-const StockBatch = require("../../models/inventory/StockBatch");
-const StockMovement = require("../../models/inventory/StockMovement");
 const Order = require("../../models/sales/order/Order");
 const OrderItem = require("../../models/sales/order/OrderItem");
 const StockService = require("../../services/inventory/Stock.service.js");
-const { convertToBaseUnit } = require("../../utilities/unitConverter");
 
 const getIngredients = (items) => {
   return items.flatMap((item) => {
@@ -249,6 +245,7 @@ exports.save = async (req, res) => {
           path: "created.by",
           select: "fullName",
         })
+        .populate("method")
         .session(session)
         .lean();
 
@@ -300,6 +297,7 @@ exports.browse = async (req, res) => {
       createdAt: { $gte: start, $lte: end },
     })
       .populate("created.by", "fullName")
+      .populate("method")
       .sort({ createdAt: -1 })
       .lean();
 

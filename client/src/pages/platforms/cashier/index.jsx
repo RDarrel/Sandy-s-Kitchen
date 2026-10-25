@@ -5,6 +5,8 @@ import {
   BROWSE_SALES,
   SetActiveCategory,
 } from "@/services/redux/slices/stations/cashier";
+import { BROWSE as BROWSE_PAYMENT_METHODS } from "@/services/redux/slices/events/paymentMethods";
+
 import { useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Sales from "./sales";
@@ -30,6 +32,8 @@ const Cashier = () => {
         params: { cashier: auth?._id, from: date, to: date },
       }),
     );
+
+    dispatch(BROWSE_PAYMENT_METHODS());
     dispatch(BROWSE_CATEGORIES());
   }, [auth, dispatch]);
 

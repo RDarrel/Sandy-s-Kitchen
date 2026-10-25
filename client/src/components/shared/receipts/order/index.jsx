@@ -79,6 +79,7 @@ const normalizeOrderPrintout = (raw) => {
     totalAmount,
     cash,
     items,
+    method: data?.method,
   };
 };
 
@@ -107,6 +108,7 @@ const OrderReceipt = () => {
     cash = 0,
     createdAt,
     cashierName,
+    method,
   } = sale || {};
   const change = cash - totalAmount;
 
@@ -274,13 +276,21 @@ const OrderReceipt = () => {
 
         <div className="footer-receipt">
           <div className="flex justify-between">
-            <span className="block">Tendered:</span>
-            <span className="block">{format.peso(cash)}</span>
+            <span className="block">Payment Method:</span>
+            <span className="block">{method?.name}</span>
           </div>
           <div className="flex justify-between -mt-1">
-            <span>Change:</span>
-            <span>{format.peso(change)}</span>
+            <span className="block">
+              {method?.type === "cash" ? "Tendered" : "Amount Paid"}:
+            </span>
+            <span className="block">{format.peso(cash)}</span>
           </div>
+          {method?.type === "cash" && (
+            <div className="flex justify-between -mt-1">
+              <span>Change:</span>
+              <span>{format.peso(change)}</span>
+            </div>
+          )}
         </div>
         <div className="flex justify-between cashier">
           <span>Cashier:</span>
