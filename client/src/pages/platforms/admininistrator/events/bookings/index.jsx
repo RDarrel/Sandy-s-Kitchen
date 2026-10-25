@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 import Schedule from "./schedule";
 import Calendar from "./calendar";
+import { cn } from "@/lib/utils";
 
-function Bookings() {
+function Bookings({ className, renderTopbar }) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [bookingSearch, setBookingSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -28,11 +29,19 @@ function Bookings() {
   }, []);
 
   return (
-    <div className="min-w-0 w-full overflow-x-clip p-4">
+    <>
+      {renderTopbar?.({
+        searchOpen,
+        setSearchOpen,
+        highlightedBookingId,
+        handleSearchResultClick,
+      })}
+    <div role={renderTopbar ? "main" : undefined} aria-label={renderTopbar ? "Booking calendar and selected schedule" : undefined} className={cn("min-w-0 w-full overflow-x-clip p-4", className)}>
       <div className="relative grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         {/* Calendar */}
         <div className="relative z-0 col-start-1 row-start-1 min-w-0">
           <Calendar
+          hideSearch={Boolean(renderTopbar)}
           selectedDate={selectedDate}
           selectDate={selectDate}
           searchOpen={searchOpen}
@@ -64,6 +73,7 @@ function Bookings() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

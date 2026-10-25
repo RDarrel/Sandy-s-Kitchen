@@ -4,22 +4,20 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChefHat, LogOut } from "lucide-react";
-import { useMemo, useRef } from "react";
+import { CalendarCheck2, ChevronDown, LogOut } from "lucide-react";
+import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import SearchCustomer from "../admininistrator/events/bookings/calendar/header/search";
 
-const CoordinatorTopbar = () => {
+const CoordinatorTopbar = ({ searchProps }) => {
   const navigate = useNavigate();
   const { auth = {} } = useSelector(({ auth }) => auth);
-
-  const headerRef = useRef(null);
 
   const displayName = useMemo(() => {
     const obj =
@@ -37,7 +35,7 @@ const CoordinatorTopbar = () => {
     }
 
     const fallback = [auth?.fname, auth?.lname].filter(Boolean).join(" ");
-    return fallback || "Cashier";
+    return fallback || "Booking coordinator";
   }, [auth]);
 
   const isMale = useMemo(() => {
@@ -72,33 +70,35 @@ const CoordinatorTopbar = () => {
   };
 
   return (
-    <header
-      ref={headerRef}
-      className="fixed inset-x-0 top-0 z-30 border-b bg-background"
-    >
-      <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-3 px-5 py-3 lg:px-10">
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-            <ChefHat className="h-5 w-5" />
+    <header className="sticky inset-x-0 top-0 z-30 border-b border-border/70 bg-background/95 backdrop-blur-md">
+      <div className="mx-auto grid min-h-16 w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-2 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,440px)_minmax(0,1fr)] lg:gap-x-8">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <CalendarCheck2 className="size-5" aria-hidden="true" />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold leading-tight sm:text-base">
               Sandy&apos;s Kitchenette
             </p>
-            <p className="truncate text-[11px] text-muted-foreground">
-              Cashier station
+            <p className="mt-1 truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              Booking coordinator
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="col-span-2 row-start-2 min-w-0 pb-1 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:pb-0">
+          <SearchCustomer {...searchProps} variant="topbar" />
+        </div>
+
+        <div className="col-start-2 row-start-1 flex shrink-0 items-center justify-self-end gap-3 sm:gap-5 lg:col-start-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
-                className="h-10 rounded-xl px-2 min-w-40"
+                variant="ghost"
+                className="h-11 gap-2.5 rounded-xl px-1.5 sm:px-2.5"
+                aria-label={`Open account menu for ${displayName}`}
               >
-                <Avatar className="h-7 w-7">
+                <Avatar className="size-8 border border-border/70">
                   <AvatarImage
                     src={avatarSrc}
                     alt={auth?.email || displayName}
@@ -107,7 +107,11 @@ const CoordinatorTopbar = () => {
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                {displayName}
+                <span className="hidden max-w-40 text-left sm:block">
+                  <span className="block truncate text-xs font-semibold">{displayName}</span>
+                  <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">Coordinator</span>
+                </span>
+                <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
 
@@ -132,11 +136,7 @@ const CoordinatorTopbar = () => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem disabled>Profile</DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                 <LogOut className="h-4 w-4" />
                 Log out
               </DropdownMenuItem>

@@ -69,6 +69,7 @@ const SearchResultsSkeleton = () => (
 /* -------------------------------------------------------------------------- */
 
 const SearchCustomer = ({
+  variant = "calendar",
   searchOpen,
   highlightedBookingId,
   handleSearchResultClick = () => {},
@@ -86,8 +87,22 @@ const SearchCustomer = ({
   const [isOpenViewDetails, setIsOpenViewDetails] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const inputRef = useRef(null);
+  const containerRef = useRef(null);
+  const isTopbar = variant === "topbar";
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (!isTopbar || !searchOpen) return;
+
+    const handlePointerDown = (event) => {
+      if (!containerRef.current?.contains(event.target)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [isTopbar, searchOpen, setSearchOpen]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -110,14 +125,14 @@ const SearchCustomer = ({
   }, [debouncedSearch, searchOpen, dispatch]);
 
   useEffect(() => {
-    if (!searchOpen) return undefined;
+    if (!searchOpen || isTopbar) return undefined;
 
     const timeoutId = setTimeout(() => {
       inputRef.current?.focus();
     }, 200);
 
     return () => clearTimeout(timeoutId);
-  }, [searchOpen]);
+  }, [searchOpen, isTopbar]);
 
   const handleSearch = (query) => {
     setSearch(query);
@@ -153,7 +168,8 @@ const SearchCustomer = ({
 
   return (
     <div
-      className={`absolute inset-y-0 left-0 z-10 flex w-full max-w-md origin-left items-center transition-all duration-200 ease-out ${
+      ref={containerRef}
+      className={isTopbar ? "relative z-10 w-full" : `absolute inset-y-0 left-0 z-10 flex w-full max-w-md origin-left items-center transition-all duration-200 ease-out ${
         searchOpen
           ? "pointer-events-auto translate-x-0 scale-100 opacity-100"
           : "pointer-events-none translate-x-2 scale-[0.98] opacity-0"
@@ -162,21 +178,30 @@ const SearchCustomer = ({
       <div className="flex w-full items-center gap-1.5">
         <div className="relative min-w-0 flex-1">
           {/* Search icon */}
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Search className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground ${isTopbar ? "left-3.5 size-4" : "left-2.5 size-3.5"}`} aria-hidden="true" />
 
           <Input
             ref={inputRef}
             type="search"
             value={search}
             onChange={(event) => handleSearch(event.target.value)}
-            placeholder="Search bookings..."
-            className="h-8 bg-background/95 pl-8 pr-3 text-xs"
+            onFocus={() => isTopbar && setSearchOpen(true)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                handleClose();
+                inputRef.current?.blur();
+              }
+            }}
+            placeholder={isTopbar ? "Search by customer or booking reference…" : "Search bookings..."}
+            className={isTopbar
+              ? "h-10 rounded-xl border-border/80 bg-muted/35 pl-10 pr-3 text-xs shadow-xs transition-colors placeholder:text-muted-foreground/80 hover:border-primary/30 focus-visible:border-primary/50 focus-visible:bg-background focus-visible:ring-primary/15"
+              : "h-8 bg-background/95 pl-8 pr-3 text-xs"}
             aria-label="Search bookings"
           />
 
           {/* Search dropdown */}
           {searchOpen && hasSearch && (
-            <div className="absolute left-0 right-0 top-full z-[80] mt-1 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-lg">
+            <div className={`absolute left-0 right-0 top-full z-[80] overflow-hidden border bg-popover text-popover-foreground shadow-lg ${isTopbar ? "mt-2 rounded-xl" : "mt-1 rounded-md"}`}>
               {isSearching ? (
                 <SearchResultsSkeleton />
               ) : searchResults.length > 0 ? (
@@ -302,11 +327,11 @@ const SearchCustomer = ({
         </div>
 
         {/* Close search */}
-        <Tooltip>
+        {!isTopbar && <Tooltip>
           <TooltipTrigger asChild>
             <Button
               type="button"
-              variant="outline"
+              variant={isTopbar ? "ghost" : "outline"}
               size="icon-sm"
               onClick={handleClose}
               aria-label="Close search"
@@ -316,7 +341,7 @@ const SearchCustomer = ({
           </TooltipTrigger>
 
           <TooltipContent side="top">Close search</TooltipContent>
-        </Tooltip>
+        </Tooltip>}
       </div>
 
       <Approval

@@ -149,7 +149,7 @@ const Actions = ({ booking, handleAction = () => {} }) => {
                 type="button"
                 variant="outline"
                 size="icon"
-                className="size-7"
+                className="relative size-7"
               >
                 <MoreHorizontal className="size-4" />
                 <span className="sr-only">More actions</span>

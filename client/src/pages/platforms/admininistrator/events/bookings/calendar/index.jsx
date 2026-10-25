@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { CALENDAR, SCHEDULE } from "@/services/redux/slices/events/bookings";
 
 const Calendar = ({
+  hideSearch = false,
   selectedDate,
   selectDate,
   bookingSearchResults,
@@ -109,6 +110,7 @@ const Calendar = ({
       >
         <FrameHeader className="p-0">
           <Header
+            hideSearch={hideSearch}
             searchOpen={searchOpen}
             selectDate={selectDate}
             setSearchOpen={setSearchOpen}

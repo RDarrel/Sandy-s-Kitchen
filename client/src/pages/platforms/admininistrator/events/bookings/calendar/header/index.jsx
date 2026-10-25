@@ -20,6 +20,7 @@ import { SCHEDULE } from "@/services/redux/slices/events/bookings";
 import { Formatter } from "@/services/utilities";
 
 const Header = ({
+  hideSearch = false,
   searchOpen,
   setSearchOpen,
   bookingSearch,
@@ -30,7 +31,7 @@ const Header = ({
   selectDate,
   isLoading,
 }) => {
-  const { calendar, refunds } = useSelector(({ bookings }) => bookings);
+  const { calendar } = useSelector(({ bookings }) => bookings);
   const { overview = {} } = calendar || {};
   const dispatch = useDispatch();
   return (
@@ -40,7 +41,7 @@ const Header = ({
           {/* Calendar navigation */}
           <div
             className={`flex min-h-9 min-w-0 origin-left flex-wrap items-center gap-1.5 transition-all duration-200 ease-out sm:gap-2 ${
-              searchOpen
+              searchOpen && !hideSearch
                 ? "pointer-events-none -translate-x-2 scale-[0.98] opacity-0"
                 : "translate-x-0 scale-100 opacity-100"
             }`}
@@ -60,7 +61,7 @@ const Header = ({
 
               <EventCalendarNavNext />
             </div>
-            <Tooltip>
+            {!hideSearch && <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   type="button"
@@ -73,7 +74,7 @@ const Header = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">Search bookings</TooltipContent>
-            </Tooltip>
+            </Tooltip>}
 
             {overview?.financial?.pendingRefundCount > 0 && (
               <>
@@ -86,7 +87,7 @@ const Header = ({
             )}
           </div>
           {/* Global booking search */}
-          <SearchCustomer
+          {!hideSearch && <SearchCustomer
             searchOpen={searchOpen}
             setSearchOpen={setSearchOpen}
             bookingSearch={bookingSearch}
@@ -94,7 +95,7 @@ const Header = ({
             setBookingSearch={setBookingSearch}
             bookingSearchResults={bookingSearchResults}
             handleSearchResultClick={handleSearchResultClick}
-          />
+          />}
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
