@@ -60,7 +60,7 @@ const formatUnit = (value, unit) => {
   return unit;
 };
 
-const Step6 = ({
+const Step7 = ({
   estimate,
   form,
   packageInfo,
@@ -267,7 +267,7 @@ const Step6 = ({
   );
 };
 
-export default Step6;
+export default Step7;
 
 /* -------------------------------- */
 /* Review Card                      */
