@@ -170,6 +170,7 @@ const getTransactionsReport = async ({ startDate, endDate }) => {
         as: "_cashier",
       },
     },
+
     {
       $set: {
         "created.by": {
@@ -242,6 +243,13 @@ const getTransactionsReport = async ({ startDate, endDate }) => {
   ]);
 
   const transactions = result?.transactions || [];
+  await Order.populate(transactions, [
+    {
+      path: "method",
+      select: "name type",
+      model: "PaymentMethod",
+    },
+  ]);
   const items = transactions.flatMap((transaction) => transaction.items || []);
 
   await OrderItem.populate(items, [
