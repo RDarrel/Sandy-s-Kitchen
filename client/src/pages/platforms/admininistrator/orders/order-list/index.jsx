@@ -57,7 +57,8 @@ const OrderList = () => {
                 <Input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search supplier..."
+                  placeholder="Search supplier or batch number..."
+                  aria-label="Search supplier or batch number"
                   className="h-10 bg-background/60 pl-9"
                   type="search"
                 />

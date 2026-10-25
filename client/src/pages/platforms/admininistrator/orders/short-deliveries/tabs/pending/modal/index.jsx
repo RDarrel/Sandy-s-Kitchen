@@ -131,7 +131,7 @@ const ShortDeliveryActionModal = () => {
 
       dispatch(ToggleShortDeliveryActionModal());
       setAction(null);
-    } catch (error) {
+    } catch {
       toast.error("Failed to update short delivery.");
     }
   };
@@ -164,7 +164,7 @@ const ShortDeliveryActionModal = () => {
 
             <div className="w-full sm:w-auto">
               <div className="flex items-end justify-start gap-3 sm:justify-end">
-                <div className="flex flex-col items-start leading-none sm:items-end">
+                <div className="flex flex-col items-start gap-1 sm:items-end">
                   <span className="text-[11px] font-medium text-muted-foreground">
                     Total amount
                   </span>
@@ -176,9 +176,18 @@ const ShortDeliveryActionModal = () => {
             </div>
           </div>
 
-          <div className="grid gap-3 rounded-xl border border-border bg-background/40 p-4 text-sm sm:grid-cols-3">
-            <div className="flex items-center gap-2">
-              <UserRound className="h-4 w-4 text-muted-foreground" />
+          <div className="grid items-center gap-x-6 gap-y-4 rounded-xl border border-border bg-background/40 p-4 text-sm sm:grid-cols-2 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)_minmax(0,1.4fr)_minmax(0,0.6fr)]">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <ReceiptText className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Batch No.</p>
+                <p className="truncate font-semibold text-foreground">
+                  {Formatter.batchNumber(purchase?._id)}
+                </p>
+              </div>
+            </div>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <UserRound className="h-4 w-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Received by</p>
                 <p className="truncate font-semibold text-foreground">
@@ -187,8 +196,8 @@ const ShortDeliveryActionModal = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <CalendarClock className="h-4 w-4 text-muted-foreground" />
+            <div className="flex min-w-0 items-center gap-2.5">
+              <CalendarClock className="h-4 w-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Received date</p>
                 <p className="truncate font-semibold text-foreground">
@@ -197,8 +206,8 @@ const ShortDeliveryActionModal = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <ReceiptText className="h-4 w-4 text-muted-foreground" />
+            <div className="flex min-w-0 items-center gap-2.5">
+              <ReceiptText className="h-4 w-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Items</p>
                 <p className="truncate font-semibold text-foreground">

@@ -80,7 +80,6 @@ const statusMeta = {
 
 const PendingShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
   const dispatch = useDispatch();
-  const { token } = useSelector(({ auth }) => auth);
   const {
     filtered: orders,
     isLoading,
@@ -163,11 +162,9 @@ const PendingShortDeliveriesTab = ({ highlightPurchaseId = null }) => {
                   </Badge>
                 </div>
                 <p className="truncate text-xs text-muted-foreground">
-                  Address:{" "}
+                  Batch No.:{" "}
                   <span className="font-medium text-foreground/90">
-                    {purchase?.supplier?.address
-                      ? purchase.supplier.address
-                      : "-"}
+                    {Formatter.batchNumber(purchase?._id)}
                   </span>
                 </p>
               </div>

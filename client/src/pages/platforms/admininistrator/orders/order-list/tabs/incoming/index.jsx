@@ -134,11 +134,9 @@ const IncomingOrdersTab = () => {
                 </div>
 
                 <p className="truncate text-xs text-muted-foreground">
-                  Address:{" "}
+                  Batch No.:{" "}
                   <span className="font-medium text-foreground/90">
-                    {purchase?.supplier?.address
-                      ? purchase.supplier.address
-                      : "-"}
+                    {Formatter.batchNumber(purchase?._id)}
                   </span>
                 </p>
               </div>

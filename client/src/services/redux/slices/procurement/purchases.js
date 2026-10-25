@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { axioKit, Stock } from "../../../utilities";
+import { axioKit, Formatter, Stock } from "../../../utilities";
 
 const url = "procurement/purchases";
 
@@ -305,8 +305,11 @@ export const reduxSlice = createSlice({
       }
     },
     SEARCH: (state, { payload }) => {
-      state.filtered = state.collections.filter(({ supplier }) => {
-        return supplier?.name.toLowerCase().includes(payload.toLowerCase());
+      const query = String(payload ?? "").trim().toLowerCase();
+      state.filtered = state.collections.filter(({ supplier, _id }) => {
+        const supplierName = String(supplier?.name ?? "").toLowerCase();
+        const batchNumber = _id ? Formatter.batchNumber(_id).toLowerCase() : "";
+        return supplierName.includes(query) || batchNumber.includes(query);
       });
     },
     PROGRESS: (state, data) => {
