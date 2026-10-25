@@ -10,7 +10,7 @@ import axios from "axios";
 import { ENDPOINT } from "./services/utilities";
 import "./index.css";
 
-axios.defaults.baseURL = ENDPOINT;
+axios.defaults.baseURL = `${ENDPOINT}/api`;
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -22,5 +22,5 @@ createRoot(document.getElementById("root")).render(
         </TooltipProvider>
       </Provider>
     </BrowserRouter>
-  </StrictMode>
+  </StrictMode>,
 );

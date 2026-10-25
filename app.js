@@ -1,77 +1,35 @@
-const express = require("express"),
-  app = express(),
-  cookieParser = require("cookie-parser"),
-  path = require("path"),
-  http = require("http"),
-  { Server } = require("socket.io"),
-  cors = require("cors"),
-  whitelisted = require("./middleware/whitelist"),
-  whitelist = require("./config/whitelist"),
-  syncExpiredBatches = require("./utilities/syncExpiredBatches"),
-  { red, green } = require("colorette");
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
+const path = require("path");
+
 require("dotenv").config();
-require("./jobs/expirationJob");
-require("./config/db")()
-  .then(async () => {
-    const corsConfig = {
-      origin: whitelist, // Do not use wildcard
-      methods: ["GET", "POST", "PUT", "DELETE"], // List only available methods
-      credentials: true, // Must be set to true for jwt
-      allowedHeaders: [
-        "Origin",
-        "Content-Type",
-        "X-Requested-With",
-        "Accept",
-        "Authorization",
-      ], // Allowed Headers to be received
-    };
-    await syncExpiredBatches();
-    // Comment when client and server are joined
-    app.use(cors(corsConfig)); // Pass configuration to cors
 
-    // Used to receive json and form-data in req.body
-    app.use(
-      express.urlencoded({
-        extended: true,
-        limit: "50mb",
-      }),
-    );
-    app.use(express.json({ limit: "50mb" }));
-    app.use(cookieParser());
+const whitelist = require("./config/whitelist");
 
-    // declare public access for assets
-    app.use("/assets", express.static(path.join(__dirname, "assets")));
+const app = express();
 
-    // Uncomment when deployed to disable calls from postman
-    // Only use when client and server are at separate deployments
-    // app.use(whitelisted);
+const corsConfig = {
+  origin: whitelist,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+  allowedHeaders: [
+    "Origin",
+    "Content-Type",
+    "X-Requested-With",
+    "Accept",
+    "Authorization",
+  ],
+};
 
-    // Routes
-    require("./routes")(app);
+app.use(cors(corsConfig));
 
-    // used when deployed, make sure it is below routes.
-    app.use(express.static(path.join(__dirname, "./view")));
-    app.get("*", (req, res) =>
-      res.sendFile(path.resolve(__dirname, "./", "view", "index.html")),
-    );
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(cookieParser());
 
-    const server = http.createServer(app);
+app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-    require("./config/socket")(
-      new Server(server, {
-        cors: corsConfig, // Pass configuration to websocket
-      }),
-    );
+require("./routes")(app);
 
-    const port = process.env.PORT || 5000; // Dynamic port for deployment
-    server.listen(port, () => {
-      console.log(green(`[Server] running on port: ${port}`));
-    });
-
-    server.on("error", (error) =>
-      console.log(red(`[Server] ${error.message}`)),
-    );
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+module.exports = { app, corsConfig };

@@ -21,7 +21,7 @@ const generateRoutes = async (app, folder, src) => {
         pathName = `./${folder && `${folder}/`}${file}`;
 
       //create route
-      app.use(`/${formatPath(true)}${name}`, require(pathName));
+      app.use(`/api/${formatPath(true)}${name}`, require(pathName));
 
       //log if success
       console.log(

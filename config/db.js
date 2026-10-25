@@ -5,6 +5,10 @@ const connectToDB = async () => {
   try {
     mongoose.set("strictQuery", false);
 
+    if (mongoose.connection.readyState === 1) {
+      return true;
+    }
+
     await mongoose.connect(process.env.ATLAS_URI);
 
     console.log(green("[MongoDB] Connection established successfully."));
@@ -14,7 +18,7 @@ const connectToDB = async () => {
     console.error(red("[MongoDB] Connection failed."));
     console.error(err);
 
-    return false;
+    throw err;
   }
 };
 
