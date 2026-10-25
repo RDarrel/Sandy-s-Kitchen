@@ -8,6 +8,7 @@ import preferredContact from "./preferredContact";
 import localDate from "./localDate";
 import bookingDateRange from "./bookingDateRange";
 import monthRange from "./monthRange";
+import batchNumber from "./batchNumber";
 const Formatter = {
   amount,
   date,
@@ -19,6 +20,7 @@ const Formatter = {
   localDate,
   bookingDateRange,
   monthRange,
+  batchNumber,
 };
 
 export default Formatter;
