@@ -1,15 +1,8 @@
 import { Building2, ClipboardList, Gauge, UtensilsIcon } from "lucide-react";
-import Dashboard from "./dashboard";
 import { Catering, Venues } from "./events";
 import MyBookings from "./myBookings";
 
 const access = [
-  {
-    name: "Dashboard",
-    path: "/dashboard",
-    icon: Gauge,
-    component: Dashboard,
-  },
   {
     name: "Catering",
     path: "/catering",

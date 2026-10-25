@@ -28,6 +28,8 @@ export default function LoginForm({ className }) {
           navigate("/cashier");
         } else if (payload?.user?.role === 5) {
           navigate("/coordinator");
+        } else if (payload?.user?.role === 6) {
+          navigate("/platforms/catering");
         } else {
           navigate("/platforms/dashboard");
         }
