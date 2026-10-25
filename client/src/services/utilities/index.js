@@ -23,6 +23,7 @@ import Inventory from "./inventory";
 import isShortageResolved from "./isShortageResolved";
 import isImgURL from "./isImgURL";
 const ENDPOINT = "http://localhost:5000";
+// const ENDPOINT = window.location.origin;
 const ENCRYPTION_KEY = "601b422c2548c7598feff2332a8e6eee9";
 //use this to if the system is deployed
 // const ENDPOINT = window.location.origin;
