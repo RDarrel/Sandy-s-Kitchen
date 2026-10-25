@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const inclusionSchema = require("./schemas/inclusions");
+const inclusionSchema = require("./schemas/Inclusions");
 
 const menuCategorySchema = new mongoose.Schema(
   {
