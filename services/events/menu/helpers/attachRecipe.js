@@ -33,7 +33,18 @@ const attachRecipes = async (menus = []) => {
 
       return {
         ...menu,
-        ingredients,
+        ingredients:
+          menu?.type === "resell"
+            ? [
+                {
+                  isResell: true,
+                  inventory: menu?.inventory,
+                  qtyPerOrder: quantity,
+                  unit: "pcs",
+                  menu: menu._id,
+                },
+              ]
+            : ingredients,
         inventory: primaryIngredient?.inventory || menu.inventory || null,
         qtyPerOrder: primaryIngredient?.qtyPerOrder || menu.qtyPerOrder || null,
         unit: primaryIngredient?.unit || menu.unit || null,

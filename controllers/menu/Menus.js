@@ -416,7 +416,10 @@ exports.browse = async (req, res) => {
     if (["catering", "cashier"].includes(station?.toLowerCase())) {
       menus = await Menu.find({
         ...ACTIVE_FILTER,
-        ...(station === "catering" && { type: "prepared" }),
+        ...(station === "catering" && {
+          // type: { $in: ["prepared", "resell"] },
+          type: "prepared",
+        }),
       })
         .sort({ createdAt: -1 })
         .populate("category", "name")
