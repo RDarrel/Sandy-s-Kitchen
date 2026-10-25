@@ -12,6 +12,7 @@ import { LOGIN } from "@/services/redux/slices/persons/auth";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader } from "lucide-react";
+import PasswordInput from "@/components/shared/passwordInput";
 
 export default function LoginForm({ className }) {
   const { isLoading } = useSelector(({ auth }) => auth),
@@ -59,14 +60,20 @@ export default function LoginForm({ className }) {
         <Field>
           <div className="flex items-center">
             <FieldLabel htmlFor="password">Password</FieldLabel>
-            <a
+            {/* <a
               href="#"
               className="ml-auto text-sm underline-offset-4 hover:underline"
             >
               Forgot your password?
-            </a>
+            </a> */}
           </div>
-          <Input id="password" type="password" required />
+
+          <PasswordInput
+            id="password"
+            placeholder="Enter your password"
+            autoComplete="new-password"
+            required
+          />
         </Field>
         <Field>
           <Button type="submit" disabled={isLoading}>
