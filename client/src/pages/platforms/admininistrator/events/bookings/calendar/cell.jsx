@@ -1,6 +1,8 @@
 import { STATUS_BORDERS, STATUS_LABELS, STATUS_ORDER } from "../constant";
 import { format } from "date-fns";
 
+const MAX_VISIBLE_STATUSES = 3;
+
 const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
   const bookings = [...segments.allDay, ...segments.timed].map(
     (segment) => segment.occurrence.event,
@@ -22,6 +24,10 @@ const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
         ...visibleStatuses.filter((status) => status !== priorityStatus),
       ]
     : [];
+  const visibleLimit = displayStatuses.length > MAX_VISIBLE_STATUSES ? 2 : MAX_VISIBLE_STATUSES;
+  const shownStatuses = displayStatuses.slice(0, visibleLimit);
+  const hiddenStatuses = displayStatuses.slice(visibleLimit);
+  const hasMoreStatuses = hiddenStatuses.length > 0;
 
   const isSelected =
     format(day, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd");
@@ -55,7 +61,7 @@ const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
       {bookings.length > 0 && (
         <div className="absolute inset-x-2 bottom-2 top-7 flex min-h-0 items-center">
           <div className="w-full min-w-0 space-y-0.5">
-            {displayStatuses.map((status) => (
+            {shownStatuses.map((status) => (
               <div
                 key={status}
                 className={`flex min-w-0 items-center gap-1.5 border-l-2 pl-1.5 text-[11px] leading-4 ${STATUS_BORDERS[status]}`}
@@ -69,6 +75,18 @@ const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
                 </span>
               </div>
             ))}
+            {hasMoreStatuses && (
+              <div className="flex h-4 items-end">
+                <span
+                  className="inline-flex items-center rounded-sm bg-primary/8 px-1.5 text-[10px] font-medium leading-3.5 text-primary"
+                  title={hiddenStatuses
+                    .map((status) => `${STATUS_LABELS[status]}: ${statusCounts[status]}`)
+                    .join(", ")}
+                >
+                  +{hiddenStatuses.length} more
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
