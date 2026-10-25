@@ -54,7 +54,7 @@ const getPurchaseParam = (purchaseParam) => {
 };
 
 const ShortDeliveries = () => {
-  const { isLoading } = useSelector(({ purchases }) => purchases);
+  const { collections, isLoading } = useSelector(({ purchases }) => purchases);
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
 
@@ -94,7 +94,7 @@ const ShortDeliveries = () => {
 
   useEffect(() => {
     dispatch(SEARCH_PURCHASES(query));
-  }, [dispatch, query]);
+  }, [dispatch, query, collections]);
 
   return (
     <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
@@ -121,7 +121,8 @@ const ShortDeliveries = () => {
                 <Input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search supplier..."
+                  placeholder="Search supplier or batch number..."
+                  aria-label="Search supplier or batch number"
                   className="h-10 bg-background/60 pl-9"
                   type="search"
                 />

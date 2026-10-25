@@ -185,12 +185,12 @@ const RedeliveryOrderModal = () => {
               {/* header badges removed; keep only dialog close icon */}
             </div>
 
-            <div className="grid gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-4">
+            <div className="grid items-start gap-x-6 gap-y-4 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1.5fr)] [&>div]:min-w-0">
               <div className="space-y-1">
                 <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
                   Supplier
                 </p>
-                <p className="truncate text-sm font-semibold text-foreground">
+                <p className="break-words text-sm font-semibold leading-5 text-foreground">
                   {supplierName}
                 </p>
               </div>
@@ -214,7 +214,7 @@ const RedeliveryOrderModal = () => {
                 <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
                   Delivery Window
                 </p>
-                <p className="truncate text-sm font-semibold text-foreground">
+                <p className="text-sm font-semibold leading-5 text-foreground">
                   {purchase?.deliveryWindow?.from &&
                   purchase?.deliveryWindow?.to
                     ? `${Formatter.date(purchase.deliveryWindow.from)} - ${Formatter.date(purchase.deliveryWindow.to)}`

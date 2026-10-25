@@ -176,7 +176,7 @@ const ShortDeliveryActionModal = () => {
             </div>
           </div>
 
-          <div className="grid items-center gap-x-6 gap-y-4 rounded-xl border border-border bg-background/40 p-4 text-sm sm:grid-cols-2 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)_minmax(0,1.4fr)_minmax(0,0.6fr)]">
+          <div className="grid items-start gap-x-6 gap-y-4 rounded-xl border border-border bg-background/40 p-4 text-sm sm:grid-cols-2 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)_minmax(0,1.4fr)_minmax(0,0.6fr)]">
             <div className="flex min-w-0 items-center gap-2.5">
               <ReceiptText className="h-4 w-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0">
@@ -190,7 +190,7 @@ const ShortDeliveryActionModal = () => {
               <UserRound className="h-4 w-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Received by</p>
-                <p className="truncate font-semibold text-foreground">
+                <p className="break-words font-semibold leading-5 text-foreground">
                   {formatReceivedBy(purchase?.received?.by)}
                 </p>
               </div>
@@ -200,7 +200,7 @@ const ShortDeliveryActionModal = () => {
               <CalendarClock className="h-4 w-4 shrink-0 text-muted-foreground" />
               <div className="min-w-0">
                 <p className="text-xs text-muted-foreground">Received date</p>
-                <p className="truncate font-semibold text-foreground">
+                <p className="font-semibold leading-5 text-foreground">
                   {formatDateTime(receivedAt)}
                 </p>
               </div>
