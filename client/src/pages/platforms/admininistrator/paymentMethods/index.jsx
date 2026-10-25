@@ -9,7 +9,7 @@ import {
 } from "@/services/redux/slices/events/paymentMethods";
 import { toast } from "sonner";
 import PaymentMethodModal from "./modal";
-import Toolbar from "./toolBar";
+import Toolbar from "./toolbar";
 import Method from "./method";
 import MethodSkeleton from "./method/methodSkeleton";
 import Header from "./header";
