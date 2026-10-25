@@ -1,5 +1,5 @@
 import { Formatter } from "@/services/utilities";
-import Cloudinary from "@/services/utilities/cloudinary";
+import Gallery from "@/components/shared/event/venue/item/gallery";
 import { capitalize } from "lodash";
 import { Paperclip, Clock, UserPlus, Users, Home, MapPin } from "lucide-react";
 
@@ -7,7 +7,10 @@ const Header = ({ selected }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[22rem_1fr]  ">
       <div className="h-[11rem] lg:h-auto">
-        <Gallery venue={selected} />
+        <Gallery
+          venue={selected}
+          className="rounded-t-sm lg:rounded-l-sm lg:rounded-t-none"
+        />
       </div>
 
       <div className="p-3 border border-t-0 md:border-t md:border-l-0  rounded-sm rounded-t-none md:rounded-t md:rounded-l-none border-primary/20 ">
@@ -149,37 +152,3 @@ const Metric = ({ metric }) => {
   );
 };
 
-const Gallery = ({ venue }) => {
-  const thumbnail = venue?.images?.length > 0 ? venue?.images[0] : "";
-
-  const getImage = (image) => {
-    return Cloudinary.getVenueImg(
-      image?.version,
-      venue?._id,
-      `image-${image?.id}`,
-    );
-  };
-  return (
-    <div className="venue-card__gallery rounded-t-sm lg:rounded-l-sm lg:rounded-t-none">
-      <div className="relative min-h-0 overflow-hidden">
-        <img
-          src={getImage(thumbnail, 1)}
-          alt={venue.name}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      </div>
-
-      <div
-        className={`venue-card__thumbs grid grid-cols-${venue?.images?.length - 1} gap-1`}
-      >
-        {venue?.images?.slice(1, 4).map((image, index) => (
-          <img
-            src={getImage(image, index + 2)}
-            alt={`${venue.name} preview ${index + 2}`}
-            key={`venue-gallery-${index}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};

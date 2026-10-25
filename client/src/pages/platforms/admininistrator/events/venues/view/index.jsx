@@ -13,7 +13,7 @@ const ViewDetails = ({ selected = {}, isOpen, setIsOpen = () => {} }) => {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Package Details</DialogTitle>
+          <DialogTitle>Venue Details</DialogTitle>
           <DialogDescription>
             Explore the venue details, capacity, pricing, duration, and
             inclusions.
