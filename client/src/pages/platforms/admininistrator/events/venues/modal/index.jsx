@@ -185,6 +185,8 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const action = e.nativeEvent.submitter?.dataset.action;
+
     const { images = [], ...rest } = form;
     // const action = e.nativeEvent.submitter.dataset.action;
 
@@ -198,6 +200,11 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
       return toast.warning(
         "Please select at least one event compatibility before saving the venue.",
       );
+
+    if (action === "override" && !willCreate) {
+      setIsSubmitting(true);
+      return handleUpdate();
+    }
 
     if (currentStep !== 4) return setCurrentStep((prev) => prev + 1);
     setIsSubmitting(true);
@@ -265,7 +272,7 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
               >
                 Previous
               </Button>
-              <div className="flex gap-5">
+              {/* <div className="flex gap-5">
                 <Button
                   disabled={isSubmitting}
                   type="submit"
@@ -275,6 +282,29 @@ const CustomModal = ({ isOpen, setIsOpen, selected = {} }) => {
                   {currentStep === 4 ? "Submit" : "Next"}{" "}
                   <Spinner formSubmitted={isSubmitting} />
                 </Button>
+              </div> */}
+              <div className="flex gap-5">
+                <Button
+                  disabled={isSubmitting}
+                  variant={!willCreate && currentStep !== 4 ? "outline" : ""}
+                  type="submit"
+                  data-action="next"
+                  onClick={() => setIsDraft(false)}
+                >
+                  {currentStep === 4 ? "Submit" : "Next"}{" "}
+                  <Spinner formSubmitted={isSubmitting} />
+                </Button>
+                {currentStep !== 4 && !willCreate && (
+                  <Button
+                    disabled={isSubmitting}
+                    type="submit"
+                    data-action="override"
+                    onClick={() => setIsDraft(false)}
+                  >
+                    Submit
+                    <Spinner formSubmitted={isSubmitting} />
+                  </Button>
+                )}
               </div>
             </div>
           </Stepper>

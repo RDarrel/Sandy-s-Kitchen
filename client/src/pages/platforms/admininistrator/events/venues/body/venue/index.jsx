@@ -58,7 +58,6 @@ const Venue = ({ venue = {}, handleAction = () => {} }) => {
                 <strong>{Formatter.amount(venue?.basePrice)}</strong>
                 {perHour || perPax ? (
                   <>
-                    <AdditionalCharge price={perPax} label="guest" />
                     <AdditionalCharge price={perHour} label="hour" />
                   </>
                 ) : (

@@ -246,7 +246,7 @@ const Item = ({ item, isSelected, toggleItem = () => {} }) => {
       </TableCell>
 
       <TableCell>
-        {Number(toPurchaseQty) > 0 ? (
+        {Number(toPurchaseQty) > (item?.baseUnit === "pcs" ? 0.99 : 0) ? (
           <div>
             <TooltipProvider>
               <Tooltip>

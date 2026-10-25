@@ -38,7 +38,7 @@ const Header = ({ selected }) => {
                 {
                   title: "Duration",
                   value: `${selected?.duration?.min}–${selected?.duration?.max} hrs`,
-                  subTitle: "Allowed Hours",
+                  subTitle: "Included Hours",
                   Icon: Clock,
                 },
               ].map((metric, idx) => (
@@ -49,15 +49,8 @@ const Header = ({ selected }) => {
               {[
                 {
                   title: "Additional Charges",
-                  value: (
-                    <>
-                      {Formatter.amount(selected?.additionalCharges?.perHour)}
-                      {" / hr"}
-                    </>
-                  ),
-                  subTitle: `+ ${Formatter.amount(
-                    selected?.additionalCharges?.perPax,
-                  )} / guest`,
+                  value: Formatter.amount(selected?.additionalCharges?.perHour),
+                  subTitle: "Per additional hour",
                   Icon: UserPlus,
                 },
                 {
