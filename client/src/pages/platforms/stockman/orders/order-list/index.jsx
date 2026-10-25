@@ -43,7 +43,7 @@ const getPurchaseParam = (purchaseParam) => {
 };
 
 const OrderList = () => {
-  const { message, isLoading } = useSelector(({ purchases }) => purchases);
+  const { collections, message, isLoading } = useSelector(({ purchases }) => purchases);
   const { auth } = useSelector(({ auth }) => auth);
   const [searchParams] = useSearchParams();
 
@@ -78,7 +78,7 @@ const OrderList = () => {
 
   useEffect(() => {
     dispatch(SEARCH(query));
-  }, [query, dispatch]);
+  }, [query, dispatch, collections]);
 
   return (
     <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
@@ -103,7 +103,8 @@ const OrderList = () => {
                 <Input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search supplier..."
+                  placeholder="Search supplier or batch number..."
+                  aria-label="Search supplier or batch number"
                   className="h-10 bg-background/60 pl-9"
                   type="search"
                 />

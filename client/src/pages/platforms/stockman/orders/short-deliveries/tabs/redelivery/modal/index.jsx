@@ -196,13 +196,21 @@ const RedeliveryOrderModal = () => {
               {/* header badges removed; keep only dialog close icon */}
             </div>
 
-            <div className="grid gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-3">
+            <div className="grid gap-4 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-1">
                 <p className="text-[11px] font-medium  tracking-wide text-muted-foreground">
                   Supplier
                 </p>
                 <p className="truncate text-sm font-semibold text-foreground">
                   {supplierName}
+                </p>
+              </div>
+              <div className="min-w-0 space-y-1">
+                <p className="text-[11px] font-medium tracking-wide text-muted-foreground">
+                  Batch No.
+                </p>
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {Formatter.batchNumber(purchase?._id)}
                 </p>
               </div>
               <div className="space-y-1">

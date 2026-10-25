@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Formatter } from "@/services/utilities";
 import { memo, useMemo } from "react";
 import { PackageCheck } from "lucide-react";
 import { getItemsFromPurchase, getPurchaseMeta } from "../utils";
@@ -61,9 +62,9 @@ const DeliveredOrderCard = ({
             </Badge>
           </div>
           <p className="truncate text-xs text-muted-foreground">
-            Address:{" "}
+            Batch No.:{" "}
             <span className="font-medium text-foreground/90">
-              {purchase?.supplier?.address ? purchase.supplier.address : "-"}
+              {Formatter.batchNumber(purchase?._id)}
             </span>
           </p>
         </div>
