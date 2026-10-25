@@ -35,6 +35,7 @@ export function NavUser() {
     dispatch(LOGOUT())
       .unwrap()
       .then(() => {
+        document.body.style.pointerEvents = "";
         localStorage.clear();
         navigate("/");
       });
