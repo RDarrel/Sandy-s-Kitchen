@@ -1,41 +1,55 @@
-const fs = require("fs"),
-  { blue, green } = require("colorette");
+const fs = require("fs");
+const path = require("path");
+const { blue, green } = require("colorette");
 
-const generateRoutes = async (app, folder, src) => {
-  //read files except index.js
-  const files = fs.readdirSync(src).filter((r) => r !== "index.js");
-  //loop files
-  for (const file of files) {
-    //detect if file
-    if (file.includes(".js")) {
-      //for creating logs and api path
-      const formatPath = (api = false) => {
-        if (!folder) return "";
-        const baseSrc = src.slice(9, src.length);
-        if (api) return `${baseSrc}/`;
+const generateRoutes = (app, folder, src) => {
+  // Read files and directories
+  const files = fs.readdirSync(src, { withFileTypes: true });
 
-        return `[${baseSrc.split("/").join("][")}]`;
-      };
+  for (const entry of files) {
+    const file = entry.name;
 
-      const [name] = file.split("."),
-        pathName = `./${folder && `${folder}/`}${file}`;
+    // Skip route generator files
+    if (folder === "" && ["index.js", "index.cjs"].includes(file)) {
+      continue;
+    }
 
-      //create route
-      app.use(`/api/${formatPath(true)}${name}`, require(pathName));
-
-      //log if success
-      console.log(
-        blue(`[Route]${formatPath()}[${file}] created successfully.`),
+    // Recursively process directories only
+    if (entry.isDirectory()) {
+      generateRoutes(
+        app,
+        folder ? `${folder}/${file}` : file,
+        path.join(src, file),
       );
       continue;
     }
-    //recursive function
-    generateRoutes(app, folder ? `${folder}/${file}` : file, `${src}/${file}`);
+
+    // Skip unsupported files
+    if (!entry.isFile() || path.extname(file) !== ".js") {
+      continue;
+    }
+
+    // For creating logs and API paths
+    const formatPath = (api = false) => {
+      if (!folder) return "";
+
+      if (api) return `${folder}/`;
+
+      return `[${folder.split("/").join("][")}]`;
+    };
+
+    const name = path.parse(file).name;
+    const pathName = `./${folder ? `${folder}/` : ""}${file}`;
+
+    // Register route
+    app.use(`/api/${formatPath(true)}${name}`, require(pathName));
+
+    // Log successful registration
+    console.log(blue(`[Route]${formatPath()}[${file}] created successfully.`));
   }
 };
 
 module.exports = (app) => {
-  //generate base routes
-  generateRoutes(app, "", "./routes");
+  generateRoutes(app, "", path.join(__dirname));
   console.log(green("[Routes] generated successfully."));
 };
