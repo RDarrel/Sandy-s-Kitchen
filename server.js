@@ -1,8 +1,8 @@
 const http = require("http");
 const { Server } = require("socket.io");
 const { green, red } = require("colorette");
-
-const { app, corsConfig } = require("./app");
+const app = require("./app");
+const corsConfig = require("./config/corsConfig");
 const connectDB = require("./config/db");
 const syncExpiredBatches = require("./utilities/syncExpiredBatches");
 
