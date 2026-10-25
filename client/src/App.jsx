@@ -22,6 +22,7 @@ import CateringInquiry from "./pages/platforms/customer/events/catering/inquire"
 import CateringDetails from "./pages/platforms/customer/events/catering/details";
 import VenueInquiry from "./pages/platforms/customer/events/venues/inquire";
 import VenueDetails from "./pages/platforms/customer/events/venues/details";
+import BookingCoordinator from "./pages/platforms/booking_coordinator";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="*" element={<h2>Not Found</h2>} />
       </Route>
       <Route path="cashier" element={<Cashier />} />
+      <Route path="coordinator" element={<BookingCoordinator />} />
       <Route path="receipts/order" element={<OrderReceipt />} />
       <Route path="*" element={<h2>Not Found</h2>} />
     </Routes>

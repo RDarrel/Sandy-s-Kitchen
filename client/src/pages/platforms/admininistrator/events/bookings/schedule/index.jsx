@@ -223,7 +223,7 @@ const Schedule = ({
 
   return (
     <>
-      <Card className="flex h-[650px] flex-col gap-0 overflow-hidden py-0 shadow-sm">
+      <Card className="flex h-[650px] w-full min-w-0 flex-col gap-0 overflow-hidden py-0 shadow-sm">
         <CardHeader
           className="min-w-0 gap-3 border-b px-3 !pb-0 pt-2.5"
           style={{

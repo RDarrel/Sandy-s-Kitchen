@@ -26,6 +26,8 @@ export default function LoginForm({ className }) {
       .then(({ payload }) => {
         if (payload?.user?.role === 2) {
           navigate("/cashier");
+        } else if (payload?.user?.role === 5) {
+          navigate("/coordinator");
         } else {
           navigate("/platforms/dashboard");
         }

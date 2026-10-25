@@ -28,8 +28,8 @@ function Bookings() {
   }, []);
 
   return (
-    <div className="w-full p-4">
-      <div className="relative grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+    <div className="min-w-0 w-full overflow-x-clip p-4">
+      <div className="relative grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         {/* Calendar */}
         <div className="relative z-0 col-start-1 row-start-1 min-w-0">
           <Calendar
@@ -47,7 +47,7 @@ function Bookings() {
 
         {/* Selected date bookings */}
         <div
-          className={`relative z-20 col-span-full min-w-0 justify-self-end transition-[width] duration-200 ease-out motion-reduce:transition-none ${
+          className={`relative z-20 col-span-full min-w-0 max-w-full justify-self-end transition-[width] duration-200 ease-out motion-reduce:transition-none ${
             isScheduleExpanded
               ? "row-start-1 w-full"
               : "row-start-2 w-full xl:row-start-1 xl:w-[340px]"
