@@ -111,7 +111,7 @@ const BatchesModalBody = ({
                   <TableRow key={batch._id}>
                     <TableCell className="whitespace-normal">
                       <p className="font-medium text-foreground">
-                        {batch.displayCode}
+                        {Formatter.batchNumber(batch.purchase?._id)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {batch.supplierName}

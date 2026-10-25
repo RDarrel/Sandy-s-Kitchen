@@ -117,7 +117,6 @@ const InventoryBatchesModal = () => {
             : expiryStatus,
         expiryStatus,
         isExpired: tracksExpiration && expiryStatus === "expired",
-        displayCode: `B-${batch._id.toString().slice(-6).toUpperCase()}`,
       };
     });
 
