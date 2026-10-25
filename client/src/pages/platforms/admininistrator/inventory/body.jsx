@@ -246,17 +246,23 @@ const InventoryBody = ({
                                             Stock Movements
                                           </DropdownMenuItem>
                                         </DropdownMenuGroup>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuGroup>
-                                          <DropdownMenuItem
-                                            onClick={() =>
-                                              dispatch(SetREPORT_WASTE(item))
-                                            }
-                                          >
-                                            <AlertTriangle />
-                                            Report Waste
-                                          </DropdownMenuItem>
-                                        </DropdownMenuGroup>
+                                        {item?.stock?.current > 0 && (
+                                          <>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuGroup>
+                                              <DropdownMenuItem
+                                                onClick={() =>
+                                                  dispatch(
+                                                    SetREPORT_WASTE(item),
+                                                  )
+                                                }
+                                              >
+                                                <AlertTriangle />
+                                                Report Waste
+                                              </DropdownMenuItem>
+                                            </DropdownMenuGroup>
+                                          </>
+                                        )}
                                       </DropdownMenuContent>
                                     </DropdownMenu>
                                   </ButtonGroup>
@@ -280,15 +286,17 @@ const InventoryBody = ({
                                       }
                                     />
 
-                                    <ActionButton
-                                      title="Report Waste"
-                                      className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                                      icon={AlertTriangle}
-                                      destructive
-                                      onClick={() =>
-                                        dispatch(SetREPORT_WASTE(item))
-                                      }
-                                    />
+                                    {item?.stock?.current > 0 && (
+                                      <ActionButton
+                                        title="Report Waste"
+                                        className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                                        icon={AlertTriangle}
+                                        destructive
+                                        onClick={() =>
+                                          dispatch(SetREPORT_WASTE(item))
+                                        }
+                                      />
+                                    )}
                                   </>
                                 )}
                               </div>

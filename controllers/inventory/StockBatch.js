@@ -40,13 +40,7 @@ exports.browse = async (req, res) => {
 exports.dispose = async (req, res) => {
   try {
     const { _id, inventory, qty, user, unit } = req.body;
-    const stockBatch = await StockBatch.findByIdAndUpdate(
-      _id,
-      { remainingQuantity: 0 },
-      {
-        new: true,
-      },
-    ).lean();
+    await StockBatch.findByIdAndUpdate(_id, { remainingQuantity: 0 }).lean();
 
     await StockMovement.create({
       inventory,
@@ -126,7 +120,7 @@ exports.reportWaste = async (req, res) => {
         },
       },
       {
-        new: true,
+        returnDocument: "after",
       },
     );
 

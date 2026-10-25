@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { DISPOSE } from "@/services/redux/slices/inventory/stockBatch";
 import { DISPOSE as DISPOSE_INVENTORY_EXPIRED } from "@/services/redux/slices/inventory/inventoryItems";
+import { toast } from "sonner";
 const BatchesModalBody = ({
   rows = [],
   isLoading = false,
@@ -44,7 +45,7 @@ const BatchesModalBody = ({
           data: {
             _id: selectedBatch._id,
             inventory: selectedBatch.inventory?._id,
-            qty: selectedBatch.remainingQuantity,
+            qty: selectedBatch.remainingQtyDisplay,
             user: auth?._id,
             unit: selectedBatch.unit,
           },
@@ -63,6 +64,7 @@ const BatchesModalBody = ({
           );
           setDisposeOpen(false);
           setSelectedBatch(null);
+          toast.success("Expired stock disposed of successfully.");
         });
     }
   };
@@ -227,7 +229,7 @@ const BatchesModalBody = ({
             <div className="mt-3 space-y-1 text-sm text-muted-foreground">
               <p>
                 <span className="font-medium text-foreground">Batch:</span>{" "}
-                {selectedBatch?.displayCode || "â€”"}
+                {Formatter.batchNumber(selectedBatch?.purchase?._id) || "â€”"}
               </p>
               <p>
                 <span className="font-medium text-foreground">

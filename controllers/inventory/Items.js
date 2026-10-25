@@ -95,7 +95,7 @@ exports.browse = async (req, res) => {
           value: expiringSoonMap[itemId] || 0,
         },
         expired: {
-          display: expiringSoonMap[itemId]
+          display: expiredMap[itemId]
             ? convertFromBaseUnit({
                 measurement: item.measurement,
                 qty: expiredMap[itemId],

@@ -181,12 +181,14 @@ export const reduxSlice = createSlice({
         const { message, payload } = action.payload;
         const updateCollections = (collections) => {
           const index = collections.findIndex(({ _id }) => _id === payload);
+          console.log("index", index);
           if (index > -1) {
-            collections[index] = {
-              ...collections[index],
-              remainingQuantity: 0,
-              remainingQtyDisplay: 0,
-            };
+            collections.splice(index, 1);
+            // collections[index] = {
+            //   ...collections[index],
+            //   remainingQuantity: 0,
+            //   remainingQtyDisplay: 0,
+            // };
           }
         };
         updateCollections(state.collections);

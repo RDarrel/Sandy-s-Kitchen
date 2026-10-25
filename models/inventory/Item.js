@@ -167,20 +167,17 @@ modelSchema.virtual("stockStatus").get(function () {
 });
 
 // 🔥 CREATE / SAVE middleware
-modelSchema.pre("save", function (next) {
+modelSchema.pre("save", function () {
   this.baseUnit = baseUnitMap[this.measurement];
-  next();
 });
 
 // 🔥 UPDATE middleware
-modelSchema.pre("findOneAndUpdate", function (next) {
+modelSchema.pre("findOneAndUpdate", function () {
   const update = this.getUpdate();
 
   if (update.measurement) {
     update.baseUnit = baseUnitMap[update.measurement];
   }
-
-  next();
 });
 
 const Entity = mongoose.model("Item", modelSchema);
