@@ -52,20 +52,43 @@ const modelSchema = new mongoose.Schema(
 
     conversions: [
       {
-        fromUnit: {
+        toMeasurement: {
           type: String,
+          enum: ["weight", "volume", "pieces"],
           required: true,
-          enum: ["kg", "g", "l", "ml", "pcs"],
         },
-        toUnit: {
-          type: String,
-          required: true,
-          enum: ["kg", "g", "l", "ml", "pcs"],
-        },
+
         factor: {
           type: Number,
           required: true,
-          min: 0,
+          validate: {
+            validator: (value) => Number.isFinite(value) && value > 0,
+            message: "Factor must be a positive finite number",
+          },
+        },
+
+        sourceQty: {
+          type: Number,
+          required: true,
+          min: [Number.EPSILON, "Source quantity must be positive"],
+        },
+
+        sourceUnit: {
+          type: String,
+          enum: ["kg", "g", "ml", "l", "pcs"],
+          required: true,
+        },
+
+        targetQty: {
+          type: Number,
+          required: true,
+          min: [Number.EPSILON, "Target quantity must be positive"],
+        },
+
+        targetUnit: {
+          type: String,
+          enum: ["kg", "g", "ml", "l", "pcs"],
+          required: true,
         },
       },
     ],
@@ -175,9 +198,26 @@ modelSchema.pre("save", function () {
 modelSchema.pre("findOneAndUpdate", function () {
   const update = this.getUpdate();
 
-  if (update.measurement) {
-    update.baseUnit = baseUnitMap[update.measurement];
+  if (!update) return;
+
+  const measurement = update.$set?.measurement ?? update.measurement;
+
+  if (!measurement) return;
+
+  const baseUnit = baseUnitMap[measurement];
+
+  if (!baseUnit) {
+    throw new Error("Invalid inventory measurement");
   }
+
+  // Supports both $set and direct updates
+  if (update.$set) {
+    update.$set.baseUnit = baseUnit;
+  } else {
+    update.baseUnit = baseUnit;
+  }
+
+  this.setUpdate(update);
 });
 
 const Entity = mongoose.model("Item", modelSchema);

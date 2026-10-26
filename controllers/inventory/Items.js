@@ -1,10 +1,47 @@
 const Item = require("../../models/inventory/Item");
 const InventoryService = require("../../services/inventory/InventoryItem.service");
 const StockBatch = require("../../models/inventory/StockBatch");
-const { convertFromBaseUnit } = require("../../utilities/unitConverter");
+const {
+  convertFromBaseUnit,
+  calculateConversionFactor,
+} = require("../../utilities/unitConverter");
+
+const prepareConversions = (measurement, conversions = []) => {
+  if (!Array.isArray(conversions)) {
+    throw new Error("Conversions must be an array");
+  }
+
+  const usedMeasurements = new Set();
+
+  return conversions.map((conversion) => {
+    if (usedMeasurements.has(conversion.toMeasurement)) {
+      throw new Error("Duplicate target measurement");
+    }
+
+    usedMeasurements.add(conversion.toMeasurement);
+
+    const factor = calculateConversionFactor({
+      measurement,
+      ...conversion,
+    });
+
+    return {
+      toMeasurement: conversion.toMeasurement,
+      sourceQty: conversion.sourceQty,
+      sourceUnit: conversion.sourceUnit,
+      targetQty: conversion.targetQty,
+      targetUnit: conversion.targetUnit,
+      factor,
+    };
+  });
+};
+
 exports.save = async (req, res) => {
   try {
-    const inventory = await Item.create(req.body);
+    const data = req.body;
+    const conversions = prepareConversions(data.measurement, data.conversions);
+
+    const inventory = await Item.create(data);
     await inventory.populate("suppliers.supplier");
     res.status(201).json({
       success: "Inventory item Created Successfully",
