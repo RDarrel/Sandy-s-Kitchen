@@ -22,6 +22,7 @@ import Header from "./header";
 import PaymentItem from "./payment";
 import Filter from "./filter";
 import { paginatePaymentGroups, paymentGroupLabel } from "./grouping";
+import MethodBreakdown from "../../pos/transactions/method-breakdown";
 
 const getCustomerName = (payment) => {
   const name = payment.booking?.customer?.fullName;
@@ -34,7 +35,7 @@ const getCustomerName = (payment) => {
 
 const Payment = () => {
   const { auth } = useSelector(({ auth }) => auth);
-  const { paymentReport: report, isLoading } = useSelector(
+  const { paymentReport: report, isLoading, message: reportError } = useSelector(
     ({ bookingReport }) => bookingReport,
   );
   const [search, setSearch] = useState("");
@@ -82,6 +83,13 @@ const Payment = () => {
     [filteredGroups],
   );
 
+  const collectedPayments = useMemo(
+    () => filteredPayments.filter(
+      (payment) => payment.transactionType !== "refund" && payment.status === "verified",
+    ),
+    [filteredPayments],
+  );
+
   const visibleGroups = useMemo(
     () => paginatePaymentGroups(filteredGroups, page, maxPage),
     [filteredGroups, page, maxPage],
@@ -114,8 +122,8 @@ const Payment = () => {
 
   return (
     <div className="bg-background p-4 md:p-6">
-      <div className="mx-auto w-full max-w-7xl space-y-5">
-        <Card className="border-border shadow-sm">
+      <div className="mx-auto grid w-full max-w-[1600px] items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <Card className="min-w-0 border-border shadow-sm">
           <Header
             setPage={setPage}
             date={date}
@@ -241,6 +249,13 @@ const Payment = () => {
             )}
           </CardContent>
         </Card>
+        <MethodBreakdown
+          transactions={collectedPayments}
+          isLoading={isLoading}
+          error={reportError}
+          date={date}
+          variant="booking"
+        />
         {selectedPayment && (
           <PaymentDetails
             isOpen={Boolean(selectedPayment)}

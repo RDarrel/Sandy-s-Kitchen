@@ -17,8 +17,17 @@ const TYPE_META = {
   bank_transfer: { label: "Bank transfer", icon: Building2 },
 };
 
-const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
+const MethodBreakdown = ({
+  transactions,
+  isLoading,
+  error,
+  date,
+  totalLabel = "Total Sales",
+  variant = "pos",
+}) => {
   const dispatch = useDispatch();
+  const isBooking = variant === "booking";
+  const countLabel = isBooking ? "payment" : "transaction";
 
   const {
     collections = [],
@@ -48,7 +57,7 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
       <CardHeader className="shrink-0 gap-1 px-4 py-4">
         <CardTitle className="flex items-center gap-2 text-base leading-tight">
           <Wallet className="size-4 shrink-0 text-primary" aria-hidden="true" />
-          Payment Summary
+          {isBooking ? "Payment Method Breakdown" : "Payment Summary"}
         </CardTitle>
 
         <p className="text-xs text-muted-foreground">
@@ -65,6 +74,12 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
         {loading ? (
           <div role="status">
             <span className="sr-only">Loading payment method breakdown...</span>
+            {isBooking ? (
+              <div aria-hidden="true" className="mb-2 flex justify-between gap-3 rounded-md bg-muted/40 px-3 py-3">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ) : (
             <div
               aria-hidden="true"
               className="mb-2 rounded-md bg-muted/40 px-3 py-3"
@@ -75,6 +90,7 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
                 <Skeleton className="mb-0.5 h-4 w-24" />
               </div>
             </div>
+            )}
             <div aria-hidden="true" className="divide-y divide-border/60">
               {Array.from(
                 { length: methodsByUsage.length || 3 },
@@ -106,8 +122,18 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
         ) : (
           <>
             {/* Total Collected */}
+            {isBooking ? (
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted/35 px-3 py-3 text-xs">
+                <p className="text-muted-foreground">
+                  {count} verified payment{count === 1 ? "" : "s"}
+                </p>
+                <p className="font-medium tabular-nums">
+                  Collected {Formatter.amount(total)}
+                </p>
+              </div>
+            ) : (
             <div className="mb-2 rounded-md bg-muted/35 px-3 py-3">
-              <p className="text-sm text-muted-foreground">Total Sales</p>
+              <p className="text-sm text-muted-foreground">{totalLabel}</p>
 
               <div className="mt-1 flex items-end justify-between gap-2">
                 <p className="min-w-0 break-words text-2xl font-semibold tracking-tight text-primary tabular-nums">
@@ -119,6 +145,7 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
                 </p>
               </div>
             </div>
+            )}
 
             {/* Payment Method Warning */}
             {message && (
@@ -180,7 +207,7 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
                             {/* Transaction Count and Percentage */}
                             <div className="mt-0.5 flex justify-between gap-2 text-xs text-muted-foreground tabular-nums">
                               <span>
-                                {method.count} transaction
+                                {method.count} {countLabel}
                                 {method.count === 1 ? "" : "s"}
                               </span>
 
@@ -190,11 +217,11 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
                             {/* Payment Method Usage */}
                             <div
                               role="progressbar"
-                              aria-label={`${method.name}: share of total transactions`}
+                              aria-label={`${method.name}: share of total ${countLabel}s`}
                               aria-valuemin={0}
                               aria-valuemax={100}
                               aria-valuenow={Number(usageShare.toFixed(1))}
-                              aria-valuetext={`${method.count} of ${count} transactions (${usageShare.toFixed(1)}%)`}
+                              aria-valuetext={`${method.count} of ${count} ${countLabel}${count === 1 ? "" : "s"} (${usageShare.toFixed(1)}%)`}
                               className="mt-1.5 h-1 overflow-hidden rounded-full bg-primary/10"
                             >
                               <div
