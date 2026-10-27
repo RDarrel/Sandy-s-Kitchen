@@ -5,6 +5,7 @@ import {
   FieldDescription,
   FieldGroup,
   FieldLabel,
+  FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useDispatch, useSelector } from "react-redux";
@@ -80,9 +81,9 @@ export default function LoginForm({ className }) {
             Login {isLoading && <Loader className="animate-spin" />}
           </Button>
         </Field>
-        {/* <FieldSeparator>Or continue with</FieldSeparator> */}
+        <FieldSeparator>Or continue with</FieldSeparator>
         <Field>
-          {/* <Button variant="outline" type="button">
+          <Button variant="outline" type="button">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
               <path
                 fill="#FFC107"
@@ -102,7 +103,7 @@ export default function LoginForm({ className }) {
               />
             </svg>
             Continue with Google
-          </Button> */}
+          </Button>
           <FieldDescription className="text-center">
             Don&apos;t have an account?{" "}
             <Link

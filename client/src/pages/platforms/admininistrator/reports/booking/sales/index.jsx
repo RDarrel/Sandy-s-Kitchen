@@ -2,7 +2,9 @@ import { GET_SALES_REPORT } from "@/services/redux/slices/report/booking";
 import { endOfMonth, isValid, startOfMonth, format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Eye, Loader2, Search } from "lucide-react";
+import { Download, Eye, Loader2, Search } from "lucide-react";
+import { toast } from "sonner";
+import bookingSalesToExcel from "@/services/utilities/export/excel/bookingSalesToExcel";
 import {
   Card,
   CardContent,
@@ -88,6 +90,7 @@ const getScheduleLabel = (booking) => {
 
 const BookingSalesReport = () => {
   const dispatch = useDispatch();
+  const { auth } = useSelector(({ auth }) => auth);
 
   const { salesReport, isLoading } = useSelector(
     ({ bookingReport }) => bookingReport,
@@ -109,6 +112,7 @@ const BookingSalesReport = () => {
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(10);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const startDate = isValid(date?.from) ? format(date.from, "yyyy-MM-dd") : "";
   const endDate = isValid(date?.to) ? format(date.to, "yyyy-MM-dd") : "";
@@ -150,6 +154,32 @@ const BookingSalesReport = () => {
   const handleStatus = (value) => {
     setStatus(value);
     setPage(1);
+  };
+
+  const handleExport = async () => {
+    if (isLoading || isExporting || !filteredBookings.length) return;
+
+    setIsExporting(true);
+    try {
+      await bookingSalesToExcel({
+        array: filteredBookings,
+        options: {
+          date,
+          search,
+          status,
+          createdBy: auth?.fullName
+            ? typeof auth.fullName === "string"
+              ? auth.fullName
+              : fullName(auth.fullName)
+            : "Administrator",
+        },
+      });
+    } catch (error) {
+      console.error("Failed to export booking sales:", error);
+      toast.error("Unable to export booking sales. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -225,6 +255,23 @@ const BookingSalesReport = () => {
                   <SelectItem value="completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Button
+                variant="outline"
+                onClick={handleExport}
+                disabled={
+                  isLoading || isExporting || !filteredBookings.length ||
+                  !startDate || !endDate || startDate > endDate
+                }
+                aria-busy={isExporting}
+              >
+                {isExporting ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Download className="size-4" aria-hidden="true" />
+                )}
+                {isExporting ? "Exporting…" : "Export to Excel"}
+              </Button>
             </div>
 
             <div className="overflow-hidden rounded-lg border">
