@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Banknote, Building2, CreditCard, Smartphone } from "lucide-react";
+import { Banknote, Building2, CreditCard, Smartphone, Wallet } from "lucide-react";
 import { format, isValid } from "date-fns";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,7 +46,8 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
   return (
     <Card className="min-w-0 gap-0 overflow-hidden border-border py-0 shadow-sm xl:sticky xl:top-6 xl:max-h-[calc(100dvh-3rem)] xl:self-start">
       <CardHeader className="shrink-0 gap-1 px-4 py-4">
-        <CardTitle className="text-base leading-tight">
+        <CardTitle className="flex items-center gap-2 text-base leading-tight">
+          <Wallet className="size-4 shrink-0 text-primary" aria-hidden="true" />
           Payment Summary
         </CardTitle>
 

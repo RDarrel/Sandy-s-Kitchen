@@ -35,6 +35,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ViewReceiptModal from "@/components/shared/view-receipt";
 import MethodBreakdown from "./method-breakdown";
+import TableLoading from "@/components/shared/loading/table";
 
 const getCashierName = (transaction) => {
   const name = transaction?.created?.by?.fullName;
@@ -243,88 +244,92 @@ const Transactions = () => {
             </div>
 
             <div className="overflow-hidden rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40">
-                    <TableHead className="min-w-[210px]">
-                      Transaction / date
-                    </TableHead>
-                    <TableHead className="min-w-[150px]">Cashier</TableHead>
-                    <TableHead className="text-right">Items</TableHead>
-                    <TableHead className="whitespace-nowrap text-right">
-                      Amount
-                    </TableHead>
-                    <TableHead className="w-16 text-right">Receipt</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading || filteredTransactions.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="h-32 text-center text-muted-foreground"
-                      >
-                        <div
-                          role="status"
-                          className="flex items-center justify-center gap-2"
-                        >
-                          {isLoading && (
-                            <Loader2 className="size-4 animate-spin" />
-                          )}
-                          {isLoading
-                            ? "Loading transactions…"
-                            : transactions.length === 0
-                              ? "No transactions were found for the selected period."
-                              : "No transactions match your search or cashier filter."}
-                        </div>
-                      </TableCell>
+              {isLoading ? (
+                <TableLoading />
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40">
+                      <TableHead className="min-w-[210px]">
+                        Transaction / date
+                      </TableHead>
+                      <TableHead className="min-w-[150px]">Cashier</TableHead>
+                      <TableHead className="text-right">Items</TableHead>
+                      <TableHead className="whitespace-nowrap text-right">
+                        Amount
+                      </TableHead>
+                      <TableHead className="w-16 text-right">Receipt</TableHead>
                     </TableRow>
-                  ) : (
-                    handlePagination(filteredTransactions, page, maxPage).map(
-                      (transaction) => {
-                        const amount = Number(transaction.amount ?? 0);
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading || filteredTransactions.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={5}
+                          className="h-32 text-center text-muted-foreground"
+                        >
+                          <div
+                            role="status"
+                            className="flex items-center justify-center gap-2"
+                          >
+                            {isLoading && (
+                              <Loader2 className="size-4 animate-spin" />
+                            )}
+                            {isLoading
+                              ? "Loading transactions…"
+                              : transactions.length === 0
+                                ? "No transactions were found for the selected period."
+                                : "No transactions match your search or cashier filter."}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      handlePagination(filteredTransactions, page, maxPage).map(
+                        (transaction) => {
+                          const amount = Number(transaction.amount ?? 0);
 
-                        return (
-                          <TableRow key={transaction._id}>
-                            <TableCell className="py-3 text-xs">
-                              <div className="space-y-1">
-                                <p className="font-medium">
-                                  {transaction._id.slice(-8).toUpperCase()}
-                                </p>
-                                <p className="text-muted-foreground">
-                                  {formatTransactionDate(transaction)}
-                                </p>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-sm">
-                              {getCashierName(transaction)}
-                            </TableCell>
-                            <TableCell className="text-right tabular-nums">
-                              {transaction.items?.length ?? 0}
-                            </TableCell>
-                            <TableCell className="text-right text-sm font-semibold tabular-nums">
-                              {Formatter.amount(amount)}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-8"
-                                title="View receipt"
-                                aria-label="View receipt"
-                                onClick={() => setSelected(transaction)}
-                              >
-                                <Eye className="size-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      },
-                    )
-                  )}
-                </TableBody>
-              </Table>
+                          return (
+                            <TableRow key={transaction._id}>
+                              <TableCell className="py-3 text-xs">
+                                <div className="space-y-1">
+                                  <p className="font-medium">
+                                    {transaction._id.slice(-8).toUpperCase()}
+                                  </p>
+                                  <p className="text-muted-foreground">
+                                    {formatTransactionDate(transaction)}
+                                  </p>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-sm">
+                                {getCashierName(transaction)}
+                              </TableCell>
+                              <TableCell className="text-right tabular-nums">
+                                {transaction.items?.length ?? 0}
+                              </TableCell>
+                              <TableCell className="text-right text-sm font-semibold tabular-nums">
+                                {Formatter.amount(amount)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-8"
+                                  title="View receipt"
+                                  aria-label="View receipt"
+                                  onClick={() => setSelected(transaction)}
+                                >
+                                  <Eye className="size-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        },
+                      )
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </div>
 
             {!isLoading && (
