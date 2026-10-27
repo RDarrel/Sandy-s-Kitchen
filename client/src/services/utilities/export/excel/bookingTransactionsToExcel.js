@@ -203,10 +203,7 @@ const bookingTransactionsToExcel = async ({
 
   array.forEach((group) => {
     if (!group.items?.length) return;
-    const total = group.items.reduce((sum, payment) => {
-      const amount = Number(payment.amount ?? 0);
-      return sum + (payment.transactionType === "refund" && payment.status === "completed" ? -amount : amount);
-    }, 0);
+    const total = Number(group.totalAmount ?? 0);
     [
       ["A", "H", group.label || "Unknown date"],
       ["I", "L", total],

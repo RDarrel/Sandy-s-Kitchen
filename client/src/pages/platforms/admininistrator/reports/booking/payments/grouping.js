@@ -19,32 +19,14 @@ export const paymentGroupLabel = (value, frequency, weekNumber) => {
   return format(date, "MMMM d, yyyy");
 };
 
-export const groupPaymentRows = (rows) =>
-  rows.reduce((groups, payment) => {
-    const last = groups[groups.length - 1];
-    if (last && last.date === payment.periodDate) {
-      last.items.push(payment);
-    } else {
-      groups.push({
-        date: payment.periodDate,
-        weekNumber: payment.weekNumber,
-        items: [payment],
-      });
-    }
-    return groups;
-  }, []);
+export const paginatePaymentGroups = (groups, page, pageSize) => {
+  const start = (page - 1) * pageSize;
+  const end = start + Number(pageSize);
+  let offset = 0;
+  return groups.map((group) => {
+    const items = group.items.slice(Math.max(0, start - offset), Math.max(0, end - offset));
+    offset += group.items.length;
+    return { ...group, items };
+  }).filter((group) => group.items.length);
+};
 
-export const paymentGroupTotals = (rows) =>
-  rows.reduce((totals, payment) => {
-    // Match the signed amounts displayed in the transaction rows.
-    const amount = Number(payment.amount ?? 0);
-    const signedAmount =
-      payment.transactionType === "refund" && payment.status === "completed"
-        ? -amount
-        : amount;
-    totals.set(
-      payment.periodDate,
-      (totals.get(payment.periodDate) || 0) + signedAmount,
-    );
-    return totals;
-  }, new Map());

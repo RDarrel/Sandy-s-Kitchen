@@ -14,18 +14,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Formatter, fullName, handlePagination } from "@/services/utilities";
+import { Formatter, fullName } from "@/services/utilities";
 import PaymentDetails from "./paymentDetails";
 import CustomPagination from "@/components/shared/pagination";
 import Summary from "./summary";
 import Header from "./header";
 import PaymentItem from "./payment";
 import Filter from "./filter";
-import {
-  groupPaymentRows,
-  paymentGroupLabel,
-  paymentGroupTotals,
-} from "./grouping";
+import { paginatePaymentGroups, paymentGroupLabel } from "./grouping";
 
 const getCustomerName = (payment) => {
   const name = payment.booking?.customer?.fullName;
@@ -56,44 +52,39 @@ const Payment = () => {
   const validPeriod =
     isValid(date?.from) && isValid(date?.to) && date.from <= date.to;
 
-  const paymentRows = useMemo(() => {
-    const groups = report?.paymentBreakdown || [];
-    return groups.flatMap((group, index) =>
-      (group.items || []).map((payment) => ({
-        ...payment,
-        periodDate: group.date,
-        weekNumber: groups.length - index,
-      })),
-    );
-  }, [report?.paymentBreakdown]);
-
-  const filteredPayments = useMemo(() => {
+  const filteredGroups = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return paymentRows.filter((payment) => {
-      const matchesSearch = [
-        payment.booking?.reference,
-        getCustomerName(payment),
-      ].some((value) =>
-        String(value ?? "")
-          .toLowerCase()
-          .includes(query),
-      );
-      return (
-        matchesSearch &&
-        (transactionType === "all" ||
-          (payment.transactionType || "payment") === transactionType) &&
-        (statusFilter === "all" || payment.status === statusFilter)
-      );
-    });
-  }, [paymentRows, search, statusFilter, transactionType]);
+    const groups = report?.payments || [];
+    return groups.map((group, index) => ({
+      ...group,
+      label: paymentGroupLabel(group.date, frequency, groups.length - index),
+      items: (group.items || []).filter((payment) => {
+        const matchesSearch = [
+          payment.booking?.reference,
+          getCustomerName(payment),
+        ].some((value) =>
+          String(value ?? "")
+            .toLowerCase()
+            .includes(query),
+        );
+        return (
+          matchesSearch &&
+          (transactionType === "all" ||
+            (payment.transactionType || "payment") === transactionType) &&
+          (statusFilter === "all" || payment.status === statusFilter)
+        );
+      }),
+    })).filter((group) => group.items.length);
+  }, [report?.payments, frequency, search, statusFilter, transactionType]);
+
+  const filteredPayments = useMemo(
+    () => filteredGroups.flatMap((group) => group.items),
+    [filteredGroups],
+  );
 
   const visibleGroups = useMemo(
-    () => groupPaymentRows(handlePagination(filteredPayments, page, maxPage)),
-    [filteredPayments, page, maxPage],
-  );
-  const groupTotals = useMemo(
-    () => paymentGroupTotals(filteredPayments),
-    [filteredPayments],
+    () => paginatePaymentGroups(filteredGroups, page, maxPage),
+    [filteredGroups, page, maxPage],
   );
 
   const handleExport = async () => {
@@ -102,10 +93,7 @@ const Payment = () => {
     setIsExporting(true);
     try {
       await bookingTransactionsToExcel({
-        array: groupPaymentRows(filteredPayments).map((group) => ({
-          ...group,
-          label: paymentGroupLabel(group.date, frequency, group.weekNumber),
-        })),
+        array: filteredGroups,
         options: {
           date,
           frequency,
@@ -185,7 +173,7 @@ const Payment = () => {
                   {isLoading || filteredPayments.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={7}
+                        colSpan={6}
                         className="h-32 text-center text-muted-foreground"
                       >
                         <div
@@ -197,7 +185,7 @@ const Payment = () => {
                           )}
                           {isLoading
                             ? "Loading payments…"
-                            : paymentRows.length === 0
+                            : !(report?.payments || []).some((group) => group.items?.length)
                               ? "No payments recorded yet."
                               : "No transactions match your filters."}
                         </div>
@@ -208,20 +196,16 @@ const Payment = () => {
                       <Fragment key={group.date || "unknown"}>
                         <TableRow className="bg-muted/40 hover:bg-muted/40">
                           <TableCell
-                            colSpan={7}
+                            colSpan={6}
                             className="py-3 text-sm font-semibold text-foreground"
                           >
                             <div className="flex items-center justify-between gap-4">
                               <span>
-                                {paymentGroupLabel(
-                                  group.date,
-                                  frequency,
-                                  group.weekNumber,
-                                )}
+                                {group.label}
                               </span>
                               <span className="shrink-0 whitespace-nowrap tabular-nums">
                                 {Formatter.amount(
-                                  groupTotals.get(group.date) ?? 0,
+                                  group.totalAmount ?? 0,
                                 )}
                               </span>
                             </div>

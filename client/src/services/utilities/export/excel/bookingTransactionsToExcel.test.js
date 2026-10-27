@@ -25,8 +25,8 @@ it.each(["daily", "weekly", "monthly", "yearly"])("exports %s periods with signe
   };
   await bookingTransactionsToExcel({
     array: [
-      { label: "Period One", items: [payment, { ...payment, transactionType: "refund", status: "completed", amount: 200 }] },
-      { label: "Period Two", items: [{ ...payment, status: "pending", amount: 300 }] },
+      { label: "Period One", totalAmount: 1000, items: [payment, { ...payment, transactionType: "refund", status: "completed", amount: 200 }] },
+      { label: "Period Two", totalAmount: 0, items: [{ ...payment, status: "pending", amount: 300 }] },
     ],
     options: { frequency, createdBy: "Administrator", date: { from: new Date(2026, 9, 1), to: new Date(2026, 9, 31) } },
   });
@@ -38,7 +38,7 @@ it.each(["daily", "weekly", "monthly", "yearly"])("exports %s periods with signe
   expect(sheet.getCell("A5").value).toBe(title);
   expect(filename).toContain(title);
   expect(sheet.getCell("A8").value).toBe("Period One");
-  expect(sheet.getCell("I8").value).toBe(800);
+  expect(sheet.getCell("I8").value).toBe(1000);
   expect(sheet.getCell("I8").alignment.horizontal).toBe("right");
   expect(sheet.getCell("A8").fill.fgColor.argb).toBe("FFC62828");
   expect(sheet.getCell("A9").value).toBe("Booking / Customer");
@@ -51,7 +51,7 @@ it.each(["daily", "weekly", "monthly", "yearly"])("exports %s periods with signe
   expect(sheet.getCell("K11").numFmt).toBe('"- ₱"#,##0.00;"- ₱"#,##0.00;"- ₱"0.00');
   expect(sheet.getCell("K11").alignment.horizontal).toBe("left");
   expect(sheet.getCell("A12").value).toBe("Period Two");
-  expect(sheet.getCell("I12").value).toBe(300);
+  expect(sheet.getCell("I12").value).toBe(0);
   expect(sheet.getCell("A13").value).toBe("Booking / Customer");
   expect(sheet.getCell("K14").value).toBe(300);
   expect(sheet.getCell("K14").numFmt).toBe('"₱"#,##0.00');
