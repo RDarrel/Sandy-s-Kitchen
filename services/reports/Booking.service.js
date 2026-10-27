@@ -377,8 +377,16 @@ const getPaymentReport = async ({
           .startOf(unit)
           .toUTC()
           .toISO();
-    if (!groups.has(period)) groups.set(period, { date: period, items: [] });
-    groups.get(period).items.push(payment);
+    if (!groups.has(period))
+      groups.set(period, { date: period, items: [], totalAmount: 0 });
+    const group = groups.get(period);
+
+    group.items.push(payment);
+
+    // Only count verified payments
+    if (payment.transactionType !== "refund" && payment.status === "verified") {
+      group.totalAmount += payment.amount ?? 0;
+    }
   }
   const paymentBreakdown = [...groups.values()].sort(
     (a, b) =>
@@ -398,10 +406,7 @@ const getPaymentReport = async ({
       ...(result?.summary?.[0] || {}),
       ...refundSummary,
     },
-    refundSummary,
-    payments,
-    paymentBreakdown,
-    groups,
+    payments: paymentBreakdown,
   };
 };
 
