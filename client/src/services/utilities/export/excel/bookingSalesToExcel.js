@@ -12,11 +12,6 @@ const border = {
   right: { style: "thin" },
   bottom: { style: "thin" },
 };
-const orange = {
-  type: "pattern",
-  pattern: "solid",
-  fgColor: { argb: "FFFF7F33" },
-};
 const currencyFormat = '"₱"#,##0.00';
 
 const dateLabel = (value) =>
@@ -30,7 +25,7 @@ const addBanner = async (workbook, worksheet) => {
     const imageId = workbook.addImage({ buffer, extension: "png" });
     worksheet.addImage(imageId, {
       tl: { col: 0, row: 0.05 },
-      br: { col: 17, row: 4 },
+      br: { col: 14, row: 4 },
     });
   } catch (error) {
     console.error("Failed to add booking sales report banner:", error);
@@ -46,19 +41,36 @@ const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
   }
 
   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet("Booking Sales");
+  const worksheet = workbook.addWorksheet("Booking Sales", {
+    pageSetup: {
+      paperSize: 9, // A4
+      orientation: "portrait",
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0, // Allow more pages vertically for longer reports.
+      margins: {
+        left: 0.25,
+        right: 0.25,
+        top: 0.4,
+        bottom: 0.4,
+        header: 0.2,
+        footer: 0.2,
+      },
+      printTitlesRow: "8:8",
+    },
+  });
   worksheet.views = [{ showGridLines: false }];
   await addBanner(workbook, worksheet);
 
-  // Preserve the sales.js header style across the wider table.
-  worksheet.mergeCells("A5:Q5");
+  // Align the report header with the table's last column (N).
+  worksheet.mergeCells("A5:N5");
   const title = worksheet.getCell("A5");
   title.value = "BOOKING SALES REPORT";
   title.font = { bold: true, size: 25 };
   title.border = border;
   title.alignment = { horizontal: "center", vertical: "middle" };
 
-  worksheet.mergeCells("A6:Q6");
+  worksheet.mergeCells("A6:N6");
   const subtitle = worksheet.getCell("A6");
   subtitle.value = `${formattedDate(date.from)} to ${formattedDate(date.to)}`;
   subtitle.font = { size: 14 };
@@ -74,9 +86,9 @@ const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
     [0, 0, 0],
   );
   [
-    ["A7:F7", "Sales", totals[0]],
-    ["G7:L7", "Paid", totals[1]],
-    ["M7:Q7", "Balance", totals[2]],
+    ["A7:E7", "Sales", totals[0]],
+    ["F7:J7", "Paid", totals[1]],
+    ["K7:N7", "Balance", totals[2]],
   ].forEach(([range, label, value]) => {
     worksheet.mergeCells(range);
     const cell = worksheet.getCell(range.split(":")[0]);
@@ -94,43 +106,61 @@ const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
     { start: "A", end: "C", label: "Booking / Customer" },
     { start: "D", end: "F", label: "Service / Schedule" },
     { start: "G", end: "H", label: "Status" },
-    { start: "I", end: "K", label: "Booking Value", numeric: true },
-    { start: "L", end: "N", label: "Paid", numeric: true },
-    { start: "O", end: "Q", label: "Balance", numeric: true },
+    { start: "I", end: "J", label: "Booking Value", numeric: true },
+    { start: "K", end: "L", label: "Paid", numeric: true },
+    { start: "M", end: "N", label: "Balance", numeric: true },
   ];
   let rowNumber = 8;
 
-  columns.forEach(({ start, end, label, numeric }) => {
+  columns.forEach(({ start, end, label }) => {
     worksheet.mergeCells(`${start}${rowNumber}:${end}${rowNumber}`);
     const cell = worksheet.getCell(`${start}${rowNumber}`);
     cell.value = label;
-    cell.font = { size: 13, bold: true, color: { argb: "FFFFFFFF" } };
-    cell.fill = orange;
+    // Match the app's primary and primary-foreground brand colors.
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFC62828" },
+    };
+
+    cell.font = { size: 13, bold: true, color: { argb: "FFFFFDF8" } };
     cell.alignment = {
-      horizontal: numeric ? "right" : "left", vertical: "middle", wrapText: true,
+      horizontal: "left",
+      vertical: "middle",
+      wrapText: true,
     };
     cell.border = border;
   });
-  worksheet.getRow(rowNumber).height = 36;
+  worksheet.getRow(rowNumber).height = 24;
   rowNumber++;
 
   array.forEach((booking) => {
     const catering = booking?.catering?.schedule?.startAt;
     const venue = booking?.venue?.schedule?.startAt;
-    const service = catering && venue ? "Catering + Venue"
-      : catering ? "Catering" : venue ? "Venue"
-      : (Array.isArray(booking?.type) ? booking.type.join(" + ") : booking?.type) || "—";
-    const schedule = catering && venue
-      ? "Multiple schedules"
-      : dateLabel(catering || venue);
+    const service =
+      catering && venue
+        ? "Catering + Venue"
+        : catering
+          ? "Catering"
+          : venue
+            ? "Venue"
+            : (Array.isArray(booking?.type)
+                ? booking.type.join(" + ")
+                : booking?.type) || "—";
+    const schedule =
+      catering && venue ? "Multiple schedules" : dateLabel(catering || venue);
     const customerName = booking?.customer?.fullName;
     const customer = customerName
-      ? typeof customerName === "string" ? customerName : fullName(customerName)
+      ? typeof customerName === "string"
+        ? customerName
+        : fullName(customerName)
       : "Unknown customer";
     const values = [
       `${booking?.reference || "—"}\n${customer}`,
       `${service}\n${schedule}`,
-      String(booking?.status || "pending").replace(/^./, (letter) => letter.toUpperCase()),
+      String(booking?.status || "pending").replace(/^./, (letter) =>
+        letter.toUpperCase(),
+      ),
       Number(booking?.pricing?.total ?? booking?.totalAmount ?? 0),
       Number(booking?.totalPaid ?? 0),
       Number(booking?.outstandingBalance ?? 0),
@@ -140,36 +170,57 @@ const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
       const { start, end, numeric } = columns[columnIndex];
       worksheet.mergeCells(`${start}${rowNumber}:${end}${rowNumber}`);
       const cell = worksheet.getCell(`${start}${rowNumber}`);
-      cell.value = value;
+      if (columnIndex < 2) {
+        const [heading, ...details] = String(value).split("\n");
+        cell.value = {
+          richText: [
+            { text: heading, font: { bold: true, size: 13 } },
+            {
+              text: `\n${details.join("\n")}`,
+              font: { bold: false, size: 13 },
+            },
+          ],
+        };
+      } else {
+        cell.value = value;
+      }
       cell.font = { size: 13 };
       cell.alignment = {
-        horizontal: numeric ? "right" : "left", vertical: "middle", wrapText: true,
+        horizontal: "left",
+        vertical: "middle",
+        wrapText: true,
       };
       cell.border = border;
       if (numeric) cell.numFmt = currencyFormat;
       const charsPerLine = (end.charCodeAt(0) - start.charCodeAt(0) + 1) * 8;
-      const lines = String(value).split("\n").reduce(
-        (count, line) => count + Math.max(1, Math.ceil(line.length / charsPerLine)), 0,
-      );
+      const lines = String(value)
+        .split("\n")
+        .reduce(
+          (count, line) =>
+            count + Math.max(1, Math.ceil(line.length / charsPerLine)),
+          0,
+        );
       maxLines = Math.max(maxLines, lines);
     });
     worksheet.getRow(rowNumber).height = 30 + (maxLines - 1) * 13;
     rowNumber++;
   });
 
-  // Keep the sales.js footer style aligned with the wider table.
+  // Keep the footer aligned with the table.
   const footerRow = rowNumber + 2;
   [
     { label: "Generated by: ", value: createdBy || "" },
     {
       label: "Date Created: ",
       value: new Date().toLocaleString("en-US", {
-        month: "long", day: "numeric", year: "numeric",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
       }),
     },
   ].forEach(({ label, value }, index) => {
     const position = footerRow + index;
-    worksheet.mergeCells(`A${position}:Q${position}`);
+    worksheet.mergeCells(`A${position}:N${position}`);
     const cell = worksheet.getCell(`A${position}`);
     cell.value = {
       richText: [
@@ -180,10 +231,15 @@ const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
     cell.alignment = { vertical: "middle", horizontal: "left" };
   });
 
+  worksheet.pageSetup.printArea = `A1:N${footerRow + 1}`;
+
   const buffer = await workbook.xlsx.writeBuffer();
-  saveAs(new Blob([buffer], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  }), `BOOKING SALES REPORT - ${formattedDate(date.from)} to ${formattedDate(date.to)}.xlsx`);
+  saveAs(
+    new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    }),
+    `BOOKING SALES REPORT - ${formattedDate(date.from)} to ${formattedDate(date.to)}.xlsx`,
+  );
 };
 
 export default bookingSalesToExcel;
