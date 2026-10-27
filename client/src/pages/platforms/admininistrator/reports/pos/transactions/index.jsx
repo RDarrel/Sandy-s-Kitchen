@@ -28,7 +28,9 @@ import {
 import { GET_TRANSACTIONS_REPORT } from "@/services/redux/slices/report/pos";
 import { Formatter, fullName, handlePagination } from "@/services/utilities";
 import { endOfMonth, startOfMonth, isValid, format } from "date-fns";
-import { Eye, Loader2, Search } from "lucide-react";
+import { Download, Eye, Loader2, Search } from "lucide-react";
+import { toast } from "sonner";
+import posTransactionsToExcel from "@/services/utilities/export/excel/posTransactionsToExcel";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ViewReceiptModal from "@/components/shared/view-receipt";
@@ -49,6 +51,8 @@ const formatTransactionDate = (transaction) => {
 };
 
 const Transactions = () => {
+  const { auth } = useSelector(({ auth }) => auth);
+  const [isExporting, setIsExporting] = useState(false);
   const { transactionsReport, isLoading } = useSelector(
     ({ posReport }) => posReport,
   );
@@ -99,11 +103,32 @@ const Transactions = () => {
     });
   }, [transactions, search, cashier]);
 
+  const handleExport = async () => {
+    if (isLoading || isExporting || !filteredTransactions.length || !startDate || !endDate || startDate > endDate) return;
+    setIsExporting(true);
+    try {
+      await posTransactionsToExcel({
+        array: filteredTransactions,
+        options: {
+          date,
+          createdBy: auth?.fullName
+            ? typeof auth.fullName === "string" ? auth.fullName : fullName(auth.fullName)
+            : "Administrator",
+        },
+      });
+    } catch (error) {
+      console.error("Failed to export POS transactions:", error);
+      toast.error("Unable to export POS transactions. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="bg-background p-4 md:p-6">
       <div className="mx-auto w-full max-w-7xl space-y-5">
         <Card className="border-border shadow-sm">
-          <CardHeader className="gap-4 sm:flex sm:flex-row sm:items-center sm:justify-between">
+          <CardHeader className="gap-4 xl:flex xl:flex-row xl:items-center xl:justify-between">
             <div className="min-w-0 space-y-1.5">
               <CardTitle className="text-2xl text-foreground">
                 POS Transactions Report
@@ -114,8 +139,9 @@ const Transactions = () => {
               </CardDescription>
             </div>
 
-            <div
-              className="min-w-0 space-y-1.5 sm:ml-auto sm:shrink-0"
+            <div className="flex min-w-0 flex-col gap-3 sm:ml-auto sm:flex-row sm:items-end">
+              <div
+              className="min-w-0 space-y-1.5 sm:shrink-0"
               role="group"
               aria-labelledby="transactions-report-date-range-label"
             >
@@ -131,6 +157,21 @@ const Transactions = () => {
                 setDate={setDate}
                 highlightToday={false}
               />
+              </div>
+              <Button
+                variant="outline"
+                onClick={handleExport}
+                disabled={isLoading || isExporting || !filteredTransactions.length || !startDate || !endDate || startDate > endDate}
+                aria-busy={isExporting}
+                className="shrink-0"
+              >
+                {isExporting ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Download className="size-4" aria-hidden="true" />
+                )}
+                {isExporting ? "Exporting…" : "Export to Excel"}
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-6" aria-busy={isLoading}>
