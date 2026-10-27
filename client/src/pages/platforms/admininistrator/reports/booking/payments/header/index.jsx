@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react";
-import { endOfMonth, format, isValid, startOfMonth } from "date-fns";
+import { useEffect } from "react";
+import { format, isValid } from "date-fns";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import DatePicker from "@/components/shared/datePicker";
 import { useDispatch } from "react-redux";
 import { GET_PAYMENT_REPORT } from "@/services/redux/slices/report/booking";
 
-const Header = ({ setPage = () => {} }) => {
-  const [date, setDate] = useState(() => {
-    const today = new Date();
-    return { from: startOfMonth(today), to: endOfMonth(today) };
-  });
+const Header = ({ setPage, date, setDate }) => {
   const dispatch = useDispatch();
   const startDate = isValid(date?.from) ? format(date.from, "yyyy-MM-dd") : "";
   const endDate = isValid(date?.to) ? format(date.to, "yyyy-MM-dd") : "";
@@ -18,7 +14,7 @@ const Header = ({ setPage = () => {} }) => {
     if (!startDate || !endDate || startDate > endDate) return;
     setPage(1);
     dispatch(GET_PAYMENT_REPORT({ startDate, endDate }));
-  }, [dispatch, startDate, endDate]);
+  }, [dispatch, startDate, endDate, setPage]);
 
   return (
     <CardHeader className="gap-4 sm:flex sm:flex-row sm:items-center sm:justify-between">

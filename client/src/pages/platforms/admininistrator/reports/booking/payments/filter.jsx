@@ -16,6 +16,7 @@ const Filter = ({
   statusFilter,
   transactionType,
   setTransactionType,
+  children,
 }) => {
   const statusOptions = [
     { value: "pending", label: "Pending" },
@@ -82,6 +83,7 @@ const Filter = ({
             ))}
           </SelectContent>
         </Select>
+        {children}
       </div>
     </>
   );

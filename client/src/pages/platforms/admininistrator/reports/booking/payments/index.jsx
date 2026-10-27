@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import { Loader2 } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
+import { endOfMonth, isValid, startOfMonth } from "date-fns";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import bookingTransactionsToExcel from "@/services/utilities/export/excel/bookingTransactionsToExcel";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -24,6 +28,7 @@ const getCustomerName = (payment) => {
 };
 
 const Payment = () => {
+  const { auth } = useSelector(({ auth }) => auth);
   const { paymentReport: report, isLoading } = useSelector(
     ({ bookingReport }) => bookingReport,
   );
@@ -33,6 +38,12 @@ const Payment = () => {
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(10);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [date, setDate] = useState(() => {
+    const today = new Date();
+    return { from: startOfMonth(today), to: endOfMonth(today) };
+  });
+  const validPeriod = isValid(date?.from) && isValid(date?.to) && date.from <= date.to;
 
   const filteredPayments = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -54,11 +65,32 @@ const Payment = () => {
     });
   }, [report?.payments, search, statusFilter, transactionType]);
 
+  const handleExport = async () => {
+    if (isLoading || isExporting || !filteredPayments.length || !validPeriod) return;
+    setIsExporting(true);
+    try {
+      await bookingTransactionsToExcel({
+        array: filteredPayments,
+        options: {
+          date,
+          createdBy: auth?.fullName
+            ? typeof auth.fullName === "string" ? auth.fullName : fullName(auth.fullName)
+            : "Administrator",
+        },
+      });
+    } catch (error) {
+      console.error("Failed to export booking transactions:", error);
+      toast.error("Unable to export booking transactions. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="bg-background p-4 md:p-6">
       <div className="mx-auto w-full max-w-7xl space-y-5">
         <Card className="border-border shadow-sm">
-          <Header setPage={setPage} />
+          <Header setPage={setPage} date={date} setDate={setDate} />
 
           <CardContent className="space-y-6" aria-busy={isLoading}>
             <Summary />
@@ -70,7 +102,21 @@ const Payment = () => {
               setSearch={setSearch}
               setStatusFilter={setStatusFilter}
               setPage={setPage}
-            />
+            >
+              <Button
+                variant="outline"
+                onClick={handleExport}
+                disabled={isLoading || isExporting || !filteredPayments.length || !validPeriod}
+                aria-busy={isExporting}
+              >
+                {isExporting ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Download className="size-4" aria-hidden="true" />
+                )}
+                {isExporting ? "Exporting…" : "Export to Excel"}
+              </Button>
+            </Filter>
             <div className="overflow-hidden rounded-lg border">
               <Table>
                 <TableHeader className="bg-muted/40">
