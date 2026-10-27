@@ -15,15 +15,19 @@ const AVAILABLE_MAXPAGES = [5, 10, 15, 20, 25];
 
 const Rows = ({ maxPage, setMaxPage }) => {
   return (
-    <div className="flex  items-center ml-2">
-      <p className="font-semibold text-h5 mr-3">Rows Per Page</p>
+    <div className="flex shrink-0 items-center gap-2">
+      <p className="whitespace-nowrap text-xs font-medium text-muted-foreground">Rows Per Page</p>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            className="flex items-center justify-center h-8"
+            type="button"
+            aria-label={`Rows per page: ${maxPage}`}
+            size="sm"
+            className="h-8 min-w-14 gap-1.5 px-2"
             variant={"outline"}
           >
-            <p>{maxPage}</p> <ChevronDown color="gray" />
+            <span className="tabular-nums">{maxPage}</span>
+            <ChevronDown className="text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-[5rem]">
