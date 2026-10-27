@@ -60,7 +60,7 @@ const posSalesToExcel = async ({ array = [], options = {} } = {}) => {
     start,
     end,
     value,
-    { bold = false, numeric = false, fill = false, size = 13 } = {},
+    { bold = false, numeric = false, fill = false, size = 13, bordered = true } = {},
   ) => {
     if (start !== end) worksheet.mergeCells(`${start}${row}:${end}${row}`);
     const cell = worksheet.getCell(`${start}${row}`);
@@ -70,7 +70,7 @@ const posSalesToExcel = async ({ array = [], options = {} } = {}) => {
       bold,
       ...(fill ? { color: { argb: "FFFFFDF8" } } : {}),
     };
-    cell.border = border;
+    cell.border = bordered ? border : {};
     cell.alignment = {
       horizontal: "left",
       vertical: "middle",
@@ -170,11 +170,12 @@ const posSalesToExcel = async ({ array = [], options = {} } = {}) => {
       (sum, item) => sum + Number(item.amount ?? 0),
       0,
     );
-    cellAt(row, "A", "H", group.label, { bold: true, fill: true });
+    cellAt(row, "A", "H", group.label, { bold: true, fill: true, bordered: false });
     cellAt(row, "I", "L", total, {
       bold: true,
       fill: true,
       numeric: true,
+      bordered: false,
     }).alignment.horizontal = "right";
     worksheet.getRow(row).height = Math.max(
       22,

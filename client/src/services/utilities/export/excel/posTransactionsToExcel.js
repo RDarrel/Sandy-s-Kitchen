@@ -62,7 +62,7 @@ const posTransactionsToExcel = async ({ array = [], options = {} } = {}) => {
   // Align the report header with the table's last column (L).
   worksheet.mergeCells("A5:L5");
   const title = worksheet.getCell("A5");
-  title.value = "POS TRANSACTIONS REPORT";
+  title.value = "POS Transactions Report";
   title.font = { bold: true, size: 25 };
   title.border = border;
   title.alignment = { horizontal: "center", vertical: "middle" };
@@ -229,7 +229,7 @@ const posTransactionsToExcel = async ({ array = [], options = {} } = {}) => {
     new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     }),
-    `POS TRANSACTIONS REPORT - ${formattedDate(date.from)} to ${formattedDate(date.to)}.xlsx`,
+    `POS Transactions Report - ${formattedDate(date.from)} to ${formattedDate(date.to)}.xlsx`,
   );
 };
 

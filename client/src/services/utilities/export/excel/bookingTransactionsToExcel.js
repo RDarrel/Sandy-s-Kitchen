@@ -213,7 +213,7 @@ const bookingTransactionsToExcel = async ({
       cell.value = value;
       cell.font = { size: 13, bold: true, color: { argb: "FFFFFDF8" } };
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFC62828" } };
-      cell.border = border;
+      cell.border = {};
       cell.alignment = { horizontal: start === "I" ? "right" : "left", vertical: "middle", wrapText: true };
       if (start === "I") cell.numFmt = currencyFormat;
     });

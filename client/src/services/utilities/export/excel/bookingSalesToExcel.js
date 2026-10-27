@@ -65,7 +65,7 @@ const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
   // Align the report header with the table's last column (N).
   worksheet.mergeCells("A5:N5");
   const title = worksheet.getCell("A5");
-  title.value = "BOOKING SALES REPORT";
+  title.value = "Booking Sales Report";
   title.font = { bold: true, size: 25 };
   title.border = border;
   title.alignment = { horizontal: "center", vertical: "middle" };
@@ -238,7 +238,7 @@ const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
     new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     }),
-    `BOOKING SALES REPORT - ${formattedDate(date.from)} to ${formattedDate(date.to)}.xlsx`,
+    `Booking Sales Report - ${formattedDate(date.from)} to ${formattedDate(date.to)}.xlsx`,
   );
 };
 
