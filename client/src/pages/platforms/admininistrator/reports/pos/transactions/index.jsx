@@ -54,9 +54,11 @@ const formatTransactionDate = (transaction) => {
 const Transactions = () => {
   const { auth } = useSelector(({ auth }) => auth);
   const [isExporting, setIsExporting] = useState(false);
-  const { transactionsReport, isLoading, message: reportError } = useSelector(
-    ({ posReport }) => posReport,
-  );
+  const {
+    transactionsReport,
+    isLoading,
+    message: reportError,
+  } = useSelector(({ posReport }) => posReport);
   const {
     totalAmount = 0,
     totalCount = 0,
@@ -193,11 +195,11 @@ const Transactions = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4" aria-busy={isLoading}>
-            <SummaryLine
+            {/* <SummaryLine
               isLoading={isLoading}
               value={`${totalCount} transaction${totalCount === 1 ? "" : "s"}`}
               label={Formatter.amount(totalAmount)}
-            />
+            /> */}
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative min-w-0 flex-1">

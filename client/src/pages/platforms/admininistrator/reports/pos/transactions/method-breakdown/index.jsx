@@ -44,10 +44,10 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
   );
 
   return (
-    <Card className="min-w-0 gap-0 overflow-hidden border-border py-0 shadow-sm">
-      <CardHeader className="gap-1 px-4 py-4">
+    <Card className="min-w-0 gap-0 overflow-hidden border-border py-0 shadow-sm xl:sticky xl:top-6 xl:max-h-[calc(100dvh-3rem)] xl:self-start">
+      <CardHeader className="shrink-0 gap-1 px-4 py-4">
         <CardTitle className="text-base leading-tight">
-          Payment Method Breakdown
+          Payment Summary
         </CardTitle>
 
         <p className="text-xs text-muted-foreground">
@@ -57,16 +57,46 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
         </p>
       </CardHeader>
 
-      <CardContent className="px-4 pb-4" aria-busy={loading}>
+      <CardContent
+        className="min-h-0 px-4 pb-4 xl:overflow-y-auto"
+        aria-busy={loading}
+      >
         {loading ? (
-          <div role="status" className="space-y-2">
+          <div role="status">
             <span className="sr-only">Loading payment method breakdown...</span>
-
-            {Array.from({ length: 3 }, (_, index) => (
-              <Skeleton key={index} className="h-14 w-full rounded-md" />
-            ))}
-
-            <Skeleton className="h-12 w-full rounded-md" />
+            <div
+              aria-hidden="true"
+              className="mb-2 rounded-md bg-muted/40 px-3 py-3"
+            >
+              <Skeleton className="h-5 w-20" />
+              <div className="mt-1 flex items-end justify-between gap-2">
+                <Skeleton className="h-8 w-28" />
+                <Skeleton className="mb-0.5 h-4 w-24" />
+              </div>
+            </div>
+            <div aria-hidden="true" className="divide-y divide-border/60">
+              {Array.from(
+                { length: methodsByUsage.length || 3 },
+                (_, index) => (
+                  <div key={index} className="px-2 py-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <Skeleton className="size-10 shrink-0 rounded-md" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex justify-between gap-2">
+                          <Skeleton className="h-5 w-16" />
+                          <Skeleton className="h-5 w-16" />
+                        </div>
+                        <div className="mt-0.5 flex justify-between gap-2">
+                          <Skeleton className="h-4 w-20" />
+                          <Skeleton className="h-4 w-9" />
+                        </div>
+                        <Skeleton className="mt-1.5 h-1 w-full rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+                ),
+              )}
+            </div>
           </div>
         ) : error ? (
           <p role="status" className="text-xs text-muted-foreground">
@@ -75,13 +105,11 @@ const MethodBreakdown = ({ transactions, isLoading, error, date }) => {
         ) : (
           <>
             {/* Total Collected */}
-            <div className="mb-2 rounded-md bg-muted/40 px-3 py-3">
-              <p className="text-sm font-medium text-muted-foreground">
-                Total Collected
-              </p>
+            <div className="mb-2 rounded-md bg-muted/35 px-3 py-3">
+              <p className="text-sm text-muted-foreground">Total Sales</p>
 
               <div className="mt-1 flex items-end justify-between gap-2">
-                <p className="min-w-0 break-words text-2xl font-bold tracking-tight text-primary tabular-nums">
+                <p className="min-w-0 break-words text-2xl font-semibold tracking-tight text-primary tabular-nums">
                   {Formatter.amount(total)}
                 </p>
 
