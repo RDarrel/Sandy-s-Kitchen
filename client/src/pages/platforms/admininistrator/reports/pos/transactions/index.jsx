@@ -34,6 +34,7 @@ import posTransactionsToExcel from "@/services/utilities/export/excel/posTransac
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ViewReceiptModal from "@/components/shared/view-receipt";
+import MethodBreakdown from "./method-breakdown";
 
 const getCashierName = (transaction) => {
   const name = transaction?.created?.by?.fullName;
@@ -53,7 +54,7 @@ const formatTransactionDate = (transaction) => {
 const Transactions = () => {
   const { auth } = useSelector(({ auth }) => auth);
   const [isExporting, setIsExporting] = useState(false);
-  const { transactionsReport, isLoading } = useSelector(
+  const { transactionsReport, isLoading, message: reportError } = useSelector(
     ({ posReport }) => posReport,
   );
   const {
@@ -104,7 +105,15 @@ const Transactions = () => {
   }, [transactions, search, cashier]);
 
   const handleExport = async () => {
-    if (isLoading || isExporting || !filteredTransactions.length || !startDate || !endDate || startDate > endDate) return;
+    if (
+      isLoading ||
+      isExporting ||
+      !filteredTransactions.length ||
+      !startDate ||
+      !endDate ||
+      startDate > endDate
+    )
+      return;
     setIsExporting(true);
     try {
       await posTransactionsToExcel({
@@ -112,7 +121,9 @@ const Transactions = () => {
         options: {
           date,
           createdBy: auth?.fullName
-            ? typeof auth.fullName === "string" ? auth.fullName : fullName(auth.fullName)
+            ? typeof auth.fullName === "string"
+              ? auth.fullName
+              : fullName(auth.fullName)
             : "Administrator",
         },
       });
@@ -126,42 +137,49 @@ const Transactions = () => {
 
   return (
     <div className="bg-background p-4 md:p-6">
-      <div className="mx-auto w-full max-w-7xl space-y-5">
-        <Card className="border-border shadow-sm">
-          <CardHeader className="gap-4 xl:flex xl:flex-row xl:items-center xl:justify-between">
+      <div className="mx-auto grid w-full max-w-[1600px] items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <Card className="min-w-0 border-border shadow-sm">
+          <CardHeader className="gap-4 lg:flex lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0 space-y-1.5">
-              <CardTitle className="text-2xl text-foreground">
+              <CardTitle className="text-xl leading-tight text-foreground 2xl:text-2xl">
                 POS Transactions Report
               </CardTitle>
 
               <CardDescription>
-                Review POS transactions, cashier activity, and cash payments.
+                Review sales and payments by cashier.
               </CardDescription>
             </div>
 
-            <div className="flex min-w-0 flex-col gap-3 sm:ml-auto sm:flex-row sm:items-end">
+            <div className="flex min-w-0 flex-col gap-3 sm:ml-auto sm:flex-row sm:items-end lg:shrink-0">
               <div
-              className="min-w-0 space-y-1.5 sm:shrink-0"
-              role="group"
-              aria-labelledby="transactions-report-date-range-label"
-            >
-              <p
-                id="transactions-report-date-range-label"
-                className="text-xs font-medium text-muted-foreground"
+                className="min-w-0 space-y-1.5 sm:shrink-0"
+                role="group"
+                aria-labelledby="transactions-report-date-range-label"
               >
-                Report Period
-              </p>
-              <DatePicker
-                mode="range"
-                date={date}
-                setDate={setDate}
-                highlightToday={false}
-              />
+                <p
+                  id="transactions-report-date-range-label"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  Report period
+                </p>
+                <DatePicker
+                  mode="range"
+                  date={date}
+                  setDate={setDate}
+                  highlightToday={false}
+                />
               </div>
               <Button
                 variant="outline"
                 onClick={handleExport}
-                disabled={isLoading || isExporting || !filteredTransactions.length || !startDate || !endDate || startDate > endDate}
+                disabled={
+                  isLoading ||
+                  isExporting ||
+                  !filteredTransactions.length ||
+                  !startDate ||
+                  !endDate ||
+                  startDate > endDate
+                }
                 aria-busy={isExporting}
                 className="shrink-0"
               >
@@ -174,10 +192,10 @@ const Transactions = () => {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6" aria-busy={isLoading}>
+          <CardContent className="space-y-4" aria-busy={isLoading}>
             <SummaryLine
               isLoading={isLoading}
-              value={`${totalCount} Transaction${totalCount === 1 ? "" : "s"}`}
+              value={`${totalCount} transaction${totalCount === 1 ? "" : "s"}`}
               label={Formatter.amount(totalAmount)}
             />
 
@@ -193,8 +211,8 @@ const Transactions = () => {
                     setSearch(event.target.value);
                     setPage(1);
                   }}
-                  aria-label="Search transaction ID or cashier"
-                  placeholder="Transaction ID or cashier…"
+                  aria-label="Search by transaction ID or cashier"
+                  placeholder="Search by transaction ID or cashier…"
                   className="pl-9"
                 />
               </div>
@@ -209,10 +227,10 @@ const Transactions = () => {
                   aria-label="Filter by cashier"
                   className="w-full sm:w-[220px]"
                 >
-                  <SelectValue placeholder="All Cashiers" />
+                  <SelectValue placeholder="All cashiers" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Cashiers</SelectItem>
+                  <SelectItem value="all">All cashiers</SelectItem>
                   {cashiers.map((person) => (
                     <SelectItem key={person._id} value={String(person._id)}>
                       {getCashierName({ created: { by: person } })}
@@ -227,14 +245,14 @@ const Transactions = () => {
                 <TableHeader>
                   <TableRow className="bg-muted/40">
                     <TableHead className="min-w-[210px]">
-                      Transaction / Date
+                      Transaction / date
                     </TableHead>
                     <TableHead className="min-w-[150px]">Cashier</TableHead>
                     <TableHead className="text-right">Items</TableHead>
                     <TableHead className="whitespace-nowrap text-right">
-                      Total Amount
+                      Amount
                     </TableHead>
-                    <TableHead className="w-16 text-right">Action</TableHead>
+                    <TableHead className="w-16 text-right">Receipt</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -254,7 +272,7 @@ const Transactions = () => {
                           {isLoading
                             ? "Loading transactions…"
                             : transactions.length === 0
-                              ? "No transactions found for this period."
+                              ? "No transactions were found for the selected period."
                               : "No transactions match your search or cashier filter."}
                         </div>
                       </TableCell>
@@ -291,8 +309,8 @@ const Transactions = () => {
                                 variant="ghost"
                                 size="icon"
                                 className="size-8"
-                                title="View Transaction Details"
-                                aria-label="View Transaction Details"
+                                title="View receipt"
+                                aria-label="View receipt"
                                 onClick={() => setSelected(transaction)}
                               >
                                 <Eye className="size-4" />
@@ -324,6 +342,13 @@ const Transactions = () => {
             )}
           </CardContent>
         </Card>
+
+        <MethodBreakdown
+          date={date}
+          transactions={filteredTransactions}
+          isLoading={isLoading}
+          error={reportError}
+        />
       </div>
 
       <ViewReceiptModal

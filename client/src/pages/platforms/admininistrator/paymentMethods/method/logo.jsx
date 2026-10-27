@@ -1,9 +1,10 @@
 import { createElement } from "react";
 import Cloudinary from "@/services/utilities/cloudinary";
+import { cn } from "@/lib/utils";
 
-const Logo = ({ method, fallbackIcon }) => {
+const Logo = ({ method, fallbackIcon, className }) => {
   return (
-    <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-background p-2">
+    <div className={cn("flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-background p-2", className)}>
       {method?.methodImgId ? (
         <img
           src={Cloudinary.getPaymentMethodImg(
