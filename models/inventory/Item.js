@@ -55,12 +55,10 @@ const modelSchema = new mongoose.Schema(
         toMeasurement: {
           type: String,
           enum: ["weight", "volume", "pieces"],
-          required: true,
         },
 
         factor: {
           type: Number,
-          required: true,
           validate: {
             validator: (value) => Number.isFinite(value) && value > 0,
             message: "Factor must be a positive finite number",
@@ -69,26 +67,22 @@ const modelSchema = new mongoose.Schema(
 
         sourceQty: {
           type: Number,
-          required: true,
           min: [Number.EPSILON, "Source quantity must be positive"],
         },
 
         sourceUnit: {
           type: String,
           enum: ["kg", "g", "ml", "l", "pcs"],
-          required: true,
         },
 
         targetQty: {
           type: Number,
-          required: true,
           min: [Number.EPSILON, "Target quantity must be positive"],
         },
 
         targetUnit: {
           type: String,
           enum: ["kg", "g", "ml", "l", "pcs"],
-          required: true,
         },
       },
     ],

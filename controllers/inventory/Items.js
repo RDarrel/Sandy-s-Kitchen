@@ -39,8 +39,7 @@ const prepareConversions = (measurement, conversions = []) => {
 exports.save = async (req, res) => {
   try {
     const data = req.body;
-    const conversions = prepareConversions(data.measurement, data.conversions);
-
+    // const conversions = prepareConversions(data.measurement, data.conversions);
     const inventory = await Item.create(data);
     await inventory.populate("suppliers.supplier");
     res.status(201).json({
