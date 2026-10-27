@@ -43,7 +43,8 @@ const Payment = () => {
     const today = new Date();
     return { from: startOfMonth(today), to: endOfMonth(today) };
   });
-  const validPeriod = isValid(date?.from) && isValid(date?.to) && date.from <= date.to;
+  const validPeriod =
+    isValid(date?.from) && isValid(date?.to) && date.from <= date.to;
 
   const filteredPayments = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -66,7 +67,8 @@ const Payment = () => {
   }, [report?.payments, search, statusFilter, transactionType]);
 
   const handleExport = async () => {
-    if (isLoading || isExporting || !filteredPayments.length || !validPeriod) return;
+    if (isLoading || isExporting || !filteredPayments.length || !validPeriod)
+      return;
     setIsExporting(true);
     try {
       await bookingTransactionsToExcel({
@@ -74,7 +76,9 @@ const Payment = () => {
         options: {
           date,
           createdBy: auth?.fullName
-            ? typeof auth.fullName === "string" ? auth.fullName : fullName(auth.fullName)
+            ? typeof auth.fullName === "string"
+              ? auth.fullName
+              : fullName(auth.fullName)
             : "Administrator",
         },
       });
@@ -106,7 +110,12 @@ const Payment = () => {
               <Button
                 variant="outline"
                 onClick={handleExport}
-                disabled={isLoading || isExporting || !filteredPayments.length || !validPeriod}
+                disabled={
+                  isLoading ||
+                  isExporting ||
+                  !filteredPayments.length ||
+                  !validPeriod
+                }
                 aria-busy={isExporting}
               >
                 {isExporting ? (
@@ -122,7 +131,9 @@ const Payment = () => {
                 <TableHeader className="bg-muted/40">
                   <TableRow>
                     <TableHead>Booking</TableHead>
-                    <TableHead className="whitespace-nowrap">Transaction Type</TableHead>
+                    <TableHead className="whitespace-nowrap">
+                      Transaction Type
+                    </TableHead>
                     <TableHead>Method / Date</TableHead>
                     <TableHead>Reviewed By</TableHead>
                     <TableHead>Status</TableHead>
