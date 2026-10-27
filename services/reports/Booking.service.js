@@ -1,8 +1,20 @@
 const Payment = require("../../models/events/Payment");
 const Booking = require("../../models/events/Booking");
 const dateToUTC = require("../../utilities/dateToUTC");
+const { DateTime } = require("luxon");
 
-const getPaymentReport = async ({ startDate, endDate }) => {
+const getPaymentReport = async ({
+  startDate,
+  endDate,
+  frequency = "daily",
+}) => {
+  const units = {
+    daily: "day",
+    weekly: "week",
+    monthly: "month",
+    yearly: "year",
+  };
+  const unit = Object.hasOwn(units, frequency) ? units[frequency] : "day";
   const start = dateToUTC({
     date: startDate,
     dateOnly: true,
@@ -201,7 +213,12 @@ const getPaymentReport = async ({ startDate, endDate }) => {
           $cond: [
             { $eq: ["$cancellation.refund.status", "completed"] },
             "$cancellation.refund.refundedAt",
-            { $ifNull: ["$cancellation.refund.accountProvidedAt", "$cancellation.cancelledAt"] },
+            {
+              $ifNull: [
+                "$cancellation.refund.accountProvidedAt",
+                "$cancellation.cancelledAt",
+              ],
+            },
           ],
         },
       },
@@ -336,16 +353,36 @@ const getPaymentReport = async ({ startDate, endDate }) => {
     };
   });
 
-  const payments = [...(result?.payments ?? []), ...(formattedRefunds ?? [])].sort(
-    (a, b) => {
-      const dateDifference =
-        (new Date(b.createdAt).getTime() || 0) -
-        (new Date(a.createdAt).getTime() || 0);
-      if (dateDifference) return dateDifference;
-      const aKey = `${a.transactionType || "payment"}:${a._id || a.booking?._id || ""}`;
-      const bKey = `${b.transactionType || "payment"}:${b._id || b.booking?._id || ""}`;
-      return bKey.localeCompare(aKey);
-    },
+  const payments = [
+    ...(result?.payments ?? []),
+    ...(formattedRefunds ?? []),
+  ].sort((a, b) => {
+    const dateDifference =
+      (new Date(b.createdAt).getTime() || 0) -
+      (new Date(a.createdAt).getTime() || 0);
+    if (dateDifference) return dateDifference;
+    const aKey = `${a.transactionType || "payment"}:${a._id || a.booking?._id || ""}`;
+    const bKey = `${b.transactionType || "payment"}:${b._id || b.booking?._id || ""}`;
+    return bKey.localeCompare(aKey);
+  });
+
+  // Group after merging so payments and refunds share the same Manila periods.
+  // Luxon's week starts on Monday, matching POS Sales' $dateTrunc settings.
+  const groups = new Map();
+  for (const payment of payments) {
+    const timestamp = new Date(payment.createdAt);
+    const period = Number.isNaN(timestamp.getTime())
+      ? null
+      : DateTime.fromJSDate(timestamp, { zone: "Asia/Manila" })
+          .startOf(unit)
+          .toUTC()
+          .toISO();
+    if (!groups.has(period)) groups.set(period, { date: period, items: [] });
+    groups.get(period).items.push(payment);
+  }
+  const paymentBreakdown = [...groups.values()].sort(
+    (a, b) =>
+      (new Date(b.date).getTime() || 0) - (new Date(a.date).getTime() || 0),
   );
 
   return {
@@ -358,13 +395,13 @@ const getPaymentReport = async ({ startDate, endDate }) => {
       voidedAmount: 0,
       totalPayments: 0,
       averagePayment: 0,
-
       ...(result?.summary?.[0] || {}),
       ...refundSummary,
     },
     refundSummary,
     payments,
-    refundsss: formattedRefunds[0],
+    paymentBreakdown,
+    groups,
   };
 };
 
@@ -525,7 +562,7 @@ const getSalesReport = async ({ startDate, endDate }) => {
             {
               $subtract: [
                 {
-                  $ifNull: ["$totalAmount", 0],
+                  $ifNull: ["$pricing.total", 0],
                 },
                 "$totalPaid",
               ],

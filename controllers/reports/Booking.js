@@ -2,10 +2,11 @@ const BookingReportService = require("../../services/reports/Booking.service");
 
 exports.paymentReport = async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, frequency } = req.query;
     const result = await BookingReportService.getPaymentReport({
       startDate,
       endDate,
+      frequency,
     });
     res.json({ data: result });
   } catch (error) {
