@@ -1,6 +1,9 @@
 import DatePicker from "@/components/shared/datePicker";
 import CustomPagination from "@/components/shared/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import posSalesToExcel from "@/services/utilities/export/excel/posSalesToExcel";
 import {
   Card,
   CardContent,
@@ -24,10 +27,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { GET_SALES_REPORT } from "@/services/redux/slices/report/pos";
-import { capitalize, Formatter, handlePagination } from "@/services/utilities";
+import { capitalize, Formatter, fullName, handlePagination } from "@/services/utilities";
 import { startOfMonth, endOfMonth, isValid, format, addDays } from "date-fns";
 import {
   FileText,
+  Download,
   Loader2,
   ShoppingBag,
   TrendingUp,
@@ -76,6 +80,7 @@ const saleTime = (value) => {
 };
 
 const Sales = () => {
+  const { auth } = useSelector(({ auth }) => auth);
   const { salesReport, isLoading } = useSelector(({ posReport }) => posReport);
   const { summary = {}, salesBreakdown = [] } = salesReport || {};
   const [date, setDate] = useState(() => {
@@ -88,6 +93,7 @@ const Sales = () => {
   });
 
   const [frequency, setFrequency] = useState("daily");
+  const [isExporting, setIsExporting] = useState(false);
   const [page, setPage] = useState(1);
   const [maxPage, setMaxPage] = useState(10);
   const dispatch = useDispatch();
@@ -130,11 +136,36 @@ const Sales = () => {
     [salesRows, page, maxPage],
   );
 
+  const handleExport = async () => {
+    if (isLoading || isExporting || !salesRows.length || !startDate || !endDate || startDate > endDate) return;
+    setIsExporting(true);
+    try {
+      await posSalesToExcel({
+        array: salesBreakdown.map((group, index) => ({
+          ...group,
+          label: groupLabel(group.date, frequency, salesBreakdown.length - index),
+        })),
+        options: {
+          date,
+          frequency,
+          createdBy: auth?.fullName
+            ? typeof auth.fullName === "string" ? auth.fullName : fullName(auth.fullName)
+            : "Administrator",
+        },
+      });
+    } catch (error) {
+      console.error("Failed to export POS sales:", error);
+      toast.error("Unable to export POS sales. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="bg-background p-4 md:p-6">
       <div className="mx-auto w-full max-w-7xl space-y-5">
         <Card className="border-border shadow-sm">
-          <CardHeader className="gap-4 sm:flex sm:flex-row sm:items-center sm:justify-between">
+          <CardHeader className="gap-4 xl:flex xl:flex-row xl:items-center xl:justify-between">
             <div className="min-w-0 space-y-1.5">
               <CardTitle className="text-2xl text-foreground">
                 POS Sales Report
@@ -186,6 +217,20 @@ const Sales = () => {
                   highlightToday={false}
                 />
               </div>
+              <Button
+                variant="outline"
+                onClick={handleExport}
+                disabled={isLoading || isExporting || !salesRows.length || !startDate || !endDate || startDate > endDate}
+                aria-busy={isExporting}
+                className="shrink-0"
+              >
+                {isExporting ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Download className="size-4" aria-hidden="true" />
+                )}
+                {isExporting ? "Exporting…" : "Export to Excel"}
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-6" aria-busy={isLoading}>
