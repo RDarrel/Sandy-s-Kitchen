@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { Download, Loader2 } from "lucide-react";
 import { endOfMonth, isValid, startOfMonth } from "date-fns";
@@ -14,17 +14,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fullName, handlePagination } from "@/services/utilities";
+import { Formatter, fullName, handlePagination } from "@/services/utilities";
 import PaymentDetails from "./paymentDetails";
 import CustomPagination from "@/components/shared/pagination";
 import Summary from "./summary";
 import Header from "./header";
 import PaymentItem from "./payment";
 import Filter from "./filter";
+import {
+  groupPaymentRows,
+  paymentGroupLabel,
+  paymentGroupTotals,
+} from "./grouping";
 
 const getCustomerName = (payment) => {
   const name = payment.booking?.customer?.fullName;
-  return name ? fullName(name) : "Unavailable";
+  return name
+    ? typeof name === "string"
+      ? name
+      : fullName(name)
+    : "Unavailable";
 };
 
 const Payment = () => {
@@ -39,6 +48,7 @@ const Payment = () => {
   const [maxPage, setMaxPage] = useState(10);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [frequency, setFrequency] = useState("daily");
   const [date, setDate] = useState(() => {
     const today = new Date();
     return { from: startOfMonth(today), to: endOfMonth(today) };
@@ -46,9 +56,20 @@ const Payment = () => {
   const validPeriod =
     isValid(date?.from) && isValid(date?.to) && date.from <= date.to;
 
+  const paymentRows = useMemo(() => {
+    const groups = report?.paymentBreakdown || [];
+    return groups.flatMap((group, index) =>
+      (group.items || []).map((payment) => ({
+        ...payment,
+        periodDate: group.date,
+        weekNumber: groups.length - index,
+      })),
+    );
+  }, [report?.paymentBreakdown]);
+
   const filteredPayments = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return (report?.payments ?? []).filter((payment) => {
+    return paymentRows.filter((payment) => {
       const matchesSearch = [
         payment.booking?.reference,
         getCustomerName(payment),
@@ -64,7 +85,16 @@ const Payment = () => {
         (statusFilter === "all" || payment.status === statusFilter)
       );
     });
-  }, [report?.payments, search, statusFilter, transactionType]);
+  }, [paymentRows, search, statusFilter, transactionType]);
+
+  const visibleGroups = useMemo(
+    () => groupPaymentRows(handlePagination(filteredPayments, page, maxPage)),
+    [filteredPayments, page, maxPage],
+  );
+  const groupTotals = useMemo(
+    () => paymentGroupTotals(filteredPayments),
+    [filteredPayments],
+  );
 
   const handleExport = async () => {
     if (isLoading || isExporting || !filteredPayments.length || !validPeriod)
@@ -72,9 +102,13 @@ const Payment = () => {
     setIsExporting(true);
     try {
       await bookingTransactionsToExcel({
-        array: filteredPayments,
+        array: groupPaymentRows(filteredPayments).map((group) => ({
+          ...group,
+          label: paymentGroupLabel(group.date, frequency, group.weekNumber),
+        })),
         options: {
           date,
+          frequency,
           createdBy: auth?.fullName
             ? typeof auth.fullName === "string"
               ? auth.fullName
@@ -94,7 +128,13 @@ const Payment = () => {
     <div className="bg-background p-4 md:p-6">
       <div className="mx-auto w-full max-w-7xl space-y-5">
         <Card className="border-border shadow-sm">
-          <Header setPage={setPage} date={date} setDate={setDate} />
+          <Header
+            setPage={setPage}
+            date={date}
+            setDate={setDate}
+            frequency={frequency}
+            setFrequency={setFrequency}
+          />
 
           <CardContent className="space-y-6" aria-busy={isLoading}>
             <Summary />
@@ -135,7 +175,7 @@ const Payment = () => {
                       Transaction Type
                     </TableHead>
                     <TableHead>Method / Date</TableHead>
-                    <TableHead>Reviewed By</TableHead>
+                    {/* <TableHead>Reviewed By</TableHead> */}
                     <TableHead>Status</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead className="w-16 text-right">Action</TableHead>
@@ -157,23 +197,46 @@ const Payment = () => {
                           )}
                           {isLoading
                             ? "Loading payments…"
-                            : report.payments.length === 0
+                            : paymentRows.length === 0
                               ? "No payments recorded yet."
                               : "No transactions match your filters."}
                         </div>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    handlePagination(filteredPayments, page, maxPage).map(
-                      (payment, idx) => (
-                        <PaymentItem
-                          payment={payment}
-                          key={`${payment?._id}-${idx}`}
-                          setSelectedPayment={setSelectedPayment}
-                          getCustomerName={getCustomerName}
-                        />
-                      ),
-                    )
+                    visibleGroups.map((group) => (
+                      <Fragment key={group.date || "unknown"}>
+                        <TableRow className="bg-muted/40 hover:bg-muted/40">
+                          <TableCell
+                            colSpan={7}
+                            className="py-3 text-sm font-semibold text-foreground"
+                          >
+                            <div className="flex items-center justify-between gap-4">
+                              <span>
+                                {paymentGroupLabel(
+                                  group.date,
+                                  frequency,
+                                  group.weekNumber,
+                                )}
+                              </span>
+                              <span className="shrink-0 whitespace-nowrap tabular-nums">
+                                {Formatter.amount(
+                                  groupTotals.get(group.date) ?? 0,
+                                )}
+                              </span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {group.items.map((payment, idx) => (
+                          <PaymentItem
+                            payment={payment}
+                            key={`${payment.transactionType || "payment"}-${payment._id || payment.booking?._id}-${idx}`}
+                            setSelectedPayment={setSelectedPayment}
+                            getCustomerName={getCustomerName}
+                          />
+                        ))}
+                      </Fragment>
+                    ))
                   )}
                 </TableBody>
               </Table>

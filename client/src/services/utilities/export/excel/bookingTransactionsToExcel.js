@@ -33,13 +33,15 @@ const bookingTransactionsToExcel = async ({
   array = [],
   options = {},
 } = {}) => {
-  if (!array.length) return;
+  if (!array.some((group) => group.items?.length)) return;
 
-  const { date, createdBy = "" } = options;
+  const { date, frequency = "daily", createdBy = "" } = options;
   if (!isValid(date?.from) || !isValid(date?.to) || date.from > date.to) {
     throw new Error("Please select a valid report period.");
   }
 
+  const payments = array.flatMap((group) => group.items || []);
+  const reportTitle = `${frequency.charAt(0).toUpperCase()}${frequency.slice(1)} Booking Transactions Report`;
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Booking Transactions", {
     pageSetup: {
@@ -56,7 +58,6 @@ const bookingTransactionsToExcel = async ({
         header: 0.2,
         footer: 0.2,
       },
-      printTitlesRow: "8:8",
     },
   });
   worksheet.views = [{ showGridLines: false }];
@@ -65,7 +66,7 @@ const bookingTransactionsToExcel = async ({
   // Align the report header with the table's last column (L).
   worksheet.mergeCells("A5:L5");
   const title = worksheet.getCell("A5");
-  title.value = "BOOKING TRANSACTIONS REPORT";
+  title.value = reportTitle;
   title.font = { bold: true, size: 25 };
   title.border = border;
   title.alignment = { horizontal: "center", vertical: "middle" };
@@ -76,8 +77,10 @@ const bookingTransactionsToExcel = async ({
   subtitle.font = { size: 14 };
   subtitle.border = border;
   subtitle.alignment = { horizontal: "center", vertical: "middle" };
+  worksheet.getRow(5).height = 40;
+  worksheet.getRow(6).height = 24;
 
-  const collected = array.reduce(
+  const collected = payments.reduce(
     (sum, payment) =>
       sum +
       (payment.transactionType !== "refund" && payment.status === "verified"
@@ -85,7 +88,7 @@ const bookingTransactionsToExcel = async ({
         : 0),
     0,
   );
-  const refunded = array.reduce(
+  const refunded = payments.reduce(
     (sum, payment) =>
       sum +
       (payment.transactionType === "refund" && payment.status === "completed"
@@ -109,6 +112,7 @@ const bookingTransactionsToExcel = async ({
     cell.border = border;
     cell.alignment = { horizontal: "left", vertical: "middle" };
   });
+  worksheet.getRow(7).height = 30;
 
   const columns = [
     { start: "A", end: "C", label: "Booking / Customer" },
@@ -119,34 +123,34 @@ const bookingTransactionsToExcel = async ({
   ];
   let rowNumber = 8;
 
-  columns.forEach(({ start, end, label }) => {
-    worksheet.mergeCells(`${start}${rowNumber}:${end}${rowNumber}`);
-    const cell = worksheet.getCell(`${start}${rowNumber}`);
-    cell.value = label;
-    // Match the app's primary and primary-foreground brand colors.
-    cell.fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFC62828" },
-    };
+  const addTableHeader = () => {
+    columns.forEach(({ start, end, label }) => {
+      worksheet.mergeCells(`${start}${rowNumber}:${end}${rowNumber}`);
+      const cell = worksheet.getCell(`${start}${rowNumber}`);
+      cell.value = label;
+      cell.font = { size: 13, bold: true };
+      cell.alignment = {
+        horizontal: "left",
+        vertical: "middle",
+        wrapText: true,
+      };
+      cell.border = border;
+    });
+    worksheet.getRow(rowNumber).height = 32;
+    rowNumber++;
+  };
 
-    cell.font = { size: 13, bold: true, color: { argb: "FFFFFDF8" } };
-    cell.alignment = {
-      horizontal: "left",
-      vertical: "middle",
-      wrapText: true,
-    };
-    cell.border = border;
-  });
-  worksheet.getRow(rowNumber).height = 24;
-  rowNumber++;
-
-  array.forEach((payment) => {
+  const addPayment = (payment) => {
     const customerName = payment.booking?.customer?.fullName;
     const nameLabel = (name) =>
       name ? (typeof name === "string" ? name : fullName(name)) : "Unavailable";
     const isRefund = payment.transactionType === "refund";
     const amount = Number(payment.amount ?? 0);
+    const amountFormat = isRefund && payment.status === "completed"
+      ? '"- ₱"#,##0.00;"- ₱"#,##0.00;"- ₱"0.00'
+      : !isRefund && payment.status === "verified"
+        ? '"+ ₱"#,##0.00;"- ₱"#,##0.00;"+ ₱"0.00'
+        : currencyFormat;
     const values = [
       `${payment.booking?.reference || "Unavailable"}\n${nameLabel(customerName)}`,
       isRefund ? "Refund" : "Payment",
@@ -182,9 +186,9 @@ const bookingTransactionsToExcel = async ({
         wrapText: true,
       };
       cell.border = border;
-      if (numeric) cell.numFmt = currencyFormat;
+      if (numeric) cell.numFmt = amountFormat;
       const charsPerLine = (end.charCodeAt(0) - start.charCodeAt(0) + 1) * 8;
-      const lines = String(value)
+      const lines = (numeric ? format.peso(value) : String(value))
         .split("\n")
         .reduce(
           (count, line) =>
@@ -195,6 +199,31 @@ const bookingTransactionsToExcel = async ({
     });
     worksheet.getRow(rowNumber).height = 30 + (maxLines - 1) * 13;
     rowNumber++;
+  };
+
+  array.forEach((group) => {
+    if (!group.items?.length) return;
+    const total = group.items.reduce((sum, payment) => {
+      const amount = Number(payment.amount ?? 0);
+      return sum + (payment.transactionType === "refund" && payment.status === "completed" ? -amount : amount);
+    }, 0);
+    [
+      ["A", "H", group.label || "Unknown date"],
+      ["I", "L", total],
+    ].forEach(([start, end, value]) => {
+      worksheet.mergeCells(`${start}${rowNumber}:${end}${rowNumber}`);
+      const cell = worksheet.getCell(`${start}${rowNumber}`);
+      cell.value = value;
+      cell.font = { size: 13, bold: true, color: { argb: "FFFFFDF8" } };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFC62828" } };
+      cell.border = border;
+      cell.alignment = { horizontal: start === "I" ? "right" : "left", vertical: "middle", wrapText: true };
+      if (start === "I") cell.numFmt = currencyFormat;
+    });
+    const lines = Math.max(1, Math.ceil(String(group.label || "Unknown date").length / 48));
+    worksheet.getRow(rowNumber++).height = Math.max(24, lines * 18 + 4);
+    addTableHeader();
+    group.items.forEach(addPayment);
   });
 
   // Keep the footer aligned with the table.
@@ -229,7 +258,7 @@ const bookingTransactionsToExcel = async ({
     new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     }),
-    `BOOKING TRANSACTIONS REPORT - ${formattedDate(date.from)} to ${formattedDate(date.to)}.xlsx`,
+    `${reportTitle} - ${formattedDate(date.from)} to ${formattedDate(date.to)}.xlsx`,
   );
 };
 

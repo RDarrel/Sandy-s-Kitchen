@@ -20,8 +20,12 @@ const Payment = ({
   const formatDate = (date) => Formatter.date(date, true);
   const isRefund = payment?.transactionType === "refund";
   const amountPrefix = isRefund
-    ? payment?.status === "completed" ? "- " : ""
-    : payment?.status === "verified" ? "+ " : "";
+    ? payment?.status === "completed"
+      ? "- "
+      : ""
+    : payment?.status === "verified"
+      ? "+ "
+      : "";
   return (
     <TableRow>
       <TableCell className="py-3 text-xs">
@@ -41,7 +45,7 @@ const Payment = ({
           {formatDate(payment.createdAt)}
         </p>
       </TableCell>
-      <TableCell className="py-3 text-xs">
+      {/* <TableCell className="py-3 text-xs">
         <p className="font-medium">
           {payment.reviewedBy?.fullName
             ? fullName(payment.reviewedBy.fullName)
@@ -52,7 +56,7 @@ const Payment = ({
             ? formatDate(new Date(payment.reviewedAt))
             : "Not yet reviewed"}
         </p>
-      </TableCell>
+      </TableCell> */}
       <TableCell>
         <Badge
           variant="outline"
@@ -62,7 +66,8 @@ const Payment = ({
         </Badge>
       </TableCell>
       <TableCell className=" font-medium tabular-nums">
-        {amountPrefix}{Formatter.amount(payment.amount)}
+        {amountPrefix}
+        {Formatter.amount(payment.amount)}
       </TableCell>
       <TableCell className="text-right">
         <Button

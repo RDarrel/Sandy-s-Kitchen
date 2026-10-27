@@ -19,7 +19,7 @@ const posSalesToExcel = async ({ array = [], options = {} } = {}) => {
   if (!isValid(date?.from) || !isValid(date?.to) || date.from > date.to) {
     throw new Error("Please select a valid report period.");
   }
-  const title = `${frequency.charAt(0).toUpperCase()}${frequency.slice(1)} Sales Report`;
+  const title = `${frequency.charAt(0).toUpperCase()}${frequency.slice(1)} POS Sales Report`;
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("POS Sales", {
     pageSetup: {
@@ -176,7 +176,10 @@ const posSalesToExcel = async ({ array = [], options = {} } = {}) => {
       fill: true,
       numeric: true,
     }).alignment.horizontal = "right";
-    worksheet.getRow(row).height = Math.max(22, worksheet.getRow(row).height - 4);
+    worksheet.getRow(row).height = Math.max(
+      22,
+      worksheet.getRow(row).height - 4,
+    );
     row++;
     columns.forEach(({ start, end, label }) => {
       cellAt(row, start, end, label, { bold: true });
