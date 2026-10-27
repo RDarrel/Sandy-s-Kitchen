@@ -7,6 +7,13 @@ const Entity = require("../../models/persons/Users"),
   handleDuplicate = require("../../config/duplicate"),
   { cloudinary } = require("../../config/cloudinary");
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  path: "/",
+};
+
 exports.login = (req, res) => {
   const { email, password } = req.query;
 
@@ -43,9 +50,7 @@ exports.login = (req, res) => {
       delete user.password;
 
       res.cookie("token", generateToken({ _id: item?._id, role: item.role }), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        ...cookieOptions,
         maxAge: 1000 * 60 * 60 * 4,
       });
 
@@ -173,11 +178,7 @@ exports.save = (req, res) => {
 };
 
 exports.logout = async (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-  });
+  res.clearCookie("token", cookieOptions);
 
   return res.status(200).json({
     message: "Logged out successfully",
