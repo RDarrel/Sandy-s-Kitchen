@@ -6,7 +6,8 @@ import { endOfMonth, format, startOfYear } from "date-fns";
 import reducer, { GET_ANALYTICS } from "@/services/redux/slices/report/booking";
 import Analytics from "./index";
 
-const { universal } = vi.hoisted(() => ({ universal: vi.fn() }));
+const { universal, exportAnalytics } = vi.hoisted(() => ({ universal: vi.fn(), exportAnalytics: vi.fn() }));
+vi.mock("@/services/utilities/export/excel/bookingAnalyticsToExcel", () => ({ default: exportAnalytics }));
 vi.mock("@/services/utilities", () => ({ axioKit: { universal } }));
 vi.mock("./chart", () => ({ default: () => <div>Booking chart</div> }));
 vi.mock("@/components/shared/datePicker", () => ({
@@ -49,6 +50,12 @@ describe("Booking Analytics API wiring", () => {
       startDate: format(startOfYear(today), "yyyy-MM-dd"),
       endDate: format(endOfMonth(today), "yyyy-MM-dd"),
     }, expect.any(AbortSignal));
+    fireEvent.click(screen.getByRole("button", { name: "Booking Value" }));
+    fireEvent.click(screen.getByRole("button", { name: "Export to Excel" }));
+    await waitFor(() => expect(exportAnalytics).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ total: 7, value: 14000 }),
+      options: expect.objectContaining({ metric: "value", createdBy: "Administrator" }),
+    })));
     fireEvent.click(screen.getByRole("button", { name: "range dropdown" }));
     await waitFor(() => expect(universal).toHaveBeenLastCalledWith("reports/booking/analytics", {
       startDate: "2026-02-01", endDate: "2026-02-28",

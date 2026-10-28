@@ -19,6 +19,8 @@ import BookingChart from "./chart";
 import Summary from "./summary";
 import RankingCard from "./RankingCard";
 import AnalyticsSkeleton from "./Skeleton";
+import bookingAnalyticsToExcel from "@/services/utilities/export/excel/bookingAnalyticsToExcel";
+import fullName from "@/services/utilities/fullName";
 
 const panel = "min-w-0 rounded-2xl border border-border bg-card shadow-sm";
 const rankings = [
@@ -63,6 +65,7 @@ const rankings = [
 
 const Analytics = () => {
   const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth?.auth);
   const { analytics, analyticsRequestId, message } = useSelector(
     ({ bookingReport }) => bookingReport,
   );
@@ -84,58 +87,24 @@ const Analytics = () => {
     () => formatAnalytics(analytics, date),
     [analytics, date],
   );
-  const selectedPeriod = `${format(date.from, "MMM d, yyyy")} - ${format(date.to, "MMM d, yyyy")}`;
 
   const handleExport = async () => {
+    if (exporting || loading || message) return;
     setExporting(true);
     try {
-      const { Workbook } = await import("exceljs");
-      const { saveAs } = await import("file-saver");
-      const workbook = new Workbook();
-      workbook
-        .addWorksheet("Overview")
-        .addRows([
-          ["Booking Analytics"],
-          ["Period", selectedPeriod],
-          ["Total bookings", data.total],
-          ["Booking value (PHP)", data.value],
-          [],
-          ["Month", "Bookings", "Booking value (PHP)"],
-          ...data.monthly.map((month) => [
-            month.month,
-            month.bookings,
-            month.value,
-          ]),
-        ]);
-      rankings.forEach(({ key, title }) => {
-        const sheet = workbook.addWorksheet(title.slice(0, 31));
-        sheet.addRow([
-          "Name",
-          "Bookings",
-          key === "dishes" ? "Category" : "Booking value (PHP)",
-          "Share of bookings (%)",
-        ]);
-        data[key].forEach((row) =>
-          sheet.addRow([
-            row.name,
-            row.bookings,
-            key === "dishes" ? row.category : row.value,
-            Number(row.percentage.toFixed(1)),
-          ]),
-        );
+      await bookingAnalyticsToExcel({
+        data,
+        options: {
+          date,
+          metric,
+          createdBy:
+            typeof auth?.fullName === "string"
+              ? auth.fullName
+              : auth?.fullName
+                ? fullName(auth.fullName)
+                : "Administrator",
+        },
       });
-      workbook.eachSheet((sheet) => {
-        sheet.columns.forEach((column) => {
-          column.width = 28;
-        });
-        sheet.getRow(1).font = { bold: true, color: { argb: "FFC62828" } };
-      });
-      saveAs(
-        new Blob([await workbook.xlsx.writeBuffer()], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        }),
-        `booking-analytics-${startDate}-to-${endDate}.xlsx`,
-      );
       toast.success("Booking analytics exported.");
     } catch {
       toast.error("Unable to export analytics. Please try again.");
@@ -173,7 +142,7 @@ const Analytics = () => {
               ) : (
                 <ArrowDownToLine className="size-4" aria-hidden="true" />
               )}
-              {exporting ? "Exporting…" : "Export to Excel"}
+              Export to Excel
             </Button>
           </div>
         </header>
