@@ -1,6 +1,6 @@
 import { Fragment, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, ReceiptText } from "lucide-react";
 import { endOfMonth, isValid, startOfMonth } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import CustomPagination from "@/components/shared/pagination";
 import Summary from "./summary";
 import Header from "./header";
 import PaymentItem from "./payment";
+import ListingSkeleton from "./listingSkeleton";
 import Filter from "./filter";
 import { paginatePaymentGroups, paymentGroupLabel } from "./grouping";
 import MethodBreakdown from "../../pos/transactions/method-breakdown";
@@ -53,6 +54,9 @@ const Payment = () => {
   });
   const validPeriod =
     isValid(date?.from) && isValid(date?.to) && date.from <= date.to;
+  const hasTransactions = (report?.payments || []).some(
+    (group) => group.items?.length,
+  );
 
   const filteredGroups = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -171,29 +175,33 @@ const Payment = () => {
             <div className="overflow-hidden rounded-sm border border-border [&_tr>*:first-child]:border-l-0 [&_tr>*:last-child]:border-r-0 [&_tr:first-child>*]:border-t-0 [&_tr:last-child>*]:border-b-0">
               <Table>
                 <TableBody>
-                  {(isLoading || filteredPayments.length === 0) && (
-                    <TransactionColumns />
-                  )}
-                  {isLoading || filteredPayments.length === 0 ? (
-                    <TableRow>
+                  {isLoading ? (
+                    <ListingSkeleton>
+                      <TransactionColumns />
+                    </ListingSkeleton>
+                  ) : filteredPayments.length === 0 ? (
+                    <TableRow className="hover:bg-transparent">
                       <TableCell
                         colSpan={6}
-                        className="h-32 text-center text-muted-foreground"
+                        className="h-64 whitespace-normal text-center"
                       >
                         <div
                           role="status"
-                          className="flex items-center justify-center gap-2"
+                          className="flex flex-col items-center justify-center gap-2 px-4 py-8"
                         >
-                          {isLoading && (
-                            <Loader2 className="size-4 animate-spin" />
-                          )}
-                          {isLoading
-                            ? "Loading payments…"
-                            : !(report?.payments || []).some(
-                                  (group) => group.items?.length,
-                                )
-                              ? "No payments recorded yet."
-                              : "No transactions match your filters."}
+                          <div className="mb-2 rounded-full bg-muted p-3 text-muted-foreground">
+                            <ReceiptText aria-hidden="true" className="size-6" />
+                          </div>
+                          <p className="text-sm font-semibold text-foreground">
+                            {hasTransactions
+                              ? "No transactions match your filters"
+                              : "No booking transactions found"}
+                          </p>
+                          <p className="max-w-sm text-sm text-muted-foreground">
+                            {hasTransactions
+                              ? "Try another search or adjust the transaction type and status filters."
+                              : "No booking transactions were recorded within the selected report period. Try selecting another date range."}
+                          </p>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -229,7 +237,7 @@ const Payment = () => {
               </Table>
             </div>
 
-            {!isLoading && (
+            {!isLoading && filteredPayments.length > 0 && (
               <CustomPagination
                 page={page}
                 maxPage={maxPage}
