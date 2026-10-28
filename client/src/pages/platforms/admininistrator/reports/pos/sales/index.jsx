@@ -27,7 +27,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { GET_SALES_REPORT } from "@/services/redux/slices/report/pos";
-import { capitalize, Formatter, fullName, handlePagination } from "@/services/utilities";
+import {
+  capitalize,
+  Formatter,
+  fullName,
+  handlePagination,
+} from "@/services/utilities";
 import { startOfMonth, endOfMonth, isValid, format, addDays } from "date-fns";
 import {
   FileText,
@@ -137,19 +142,33 @@ const Sales = () => {
   );
 
   const handleExport = async () => {
-    if (isLoading || isExporting || !salesRows.length || !startDate || !endDate || startDate > endDate) return;
+    if (
+      isLoading ||
+      isExporting ||
+      !salesRows.length ||
+      !startDate ||
+      !endDate ||
+      startDate > endDate
+    )
+      return;
     setIsExporting(true);
     try {
       await posSalesToExcel({
         array: salesBreakdown.map((group, index) => ({
           ...group,
-          label: groupLabel(group.date, frequency, salesBreakdown.length - index),
+          label: groupLabel(
+            group.date,
+            frequency,
+            salesBreakdown.length - index,
+          ),
         })),
         options: {
           date,
           frequency,
           createdBy: auth?.fullName
-            ? typeof auth.fullName === "string" ? auth.fullName : fullName(auth.fullName)
+            ? typeof auth.fullName === "string"
+              ? auth.fullName
+              : fullName(auth.fullName)
             : "Administrator",
         },
       });
@@ -212,6 +231,7 @@ const Sales = () => {
                 </p>
                 <DatePicker
                   mode="range"
+                  captionLayout="dropdown"
                   date={date}
                   setDate={setDate}
                   highlightToday={false}
@@ -220,7 +240,14 @@ const Sales = () => {
               <Button
                 variant="outline"
                 onClick={handleExport}
-                disabled={isLoading || isExporting || !salesRows.length || !startDate || !endDate || startDate > endDate}
+                disabled={
+                  isLoading ||
+                  isExporting ||
+                  !salesRows.length ||
+                  !startDate ||
+                  !endDate ||
+                  startDate > endDate
+                }
                 aria-busy={isExporting}
                 className="shrink-0"
               >
@@ -229,7 +256,7 @@ const Sales = () => {
                 ) : (
                   <Download className="size-4" aria-hidden="true" />
                 )}
-                {isExporting ? "Exporting…" : "Export to Excel"}
+                Export to Excel
               </Button>
             </div>
           </CardHeader>
