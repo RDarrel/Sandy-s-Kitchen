@@ -35,9 +35,11 @@ const getCustomerName = (payment) => {
 
 const Payment = () => {
   const { auth } = useSelector(({ auth }) => auth);
-  const { paymentReport: report, isLoading, message: reportError } = useSelector(
-    ({ bookingReport }) => bookingReport,
-  );
+  const {
+    paymentReport: report,
+    isLoading,
+    message: reportError,
+  } = useSelector(({ bookingReport }) => bookingReport);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [transactionType, setTransactionType] = useState("all");
@@ -56,26 +58,28 @@ const Payment = () => {
   const filteredGroups = useMemo(() => {
     const query = search.trim().toLowerCase();
     const groups = report?.payments || [];
-    return groups.map((group, index) => ({
-      ...group,
-      label: paymentGroupLabel(group.date, frequency, groups.length - index),
-      items: (group.items || []).filter((payment) => {
-        const matchesSearch = [
-          payment.booking?.reference,
-          getCustomerName(payment),
-        ].some((value) =>
-          String(value ?? "")
-            .toLowerCase()
-            .includes(query),
-        );
-        return (
-          matchesSearch &&
-          (transactionType === "all" ||
-            (payment.transactionType || "payment") === transactionType) &&
-          (statusFilter === "all" || payment.status === statusFilter)
-        );
-      }),
-    })).filter((group) => group.items.length);
+    return groups
+      .map((group, index) => ({
+        ...group,
+        label: paymentGroupLabel(group.date, frequency, groups.length - index),
+        items: (group.items || []).filter((payment) => {
+          const matchesSearch = [
+            payment.booking?.reference,
+            getCustomerName(payment),
+          ].some((value) =>
+            String(value ?? "")
+              .toLowerCase()
+              .includes(query),
+          );
+          return (
+            matchesSearch &&
+            (transactionType === "all" ||
+              (payment.transactionType || "payment") === transactionType) &&
+            (statusFilter === "all" || payment.status === statusFilter)
+          );
+        }),
+      }))
+      .filter((group) => group.items.length);
   }, [report?.payments, frequency, search, statusFilter, transactionType]);
 
   const filteredPayments = useMemo(
@@ -84,9 +88,11 @@ const Payment = () => {
   );
 
   const collectedPayments = useMemo(
-    () => filteredPayments.filter(
-      (payment) => payment.transactionType !== "refund" && payment.status === "verified",
-    ),
+    () =>
+      filteredPayments.filter(
+        (payment) =>
+          payment.transactionType !== "refund" && payment.status === "verified",
+      ),
     [filteredPayments],
   );
 
@@ -104,6 +110,7 @@ const Payment = () => {
         array: filteredGroups,
         options: {
           date,
+          summary: report?.summary,
           frequency,
           createdBy: auth?.fullName
             ? typeof auth.fullName === "string"
@@ -159,7 +166,7 @@ const Payment = () => {
                 ) : (
                   <Download className="size-4" aria-hidden="true" />
                 )}
-                {isExporting ? "Exporting…" : "Export to Excel"}
+                Export to Excel
               </Button>
             </Filter>
             <div className="overflow-hidden rounded-lg border">
@@ -193,7 +200,9 @@ const Payment = () => {
                           )}
                           {isLoading
                             ? "Loading payments…"
-                            : !(report?.payments || []).some((group) => group.items?.length)
+                            : !(report?.payments || []).some(
+                                  (group) => group.items?.length,
+                                )
                               ? "No payments recorded yet."
                               : "No transactions match your filters."}
                         </div>
@@ -208,13 +217,9 @@ const Payment = () => {
                             className="py-3 text-sm font-semibold text-foreground"
                           >
                             <div className="flex items-center justify-between gap-4">
-                              <span>
-                                {group.label}
-                              </span>
+                              <span>{group.label}</span>
                               <span className="shrink-0 whitespace-nowrap tabular-nums">
-                                {Formatter.amount(
-                                  group.totalAmount ?? 0,
-                                )}
+                                {Formatter.amount(group.totalAmount ?? 0)}
                               </span>
                             </div>
                           </TableCell>

@@ -3,6 +3,7 @@ import ExcelJS from "exceljs";
 import { afterEach, expect, it, vi } from "vitest";
 import { saveAs } from "file-saver";
 import bookingTransactionsToExcel from "./bookingTransactionsToExcel";
+import format from "../../format";
 
 vi.mock("file-saver", () => ({ saveAs: vi.fn() }));
 
@@ -28,7 +29,7 @@ it.each(["daily", "weekly", "monthly", "yearly"])("exports %s periods with signe
       { label: "Period One", totalAmount: 1000, items: [payment, { ...payment, transactionType: "refund", status: "completed", amount: 200 }] },
       { label: "Period Two", totalAmount: 0, items: [{ ...payment, status: "pending", amount: 300 }] },
     ],
-    options: { frequency, createdBy: "Administrator", date: { from: new Date(2026, 9, 1), to: new Date(2026, 9, 31) } },
+    options: { frequency, createdBy: "Administrator", summary: { totalCollected: 5000, totalRefundedAmount: 700 }, date: { from: new Date(2026, 9, 1), to: new Date(2026, 9, 31) } },
   });
   const [blob, filename] = saveAs.mock.calls[0];
   const workbook = new ExcelJS.Workbook();
@@ -37,10 +38,19 @@ it.each(["daily", "weekly", "monthly", "yearly"])("exports %s periods with signe
   const title = `${frequency[0].toUpperCase()}${frequency.slice(1)} Booking Transactions Report`;
   expect(sheet.getCell("A5").value).toBe(title);
   expect(filename).toContain(title);
+  expect(sheet.getCell("A7").value.richText[1].text).toBe(format.peso(5000));
+  expect(sheet.getCell("E7").value.richText[1].text).toBe(format.peso(700));
+  expect(sheet.getCell("I7").value.richText[1].text).toBe(format.peso(4300));
   expect(sheet.getCell("A8").value).toBe("Period One");
   expect(sheet.getCell("I8").value).toBe(1000);
   expect(sheet.getCell("I8").alignment.horizontal).toBe("right");
   expect(sheet.getCell("A8").fill.fgColor.argb).toBe("FFC62828");
+  for (const row of [8, 12]) {
+    expect(sheet.getCell(`A${row}`).border.left.style).toBe("thin");
+    expect(sheet.getCell(`L${row}`).border.right.style).toBe("thin");
+    expect(sheet.getCell(`H${row}`).border.right?.style).toBeUndefined();
+    expect(sheet.getCell(`I${row}`).border.left?.style).toBeUndefined();
+  }
   expect(sheet.getCell("A9").value).toBe("Booking / Customer");
   expect(sheet.getCell("A10").value.richText[0].font.bold).toBe(true);
   expect(sheet.getCell("G10").value).toBe("Cash");
@@ -56,7 +66,10 @@ it.each(["daily", "weekly", "monthly", "yearly"])("exports %s periods with signe
   expect(sheet.getCell("K14").value).toBe(300);
   expect(sheet.getCell("K14").numFmt).toBe('"₱"#,##0.00');
   expect(sheet.getCell("A17").value.richText[1].text).toBe("Administrator");
-  expect(sheet.pageSetup.printArea).toBe("A1:L18");
+  expect(sheet.pageSetup.printArea).toBe("A1:M18");
+  expect(sheet.getColumn("L").hidden).not.toBe(true);
+  expect(sheet.getColumn("M").width).toBe(0.5);
+  expect(sheet.getColumn("N").hidden).toBe(true);
   expect(sheet.pageSetup.orientation).toBe("portrait");
   expect(sheet.pageSetup.printTitlesRow).toBeUndefined();
   expect(sheet.getImages()).toHaveLength(1);

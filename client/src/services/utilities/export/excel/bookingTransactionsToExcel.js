@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { isValid } from "date-fns";
 import banner from "@/assets/banner.png";
@@ -35,12 +36,11 @@ const bookingTransactionsToExcel = async ({
 } = {}) => {
   if (!array.some((group) => group.items?.length)) return;
 
-  const { date, frequency = "daily", createdBy = "" } = options;
+  const { date, frequency = "daily", createdBy = "", summary = {} } = options;
   if (!isValid(date?.from) || !isValid(date?.to) || date.from > date.to) {
     throw new Error("Please select a valid report period.");
   }
 
-  const payments = array.flatMap((group) => group.items || []);
   const reportTitle = `${frequency.charAt(0).toUpperCase()}${frequency.slice(1)} Booking Transactions Report`;
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Booking Transactions", {
@@ -61,6 +61,10 @@ const bookingTransactionsToExcel = async ({
     },
   });
   worksheet.views = [{ showGridLines: false }];
+  worksheet.properties.defaultColWidth = 9;
+  for (let column = 1; column <= 12; column++) worksheet.getColumn(column).width = 9;
+  // Content ends at L; leave a narrow print gutter before hidden columns.
+  worksheet.getColumn("M").width = 0.5;
   await addBanner(workbook, worksheet);
 
   // Align the report header with the table's last column (L).
@@ -80,22 +84,9 @@ const bookingTransactionsToExcel = async ({
   worksheet.getRow(5).height = 40;
   worksheet.getRow(6).height = 24;
 
-  const collected = payments.reduce(
-    (sum, payment) =>
-      sum +
-      (payment.transactionType !== "refund" && payment.status === "verified"
-        ? Number(payment.amount ?? 0)
-        : 0),
-    0,
-  );
-  const refunded = payments.reduce(
-    (sum, payment) =>
-      sum +
-      (payment.transactionType === "refund" && payment.status === "completed"
-        ? Number(payment.amount ?? 0)
-        : 0),
-    0,
-  );
+  // Match the UI's report-period summary, independently of exported row filters.
+  const collected = Number(summary.totalCollected ?? 0);
+  const refunded = Number(summary.totalRefundedAmount ?? 0);
   [
     ["A7:D7", "Collected", collected],
     ["E7:H7", "Refunds", refunded],
@@ -213,7 +204,7 @@ const bookingTransactionsToExcel = async ({
       cell.value = value;
       cell.font = { size: 13, bold: true, color: { argb: "FFFFFDF8" } };
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFC62828" } };
-      cell.border = {};
+      cell.border = start === "A" ? { left: border.left } : { right: border.right };
       cell.alignment = { horizontal: start === "I" ? "right" : "left", vertical: "middle", wrapText: true };
       if (start === "I") cell.numFmt = currencyFormat;
     });
@@ -248,9 +239,18 @@ const bookingTransactionsToExcel = async ({
     cell.alignment = { vertical: "middle", horizontal: "left" };
   });
 
-  worksheet.pageSetup.printArea = `A1:L${footerRow + 1}`;
+  worksheet.pageSetup.printArea = `A1:M${footerRow + 1}`;
 
-  const buffer = await workbook.xlsx.writeBuffer();
+  const zip = await JSZip.loadAsync(await workbook.xlsx.writeBuffer());
+  const sheetPath = "xl/worksheets/sheet1.xml";
+  const document = new DOMParser().parseFromString(await zip.file(sheetPath).async("string"), "application/xml");
+  const namespace = document.documentElement.namespaceURI;
+  const columnDefinitions = document.getElementsByTagNameNS(namespace, "cols")[0];
+  const hidden = document.createElementNS(namespace, "col");
+  Object.entries({ min: 14, max: 16384, hidden: 1, width: 9, customWidth: 1 }).forEach(([key, value]) => hidden.setAttribute(key, value));
+  columnDefinitions.appendChild(hidden);
+  zip.file(sheetPath, new XMLSerializer().serializeToString(document));
+  const buffer = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
   saveAs(
     new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
