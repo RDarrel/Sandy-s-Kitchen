@@ -9,39 +9,44 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useDispatch, useSelector } from "react-redux";
-import { LOGIN } from "@/services/redux/slices/persons/auth";
+import {
+  SIGNIN_WITH_GOOGLE,
+  LOGIN,
+} from "@/services/redux/slices/persons/auth";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader } from "lucide-react";
 import PasswordInput from "@/components/shared/passwordInput";
+import Spinner from "@/components/shared/spinner";
+import { navigateByRole } from "../navigateByRole";
+import useGoogleAuth from "../useGoogleAuth";
 
 export default function LoginForm({ className }) {
-  const { isLoading } = useSelector(({ auth }) => auth),
+  const { isLoadingSignin, isLoadingSigninWithGoogle } = useSelector(
+      ({ auth }) => auth,
+    ),
     dispatch = useDispatch(),
     navigate = useNavigate();
-
+  const googleLogin = useGoogleAuth();
   const handleLogin = (e) => {
     e.preventDefault();
     const { email, password } = e.target;
     dispatch(LOGIN({ email: email.value, password: password.value }))
       .unwrap()
       .then(({ payload }) => {
-        if (payload?.user?.role === 2) {
-          navigate("/cashier");
-        } else if (payload?.user?.role === 5) {
-          navigate("/coordinator");
-        } else if (payload?.user?.role === 6) {
-          navigate("/platforms/catering");
-        } else {
-          navigate("/platforms/dashboard");
-        }
+        navigateByRole(navigate, payload?.user?.role);
       })
       .catch((error) => {
-        toast.error(error.message, {
-          duration: 1000, // 1 second lang bago mawala
-        });
+        toast.error(
+          error.error,
+          { description: error?.message },
+          {
+            duration: 2000, // 1 second lang bago mawala
+          },
+        );
       });
   };
+
   return (
     <form
       className={cn("flex flex-col gap-6 w-full max-w-xs", className)}
@@ -71,19 +76,24 @@ export default function LoginForm({ className }) {
 
           <PasswordInput
             id="password"
-            placeholder="Enter your password"
+            placeholder="••••••••"
             autoComplete="new-password"
             required
           />
         </Field>
         <Field>
-          <Button type="submit" disabled={isLoading}>
-            Login {isLoading && <Loader className="animate-spin" />}
+          <Button type="submit" disabled={isLoadingSignin}>
+            Login {isLoadingSignin && <Loader className="animate-spin" />}
           </Button>
         </Field>
         <FieldSeparator>Or continue with</FieldSeparator>
         <Field>
-          <Button variant="outline" type="button">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => googleLogin()}
+            disabled={isLoadingSigninWithGoogle}
+          >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
               <path
                 fill="#FFC107"
@@ -102,7 +112,8 @@ export default function LoginForm({ className }) {
                 d="M43.6 20.5H42V20H24v8h11.3c-1.1 3-3.6 5.3-6.1 6.8l6.1 5C39.9 36.5 44 30.8 44 24c0-1.3-.1-2.7-.4-3.5z"
               />
             </svg>
-            Continue with Google
+            Continue with Google{" "}
+            <Spinner formSubmitted={isLoadingSigninWithGoogle} />
           </Button>
           <FieldDescription className="text-center">
             Don&apos;t have an account?{" "}

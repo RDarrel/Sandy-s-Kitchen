@@ -17,9 +17,12 @@ const login = async (email, password) =>
       localStorage.setItem("email", payload.user.email);
       return data;
     })
-    .catch(({ response }) => {
-      const { error, message } = response.data;
-      throw new Error(message ? `${error}: ${message}` : error);
+    .catch((err) => {
+      const { error: title, message } = err.response?.data || {};
+      throw {
+        error: title || "Google Sign-In Failed",
+        message: message || "Please try again later.",
+      };
     });
 
 export default login;

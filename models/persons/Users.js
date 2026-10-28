@@ -101,7 +101,7 @@ const userSchema = new mongoose.Schema(
         },
       },
     },
-    googleID: { type: String, default: "" },
+    googleId: { type: String },
     dob: {
       type: String,
       default: "",
@@ -111,10 +111,7 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
     role: Number,
-    // role: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: "Roles",
-    // },
+
     mobile: {
       type: String,
       default: "",
@@ -128,7 +125,6 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
       minlength: 8,
     },
     verified: {
@@ -162,11 +158,10 @@ userSchema.methods.matchPassword = function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified) {
-    next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password") || !this.password) {
+    return;
   }
-
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });

@@ -9,18 +9,21 @@ import store from "./services/redux/store";
 import axios from "axios";
 import { ENDPOINT } from "./services/utilities";
 import "./index.css";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 axios.defaults.baseURL = `${ENDPOINT}/api`;
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter>
-      <Provider store={store}>
-        <TooltipProvider>
-          <Toaster position="top-center" richColors />
-          <App />
-        </TooltipProvider>
-      </Provider>
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <BrowserRouter>
+        <Provider store={store}>
+          <TooltipProvider>
+            <Toaster position="top-center" richColors />
+            <App />
+          </TooltipProvider>
+        </Provider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   </StrictMode>,
 );

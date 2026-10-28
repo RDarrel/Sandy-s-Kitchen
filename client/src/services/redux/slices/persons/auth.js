@@ -26,21 +26,32 @@ const initialState = {
   progressBar: -1,
   isSuccess: false,
   isLoading: false,
+  isLoadingSignin: false,
+  isLoadingSigninWithGoogle: false,
   message: "",
 };
 
-export const LOGIN = createAsyncThunk(`${name}/login`, (form, thunkAPI) => {
-  try {
-    return axioKit.login(form.email, form.password);
-  } catch (error) {
-    const message =
-      (error.response && error.response.data && error.response.data.message) ||
-      error.message ||
-      error.toString();
+export const LOGIN = createAsyncThunk(
+  `${name}/login`,
+  async (form, { rejectWithValue }) => {
+    try {
+      return await axioKit.login(form.email, form.password);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
 
-    return thunkAPI.rejectWithValue(message);
-  }
-});
+export const SIGNIN_WITH_GOOGLE = createAsyncThunk(
+  `${name}/google-signin`,
+  async (code, { rejectWithValue }) => {
+    try {
+      return await axioKit.signinWithGoogle(code);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
 
 export const LOGOUT = createAsyncThunk(`${name}/logout`, (thunkAPI) => {
   try {
@@ -170,7 +181,7 @@ export const reduxSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(LOGIN.pending, (state) => {
-        state.isLoading = true;
+        state.isLoadingSignin = true;
         state.isSuccess = false;
         state.message = "";
       })
@@ -183,14 +194,34 @@ export const reduxSlice = createSlice({
         state.id = user._id;
         state.message = success;
         state.isSuccess = true;
-        state.isLoading = false;
+        state.isLoadingSignin = false;
       })
       .addCase(LOGIN.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
-        state.isLoading = false;
+        state.isLoadingSignin = false;
       })
-
+      .addCase(SIGNIN_WITH_GOOGLE.pending, (state) => {
+        state.isLoadingSigninWithGoogle = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(SIGNIN_WITH_GOOGLE.fulfilled, (state, action) => {
+        const { success, payload } = action.payload;
+        const { token, user } = payload;
+        state.token = token;
+        state.email = user.email;
+        state.auth = user;
+        state.id = user._id;
+        state.message = success;
+        state.isSuccess = true;
+        state.isLoadingSigninWithGoogle = false;
+      })
+      .addCase(SIGNIN_WITH_GOOGLE.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingSigninWithGoogle = false;
+      })
       .addCase(SIGN_UP.pending, (state) => {
         state.isLoading = true;
         state.isSuccess = false;
