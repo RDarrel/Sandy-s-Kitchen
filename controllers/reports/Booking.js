@@ -39,6 +39,6 @@ exports.analytics = async (req, res) => {
     res.json({ data: result });
   } catch (error) {
     console.log("error", error.message);
-    res.status(500).json({ error: "Failed to fetch sales report." });
+    res.status(error.status || 500).json({ error: error.status === 400 ? error.message : "Failed to fetch booking analytics." });
   }
 };

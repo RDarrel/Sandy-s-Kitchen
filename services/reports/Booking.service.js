@@ -682,8 +682,350 @@ const getSalesReport = async ({ startDate, endDate }) => {
 };
 
 const getAnalytics = async ({ startDate, endDate }) => {
-  const start = dateToUTC({ date: startDate, dateOnly: true });
-  const end = dateToUTC({ date: endDate, dateOnly: true, endOfDay: true });
+  const start = dateToUTC({
+    date: startDate,
+    dateOnly: true,
+  });
+
+  const end = dateToUTC({
+    date: endDate,
+    dateOnly: true,
+    endOfDay: true,
+  });
+
+  if (!start || !end || start > end) {
+    const error = new Error("A valid startDate and endDate are required.");
+    error.status = 400;
+    throw error;
+  }
+
+  // IMPORTANT:
+  // Replace these with the actual pricing paths
+  // from your Booking schema.
+  //
+  // These must represent the individual package
+  // and venue amounts, NOT the entire booking total.
+  const PACKAGE_VALUE_PATH = "$pricing.catering.total";
+  const VENUE_VALUE_PATH = "$pricing.venue.total";
+
+  // Group and limit before joining names:
+  // only the five ranked records need lookups.
+  const ranking = (
+    field,
+    collection,
+    fallback,
+    extra = [],
+    valueField = "$value",
+  ) => [
+    {
+      $match: {
+        [field]: { $ne: null },
+      },
+    },
+    {
+      $group: {
+        _id: `$${field}`,
+        bookings: { $sum: 1 },
+
+        // Each ranking can use its own value source.
+        value: {
+          $sum: {
+            $ifNull: [valueField, 0],
+          },
+        },
+
+        contactName: {
+          $first: "$contact.name",
+        },
+      },
+    },
+    {
+      $sort: {
+        bookings: -1,
+        value: -1,
+        _id: 1,
+      },
+    },
+    {
+      $limit: 5,
+    },
+    {
+      $lookup: {
+        from: collection,
+        localField: "_id",
+        foreignField: "_id",
+        as: "item",
+        pipeline: [
+          {
+            $project:
+              collection === "users"
+                ? { fullName: 1 }
+                : { name: 1, category: 1 },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: {
+        path: "$item",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    ...extra,
+    {
+      $project: {
+        _id: 1,
+        bookings: 1,
+        value: 1,
+
+        name:
+          collection === "users"
+            ? {
+                $ifNull: [
+                  "$item.fullName",
+                  {
+                    $ifNull: ["$contactName", fallback],
+                  },
+                ],
+              }
+            : {
+                $ifNull: ["$item.name", fallback],
+              },
+
+        ...(collection === "menus" && {
+          category: {
+            $ifNull: ["$category.name", "Uncategorized"],
+          },
+        }),
+      },
+    },
+  ];
+
+  const inPeriod = (field) => ({
+    $and: [{ $gte: [field, start] }, { $lte: [field, end] }],
+  });
+
+  const [result] = await Booking.aggregate([
+    {
+      $match: {
+        status: {
+          $in: ["confirmed", "setup", "completed"],
+        },
+
+        deletedAt: null,
+
+        $or: [
+          {
+            "catering.schedule.startAt": {
+              $gte: start,
+              $lte: end,
+            },
+          },
+          {
+            "venue.schedule.startAt": {
+              $gte: start,
+              $lte: end,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $project: {
+        "catering.item": 1,
+        "venue.item": 1,
+        customer: 1,
+        "contact.name": 1,
+
+        "catering.mainDishes.menu": 1,
+        "catering.sideDishes.menu": 1,
+
+        // Entire booking value:
+        // Used by summary, trends, dishes,
+        // and customers as before.
+        value: {
+          $ifNull: ["$pricing.total", 0],
+        },
+
+        // Individual package value only.
+        packageValue: {
+          $ifNull: [PACKAGE_VALUE_PATH, 0],
+        },
+
+        // Individual venue value only.
+        venueValue: {
+          $ifNull: [VENUE_VALUE_PATH, 0],
+        },
+
+        // Count a combined booking once,
+        // using its earliest schedule inside
+        // the selected date range.
+        eventDate: {
+          $cond: [
+            inPeriod("$catering.schedule.startAt"),
+            {
+              $cond: [
+                inPeriod("$venue.schedule.startAt"),
+                {
+                  $min: [
+                    "$catering.schedule.startAt",
+                    "$venue.schedule.startAt",
+                  ],
+                },
+                "$catering.schedule.startAt",
+              ],
+            },
+            "$venue.schedule.startAt",
+          ],
+        },
+      },
+    },
+    {
+      $facet: {
+        summary: [
+          {
+            $group: {
+              _id: null,
+
+              totalBookings: {
+                $sum: 1,
+              },
+
+              totalBookingValue: {
+                $sum: "$value",
+              },
+
+              averageBookingValue: {
+                $avg: "$value",
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+            },
+          },
+        ],
+
+        trends: [
+          {
+            $group: {
+              _id: {
+                $dateTrunc: {
+                  date: "$eventDate",
+                  unit: "month",
+                  timezone: "Asia/Manila",
+                },
+              },
+
+              bookings: {
+                $sum: 1,
+              },
+
+              value: {
+                $sum: "$value",
+              },
+            },
+          },
+          {
+            $sort: {
+              _id: 1,
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              date: "$_id",
+              bookings: 1,
+              value: 1,
+            },
+          },
+        ],
+
+        // Only package amounts are summed.
+        packages: ranking(
+          "catering.item",
+          "cateringpackages",
+          "Unknown package",
+          [],
+          "$packageValue",
+        ),
+
+        // Only venue amounts are summed.
+        venues: ranking(
+          "venue.item",
+          "venues",
+          "Unknown venue",
+          [],
+          "$venueValue",
+        ),
+
+        dishes: [
+          // A dish appearing in both lists
+          // still counts only once per booking.
+          {
+            $set: {
+              dish: {
+                $setUnion: [
+                  {
+                    $ifNull: ["$catering.mainDishes.menu", []],
+                  },
+                  {
+                    $ifNull: ["$catering.sideDishes.menu", []],
+                  },
+                ],
+              },
+            },
+          },
+          {
+            $unwind: "$dish",
+          },
+          ...ranking("dish", "menus", "Unknown dish", [
+            {
+              $lookup: {
+                from: "menucategories",
+                localField: "item.category",
+                foreignField: "_id",
+                as: "category",
+              },
+            },
+            {
+              $unwind: {
+                path: "$category",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ]),
+        ],
+
+        customers: ranking("customer", "users", "Unknown customer"),
+      },
+    },
+  ]);
+
+  const summary = result?.summary?.[0] || {
+    totalBookings: 0,
+    totalBookingValue: 0,
+    averageBookingValue: 0,
+  };
+
+  const rankings = {};
+
+  for (const key of ["packages", "venues", "dishes", "customers"]) {
+    rankings[key] = (result?.[key] || []).map((row) => ({
+      ...row,
+
+      percentage: summary.totalBookings
+        ? (row.bookings / summary.totalBookings) * 100
+        : 0,
+    }));
+  }
+
+  return {
+    summary,
+    trends: result?.trends || [],
+    ...rankings,
+  };
 };
 
 module.exports = {

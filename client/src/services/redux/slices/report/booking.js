@@ -15,6 +15,7 @@ const initialState = {
     customers: [],
   },
   formSubmitted: false,
+  analyticsRequestId: null,
   isSuccess: false,
   isLoading: false,
   message: "",
@@ -58,9 +59,9 @@ export const GET_SALES_REPORT = createAsyncThunk(
 
 export const GET_ANALYTICS = createAsyncThunk(
   `${url}/analytics`,
-  (query, thunkAPI) => {
+  async (query, thunkAPI) => {
     try {
-      return axioKit.universal(`${url}/analytics`, query);
+      return await axioKit.universal(`${url}/analytics`, query, thunkAPI.signal);
     } catch (error) {
       const message =
         (error.response &&
@@ -109,19 +110,25 @@ export const reduxSlice = createSlice({
         state.message = error.message;
         state.isLoading = false;
       })
-      .addCase(GET_ANALYTICS.pending, (state) => {
+      .addCase(GET_ANALYTICS.pending, (state, action) => {
+        state.analyticsRequestId = action.meta.requestId;
+        state.analytics = initialState.analytics;
         state.isLoading = true;
         state.isSuccess = false;
         state.message = "";
       })
       .addCase(GET_ANALYTICS.fulfilled, (state, action) => {
+        if (state.analyticsRequestId !== action.meta.requestId) return;
         const { data } = action.payload;
         state.analytics = data;
+        state.analyticsRequestId = null;
         state.isLoading = false;
       })
       .addCase(GET_ANALYTICS.rejected, (state, action) => {
+        if (state.analyticsRequestId !== action.meta.requestId) return;
         const { error } = action;
-        state.message = error.message;
+        state.message = action.meta.aborted ? "" : action.payload || error.message;
+        state.analyticsRequestId = null;
         state.isLoading = false;
       });
   },
