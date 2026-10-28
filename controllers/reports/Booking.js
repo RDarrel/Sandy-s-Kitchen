@@ -28,3 +28,17 @@ exports.salesReport = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch sales report." });
   }
 };
+
+exports.analytics = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const result = await BookingReportService.getAnalytics({
+      startDate,
+      endDate,
+    });
+    res.json({ data: result });
+  } catch (error) {
+    console.log("error", error.message);
+    res.status(500).json({ error: "Failed to fetch sales report." });
+  }
+};

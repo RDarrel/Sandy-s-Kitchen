@@ -681,7 +681,13 @@ const getSalesReport = async ({ startDate, endDate }) => {
   };
 };
 
+const getAnalytics = async ({ startDate, endDate }) => {
+  const start = dateToUTC({ date: startDate, dateOnly: true });
+  const end = dateToUTC({ date: endDate, dateOnly: true, endOfDay: true });
+};
+
 module.exports = {
   getPaymentReport,
   getSalesReport,
+  getAnalytics,
 };

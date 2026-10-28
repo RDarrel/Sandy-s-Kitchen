@@ -32,33 +32,33 @@ const Summary = ({ data }) => (
     <Metric
       title="Total Bookings"
       value={data.total}
-      detail="Bookings in the selected period"
-      description="Monthly booking activity"
+      detail="Bookings within the selected period"
+      description="Confirmed, setup & completed"
       icon={CalendarDays}
       featured
     />
     <Metric
       title="Total Booking Value"
       value={money(data.value)}
-      detail="Combined event value"
-      description={`${money(Math.round(data.value / data.total))} average per booking`}
+      detail="Combined value of bookings"
+      description={`${money(data.total ? Math.round(data.value / data.total) : 0)} average per booking`}
       icon={Wallet}
     />
     <Metric
-      title="Most Booked Package"
-      value={data.packages[0].name}
+      title="Most-Booked Package"
+      value={data.packages[0]?.name ?? "No bookings"}
       truncateValue
       detail="Top package in the selected period"
-      description={`${data.packages[0].bookings} bookings · ${data.packages[0].percentage.toFixed(1)}% of total bookings`}
+      description={`${data.packages[0]?.bookings ?? 0} bookings · ${(data.packages[0]?.percentage ?? 0).toFixed(1)}% of total bookings`}
       icon={Package}
       gold
     />
     <Metric
-      title="Most Booked Venue"
-      value={data.venues[0].name}
+      title="Most-Booked Venue"
+      value={data.venues[0]?.name ?? "No bookings"}
       truncateValue
       detail="Top venue in the selected period"
-      description={`${data.venues[0].bookings} bookings · ${data.venues[0].percentage.toFixed(1)}% of total bookings`}
+      description={`${data.venues[0]?.bookings ?? 0} bookings · ${(data.venues[0]?.percentage ?? 0).toFixed(1)}% of total bookings`}
       icon={MapPin}
       gold
     />

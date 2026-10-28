@@ -31,7 +31,7 @@ const BookingChart = ({ data, metric }) => {
       <ChartContainer
         config={chartConfig}
         className="h-[240px] w-full aspect-auto sm:h-[260px]"
-        aria-label={`Monthly ${chartConfig[metric].label.toLowerCase()}`}
+        aria-label={`${chartConfig[metric].label} over the selected period`}
       >
         <BarChart
           accessibilityLayer
@@ -66,7 +66,7 @@ const BookingChart = ({ data, metric }) => {
             cursor={false}
             content={
               <ChartTooltipContent
-                labelFormatter={(label) => `${label} 2026`}
+                labelFormatter={(label, payload) => payload?.[0]?.payload?.tooltipLabel ?? label}
                 formatter={(value) => (
                   <div className="flex w-full items-center justify-between gap-4">
                     <span className="flex items-center gap-2 text-muted-foreground">

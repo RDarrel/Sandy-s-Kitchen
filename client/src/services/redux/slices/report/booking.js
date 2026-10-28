@@ -6,6 +6,14 @@ const url = "reports/booking";
 const initialState = {
   paymentReport: { summary: {}, payments: [] },
   salesReport: { summary: {}, bookings: [] },
+  analytics: {
+    summary: {},
+    trends: [],
+    packages: [],
+    venues: [],
+    dishes: [],
+    customers: [],
+  },
   formSubmitted: false,
   isSuccess: false,
   isLoading: false,
@@ -35,6 +43,24 @@ export const GET_SALES_REPORT = createAsyncThunk(
   (query, thunkAPI) => {
     try {
       return axioKit.universal(`${url}/sales`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+export const GET_ANALYTICS = createAsyncThunk(
+  `${url}/analytics`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/analytics`, query);
     } catch (error) {
       const message =
         (error.response &&
@@ -79,6 +105,21 @@ export const reduxSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(GET_SALES_REPORT.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoading = false;
+      })
+      .addCase(GET_ANALYTICS.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(GET_ANALYTICS.fulfilled, (state, action) => {
+        const { data } = action.payload;
+        state.analytics = data;
+        state.isLoading = false;
+      })
+      .addCase(GET_ANALYTICS.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
         state.isLoading = false;

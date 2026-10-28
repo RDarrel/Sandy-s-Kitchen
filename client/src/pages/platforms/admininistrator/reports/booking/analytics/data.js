@@ -1,9 +1,4 @@
-export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"];
-export const PERIODS = {
-  ytd: { label: "Jan – Oct 2026", months: MONTHS.map((_, i) => i) },
-  q3: { label: "Jul – Sep 2026", months: [6, 7, 8] },
-  october: { label: "October 2026", months: [9] },
-};
+import { eachMonthOfInterval, endOfDay, format, isSameMonth, isSameYear, startOfDay } from "date-fns";
 const packages = ["Classic Celebration Premium Catering Package for Weddings and Grand Events", "Family Favorites", "Grand Feast", "Intimate Gathering", "Custom Package", "Fiesta Buffet"];
 const venues = ["Main Hall", "Garden Area", "Function Room", "Private Room", "Outdoor Pavilion", "Poolside"];
 const dishes = ["Chicken Adobo", "Pork Caldereta", "Pancit Canton", "Lumpiang Shanghai", "Chicken Teriyaki", "Beef Broccoli", "Leche Flan"];
@@ -15,6 +10,7 @@ const weights = [0, 0, 0, 1, 1, 2, 2, 3, 4, 5];
 const bookings = [12, 18, 15, 22, 28, 24, 20, 26, 34, 27].flatMap((count, month) =>
   Array.from({ length: count }, (_, index) => ({
     month,
+    date: new Date(2026, month, 1 + index % new Date(2026, month + 1, 0).getDate()),
     packages: packages[weights[(index + month * 3) % 10]],
     venues: venues[weights[(index * 3 + month) % 10]],
     customers: customers[(index * 5 + month * 2) % customers.length],
@@ -25,9 +21,11 @@ const bookings = [12, 18, 15, 22, 28, 24, 20, 26, 34, 27].flatMap((count, month)
 export const money = (value) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(value);
 export const compactMoney = (value) => `₱${new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value)}`;
 
-export function getAnalytics(period) {
-  const months = PERIODS[period].months;
-  const records = bookings.filter((item) => months.includes(item.month));
+export function getAnalytics(range) {
+  const from = startOfDay(range.from);
+  const to = endOfDay(range.to);
+  const months = eachMonthOfInterval({ start: from, end: to });
+  const records = bookings.filter((item) => item.date >= from && item.date <= to);
   const rank = (field) => {
     const groups = new Map();
     records.forEach((record) => {
@@ -43,7 +41,7 @@ export function getAnalytics(period) {
   return {
     total: records.length,
     value: records.reduce((sum, item) => sum + item.value, 0),
-    monthly: months.map((month) => ({ month: MONTHS[month], bookings: records.filter((item) => item.month === month).length, value: records.filter((item) => item.month === month).reduce((sum, item) => sum + item.value, 0) })),
+    monthly: months.map((month) => ({ month: format(month, isSameYear(from, to) ? "MMM" : "MMM yyyy"), year: month.getFullYear(), bookings: records.filter((item) => isSameMonth(item.date, month)).length, value: records.filter((item) => isSameMonth(item.date, month)).reduce((sum, item) => sum + item.value, 0) })),
     packages: rank("packages"), venues: rank("venues"), dishes: rank("dishes"), customers: rank("customers"),
   };
 }
