@@ -14,7 +14,9 @@ const getPaymentReport = async ({
     monthly: "month",
     yearly: "year",
   };
+
   const unit = Object.hasOwn(units, frequency) ? units[frequency] : "day";
+
   const start = dateToUTC({
     date: startDate,
     dateOnly: true,
@@ -26,16 +28,27 @@ const getPaymentReport = async ({
     endOfDay: true,
   });
 
+  if (
+    !start ||
+    !end ||
+    Number.isNaN(new Date(start).getTime()) ||
+    Number.isNaN(new Date(end).getTime()) ||
+    new Date(start).getTime() > new Date(end).getTime()
+  ) {
+    const error = new Error("A valid startDate and endDate are required.");
+    error.status = 400;
+    throw error;
+  }
+
+  const dateFilter = {
+    $gte: start,
+    $lte: end,
+  };
+
   const [result] = await Payment.aggregate([
     {
       $match: {
-        ...(start &&
-          end && {
-            createdAt: {
-              $gte: start,
-              $lte: end,
-            },
-          }),
+        createdAt: dateFilter,
         status: {
           $in: ["pending", "verified", "voided"],
         },
@@ -84,7 +97,9 @@ const getPaymentReport = async ({
                 },
               },
 
-              totalPayments: { $sum: 1 },
+              totalPayments: {
+                $sum: 1,
+              },
             },
           },
           {
@@ -111,6 +126,7 @@ const getPaymentReport = async ({
           {
             $sort: {
               createdAt: -1,
+              _id: -1,
             },
           },
           {
@@ -156,7 +172,13 @@ const getPaymentReport = async ({
               from: "users",
               localField: "booking.customer",
               foreignField: "_id",
-              pipeline: [{ $project: { fullName: 1 } }],
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                  },
+                },
+              ],
               as: "booking.customer",
             },
           },
@@ -171,7 +193,14 @@ const getPaymentReport = async ({
               from: "paymentmethods",
               localField: "method",
               foreignField: "_id",
-              pipeline: [{ $project: { name: 1, type: 1 } }],
+              pipeline: [
+                {
+                  $project: {
+                    name: 1,
+                    type: 1,
+                  },
+                },
+              ],
               as: "method",
             },
           },
@@ -186,7 +215,13 @@ const getPaymentReport = async ({
               from: "users",
               localField: "reviewedBy",
               foreignField: "_id",
-              pipeline: [{ $project: { fullName: 1 } }],
+              pipeline: [
+                {
+                  $project: {
+                    fullName: 1,
+                  },
+                },
+              ],
               as: "reviewedBy",
             },
           },
@@ -204,14 +239,18 @@ const getPaymentReport = async ({
   const [refundResult] = await Booking.aggregate([
     {
       $match: {
-        "cancellation.refund.status": { $in: ["pending", "completed"] },
+        "cancellation.refund.status": {
+          $in: ["pending", "completed"],
+        },
       },
     },
     {
       $addFields: {
         transactionDate: {
           $cond: [
-            { $eq: ["$cancellation.refund.status", "completed"] },
+            {
+              $eq: ["$cancellation.refund.status", "completed"],
+            },
             "$cancellation.refund.refundedAt",
             {
               $ifNull: [
@@ -225,20 +264,17 @@ const getPaymentReport = async ({
     },
     {
       $match: {
-        ...(start &&
-          end && {
-            transactionDate: {
-              $gte: start,
-              $lte: end,
-            },
-          }),
+        transactionDate: dateFilter,
       },
     },
-
     {
       $facet: {
         summary: [
-          { $match: { "cancellation.refund.status": "completed" } },
+          {
+            $match: {
+              "cancellation.refund.status": "completed",
+            },
+          },
           {
             $group: {
               _id: null,
@@ -254,7 +290,6 @@ const getPaymentReport = async ({
               },
             },
           },
-
           {
             $project: {
               _id: 0,
@@ -269,7 +304,6 @@ const getPaymentReport = async ({
               _id: -1,
             },
           },
-
           {
             $lookup: {
               from: "users",
@@ -285,14 +319,12 @@ const getPaymentReport = async ({
               as: "customer",
             },
           },
-
           {
             $unwind: {
               path: "$customer",
               preserveNullAndEmptyArrays: true,
             },
           },
-
           {
             $project: {
               reference: 1,
@@ -309,6 +341,7 @@ const getPaymentReport = async ({
     },
   ]);
 
+  // Keep the original populated refund fields.
   const refunds = await Booking.populate(refundResult?.refunds || [], [
     {
       path: "customer",
@@ -332,9 +365,10 @@ const getPaymentReport = async ({
     totalRefundedAmount: 0,
   };
 
-  const formattedRefunds = refunds?.map((res) => {
+  const formattedRefunds = refunds.map((res) => {
     const { cancellation } = res;
     const { refund } = cancellation;
+
     return {
       booking: {
         _id: res?._id,
@@ -353,45 +387,88 @@ const getPaymentReport = async ({
     };
   });
 
-  const payments = [
-    ...(result?.payments ?? []),
-    ...(formattedRefunds ?? []),
-  ].sort((a, b) => {
-    const dateDifference =
-      (new Date(b.createdAt).getTime() || 0) -
-      (new Date(a.createdAt).getTime() || 0);
-    if (dateDifference) return dateDifference;
-    const aKey = `${a.transactionType || "payment"}:${a._id || a.booking?._id || ""}`;
-    const bKey = `${b.transactionType || "payment"}:${b._id || b.booking?._id || ""}`;
-    return bKey.localeCompare(aKey);
-  });
+  // Merge payments and refunds without combining
+  // individual transaction records.
+  const payments = [...(result?.payments ?? []), ...formattedRefunds].sort(
+    (a, b) => {
+      const aTime = new Date(a.createdAt).getTime();
+      const bTime = new Date(b.createdAt).getTime();
 
-  // Group after merging so payments and refunds share the same Manila periods.
-  // Luxon's week starts on Monday, matching POS Sales' $dateTrunc settings.
+      const dateDifference =
+        (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
+
+      if (dateDifference) {
+        return dateDifference;
+      }
+
+      const aKey = `${
+        a.transactionType || "payment"
+      }:${a._id || a.booking?._id || ""}`;
+
+      const bKey = `${
+        b.transactionType || "payment"
+      }:${b._id || b.booking?._id || ""}`;
+
+      return bKey.localeCompare(aKey);
+    },
+  );
+
+  // Group transactions by Manila date/week/month/year.
   const groups = new Map();
+
   for (const payment of payments) {
     const timestamp = new Date(payment.createdAt);
-    const period = Number.isNaN(timestamp.getTime())
-      ? null
-      : DateTime.fromJSDate(timestamp, { zone: "Asia/Manila" })
-          .startOf(unit)
-          .toUTC()
-          .toISO();
-    if (!groups.has(period))
-      groups.set(period, { date: period, items: [], totalAmount: 0 });
+
+    // Skip records with invalid transaction dates.
+    if (Number.isNaN(timestamp.getTime())) {
+      continue;
+    }
+
+    const periodDate = DateTime.fromJSDate(timestamp, {
+      zone: "Asia/Manila",
+    }).startOf(unit);
+
+    if (!periodDate.isValid) {
+      continue;
+    }
+
+    const period = periodDate.toUTC().toISO();
+
+    if (!groups.has(period)) {
+      groups.set(period, {
+        date: period,
+        items: [],
+        totalAmount: 0,
+      });
+    }
+
     const group = groups.get(period);
 
+    // Always retain the original individual transaction.
     group.items.push(payment);
 
-    // Only count verified payments
-    if (payment.transactionType !== "refund" && payment.status === "verified") {
-      group.totalAmount += payment.amount ?? 0;
+    const amount = Number(payment.amount ?? 0);
+
+    if (payment.transactionType === "refund") {
+      // Completed refunds reduce Net Collections.
+      if (payment.status === "completed") {
+        group.totalAmount -= amount;
+      }
+    } else if (payment.status === "verified") {
+      // Only verified payments increase Net Collections.
+      group.totalAmount += amount;
     }
   }
+
   const paymentBreakdown = [...groups.values()].sort(
-    (a, b) =>
-      (new Date(b.date).getTime() || 0) - (new Date(a.date).getTime() || 0),
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
+
+  const paymentSummary = result?.summary?.[0] || {};
+
+  const totalCollected = paymentSummary.totalCollected ?? 0;
+
+  const totalRefundedAmount = refundSummary.totalRefundedAmount ?? 0;
 
   return {
     summary: {
@@ -403,9 +480,13 @@ const getPaymentReport = async ({
       voidedAmount: 0,
       totalPayments: 0,
       averagePayment: 0,
-      ...(result?.summary?.[0] || {}),
+
+      ...paymentSummary,
       ...refundSummary,
+
+      netCollections: totalCollected - totalRefundedAmount,
     },
+
     payments: paymentBreakdown,
   };
 };
