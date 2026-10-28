@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { isValid } from "date-fns";
 import banner from "@/assets/banner.png";
@@ -60,6 +61,10 @@ const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
     },
   });
   worksheet.views = [{ showGridLines: false }];
+  worksheet.properties.defaultColWidth = 9;
+  for (let column = 1; column <= 14; column++) worksheet.getColumn(column).width = 9;
+  // Content ends at N; keep a small print gutter before the hidden columns.
+  worksheet.getColumn("O").width = 0.5;
   await addBanner(workbook, worksheet);
 
   // Align the report header with the table's last column (N).
@@ -229,9 +234,18 @@ const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
     cell.alignment = { vertical: "middle", horizontal: "left" };
   });
 
-  worksheet.pageSetup.printArea = `A1:N${footerRow + 1}`;
+  worksheet.pageSetup.printArea = `A1:O${footerRow + 1}`;
 
-  const buffer = await workbook.xlsx.writeBuffer();
+  const zip = await JSZip.loadAsync(await workbook.xlsx.writeBuffer());
+  const sheetPath = "xl/worksheets/sheet1.xml";
+  const document = new DOMParser().parseFromString(await zip.file(sheetPath).async("string"), "application/xml");
+  const namespace = document.documentElement.namespaceURI;
+  const columnDefinitions = document.getElementsByTagNameNS(namespace, "cols")[0];
+  const hidden = document.createElementNS(namespace, "col");
+  Object.entries({ min: 16, max: 16384, hidden: 1, width: 9, customWidth: 1 }).forEach(([key, value]) => hidden.setAttribute(key, value));
+  columnDefinitions.appendChild(hidden);
+  zip.file(sheetPath, new XMLSerializer().serializeToString(document));
+  const buffer = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
   saveAs(
     new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

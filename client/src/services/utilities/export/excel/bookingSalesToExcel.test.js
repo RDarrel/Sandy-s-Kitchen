@@ -26,6 +26,11 @@ it.each(["all", "confirmed", "setup", "completed"])("keeps the report-period sum
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(Buffer.from(await saveAs.mock.calls[0][0].arrayBuffer()));
   const sheet = workbook.getWorksheet("Booking Sales");
+  expect(sheet.getColumn("N").hidden).not.toBe(true);
+  expect(sheet.getColumn("O").width).toBe(0.5);
+  expect(sheet.getColumn("P").hidden).toBe(true);
+  expect(sheet.pageSetup.printArea).toMatch(/^A1:O\d+$/);
+  expect(sheet.getImages()[0].range.br.nativeCol).toBe(14);
   expect(sheet.getCell("A7").value.richText[1].text).toBe(format.peso(60000));
   expect(sheet.getCell("F7").value.richText[1].text).toBe(format.peso(48000));
   expect(sheet.getCell("K7").value.richText[1].text).toBe(format.peso(12000));
