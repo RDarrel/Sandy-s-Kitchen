@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell } from "@/components/ui/table";
-import { Formatter, fullName } from "@/services/utilities";
+import { Formatter } from "@/services/utilities";
 import { Eye } from "lucide-react";
 
 const STATUS_STYLES = {
@@ -28,16 +28,16 @@ const Payment = ({
       : "";
   return (
     <TableRow>
-      <TableCell className="py-3 text-xs">
+      <TableCell className="border border-border py-3 text-xs">
         <p className="font-medium">
           {payment.booking?.reference || "Unavailable"}
         </p>
         <p className="mt-1 text-muted-foreground">{getCustomerName(payment)}</p>
       </TableCell>
-      <TableCell className="whitespace-nowrap py-3 text-xs font-medium">
+      <TableCell className="border border-border whitespace-nowrap py-3 text-xs font-medium">
         {isRefund ? "Refund" : "Payment"}
       </TableCell>
-      <TableCell className="py-3 text-xs">
+      <TableCell className="border border-border py-3 text-xs">
         <p className="font-medium capitalize">
           {payment.method?.name || "Unavailable"}
         </p>
@@ -57,7 +57,7 @@ const Payment = ({
             : "Not yet reviewed"}
         </p>
       </TableCell> */}
-      <TableCell>
+      <TableCell className="border border-border">
         <Badge
           variant="outline"
           className={`capitalize ${STATUS_STYLES[payment.status] || ""}`}
@@ -65,11 +65,11 @@ const Payment = ({
           {payment.status || "Unknown"}
         </Badge>
       </TableCell>
-      <TableCell className=" font-medium tabular-nums">
+      <TableCell className="border border-border text-left font-medium tabular-nums">
         {amountPrefix}
         {Formatter.amount(payment.amount)}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="border border-border text-right">
         <Button
           type="button"
           variant="ghost"

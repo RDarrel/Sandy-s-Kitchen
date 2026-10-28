@@ -1,5 +1,6 @@
 import DatePicker from "@/components/shared/datePicker";
 import CustomPagination from "@/components/shared/pagination";
+import ListingSkeleton from "./listingSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -23,7 +24,6 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { GET_SALES_REPORT } from "@/services/redux/slices/report/pos";
@@ -108,6 +108,19 @@ const Sales = () => {
           date: group.date,
           weekNumber: salesBreakdown.length - index,
         })),
+      ),
+    [salesBreakdown],
+  );
+  const groupTotals = useMemo(
+    () =>
+      new Map(
+        salesBreakdown.map((group) => [
+          group.date,
+          (group.items || []).reduce(
+            (total, item) => total + Number(item.amount ?? 0),
+            0,
+          ),
+        ]),
       ),
     [salesBreakdown],
   );
@@ -283,53 +296,44 @@ const Sales = () => {
                 <SummaryCard key={card.title} {...card} isLoading={isLoading} />
               ))}
             </div>
-            <div className="overflow-hidden rounded-lg border">
+            <div className="overflow-hidden rounded-sm border border-border [&_tr>*:first-child]:border-l-0 [&_tr>*:last-child]:border-r-0 [&_tr:first-child>*]:border-t-0 [&_tr:last-child>*]:border-b-0">
               <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40">
-                    <TableHead className="min-w-[180px]">Menu</TableHead>
-                    <TableHead className="text-right">Quantity</TableHead>
-                    <TableHead className="whitespace-nowrap text-right">
-                      Total Sales
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-right">
-                      Total Cost
-                    </TableHead>
-                    <TableHead className="whitespace-nowrap text-right">
-                      Gross Profit
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
                 <TableBody>
-                  {isLoading || salesRows.length === 0 ? (
-                    <TableRow>
+                  {isLoading ? (
+                    <ListingSkeleton />
+                  ) : salesRows.length === 0 ? (
+                    <TableRow className="hover:bg-transparent">
                       <TableCell
                         colSpan={5}
-                        className="h-32 text-center text-muted-foreground"
+                        className="h-64 whitespace-normal text-center"
                       >
                         <div
                           role="status"
-                          className="flex items-center justify-center gap-2"
+                          className="flex flex-col items-center justify-center gap-2 px-4 py-8"
                         >
-                          {isLoading && (
-                            <Loader2
+                          <div className="mb-2 rounded-full bg-muted p-3 text-muted-foreground">
+                            <ShoppingBag
                               aria-hidden="true"
-                              className="size-4 animate-spin"
+                              className="size-6"
                             />
-                          )}
-                          {isLoading
-                            ? "Loading sales…"
-                            : "No sales found for this period."}
+                          </div>
+                          <p className="text-sm font-semibold text-foreground">
+                            No sales found
+                          </p>
+                          <p className="max-w-sm text-sm text-muted-foreground">
+                            No POS sales were recorded within the selected
+                            report period. Try selecting another date range.
+                          </p>
                         </div>
                       </TableCell>
                     </TableRow>
                   ) : (
                     visibleGroups.map((group) => (
                       <Fragment key={group.date}>
-                        <TableRow className="bg-muted/40 hover:bg-muted/40">
+                        <TableRow className="bg-[#FAEAEA] text-[#8B2424] hover:bg-[#FAEAEA] border-l-4 border-l-primary dark:bg-primary/15 dark:text-foreground dark:hover:bg-primary/15">
                           <TableCell
-                            colSpan={5}
-                            className="py-3 text-sm font-semibold text-foreground"
+                            colSpan={3}
+                            className="border-y border-l border-border py-3 text-sm font-semibold"
                           >
                             {groupLabel(
                               group.date,
@@ -337,22 +341,54 @@ const Sales = () => {
                               group.weekNumber,
                             )}
                           </TableCell>
+                          <TableCell
+                            colSpan={2}
+                            className="border-y border-r border-border py-3 text-sm font-semibold"
+                          >
+                            <div className="text-right tabular-nums">
+                              {Formatter.amount(
+                                groupTotals.get(group.date) ?? 0,
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        <TableRow className="bg-background hover:bg-background">
+                          {[
+                            "Menu",
+                            "Qty",
+                            "Total Sales",
+                            "Total Cost",
+                            "Gross Profit",
+                          ].map((label, index) => (
+                            <TableHead
+                              key={label}
+                              scope="col"
+                              className={`border border-border text-left font-semibold text-foreground ${index === 0 ? "min-w-[180px]" : "whitespace-nowrap"}`}
+                            >
+                              {label}
+                            </TableHead>
+                          ))}
                         </TableRow>
                         {(group.items || []).map((item) => (
-                          <TableRow key={item._id || `${group.date}-${item.date}-${item.menu?._id}`}>
-                            <TableCell className="text-sm font-medium">
+                          <TableRow
+                            key={
+                              item._id ||
+                              `${group.date}-${item.date}-${item.menu?._id}`
+                            }
+                          >
+                            <TableCell className="border border-border text-sm font-medium">
                               {capitalize(item.menu?.name || "Unknown menu")}
                             </TableCell>
-                            <TableCell className="text-right tabular-nums">
+                            <TableCell className="border border-border text-left tabular-nums">
                               {item.quantity ?? 0}
                             </TableCell>
-                            <TableCell className="text-right text-sm tabular-nums">
+                            <TableCell className="border border-border text-left text-sm tabular-nums">
                               {Formatter.amount(Number(item.amount ?? 0))}
                             </TableCell>
-                            <TableCell className="text-right text-sm tabular-nums">
+                            <TableCell className="border border-border text-left text-sm tabular-nums">
                               {Formatter.amount(Number(item.totalCost ?? 0))}
                             </TableCell>
-                            <TableCell className="text-right text-sm font-semibold tabular-nums">
+                            <TableCell className="border border-border text-left text-sm font-semibold tabular-nums">
                               {Formatter.amount(
                                 Number(item.amount ?? 0) -
                                   Number(item.totalCost ?? 0),
@@ -366,7 +402,7 @@ const Sales = () => {
                 </TableBody>
               </Table>
             </div>
-            {!isLoading && (
+            {!isLoading && salesRows.length > 0 && (
               <div className="overflow-x-auto [&>div]:mt-0">
                 <CustomPagination
                   page={page}

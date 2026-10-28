@@ -11,7 +11,6 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Formatter, fullName } from "@/services/utilities";
@@ -169,22 +168,12 @@ const Payment = () => {
                 Export to Excel
               </Button>
             </Filter>
-            <div className="overflow-hidden rounded-lg border">
+            <div className="overflow-hidden rounded-sm border border-border [&_tr>*:first-child]:border-l-0 [&_tr>*:last-child]:border-r-0 [&_tr:first-child>*]:border-t-0 [&_tr:last-child>*]:border-b-0">
               <Table>
-                <TableHeader className="bg-muted/40">
-                  <TableRow>
-                    <TableHead>Booking</TableHead>
-                    <TableHead className="whitespace-nowrap">
-                      Transaction Type
-                    </TableHead>
-                    <TableHead>Method / Date</TableHead>
-                    {/* <TableHead>Reviewed By</TableHead> */}
-                    <TableHead>Status</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead className="w-16 text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
                 <TableBody>
+                  {(isLoading || filteredPayments.length === 0) && (
+                    <TransactionColumns />
+                  )}
                   {isLoading || filteredPayments.length === 0 ? (
                     <TableRow>
                       <TableCell
@@ -211,10 +200,10 @@ const Payment = () => {
                   ) : (
                     visibleGroups.map((group) => (
                       <Fragment key={group.date || "unknown"}>
-                        <TableRow className="bg-muted/40 hover:bg-muted/40">
+                        <TableRow className="bg-[#FAEAEA] text-[#8B2424] hover:bg-[#FAEAEA] border-l-4 border-l-primary dark:bg-primary/15 dark:text-foreground dark:hover:bg-primary/15">
                           <TableCell
                             colSpan={6}
-                            className="py-3 text-sm font-semibold text-foreground"
+                            className="border-y border-x border-border py-3 text-sm font-semibold"
                           >
                             <div className="flex items-center justify-between gap-4">
                               <span>{group.label}</span>
@@ -224,6 +213,7 @@ const Payment = () => {
                             </div>
                           </TableCell>
                         </TableRow>
+                        <TransactionColumns />
                         {group.items.map((payment, idx) => (
                           <PaymentItem
                             payment={payment}
@@ -277,3 +267,17 @@ const Payment = () => {
 };
 
 export default Payment;
+
+const TransactionColumns = () => (
+  <TableRow className="bg-background hover:bg-background">
+    {["Booking", "Transaction Type", "Method / Date", "Status", "Amount", "Action"].map((label, index) => (
+      <TableHead
+        key={label}
+        scope="col"
+        className={`border border-border font-semibold text-foreground ${index === 0 ? "min-w-[180px]" : "whitespace-nowrap"} ${label === "Action" ? "w-16 text-right" : "text-left"}`}
+      >
+        {label}
+      </TableHead>
+    ))}
+  </TableRow>
+);
