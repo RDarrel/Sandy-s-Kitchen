@@ -33,7 +33,7 @@ export const getPaymentSummary = (booking) => {
 
 export const sortPaymentMethods = (paymentMethods) => {
   return paymentMethods
-    .filter(({ isActive }) => isActive)
+    .filter(({ isActive, type }) => isActive && type !== "cash")
     .sort((firstMethod, secondMethod) => {
       if (firstMethod.type === secondMethod.type) return 0;
 
