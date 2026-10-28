@@ -82,6 +82,20 @@ const Payment = () => {
           );
         }),
       }))
+      .map((group) => ({
+        ...group,
+        totalAmount:
+          (transactionType === "all" || transactionType === "payment") &&
+          (statusFilter === "all" || statusFilter === "verified")
+            ? group.items.reduce((total, payment) => {
+                const amount = Number(payment.amount ?? 0);
+                if (payment.transactionType === "refund") {
+                  return payment.status === "completed" ? total - amount : total;
+                }
+                return payment.status === "verified" ? total + amount : total;
+              }, 0)
+            : 0,
+      }))
       .filter((group) => group.items.length);
   }, [report?.payments, frequency, search, statusFilter, transactionType]);
 
