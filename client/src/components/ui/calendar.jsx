@@ -8,6 +8,42 @@ import { DayPicker, getDefaultClassNames } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+function CalendarDropdown({ options, value, onChange, disabled, "aria-label": ariaLabel }) {
+  return (
+    <Select
+      value={String(value)}
+      disabled={disabled}
+      onValueChange={(nextValue) => onChange?.({ target: { value: nextValue } })}
+    >
+      <SelectTrigger
+        aria-label={ariaLabel}
+        size="sm"
+        className="h-7 gap-1 border-0 bg-transparent px-1 py-0 font-medium shadow-none dark:bg-transparent dark:hover:bg-transparent data-[size=sm]:h-7 [&_svg]:size-3"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent align="start">
+        {options?.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={String(option.value)}
+            disabled={option.disabled}
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 function Calendar({
   className,
@@ -41,8 +77,10 @@ function Calendar({
         ),
         caption_label: cn(
           "text-sm font-medium",
-          captionLayout !== "label" &&
-            "flex h-8 items-center gap-1 rounded-md px-2 [&>svg]:size-3.5",
+          captionLayout === "dropdown"
+            ? "flex h-7 items-center gap-1 px-1 [&>svg]:size-3 [&>svg]:text-muted-foreground"
+            : captionLayout !== "label" &&
+              "flex h-8 items-center gap-1 rounded-md px-2 [&>svg]:size-3.5",
           defaultClassNames.caption_label
         ),
         nav: cn(
@@ -60,11 +98,15 @@ function Calendar({
           defaultClassNames.button_next
         ),
         dropdowns: cn(
-          "flex h-9 items-center justify-center gap-1.5 text-sm font-medium",
+          "flex items-center justify-center text-sm font-medium",
+          captionLayout === "dropdown" ? "h-7 gap-1" : "h-9 gap-1.5",
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
-          "relative rounded-md border border-input bg-background shadow-xs",
+          "relative rounded-md",
+          captionLayout === "dropdown"
+            ? "border-0 bg-transparent shadow-none focus-within:ring-2 focus-within:ring-ring"
+            : "border border-input bg-background shadow-xs",
           defaultClassNames.dropdown_root
         ),
         dropdown: cn(
@@ -113,6 +155,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
+        ...(captionLayout === "dropdown" && { Dropdown: CalendarDropdown }),
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {
             return (

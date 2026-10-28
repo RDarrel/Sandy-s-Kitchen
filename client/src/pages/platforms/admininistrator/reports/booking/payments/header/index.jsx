@@ -5,7 +5,11 @@ import DatePicker from "@/components/shared/datePicker";
 import { useDispatch } from "react-redux";
 import { GET_PAYMENT_REPORT } from "@/services/redux/slices/report/booking";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 const Header = ({ setPage, date, setDate, frequency, setFrequency }) => {
@@ -31,11 +35,17 @@ const Header = ({ setPage, date, setDate, frequency, setFrequency }) => {
       </div>
       <div className="flex min-w-0 flex-col gap-3 sm:ml-auto sm:flex-row sm:items-end">
         <div className="space-y-1.5">
-          <p id="payment-report-frequency-label" className="text-xs font-medium text-muted-foreground">
+          <p
+            id="payment-report-frequency-label"
+            className="text-xs font-medium text-muted-foreground"
+          >
             Frequency
           </p>
           <Select value={frequency} onValueChange={setFrequency}>
-            <SelectTrigger aria-labelledby="payment-report-frequency-label" className="w-full sm:w-[140px]">
+            <SelectTrigger
+              aria-labelledby="payment-report-frequency-label"
+              className="w-full sm:w-[140px]"
+            >
               <SelectValue placeholder="Frequency" />
             </SelectTrigger>
             <SelectContent>
@@ -62,6 +72,7 @@ const Header = ({ setPage, date, setDate, frequency, setFrequency }) => {
             date={date}
             setDate={setDate}
             highlightToday={false}
+            captionLayout="dropdown"
           />
         </div>
       </div>

@@ -8,22 +8,30 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
+import { MonthsDropdown } from "react-day-picker";
 import {
   TimePicker,
   TimePickerColumns,
   TimePickerPanel,
 } from "@/components/reui/time-picker";
 import {
+  addMonths,
   addMinutes,
   endOfDay,
   isAfter,
   isBefore,
   isSameDay,
+  isSameMonth,
   isSameYear,
   startOfDay,
   startOfMinute,
+  startOfMonth,
 } from "date-fns";
 import { Formatter } from "@/services/utilities";
+
+function RangeMonthsDropdown({ options, ...props }) {
+  return <MonthsDropdown {...props} options={options?.filter((option) => !option.disabled)} />;
+}
 
 const roundUpTo15Minutes = (date) => {
   const normalized = startOfMinute(date);
@@ -109,6 +117,7 @@ const isTimeDisabled = (date, time, min, max) => {
 };
 const DatePicker = ({
   mode = "single",
+  captionLayout = "",
   date = new Date(),
   highlightToday = true,
   withTime = false,
@@ -121,9 +130,10 @@ const DatePicker = ({
   setDate = () => {},
 }) => {
   const [open, setOpen] = useState(false);
+  const [rangeMonths, setRangeMonths] = useState(null);
 
   useEffect(() => {
-    if (!open || !date) return;
+    if (!open || !date || mode === "range") return;
 
     const currentDate = startOfMinute(date);
 
@@ -135,9 +145,24 @@ const DatePicker = ({
     if (min && isBefore(currentDate, startOfMinute(min))) {
       setDate(roundUpTo15Minutes(min));
     }
-  }, [date, open, min, max, setDate]);
+  }, [date, open, min, max, setDate, mode]);
 
   const isRange = mode === "range";
+  const isDropdown = captionLayout === "dropdown";
+  const isDropdownRange = isRange && isDropdown;
+  const selectedMonth = (isRange ? date?.from : date) || new Date();
+  const firstMonth = isDropdown
+    ? startOfMonth(isBefore(selectedMonth, new Date(2025, 0, 1)) ? new Date(2025, 0, 1) : selectedMonth)
+    : selectedMonth;
+  const initialMonths = isDropdownRange
+    ? [
+        firstMonth,
+        isValidDate(date?.to) && isAfter(date.to, firstMonth) && !isSameMonth(firstMonth, date.to)
+          ? startOfMonth(date.to)
+          : addMonths(firstMonth, 1),
+      ]
+    : [firstMonth];
+  const calendarMonths = isDropdownRange && rangeMonths ? rangeMonths : initialMonths;
 
   const isSameDate = useMemo(() => {
     if (!hideCalendarOnSameDay) return false;
@@ -163,7 +188,10 @@ const DatePicker = ({
           className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
         />
       )}
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={(nextOpen) => {
+        if (nextOpen && isDropdownRange) setRangeMonths(initialMonths);
+        setOpen(nextOpen);
+      }}>
         <PopoverTrigger asChild>
           <Button
             disabled={disabled}
@@ -192,44 +220,58 @@ const DatePicker = ({
                 showTimeOnly && "justify-center",
               )}
             >
-              {!showTimeOnly && (
-                <Calendar
-                  mode={mode}
-                  selected={date}
-                  numberOfMonths={isRange ? 2 : 1}
-                  disabled={{
-                    before: min ? startOfDay(new Date(min)) : undefined,
-                    after: max ? endOfDay(new Date(max)) : undefined,
-                  }}
-                  onSelect={(selectedDate) => {
-                    if (!selectedDate) return;
+              {!showTimeOnly &&
+                calendarMonths.map((defaultMonth, index) => (
+                  <Calendar
+                    key={`${mode}-${captionLayout}-${index}`}
+                    mode={mode}
+                    selected={date}
+                    defaultMonth={defaultMonth}
+                    month={isDropdownRange ? defaultMonth : undefined}
+                    onMonthChange={isDropdownRange ? (month) => {
+                      const nextMonth = startOfMonth(month);
+                      if (index === 0 && !isBefore(nextMonth, calendarMonths[1])) return;
+                      if (index === 1 && !isAfter(nextMonth, calendarMonths[0])) return;
+                      setRangeMonths(calendarMonths.map((current, calendarIndex) => calendarIndex === index ? nextMonth : current));
+                    } : undefined}
+                    captionLayout={captionLayout || "label"}
+                    components={isDropdownRange ? { MonthsDropdown: RangeMonthsDropdown } : undefined}
+                    startMonth={isDropdownRange && index === 1 ? addMonths(calendarMonths[0], 1) : isDropdown ? new Date(2025, 0, 1) : undefined}
+                    endMonth={isDropdownRange && index === 0 ? addMonths(calendarMonths[1], -1) : undefined}
+                    numberOfMonths={isRange && !isDropdown ? 2 : 1}
+                    disabled={{
+                      before: min ? startOfDay(new Date(min)) : undefined,
+                      after: max ? endOfDay(new Date(max)) : undefined,
+                    }}
+                    onSelect={(selectedDate) => {
+                      if (!selectedDate) return;
 
-                    if (!isRange) {
-                      const nextDate = withTime
-                        ? mergeDateAndTime(selectedDate, date)
-                        : selectedDate;
+                      if (!isRange) {
+                        const nextDate = withTime
+                          ? mergeDateAndTime(selectedDate, date)
+                          : selectedDate;
 
-                      setDate(nextDate);
-                    } else {
-                      if (selectedDate.from && !selectedDate.to) {
-                        setDate({
-                          from: selectedDate.from,
-                          to: selectedDate.from,
-                        });
+                        setDate(nextDate);
                       } else {
-                        setDate(selectedDate);
+                        if (selectedDate.from && !selectedDate.to) {
+                          setDate({
+                            from: selectedDate.from,
+                            to: selectedDate.from,
+                          });
+                        } else {
+                          setDate(selectedDate);
+                        }
                       }
-                    }
-                    if (!withTime && !isRange) setOpen(false);
-                  }}
-                  classNames={{
-                    ...(!highlightToday && {
-                      today:
-                        "[&_button]:bg-transparent [&_button]:text-foreground",
-                    }),
-                  }}
-                />
-              )}
+                      if (!withTime && !isRange) setOpen(false);
+                    }}
+                    classNames={{
+                      ...(!highlightToday && {
+                        today:
+                          "[&_button]:bg-transparent [&_button]:text-foreground",
+                      }),
+                    }}
+                  />
+                ))}
               {withTime && (
                 <div
                   className={cn(
@@ -256,16 +298,6 @@ const DatePicker = ({
                 </div>
               )}
             </div>
-            {/* {withTime && (
-            <div className="flex items-center justify-between gap-4 border-t bg-background px-4 py-3">
-              <span className="min-w-0 truncate text-sm font-medium text-foreground">
-                {withTime ? formatFooterDateTime(date) : formatDate(date)}
-              </span>
-              <Button type="button" size="sm" onClick={() => setOpen(false)}>
-                <Check /> Confirm Time
-              </Button>
-            </div>
-          )} */}
           </div>
         </PopoverContent>
       </Popover>

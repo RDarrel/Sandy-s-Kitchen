@@ -211,6 +211,7 @@ const BookingSalesReport = () => {
               </p>
               <DatePicker
                 mode="range"
+                captionLayout="dropdown"
                 date={date}
                 setDate={setDate}
                 highlightToday={false}
@@ -260,8 +261,12 @@ const BookingSalesReport = () => {
                 variant="outline"
                 onClick={handleExport}
                 disabled={
-                  isLoading || isExporting || !filteredBookings.length ||
-                  !startDate || !endDate || startDate > endDate
+                  isLoading ||
+                  isExporting ||
+                  !filteredBookings.length ||
+                  !startDate ||
+                  !endDate ||
+                  startDate > endDate
                 }
                 aria-busy={isExporting}
               >
