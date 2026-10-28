@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { isValid } from "date-fns";
 import banner from "@/assets/banner.png";
@@ -32,7 +33,7 @@ const addBanner = async (workbook, worksheet) => {
 const posTransactionsToExcel = async ({ array = [], options = {} } = {}) => {
   if (!array.length) return;
 
-  const { date, createdBy = "" } = options;
+  const { date, createdBy = "", summary = {} } = options;
   if (!isValid(date?.from) || !isValid(date?.to) || date.from > date.to) {
     throw new Error("Please select a valid report period.");
   }
@@ -57,6 +58,9 @@ const posTransactionsToExcel = async ({ array = [], options = {} } = {}) => {
     },
   });
   worksheet.views = [{ showGridLines: false }];
+  worksheet.properties.defaultColWidth = 9;
+  for (let column = 1; column <= 12; column++) worksheet.getColumn(column).width = 9;
+  worksheet.getColumn("M").width = 0.5;
   await addBanner(workbook, worksheet);
 
   // Align the report header with the table's last column (L).
@@ -74,12 +78,11 @@ const posTransactionsToExcel = async ({ array = [], options = {} } = {}) => {
   subtitle.border = border;
   subtitle.alignment = { horizontal: "center", vertical: "middle" };
 
-  const totalAmount = array.reduce(
-    (sum, transaction) => sum + Number(transaction.amount ?? 0),
-    0,
-  );
+  // Match the full report-period totals, regardless of the exported cashier/search filter.
+  const totalAmount = Number(summary.totalAmount ?? 0);
+  const totalCount = Number(summary.totalCount ?? 0);
   [
-    ["A7:F7", "Total Transactions", String(array.length)],
+    ["A7:F7", "Total Transactions", String(totalCount)],
     ["G7:L7", "Total Sales", format.peso(totalAmount)],
   ].forEach(([range, label, value]) => {
     worksheet.mergeCells(range);
@@ -222,9 +225,18 @@ const posTransactionsToExcel = async ({ array = [], options = {} } = {}) => {
     cell.alignment = { vertical: "middle", horizontal: "left" };
   });
 
-  worksheet.pageSetup.printArea = `A1:L${footerRow + 1}`;
+  worksheet.pageSetup.printArea = `A1:M${footerRow + 1}`;
 
-  const buffer = await workbook.xlsx.writeBuffer();
+  const zip = await JSZip.loadAsync(await workbook.xlsx.writeBuffer());
+  const sheetPath = "xl/worksheets/sheet1.xml";
+  const document = new DOMParser().parseFromString(await zip.file(sheetPath).async("string"), "application/xml");
+  const namespace = document.documentElement.namespaceURI;
+  const columnDefinitions = document.getElementsByTagNameNS(namespace, "cols")[0];
+  const hidden = document.createElementNS(namespace, "col");
+  Object.entries({ min: 14, max: 16384, hidden: 1, width: 9, customWidth: 1 }).forEach(([key, value]) => hidden.setAttribute(key, value));
+  columnDefinitions.appendChild(hidden);
+  zip.file(sheetPath, new XMLSerializer().serializeToString(document));
+  const buffer = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
   saveAs(
     new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

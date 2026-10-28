@@ -123,6 +123,7 @@ const Transactions = () => {
         array: filteredTransactions,
         options: {
           date,
+          summary: { totalAmount, totalCount },
           createdBy: auth?.fullName
             ? typeof auth.fullName === "string"
               ? auth.fullName
@@ -167,6 +168,7 @@ const Transactions = () => {
                 </p>
                 <DatePicker
                   mode="range"
+                  captionLayout="dropdown"
                   date={date}
                   setDate={setDate}
                   highlightToday={false}
@@ -191,17 +193,11 @@ const Transactions = () => {
                 ) : (
                   <Download className="size-4" aria-hidden="true" />
                 )}
-                {isExporting ? "Exporting…" : "Export to Excel"}
+                Export to Excel
               </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4" aria-busy={isLoading}>
-            {/* <SummaryLine
-              isLoading={isLoading}
-              value={`${totalCount} transaction${totalCount === 1 ? "" : "s"}`}
-              label={Formatter.amount(totalAmount)}
-            /> */}
-
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative min-w-0 flex-1">
                 <Search
@@ -370,25 +366,3 @@ const Transactions = () => {
 };
 
 export default Transactions;
-
-const SummaryLine = ({ label, value, isLoading = false }) => (
-  <div className="flex items-center gap-3">
-    {isLoading ? (
-      <Skeleton aria-hidden="true" className="h-7 w-28 shrink-0" />
-    ) : (
-      <span className="shrink-0 text-xl font-bold tabular-nums text-primary">
-        {label}
-      </span>
-    )}
-
-    <span className="h-0 flex-1 border-t border-dashed border-border/80" />
-
-    {isLoading ? (
-      <Skeleton aria-hidden="true" className="h-6 w-32 shrink-0" />
-    ) : (
-      <span className="shrink-0 text-base font-semibold text-foreground">
-        {value}
-      </span>
-    )}
-  </div>
-);
