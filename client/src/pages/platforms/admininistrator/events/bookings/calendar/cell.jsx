@@ -36,9 +36,14 @@ const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
 
   return (
     <div
-      className={`relative h-full min-h-0 transition-colors ${
-        hasBookings ? "bg-muted/20" : ""
-      } ${isSelected ? "bg-muted/35 ring-1 ring-primary/25" : ""}`}
+      data-selected={isSelected || undefined}
+      className={`absolute inset-0 transition-colors ${
+        isSelected
+          ? "bg-primary/6 dark:bg-primary/10"
+          : hasBookings
+            ? "bg-muted/20"
+            : ""
+      }`}
     >
       <div className="pointer-events-none absolute left-2 right-2 top-1.5 z-10 flex min-h-5 items-center justify-between gap-2">
         <span className="truncate text-[10px] font-medium text-muted-foreground">
@@ -46,9 +51,12 @@ const Cell = ({ day, segments, isToday, isOutside, selectedDay }) => {
         </span>
 
         <span
-          className={`flex size-5 shrink-0 items-center justify-center rounded-md text-[12px] font-medium ${
-            isToday
-              ? "bg-primary text-primary-foreground"
+          aria-current={isToday ? "date" : undefined}
+          className={`flex size-5 shrink-0 items-center justify-center text-[12px] font-medium ${
+            isSelected
+              ? "rounded-full bg-primary font-semibold text-primary-foreground"
+              : isToday
+                ? "rounded-md bg-primary/10 font-semibold text-primary ring-1 ring-inset ring-primary/40"
               : isOutside
                 ? "text-muted-foreground"
                 : "text-foreground"

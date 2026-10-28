@@ -8,6 +8,7 @@ import CalendarSkeleton from "./skeleton";
 import { Formatter } from "@/services/utilities";
 import { useDispatch, useSelector } from "react-redux";
 import { CALENDAR, SCHEDULE } from "@/services/redux/slices/events/bookings";
+import { isSameDay } from "date-fns";
 
 const Calendar = ({
   hideSearch = false,
@@ -35,6 +36,10 @@ const Calendar = ({
       }))}
       defaultView="month"
       resources={BOOKING_STREAMS}
+      todayClassName="border-b-0"
+      dayClassName={(day) =>
+        isSameDay(day, selectedDate) ? "border-b-2 border-b-primary" : ""
+      }
       renderMoreIndicator={renderMoreIndicator}
       renderMonthCell={(props) =>
         Cell({
