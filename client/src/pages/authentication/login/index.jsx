@@ -82,7 +82,10 @@ export default function LoginForm({ className }) {
           />
         </Field>
         <Field>
-          <Button type="submit" disabled={isLoadingSignin}>
+          <Button
+            type="submit"
+            disabled={isLoadingSignin || isLoadingSigninWithGoogle}
+          >
             Login {isLoadingSignin && <Loader className="animate-spin" />}
           </Button>
         </Field>
@@ -92,7 +95,7 @@ export default function LoginForm({ className }) {
             variant="outline"
             type="button"
             onClick={() => googleLogin()}
-            disabled={isLoadingSigninWithGoogle}
+            disabled={isLoadingSigninWithGoogle || isLoadingSignin}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
               <path

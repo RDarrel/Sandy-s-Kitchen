@@ -137,7 +137,10 @@ export default function Signup() {
           numbers and character symbols.
         </small>
         <Field>
-          <Button type="submit" disabled={isLoading}>
+          <Button
+            type="submit"
+            disabled={isLoading || isLoadingSigninWithGoogle}
+          >
             Sign-up {isLoading && <Loader className="animate-spin" />}
           </Button>
         </Field>
@@ -147,7 +150,7 @@ export default function Signup() {
           variant="outline"
           type="button"
           onClick={() => googleLogin()}
-          disabled={isLoadingSigninWithGoogle}
+          disabled={isLoadingSigninWithGoogle || isLoading}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
             <path
