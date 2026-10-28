@@ -3,3 +3,4 @@ export { default as PosSalesReport } from "./pos/sales";
 export { default as BookingSalesReport } from "./booking/sales";
 export { default as PosTransactionsReport } from "./pos/transactions";
 export { default as Analytics } from "./booking/analytics";
+export { default as PosAnalytics } from "./pos/analytics";

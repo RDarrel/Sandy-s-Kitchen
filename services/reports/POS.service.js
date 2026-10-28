@@ -275,7 +275,221 @@ const getTransactionsReport = async ({ startDate, endDate }) => {
   };
 };
 
+const getAnalytics = async ({ startDate, endDate }) => {
+  const start = dateToUTC({ date: startDate, dateOnly: true });
+  const end = dateToUTC({ date: endDate, dateOnly: true, endOfDay: true });
+
+  if (!start || !end || start > end) {
+    const error = new Error("A valid startDate and endDate are required.");
+    error.status = 400;
+    throw error;
+  }
+
+  const [result] = await OrderItem.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: start, $lte: end },
+      },
+    },
+    {
+      $facet: {
+        summary: [
+          {
+            $group: {
+              _id: null,
+              totalOrders: { $addToSet: "$order" },
+              totalSales: { $sum: "$amount" },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              totalOrders: { $size: "$totalOrders" },
+              totalSales: 1,
+              averageOrderValue: {
+                $cond: [
+                  { $gt: [{ $size: "$totalOrders" }, 0] },
+                  {
+                    $divide: ["$totalSales", { $size: "$totalOrders" }],
+                  },
+                  0,
+                ],
+              },
+            },
+          },
+        ],
+
+        trends: [
+          {
+            $group: {
+              _id: {
+                $dateTrunc: {
+                  date: "$createdAt",
+                  unit: "month",
+                  timezone: "Asia/Manila",
+                },
+              },
+              orders: { $addToSet: "$order" },
+              value: { $sum: "$amount" },
+            },
+          },
+          {
+            $sort: { _id: 1 },
+          },
+          {
+            $project: {
+              _id: 0,
+              date: "$_id",
+              orders: { $size: "$orders" },
+              value: 1,
+            },
+          },
+        ],
+
+        dishes: [
+          {
+            $group: {
+              _id: "$menu",
+              unitsSold: { $sum: "$quantity" },
+              value: { $sum: "$amount" },
+            },
+          },
+          {
+            $sort: {
+              unitsSold: -1,
+              value: -1,
+              _id: 1,
+            },
+          },
+          {
+            $limit: 5,
+          },
+          {
+            $lookup: {
+              from: "menus",
+              localField: "_id",
+              foreignField: "_id",
+              as: "menu",
+            },
+          },
+          {
+            $unwind: {
+              path: "$menu",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              name: {
+                $ifNull: ["$menu.name", "Unknown dish"],
+              },
+              unitsSold: 1,
+              value: 1,
+            },
+          },
+        ],
+
+        categories: [
+          {
+            $lookup: {
+              from: "menus",
+              localField: "menu",
+              foreignField: "_id",
+              as: "menu",
+            },
+          },
+          {
+            $unwind: "$menu",
+          },
+          {
+            $group: {
+              _id: "$menu.category",
+              unitsSold: { $sum: "$quantity" },
+              value: { $sum: "$amount" },
+            },
+          },
+          {
+            $sort: {
+              value: -1,
+              unitsSold: -1,
+              _id: 1,
+            },
+          },
+          {
+            $lookup: {
+              from: "menucategories",
+              localField: "_id",
+              foreignField: "_id",
+              as: "category",
+            },
+          },
+          {
+            $unwind: {
+              path: "$category",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+              name: {
+                $ifNull: ["$category.name", "Uncategorized"],
+              },
+              unitsSold: 1,
+              value: 1,
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  const summary = result?.summary?.[0] || {
+    totalSales: 0,
+    totalOrders: 0,
+    averageOrderValue: 0,
+  };
+
+  const dishes = (result?.dishes || []).map((dish) => ({
+    ...dish,
+    percentage: summary.totalSales
+      ? (dish.value / summary.totalSales) * 100
+      : 0,
+  }));
+
+  const categories = (result?.categories || []).map((category) => ({
+    ...category,
+    percentage: summary.totalSales
+      ? (category.value / summary.totalSales) * 100
+      : 0,
+  }));
+
+  const bestSellingDish = dishes[0]
+    ? {
+        _id: dishes[0]._id,
+        name: dishes[0].name,
+        unitsSold: dishes[0].unitsSold,
+      }
+    : null;
+
+  return {
+    analytics: {
+      summary: {
+        totalSales: summary.totalSales,
+        totalOrders: summary.totalOrders,
+        bestSellingDish,
+        averageOrderValue: summary.averageOrderValue,
+      },
+      trends: result?.trends || [],
+      dishes,
+      categories,
+    },
+  };
+};
+
 module.exports = {
   getTransactionsReport,
   getSalesReport,
+  getAnalytics,
 };
