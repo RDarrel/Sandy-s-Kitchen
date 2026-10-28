@@ -33,6 +33,7 @@ import {
   PaymentReport,
   PosSalesReport,
   PosTransactionsReport,
+  Analytics,
 } from "./reports";
 
 export const ADMIN_MANAGEMENT = [
@@ -186,6 +187,11 @@ export const ADMIN_MANAGEMENT = [
             name: "Transactions",
             path: "/transactions",
             component: PaymentReport,
+          },
+          {
+            name: "Analytics",
+            path: "/analytics",
+            component: Analytics,
           },
         ],
       },
