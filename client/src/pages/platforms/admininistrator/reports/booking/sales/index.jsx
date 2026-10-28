@@ -165,6 +165,7 @@ const BookingSalesReport = () => {
         array: filteredBookings,
         options: {
           date,
+          summary: salesReport?.summary,
           search,
           status,
           createdBy: auth?.fullName
@@ -275,7 +276,7 @@ const BookingSalesReport = () => {
                 ) : (
                   <Download className="size-4" aria-hidden="true" />
                 )}
-                {isExporting ? "Exporting…" : "Export to Excel"}
+                Export to Excel
               </Button>
             </div>
 

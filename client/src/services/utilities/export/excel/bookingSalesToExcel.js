@@ -35,7 +35,7 @@ const addBanner = async (workbook, worksheet) => {
 const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
   if (!array.length) return;
 
-  const { date, createdBy = "" } = options;
+  const { date, createdBy = "", summary = {} } = options;
   if (!isValid(date?.from) || !isValid(date?.to) || date.from > date.to) {
     throw new Error("Please select a valid report period.");
   }
@@ -77,14 +77,12 @@ const bookingSalesToExcel = async ({ array = [], options = {} } = {}) => {
   subtitle.border = border;
   subtitle.alignment = { horizontal: "center", vertical: "middle" };
 
-  const totals = array.reduce(
-    (sum, booking) => [
-      sum[0] + Number(booking?.pricing?.total ?? booking?.totalAmount ?? 0),
-      sum[1] + Number(booking?.totalPaid ?? 0),
-      sum[2] + Number(booking?.outstandingBalance ?? 0),
-    ],
-    [0, 0, 0],
-  );
+  // Use the same period-wide summary as the UI; status/search only filter rows.
+  const totals = [
+    Number(summary.totalBookingValue ?? 0),
+    Number(summary.totalPaidAmount ?? 0),
+    Number(summary.outstandingBalance ?? 0),
+  ];
   [
     ["A7:E7", "Sales", totals[0]],
     ["F7:J7", "Paid", totals[1]],
