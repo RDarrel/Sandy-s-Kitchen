@@ -59,19 +59,19 @@ const Summary = ({ data }) => (
     className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
   >
     <Metric
+      title="Total Booking Value"
+      value={money(data.value)}
+      detail="Combined value of bookings"
+      description={`${money(Math.round(data.average))} average per booking`}
+      icon={Wallet}
+    />
+    <Metric
       title="Total Bookings"
       value={data.total}
       detail="Bookings within the selected period"
       description="Confirmed, setup & completed"
       icon={CalendarDays}
       featured
-    />
-    <Metric
-      title="Total Booking Value"
-      value={money(data.value)}
-      detail="Combined value of bookings"
-      description={`${money(Math.round(data.average))} average per booking`}
-      icon={Wallet}
     />
     <Metric
       title="Most-Booked Package"
