@@ -72,18 +72,6 @@ const groupLabel = (value, frequency, weekNumber) => {
   return format(date, "MMMM d, yyyy");
 };
 
-const saleTime = (value) => {
-  const date = value ? new Date(value) : null;
-  return isValid(date)
-    ? new Intl.DateTimeFormat("en-US", {
-        timeZone: "Asia/Manila",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      }).format(date)
-    : "—";
-};
-
 const Sales = () => {
   const { auth } = useSelector(({ auth }) => auth);
   const { salesReport, isLoading } = useSelector(({ posReport }) => posReport);
@@ -299,7 +287,6 @@ const Sales = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/40">
-                    <TableHead className="min-w-[110px]">Date</TableHead>
                     <TableHead className="min-w-[180px]">Menu</TableHead>
                     <TableHead className="text-right">Quantity</TableHead>
                     <TableHead className="whitespace-nowrap text-right">
@@ -317,7 +304,7 @@ const Sales = () => {
                   {isLoading || salesRows.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={6}
+                        colSpan={5}
                         className="h-32 text-center text-muted-foreground"
                       >
                         <div
@@ -341,7 +328,7 @@ const Sales = () => {
                       <Fragment key={group.date}>
                         <TableRow className="bg-muted/40 hover:bg-muted/40">
                           <TableCell
-                            colSpan={6}
+                            colSpan={5}
                             className="py-3 text-sm font-semibold text-foreground"
                           >
                             {groupLabel(
@@ -352,10 +339,7 @@ const Sales = () => {
                           </TableCell>
                         </TableRow>
                         {(group.items || []).map((item) => (
-                          <TableRow key={item._id}>
-                            <TableCell className="py-3 text-xs text-muted-foreground whitespace-nowrap">
-                              {saleTime(item.createdAt)}
-                            </TableCell>
+                          <TableRow key={item._id || `${group.date}-${item.date}-${item.menu?._id}`}>
                             <TableCell className="text-sm font-medium">
                               {capitalize(item.menu?.name || "Unknown menu")}
                             </TableCell>

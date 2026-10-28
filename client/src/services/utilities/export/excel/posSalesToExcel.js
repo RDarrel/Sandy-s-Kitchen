@@ -161,8 +161,7 @@ const posSalesToExcel = async ({ array = [], options = {} } = {}) => {
   });
 
   const columns = [
-    { start: "A", end: "B", label: "Time" },
-    { start: "C", end: "E", label: "Menu" },
+    { start: "A", end: "E", label: "Menu" },
     { start: "F", end: "F", label: "Qty" },
     { start: "G", end: "H", label: "Total Sales", numeric: true },
     { start: "I", end: "J", label: "Total Cost", numeric: true },
@@ -194,17 +193,7 @@ const posSalesToExcel = async ({ array = [], options = {} } = {}) => {
     });
     row++;
     group.items.forEach((item) => {
-      const createdAt = item.createdAt ? new Date(item.createdAt) : null;
-      const time = isValid(createdAt)
-        ? new Intl.DateTimeFormat("en-US", {
-            timeZone: "Asia/Manila",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          }).format(createdAt)
-        : "—";
       const values = [
-        time,
         item.menu?.name || "Unknown menu",
         Number(item.quantity ?? 0),
         Number(item.amount ?? 0),

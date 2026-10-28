@@ -14,6 +14,18 @@ const getSalesReport = async ({ startDate, endDate, frequency = "daily" }) => {
     endOfDay: true,
   });
 
+  if (
+    !start ||
+    !end ||
+    Number.isNaN(new Date(start).getTime()) ||
+    Number.isNaN(new Date(end).getTime()) ||
+    start > end
+  ) {
+    const error = new Error("A valid startDate and endDate are required.");
+    error.status = 400;
+    throw error;
+  }
+
   const frequencyMap = {
     daily: "day",
     weekly: "week",
@@ -30,7 +42,17 @@ const getSalesReport = async ({ startDate, endDate, frequency = "daily" }) => {
     },
   };
 
+  const periodExpression = {
+    $dateTrunc: {
+      date: "$createdAt",
+      unit,
+      timezone: "Asia/Manila",
+      startOfWeek: "monday",
+    },
+  };
+
   const [orderResult, itemResult] = await Promise.all([
+    // Overall sales summary
     Order.aggregate([
       {
         $match: dateFilter,
@@ -38,12 +60,17 @@ const getSalesReport = async ({ startDate, endDate, frequency = "daily" }) => {
       {
         $group: {
           _id: null,
-          totalSales: { $sum: "$amount" },
-          totalOrders: { $sum: 1 },
+          totalSales: {
+            $sum: "$amount",
+          },
+          totalOrders: {
+            $sum: 1,
+          },
         },
       },
     ]),
 
+    // Sales breakdown grouped by period and menu
     OrderItem.aggregate([
       {
         $match: dateFilter,
@@ -54,21 +81,38 @@ const getSalesReport = async ({ startDate, endDate, frequency = "daily" }) => {
             {
               $group: {
                 _id: null,
-                totalCost: { $sum: "$totalCost" },
+                totalCost: {
+                  $sum: "$totalCost",
+                },
               },
             },
           ],
 
           salesBreakdown: [
+            // Combine the same menu within each period
             {
-              $sort: {
-                createdAt: -1,
+              $group: {
+                _id: {
+                  date: periodExpression,
+                  menu: "$menu",
+                },
+                quantity: {
+                  $sum: "$quantity",
+                },
+                amount: {
+                  $sum: "$amount",
+                },
+                totalCost: {
+                  $sum: "$totalCost",
+                },
               },
             },
+
+            // Get menu details
             {
               $lookup: {
                 from: "menus",
-                localField: "menu",
+                localField: "_id.menu",
                 foreignField: "_id",
                 as: "menu",
               },
@@ -79,33 +123,46 @@ const getSalesReport = async ({ startDate, endDate, frequency = "daily" }) => {
                 preserveNullAndEmptyArrays: true,
               },
             },
+
+            // Format each summarized menu
             {
-              $group: {
-                _id: {
-                  $dateTrunc: {
-                    date: "$createdAt",
-                    unit,
-                    timezone: "Asia/Manila",
-                    startOfWeek: "monday",
-                  },
-                },
-                items: {
-                  $push: {
-                    _id: "$_id",
-                    order: "$order",
-                    menu: {
-                      _id: "$menu._id",
-                      name: "$menu.name",
+              $project: {
+                _id: 0,
+                date: "$_id.date",
+                item: {
+                  menu: {
+                    _id: "$_id.menu",
+                    name: {
+                      $ifNull: ["$menu.name", "Unknown Menu"],
                     },
-                    quantity: "$quantity",
-                    price: "$price",
-                    amount: "$amount",
-                    totalCost: "$totalCost",
-                    createdAt: "$createdAt",
                   },
+                  quantity: "$quantity",
+                  amount: "$amount",
+                  totalCost: "$totalCost",
                 },
               },
             },
+
+            // Sort menus by total sales within each period
+            {
+              $sort: {
+                date: -1,
+                "item.amount": -1,
+                "item.menu.name": 1,
+              },
+            },
+
+            // Group summarized menus under their period
+            {
+              $group: {
+                _id: "$date",
+                items: {
+                  $push: "$item",
+                },
+              },
+            },
+
+            // Format the response
             {
               $project: {
                 _id: 0,
