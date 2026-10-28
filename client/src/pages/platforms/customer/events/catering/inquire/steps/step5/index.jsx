@@ -54,11 +54,14 @@ const Step5 = ({ setForm = () => {}, form }) => {
           />
         </Field>
 
-        <Field label="Phone Number" required>
+        <Field label="Mobile Number" required>
           <Input
             value={form.contact?.phone}
             onChange={(e) => updateField("phone", e.target.value)}
             placeholder="09XXXXXXXXX"
+            pattern="09[0-9]{9}"
+            maxLength={11}
+            required
           />
         </Field>
 

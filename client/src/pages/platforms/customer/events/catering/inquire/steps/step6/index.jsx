@@ -68,9 +68,6 @@ const Step6 = ({
 }) => {
   const { formSubmitted } = useSelector(({ bookings }) => bookings);
 
-  const cateringTime = form?.catering?.time;
-  const venueTime = form?.venue?.time;
-
   const { catering: Ecatering, venue: Evenue } = estimate || {};
 
   const isBoth = form?.bookingType === "both";
@@ -96,7 +93,6 @@ const Step6 = ({
             icon={CalendarDays}
             items={[
               ["Type", form?.eventType],
-              ["Date", Formatter.date(form?.date)],
               ...(isBoth || form?.bookingType === "venue"
                 ? [["Address", selectedVenue?.address]]
                 : [
@@ -230,7 +226,7 @@ const Step6 = ({
             onClick={handleSubmit}
             disabled={formSubmitted}
           >
-            {isUpdating ? "Submit Changes" : "Send Inquiry"}
+            {isUpdating ? "Submit Changes" : "Submit"}
 
             {formSubmitted ? (
               <Spinner formSubmitted={formSubmitted} />
