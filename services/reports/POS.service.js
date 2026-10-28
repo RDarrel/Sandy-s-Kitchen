@@ -23,115 +23,119 @@ const getSalesReport = async ({ startDate, endDate, frequency = "daily" }) => {
 
   const unit = frequencyMap[frequency] || "day";
 
-  const [result] = await OrderItem.aggregate([
-    {
-      $match: {
-        createdAt: {
-          $gte: start,
-          $lte: end,
+  const dateFilter = {
+    createdAt: {
+      $gte: start,
+      $lte: end,
+    },
+  };
+
+  const [orderResult, itemResult] = await Promise.all([
+    Order.aggregate([
+      {
+        $match: dateFilter,
+      },
+      {
+        $group: {
+          _id: null,
+          totalSales: { $sum: "$amount" },
+          totalOrders: { $sum: 1 },
         },
       },
-    },
+    ]),
 
-    {
-      $facet: {
-        summary: [
-          {
-            $group: {
-              _id: null,
-              totalSales: { $sum: "$amount" },
-              totalCost: { $sum: "$totalCost" },
-              totalOrders: { $addToSet: "$order" },
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              totalSales: 1,
-              totalCost: 1,
-              grossProfit: {
-                $subtract: ["$totalSales", "$totalCost"],
-              },
-              totalOrders: {
-                $size: "$totalOrders",
-              },
-            },
-          },
-        ],
-
-        salesBreakdown: [
-          {
-            $sort: {
-              createdAt: -1,
-            },
-          },
-          {
-            $lookup: {
-              from: "menus",
-              localField: "menu",
-              foreignField: "_id",
-              as: "menu",
-            },
-          },
-          {
-            $unwind: {
-              path: "$menu",
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-          {
-            $group: {
-              _id: {
-                $dateTrunc: {
-                  date: "$createdAt",
-                  unit,
-                  timezone: "Asia/Manila",
-                  startOfWeek: "monday",
-                },
-              },
-
-              items: {
-                $push: {
-                  _id: "$_id",
-                  order: "$order",
-                  menu: {
-                    _id: "$menu._id",
-                    name: "$menu.name",
-                  },
-                  quantity: "$quantity",
-                  price: "$price",
-                  amount: "$amount",
-                  totalCost: "$totalCost",
-                  createdAt: "$createdAt",
-                },
-              },
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              date: "$_id",
-              items: 1,
-            },
-          },
-          {
-            $sort: {
-              date: -1,
-            },
-          },
-        ],
+    OrderItem.aggregate([
+      {
+        $match: dateFilter,
       },
-    },
+      {
+        $facet: {
+          summary: [
+            {
+              $group: {
+                _id: null,
+                totalCost: { $sum: "$totalCost" },
+              },
+            },
+          ],
+
+          salesBreakdown: [
+            {
+              $sort: {
+                createdAt: -1,
+              },
+            },
+            {
+              $lookup: {
+                from: "menus",
+                localField: "menu",
+                foreignField: "_id",
+                as: "menu",
+              },
+            },
+            {
+              $unwind: {
+                path: "$menu",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  $dateTrunc: {
+                    date: "$createdAt",
+                    unit,
+                    timezone: "Asia/Manila",
+                    startOfWeek: "monday",
+                  },
+                },
+                items: {
+                  $push: {
+                    _id: "$_id",
+                    order: "$order",
+                    menu: {
+                      _id: "$menu._id",
+                      name: "$menu.name",
+                    },
+                    quantity: "$quantity",
+                    price: "$price",
+                    amount: "$amount",
+                    totalCost: "$totalCost",
+                    createdAt: "$createdAt",
+                  },
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                date: "$_id",
+                items: 1,
+              },
+            },
+            {
+              $sort: {
+                date: -1,
+              },
+            },
+          ],
+        },
+      },
+    ]),
   ]);
 
+  const totalSales = orderResult?.[0]?.totalSales || 0;
+  const totalOrders = orderResult?.[0]?.totalOrders || 0;
+  const totalCost = itemResult?.[0]?.summary?.[0]?.totalCost || 0;
+
   return {
-    summary: result?.summary?.[0] || {
-      totalSales: 0,
-      totalCost: 0,
-      grossProfit: 0,
-      totalOrders: 0,
+    summary: {
+      totalSales,
+      totalCost,
+      grossProfit: totalSales - totalCost,
+      totalOrders,
     },
-    salesBreakdown: result?.salesBreakdown || [],
+    salesBreakdown: itemResult?.[0]?.salesBreakdown || [],
   };
 };
 
