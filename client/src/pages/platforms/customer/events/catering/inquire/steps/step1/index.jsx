@@ -6,7 +6,7 @@ import VenueOption from "./venueOption";
 import Field from "./field";
 import DatePicker from "@/components/shared/datePicker";
 import { addHours, differenceInMinutes } from "date-fns";
-import { Formatter } from "@/services/utilities";
+import ChargeNotice from "./chargeNotice";
 
 const eventTypes = [
   "Wedding",
@@ -102,13 +102,9 @@ const Step1 = ({
               placeholder="Enter number of guests"
             />
             {extraGuests > 0 && (
-              <p
-                role="status"
-                className="text-xs text-amber-700 dark:text-amber-300"
-              >
-                {extraGuests} extra guest{extraGuests === 1 ? "" : "s"} · Additional
-                charge: {Formatter.amount(estimate.catering?.guests?.charge || 0)}
-              </p>
+              <ChargeNotice charge={estimate.catering?.guests?.charge}>
+                {extraGuests} extra guest{extraGuests === 1 ? "" : "s"}
+              </ChargeNotice>
             )}
           </Field>
           <Field label="Start Date & Time" required>
@@ -156,13 +152,9 @@ const Step1 = ({
               align="center"
             />
             {extraHours > 0 && (
-              <p
-                role="status"
-                className="text-xs text-amber-700 dark:text-amber-300"
-              >
-                {extraHours} extra hour{extraHours === 1 ? "" : "s"} · Additional charge:{" "}
-                {Formatter.amount(estimate.catering?.duration?.charge || 0)}
-              </p>
+              <ChargeNotice charge={estimate.catering?.duration?.charge}>
+                {extraHours} extra hour{extraHours === 1 ? "" : "s"}
+              </ChargeNotice>
             )}
           </Field>
         </div>
