@@ -68,6 +68,13 @@ const CateringInquiry = ({ onSelect = () => {} }) => {
   }, [dispatch]);
 
   useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      catering: { ...prev?.catering, pax: selected?.includedGuests },
+    }));
+  }, [selected]);
+
+  useEffect(() => {
     if (form?.bookingType === "catering") {
       setSteps(DEFAULT_STEPS.filter(({ title }) => title !== "Venue"));
     } else {

@@ -6,6 +6,7 @@ import VenueOption from "./venueOption";
 import Field from "./field";
 import DatePicker from "@/components/shared/datePicker";
 import { addHours, differenceInMinutes } from "date-fns";
+import { Formatter } from "@/services/utilities";
 
 const eventTypes = [
   "Wedding",
@@ -22,8 +23,15 @@ const eventTypes = [
 /* Step 1                             */
 /* ---------------------------------- */
 
-const Step1 = ({ form = {}, updateField = () => {}, setForm = () => {} }) => {
+const Step1 = ({
+  form = {},
+  estimate = {},
+  updateField = () => {},
+  setForm = () => {},
+}) => {
   const cateringGuests = Number(form.guestCount) || 0;
+  const extraGuests = estimate.catering?.guests?.extra || 0;
+  const extraHours = estimate.catering?.duration?.extra || 0;
 
   const handleDateChange = (field, date, isStartDate = false) =>
     setForm((prev) => ({
@@ -93,6 +101,15 @@ const Step1 = ({ form = {}, updateField = () => {}, setForm = () => {} }) => {
               }
               placeholder="Enter number of guests"
             />
+            {extraGuests > 0 && (
+              <p
+                role="status"
+                className="text-xs text-amber-700 dark:text-amber-300"
+              >
+                {extraGuests} extra guest{extraGuests === 1 ? "" : "s"} · Additional
+                charge: {Formatter.amount(estimate.catering?.guests?.charge || 0)}
+              </p>
+            )}
           </Field>
           <Field label="Start Date & Time" required>
             <DatePicker
@@ -138,6 +155,15 @@ const Step1 = ({ form = {}, updateField = () => {}, setForm = () => {} }) => {
               required
               align="center"
             />
+            {extraHours > 0 && (
+              <p
+                role="status"
+                className="text-xs text-amber-700 dark:text-amber-300"
+              >
+                {extraHours} extra hour{extraHours === 1 ? "" : "s"} · Additional charge:{" "}
+                {Formatter.amount(estimate.catering?.duration?.charge || 0)}
+              </p>
+            )}
           </Field>
         </div>
       </Section>
