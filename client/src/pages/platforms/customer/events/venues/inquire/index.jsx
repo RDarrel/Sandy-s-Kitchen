@@ -77,6 +77,13 @@ const VenueInquiry = () => {
     }
   }, [form?.bookingType]);
 
+  useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      venue: { ...prev?.venue, pax: selected?.capacity },
+    }));
+  }, [selected]);
+
   const selectedCatering = useMemo(
     () =>
       packages.find(({ _id }) => _id === form?.catering?.item) ||

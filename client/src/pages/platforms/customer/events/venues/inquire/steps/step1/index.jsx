@@ -7,6 +7,7 @@ import Field from "./field";
 import VenueDatePicker from "./datePicker";
 import DatePicker from "@/components/shared/datePicker";
 import { addHours, subHours } from "date-fns";
+import ChargeNotice from "../../../../catering/inquire/steps/step1/chargeNotice";
 
 const eventTypes = [
   "Wedding",
@@ -26,9 +27,12 @@ const eventTypes = [
 const Step1 = ({
   form = {},
   selected = {},
+  estimate = {},
   updateField = () => {},
   setForm = () => {},
 }) => {
+  const extraHours = estimate.venue?.duration?.extra || 0;
+
   const handleDateChange = (field, date, isStartDate = false) =>
     setForm((prev) => ({
       ...prev,
@@ -161,6 +165,11 @@ const Step1 = ({
                 }
               }}
             />
+            {extraHours > 0 && (
+              <ChargeNotice charge={estimate.venue?.duration?.charge}>
+                {extraHours} extra hour{extraHours === 1 ? "" : "s"}
+              </ChargeNotice>
+            )}
           </Field>
         </div>
       </Section>
