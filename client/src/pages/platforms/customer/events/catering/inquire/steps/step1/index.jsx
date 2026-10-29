@@ -1,6 +1,13 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Section from "./section";
 import VenueOption from "./venueOption";
 import Field from "./field";
@@ -68,25 +75,28 @@ const Step1 = ({
       <Section title="Event & Catering">
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Event Type" required>
-            <select
+            <Select
               value={form.eventType || ""}
-              onChange={(e) =>
+              onValueChange={(value) =>
                 setForm((prev) => ({
                   ...prev,
-                  eventType: e.target.value,
+                  eventType: value,
                 }))
               }
               required
-              className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+              name="eventType"
             >
-              <option value="">Select event type</option>
-
-              {eventTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full" aria-label="Event Type">
+                <SelectValue placeholder="Select event type" />
+              </SelectTrigger>
+              <SelectContent>
+                {eventTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label="Guests" required>
             <Input
