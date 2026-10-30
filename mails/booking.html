@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>Booking Approved - Sandy's Kitchenette</title>
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f4f1ec;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #292524;
+      -webkit-text-size-adjust: 100%;
+    "
+  >
+    <!-- Preheader (hidden inbox preview text) -->
+    <div
+      style="
+        display: none;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        font-size: 1px;
+        line-height: 1px;
+        color: #f4f1ec;
+      "
+    >
+      Your booking {{bookingReference}} is approved. Please settle the down
+      payment by {{paymentDeadline}} to secure your date.
+    </div>
+
+    <table
+      role="presentation"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      width="100%"
+      style="background-color: #f4f1ec"
+    >
+      <tr>
+        <td align="center" style="padding: 24px 12px">
+          <!-- Container -->
+          <table
+            role="presentation"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            width="100%"
+            style="
+              max-width: 560px;
+              background-color: #ffffff;
+              border: 1px solid #e7e0d6;
+            "
+          >
+            <!-- Banner -->
+            <tr>
+              <td style="padding: 0">
+                <img
+                  src="cid:bookingBanner"
+                  alt="Sandy's Kitchenette"
+                  width="560"
+                  style="
+                    display: block;
+                    width: 100%;
+                    max-width: 560px;
+                    height: auto;
+                    border: 0;
+                  "
+                />
+              </td>
+            </tr>
+
+            <!-- Intro -->
+            <tr>
+              <td style="padding: 26px 28px 6px">
+                <h1
+                  style="
+                    margin: 0 0 12px;
+                    font-size: 21px;
+                    line-height: 1.3;
+                    color: #292524;
+                    font-weight: bold;
+                  "
+                >
+                  Your booking has been approved
+                </h1>
+                <p
+                  style="
+                    margin: 0 0 10px;
+                    font-size: 14px;
+                    line-height: 1.6;
+                    color: #44403c;
+                  "
+                >
+                  Hi <strong>{{customerName}}</strong>,
+                </p>
+                <p
+                  style="
+                    margin: 0;
+                    font-size: 14px;
+                    line-height: 1.65;
+                    color: #57534e;
+                  "
+                >
+                  Thank you for choosing Sandy's Kitchenette. We're pleased to
+                  approve your booking request. To secure your date, please
+                  settle the down payment before the deadline below.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Booking details -->
+            <tr>
+              <td style="padding: 20px 28px 0">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="border-top: 2px solid #842b27"
+                >
+                  <tr>
+                    <td
+                      colspan="2"
+                      style="
+                        padding: 10px 0 4px;
+                        font-size: 11px;
+                        font-weight: bold;
+                        letter-spacing: 1.2px;
+                        color: #842b27;
+                      "
+                    >
+                      BOOKING DETAILS
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 8px 0;
+                        border-bottom: 1px solid #eee8df;
+                        font-size: 13px;
+                        color: #78716c;
+                      "
+                    >
+                      Event Type
+                    </td>
+                    <td
+                      align="right"
+                      style="
+                        padding: 8px 0;
+                        border-bottom: 1px solid #eee8df;
+                        font-size: 13px;
+                        color: #292524;
+                      "
+                    >
+                      {{eventType}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 8px 0;
+                        border-bottom: 1px solid #eee8df;
+                        font-size: 13px;
+                        color: #78716c;
+                      "
+                    >
+                      Event Date
+                    </td>
+                    <td
+                      align="right"
+                      style="
+                        padding: 8px 0;
+                        border-bottom: 1px solid #eee8df;
+                        font-size: 13px;
+                        color: #292524;
+                      "
+                    >
+                      {{eventDate}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0; font-size: 13px; color: #78716c">
+                      Booking Type
+                    </td>
+                    <td
+                      align="right"
+                      style="padding: 8px 0; font-size: 13px; color: #292524"
+                    >
+                      {{bookingType}}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Payment summary -->
+            <tr>
+              <td style="padding: 18px 28px 0">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="background-color: #faf6f1; border: 1px solid #ece3d8"
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 12px 16px 4px;
+                        font-size: 11px;
+                        font-weight: bold;
+                        letter-spacing: 1.2px;
+                        color: #842b27;
+                      "
+                      colspan="2"
+                    >
+                      PAYMENT SUMMARY
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="padding: 6px 16px; font-size: 13px; color: #78716c"
+                    >
+                      Total Booking Amount
+                    </td>
+                    <td
+                      align="right"
+                      style="
+                        padding: 6px 16px;
+                        font-size: 13px;
+                        font-weight: bold;
+                        color: #292524;
+                      "
+                    >
+                      {{totalAmount}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 6px 16px;
+                        font-size: 13px;
+                        font-weight: bold;
+                        color: #842b27;
+                      "
+                    >
+                      Required Down Payment
+                    </td>
+                    <td
+                      align="right"
+                      style="
+                        padding: 6px 16px;
+                        font-size: 20px;
+                        font-weight: bold;
+                        color: #842b27;
+                      "
+                    >
+                      {{downPayment}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 6px 16px 14px;
+                        font-size: 13px;
+                        color: #78716c;
+                      "
+                    >
+                      Payment Deadline
+                    </td>
+                    <td
+                      align="right"
+                      style="
+                        padding: 6px 16px 14px;
+                        font-size: 13px;
+                        font-weight: bold;
+                        color: #292524;
+                      "
+                    >
+                      {{paymentDeadline}}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Notice -->
+            <tr>
+              <td style="padding: 14px 28px 0">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="
+                    background-color: #fff8eb;
+                    border-left: 3px solid #d6a14a;
+                  "
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 10px 14px;
+                        font-size: 12px;
+                        line-height: 1.6;
+                        color: #6b5230;
+                      "
+                    >
+                      <strong>Please note:</strong> Your booking is approved but
+                      <strong>not yet confirmed</strong>. It will be confirmed
+                      once your down payment has been verified.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- CTA -->
+            <tr>
+              <td align="center" style="padding: 22px 28px 6px">
+                <table role="presentation" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td
+                      align="center"
+                      bgcolor="#842b27"
+                      style="background-color: #842b27; border-radius: 4px"
+                    >
+                      <a
+                        href="{{bookingUrl}}"
+                        style="
+                          display: inline-block;
+                          padding: 13px 30px;
+                          color: #ffffff;
+                          text-decoration: none;
+                          font-size: 14px;
+                          font-weight: bold;
+                        "
+                      >
+                        View Booking &amp; Pay
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin: 10px 0 0; font-size: 11px; color: #a8a29e">
+                  Submit your payment through your customer account.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Sign-off -->
+            <tr>
+              <td style="padding: 16px 28px 24px">
+                <p
+                  style="
+                    margin: 0;
+                    font-size: 13px;
+                    line-height: 1.6;
+                    color: #57534e;
+                  "
+                >
+                  Questions? Just reply to this email or contact us anytime.
+                </p>
+                <p
+                  style="
+                    margin: 12px 0 0;
+                    font-size: 13px;
+                    line-height: 1.6;
+                    color: #44403c;
+                  "
+                >
+                  Warm regards,<br />
+                  <strong style="color: #842b27"
+                    >Sandy's Kitchenette Team</strong
+                  >
+                </p>
+              </td>
+            </tr>
+            <!-- Footer -->
+            <tr>
+              <td
+                align="center"
+                style="
+                  padding: 18px 24px 14px;
+                  background-color: #f8f3ec;
+                  border-top: 1px solid #ece3d8;
+                "
+              >
+                <p
+                  style="
+                    margin: 0 0 4px;
+                    font-size: 13px;
+                    font-weight: bold;
+                    color: #842b27;
+                  "
+                >
+                  Sandy's Kitchenette
+                </p>
+                <p
+                  style="
+                    margin: 0 0 4px;
+                    font-size: 11px;
+                    line-height: 1.6;
+                    color: #78716c;
+                  "
+                >
+                  Brgy. Rio Chico, General Tinio, Nueva Ecija
+                </p>
+                <p
+                  style="
+                    margin: 0 0 8px;
+                    font-size: 11px;
+                    line-height: 1.6;
+                    color: #78716c;
+                  "
+                >
+                  <a
+                    href="mailto:sandyskitchenette@gmail.com"
+                    style="color: #842b27; text-decoration: none"
+                    >sandyskitchenette@gmail.com</a
+                  >
+                  &nbsp;&bull;&nbsp;
+                  <a
+                    href="tel:+639814563813"
+                    style="color: #842b27; text-decoration: none"
+                    >+63 981-456-3813</a
+                  >
+                </p>
+                <p style="margin: 0; font-size: 11px; line-height: 1.6">
+                  <a
+                    href="{{facebookUrl}}"
+                    target="_blank"
+                    style="
+                      color: #842b27;
+                      text-decoration: none;
+                      font-weight: bold;
+                    "
+                    >Facebook</a
+                  >
+                  &nbsp;&bull;&nbsp;
+                  <a
+                    href="{{instagramUrl}}"
+                    target="_blank"
+                    style="
+                      color: #842b27;
+                      text-decoration: none;
+                      font-weight: bold;
+                    "
+                    >Instagram</a
+                  >
+                </p>
+                <p
+                  style="
+                    margin: 12px 0 0;
+                    padding-top: 10px;
+                    border-top: 1px solid #e7ddd0;
+                    font-size: 10px;
+                    line-height: 1.5;
+                    color: #a8a29e;
+                  "
+                >
+                  This is an automated email regarding your booking with Sandy's
+                  Kitchenette.
+                </p>
+              </td>
+            </tr>
+          </table>
+          <!-- End Container -->
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

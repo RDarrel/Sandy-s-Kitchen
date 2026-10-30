@@ -75,7 +75,7 @@ export default function Platforms() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <NotificationPopover />
+          {auth?.role === 6 && <NotificationPopover />}
         </header>
         <div className="flex flex-1 flex-col  ">
           <Outlet />

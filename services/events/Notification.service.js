@@ -1,7 +1,7 @@
 const Notfication = require("../../models/events/Notification");
 const Booking = require("../../models/events/Booking");
+const EmailService = require("../Email.service");
 const notifyBooking = async ({ statusTransaction, bookingId }) => {
-  console.log("statusTransaction", statusTransaction);
   if (
     [
       "approved",
@@ -19,6 +19,8 @@ const notifyBooking = async ({ statusTransaction, bookingId }) => {
       type: `booking_${statusTransaction?.new}`,
       reference: booking?.reference,
     });
+
+    EmailService.send();
   }
 };
 
