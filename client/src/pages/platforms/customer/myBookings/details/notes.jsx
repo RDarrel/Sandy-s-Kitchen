@@ -1,4 +1,5 @@
 import { NotebookText } from "lucide-react";
+import { Section } from "./components";
 
 const NotesAndRequests = ({ booking }) => {
   const specialRequests = booking?.contact?.specialRequests?.trim();

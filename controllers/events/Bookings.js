@@ -1,5 +1,6 @@
 const Booking = require("../../models/events/Booking");
 const BookingService = require("../../services/events/booking");
+const NotificationService = require("../../services/events/Notification.service");
 const dateToUTC = require("../../utilities/dateToUTC");
 
 exports.save = async (req, res) => {
@@ -17,6 +18,15 @@ exports.save = async (req, res) => {
       }
 
       booking.set(data);
+
+      // Remove unused booking details
+      if (booking.bookingType === "venue") {
+        booking.set("catering", undefined);
+      }
+
+      if (booking.bookingType === "catering") {
+        booking.set("venue", undefined);
+      }
 
       await booking.save();
 
@@ -183,6 +193,8 @@ exports.update = async (req, res) => {
           : await BookingService.update({
               bookingToUpdate: req.body,
             });
+
+      NotificationService.notifyBooking({ bookingId: _id, statusTransaction });
 
       return res.status(200).json({
         success: "Booking updated successfully.",

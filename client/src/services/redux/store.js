@@ -13,6 +13,7 @@ import {
   bookingPolicy,
   paymentMethods,
   payments,
+  notifications,
 } from "./slices/events";
 import { addOns, menus, menuCategories } from "./slices/menu";
 import {
@@ -54,6 +55,7 @@ const store = configureStore({
     payments,
     bookingReport,
     posReport,
+    notifications,
   },
 });
 

@@ -74,7 +74,7 @@ export const buildInclusions = (inclusions, isUpdating = false) => {
 };
 
 const formattedDishes = (menu) => {
-  const dishes = Object.values(menu)?.flat() || [];
+  const dishes = Object.values(menu || {})?.flat() || [];
   return dishes.map((dish) => ({ menu: dish }));
 };
 export const buildPayload = (
@@ -92,7 +92,7 @@ export const buildPayload = (
   };
   const _form = {
     ...form,
-    catering,
+    ...(["both", "catering"].includes(bookingType) && { catering }),
   };
 
   const payload = {

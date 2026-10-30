@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Role } from "@/services/fakeDB";
 import { useEffect } from "react";
+import NotificationPopover from "@/components/shared/notification";
 
 export default function Platforms() {
   const { auth } = useSelector(({ auth }) => auth);
@@ -74,7 +75,7 @@ export default function Platforms() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          {/* <BellRing className="mr-12 text-[#FF4F00]" /> */}
+          <NotificationPopover />
         </header>
         <div className="flex flex-1 flex-col  ">
           <Outlet />

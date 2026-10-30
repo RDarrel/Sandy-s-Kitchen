@@ -4,3 +4,4 @@ export { default as bookings } from "./bookings";
 export { default as bookingPolicy } from "./bookingPolicy";
 export { default as paymentMethods } from "./paymentMethods";
 export { default as payments } from "./payments";
+export { default as notifications } from "./notifications";
