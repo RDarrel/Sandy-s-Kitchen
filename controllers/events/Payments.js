@@ -54,7 +54,7 @@ exports.update = async (req, res) => {
         bookingId,
       });
     } else {
-      NotificationService.notifyPayment({
+      await NotificationService.notifyPayment({
         payment: updated,
       });
     }
