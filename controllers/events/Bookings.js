@@ -1,8 +1,8 @@
-const { waitUntil } = require("@vercel/functions");
 const Booking = require("../../models/events/Booking");
 const BookingService = require("../../services/events/booking");
 const NotificationService = require("../../services/events/Notification.service");
 const dateToUTC = require("../../utilities/dateToUTC");
+const runInBackground = require("../../utilities/runInBackground");
 
 exports.save = async (req, res) => {
   try {
@@ -195,14 +195,10 @@ exports.update = async (req, res) => {
               bookingToUpdate: req.body,
             });
 
-      const notificationPromise = NotificationService.notifyBooking({
-        bookingId: _id,
-        statusTransaction,
-      });
-
-      waitUntil(
-        notificationPromise.catch((error) => {
-          console.error("[NOTIFICATION] Failed:", error);
+      runInBackground(
+        NotificationService.notifyBooking({
+          bookingId: _id,
+          statusTransaction,
         }),
       );
 

@@ -50,21 +50,16 @@ exports.update = async (req, res) => {
       { path: "reviewedBy", select: "fullName" },
     ]);
 
-    const notificationPromise = willConfirmBooking
-      ? NotificationService.notifyConfirmedBooking({
-          payment: updated,
-          bookingId,
-        })
-      : NotificationService.notifyPayment({
-          payment: updated,
-        });
-
-    waitUntil(
-      notificationPromise.catch((error) => {
-        console.error("[NOTIFICATION] Failed:", error);
-      }),
+    runInBackground(
+      willConfirmBooking
+        ? NotificationService.notifyConfirmedBooking({
+            payment: updated,
+            bookingId,
+          })
+        : NotificationService.notifyPayment({
+            payment: updated,
+          }),
     );
-
     res
       .status(201)
       .json({ data: updated, success: "Payment updated successfully." });
