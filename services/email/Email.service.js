@@ -78,7 +78,6 @@ const send = async ({
   data = {},
 } = {}) => {
   try {
-    console.log("sendingg", to);
     const subject = getSubject(type, data?.bookingReference);
     const html = await renderEmail({
       type,
@@ -106,8 +105,6 @@ const send = async ({
       text: data.preheader || subject,
       attachments,
     });
-
-    console.log("Email sent:", result.messageId);
 
     return result;
   } catch (error) {
