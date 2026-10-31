@@ -1,3 +1,4 @@
+const { waitUntil } = require("@vercel/functions");
 const Booking = require("../../models/events/Booking");
 const BookingService = require("../../services/events/booking");
 const NotificationService = require("../../services/events/Notification.service");
@@ -194,7 +195,16 @@ exports.update = async (req, res) => {
               bookingToUpdate: req.body,
             });
 
-      NotificationService.notifyBooking({ bookingId: _id, statusTransaction });
+      const notificationPromise = NotificationService.notifyBooking({
+        bookingId: _id,
+        statusTransaction,
+      });
+
+      waitUntil(
+        notificationPromise.catch((error) => {
+          console.error("[NOTIFICATION] Failed:", error);
+        }),
+      );
 
       return res.status(200).json({
         success: "Booking updated successfully.",

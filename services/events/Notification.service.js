@@ -88,7 +88,7 @@ const notifyBooking = async ({ statusTransaction, bookingId }) => {
       reference: booking?.reference,
     });
 
-    EmailService.send({
+    await EmailService.send({
       data: formattedData(booking, statusTransaction?.new),
       type,
     });
@@ -117,7 +117,7 @@ const notifyConfirmedBooking = async ({ bookingId, payment }) => {
     ),
   };
 
-  EmailService.send({
+  await EmailService.send({
     data: bookingData,
     type,
   });

@@ -1,6 +1,7 @@
 const Payment = require("../../models/events/Payment");
 const Booking = require("../../models/events/Booking");
 const NotificationService = require("../../services/events/Notification.service");
+const { waitUntil } = require("@vercel/functions");
 exports.save = async (req, res) => {
   try {
     const created = await Payment.create(req.body);
@@ -48,16 +49,21 @@ exports.update = async (req, res) => {
       { path: "method", select: "name" },
       { path: "reviewedBy", select: "fullName" },
     ]);
-    if (willConfirmBooking) {
-      NotificationService.notifyConfirmedBooking({
-        payment: updated,
-        bookingId,
-      });
-    } else {
-      await NotificationService.notifyPayment({
-        payment: updated,
-      });
-    }
+
+    const notificationPromise = willConfirmBooking
+      ? NotificationService.notifyConfirmedBooking({
+          payment: updated,
+          bookingId,
+        })
+      : NotificationService.notifyPayment({
+          payment: updated,
+        });
+
+    waitUntil(
+      notificationPromise.catch((error) => {
+        console.error("[NOTIFICATION] Failed:", error);
+      }),
+    );
 
     res
       .status(201)
