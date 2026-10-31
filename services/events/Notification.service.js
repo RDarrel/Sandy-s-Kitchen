@@ -155,6 +155,8 @@ const notifyPayment = async ({ payment }) => {
     data: bookingData,
     type,
   });
+
+  console.log("[EMAIL] Notification completed");
 };
 
 module.exports = {
