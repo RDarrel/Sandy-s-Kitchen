@@ -283,11 +283,21 @@ exports.cancel = async (req, res) => {
       statusTransaction = {},
       totalValueChange = 0,
       amountReceived = 0,
+      hasRefund = false,
+      includeAccount = false,
     } = req.body;
     const result = await BookingService.cancel({
       bookingId: req.body?._id,
       cancellation: req.body.cancellation,
     });
+
+    runInBackground(
+      NotificationService.notifyCancelledBooking({
+        bookingId: req.body?._id,
+        hasRefund,
+        includeAccount,
+      }),
+    );
     res.status(200).json({
       data: { ...result, totalValueChange, amountReceived },
       statusTransaction,

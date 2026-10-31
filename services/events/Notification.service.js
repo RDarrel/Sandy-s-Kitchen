@@ -88,6 +88,8 @@ const notifyBooking = async ({ statusTransaction, bookingId }) => {
       reference: booking?.reference,
     });
 
+    if (["setup", "completed"].includes(statusTransaction?.new)) return;
+
     await EmailService.send({
       data: formattedData(booking, statusTransaction?.new),
       type,
@@ -155,12 +157,44 @@ const notifyPayment = async ({ payment }) => {
     data: bookingData,
     type,
   });
+};
 
-  console.log("[EMAIL] Notification completed");
+const notifyCancelledBooking = async ({
+  bookingId,
+  hasRefund = false,
+  includeAccount = false,
+}) => {
+  const booking = await Booking.findOne({ _id: bookingId }).populate(
+    "customer",
+    "fullName",
+  );
+  const { cancellation = {} } = booking;
+  const type = `booking_cancelled`;
+
+  await Notfication.create({
+    recipient: booking?.customer,
+    type,
+    reference: booking?.reference,
+  });
+  const bookingData = {
+    ...formattedData(booking),
+    totalPaid: formatCurrency(cancellation?.totalPaid),
+    totalAmount: formatCurrency(booking?.pricing?.total),
+    refundAmount: formatCurrency(booking?.refund?.amount),
+    reason: cancellation?.reason,
+    hasRefund,
+    includeAccount,
+  };
+
+  await EmailService.send({
+    data: bookingData,
+    type,
+  });
 };
 
 module.exports = {
   notifyBooking,
   notifyConfirmedBooking,
+  notifyCancelledBooking,
   notifyPayment,
 };

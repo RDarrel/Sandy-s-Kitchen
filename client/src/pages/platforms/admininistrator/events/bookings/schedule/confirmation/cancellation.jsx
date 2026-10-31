@@ -1,7 +1,13 @@
 import { useEffect, useId, useState } from "react";
 import { Content as AlertDialogContent } from "@radix-ui/react-alert-dialog";
 import { toast } from "sonner";
-import { ArrowDownLeft, CreditCard, LockKeyhole, TriangleAlert, X } from "lucide-react";
+import {
+  ArrowDownLeft,
+  CreditCard,
+  LockKeyhole,
+  TriangleAlert,
+  X,
+} from "lucide-react";
 
 import {
   AlertDialog,
@@ -145,6 +151,8 @@ const Cancellation = ({ booking, onClose }) => {
       cancelledAt: new Date(),
       totalPaid,
       nonRefundableAmount,
+      hasRefund,
+      includeAccount,
       ...(hasRefund && {
         refund: {
           amount: refundAmount,
@@ -237,7 +245,9 @@ const Cancellation = ({ booking, onClose }) => {
                       className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
                     />
                     <div className="min-w-0 space-y-1">
-                      <p className="text-sm font-semibold">Cancellation Unavailable</p>
+                      <p className="text-sm font-semibold">
+                        Cancellation Unavailable
+                      </p>
                       <p className="text-xs leading-5 text-muted-foreground">
                         This booking can&apos;t be cancelled while a payment is
                         being reviewed. Please approve or reject the pending
@@ -246,73 +256,81 @@ const Cancellation = ({ booking, onClose }) => {
                     </div>
                   </div>
                 )}
-                {(hasVerifiedPayments || hasPendingPayment) && !(hasPendingPayment && !hasRefund) && (
-                <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
-                  <dl className="relative p-1">
-                    <div
-                      aria-hidden="true"
-                      className="absolute bottom-5 left-[22px] top-5 w-px bg-border/80"
-                    />
+                {(hasVerifiedPayments || hasPendingPayment) &&
+                  !(hasPendingPayment && !hasRefund) && (
+                    <div className="mt-3 overflow-hidden rounded-lg border border-border bg-background">
+                      <dl className="relative p-1">
+                        <div
+                          aria-hidden="true"
+                          className="absolute bottom-5 left-[22px] top-5 w-px bg-border/80"
+                        />
 
-                    <div className="relative flex items-center justify-between gap-3 px-2 py-1">
-                      <dt className="flex items-center gap-2 text-sm leading-5 text-foreground/80">
-                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground ring-2 ring-background">
-                          <CreditCard aria-hidden="true" className="size-3.5" />
-                        </span>
-                        Verified Payments
-                      </dt>
+                        <div className="relative flex items-center justify-between gap-3 px-2 py-1">
+                          <dt className="flex items-center gap-2 text-sm leading-5 text-foreground/80">
+                            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground ring-2 ring-background">
+                              <CreditCard
+                                aria-hidden="true"
+                                className="size-3.5"
+                              />
+                            </span>
+                            Verified Payments
+                          </dt>
 
-                      <dd className="text-right text-sm font-medium tabular-nums">
-                        {Formatter.amount(totalPaid)}
-                      </dd>
+                          <dd className="text-right text-sm font-medium tabular-nums">
+                            {Formatter.amount(totalPaid)}
+                          </dd>
+                        </div>
+
+                        <div className="relative flex items-center justify-between gap-3 px-2 py-1">
+                          <dt className="flex items-center gap-2 text-sm leading-5 text-foreground/80">
+                            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground ring-2 ring-background">
+                              <LockKeyhole
+                                aria-hidden="true"
+                                className="size-3.5"
+                              />
+                            </span>
+                            Non-refundable Amount
+                          </dt>
+
+                          <dd className="text-right text-sm font-medium tabular-nums">
+                            {Formatter.amount(nonRefundableAmount)}
+                          </dd>
+                        </div>
+
+                        <div className="relative mt-0.5 flex items-center justify-between gap-3 rounded bg-primary/[0.04] px-2 py-1.5">
+                          <dt className="flex items-center gap-2 text-sm font-medium leading-5">
+                            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-primary">
+                              <ArrowDownLeft
+                                aria-hidden="true"
+                                className="size-3.5"
+                              />
+                            </span>
+                            Refund Amount
+                          </dt>
+
+                          <dd className="text-right text-base font-semibold text-primary tabular-nums">
+                            {Formatter.amount(refundAmount)}
+                          </dd>
+                        </div>
+                      </dl>
+
+                      {pendingAmount > 0 && (
+                        <p className="border-t border-border/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
+                          Pending payments ({Formatter.amount(pendingAmount)})
+                          are excluded.
+                        </p>
+                      )}
                     </div>
-
-                    <div className="relative flex items-center justify-between gap-3 px-2 py-1">
-                      <dt className="flex items-center gap-2 text-sm leading-5 text-foreground/80">
-                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground ring-2 ring-background">
-                          <LockKeyhole
-                            aria-hidden="true"
-                            className="size-3.5"
-                          />
-                        </span>
-                        Non-refundable Amount
-                      </dt>
-
-                      <dd className="text-right text-sm font-medium tabular-nums">
-                        {Formatter.amount(nonRefundableAmount)}
-                      </dd>
-                    </div>
-
-                    <div className="relative mt-0.5 flex items-center justify-between gap-3 rounded bg-primary/[0.04] px-2 py-1.5">
-                      <dt className="flex items-center gap-2 text-sm font-medium leading-5">
-                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-background text-primary">
-                          <ArrowDownLeft
-                            aria-hidden="true"
-                            className="size-3.5"
-                          />
-                        </span>
-                        Refund Amount
-                      </dt>
-
-                      <dd className="text-right text-base font-semibold text-primary tabular-nums">
-                        {Formatter.amount(refundAmount)}
-                      </dd>
-                    </div>
-                  </dl>
-
-                  {pendingAmount > 0 && (
-                    <p className="border-t border-border/60 px-3 py-2 text-xs leading-5 text-muted-foreground">
-                      Pending payments ({Formatter.amount(pendingAmount)}) are
-                      excluded.
-                    </p>
                   )}
-                </div>
-                )}
 
                 {/* CANCELLATION REASON */}
                 <div className="mt-3 space-y-2.5">
                   <Field label="Cancellation Reason *" htmlFor={`${id}-reason`}>
-                    <Select value={quickReason} onValueChange={setQuickReason} disabled={hasPendingPayment}>
+                    <Select
+                      value={quickReason}
+                      onValueChange={setQuickReason}
+                      disabled={hasPendingPayment}
+                    >
                       <SelectTrigger
                         id={`${id}-reason`}
                         className={controlClass}
@@ -415,7 +433,9 @@ const Cancellation = ({ booking, onClose }) => {
                             <Select
                               value={method}
                               disabled={
-                                hasPendingPayment || isLoadingMethods || refundMethods.length === 0
+                                hasPendingPayment ||
+                                isLoadingMethods ||
+                                refundMethods.length === 0
                               }
                               onValueChange={(value) => {
                                 setMethod(value);
