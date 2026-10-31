@@ -1,0 +1,31 @@
+.app-loader__text {
+  --loader-text-color: var(--foreground);
+}
+
+@supports ((background-clip: text) or (-webkit-background-clip: text)) {
+  @media (prefers-reduced-motion: no-preference) {
+    .app-loader__text {
+      background-image: linear-gradient(
+        110deg,
+        var(--loader-text-color) 40%,
+        var(--accent) 50%,
+        var(--loader-text-color) 60%
+      );
+      background-size: 300% 100%;
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: app-loader-text-shimmer 2.25s ease-in-out infinite;
+    }
+
+  }
+}
+
+@keyframes app-loader-text-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

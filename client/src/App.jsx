@@ -26,8 +26,9 @@ import BookingCoordinator from "./pages/platforms/booking_coordinator";
 import AppLoader from "./components/shared/appLoader";
 
 export default function App() {
-  const { auth, isCheckingAuth } = useSelector(({ auth }) => auth);
+  const { auth } = useSelector(({ auth }) => auth);
   const dispatch = useDispatch();
+  const isCheckingAuth = true;
   useEffect(() => {
     dispatch(VALIDATEREFRESH());
   }, [dispatch]);
