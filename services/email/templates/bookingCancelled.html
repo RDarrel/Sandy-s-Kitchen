@@ -10,7 +10,7 @@
         color: #3b2418;
       "
     >
-      Your Booking Has Been Approved
+      Your Booking Has Been Cancelled
     </h1>
 
     <p
@@ -37,11 +37,85 @@
     </p>
 
     <p style="margin: 0; font-size: 14px; line-height: 21px; color: #5a4537">
-      Thank you for choosing Sandy's Kitchenette! Please complete the required
-      down payment by
-      <strong style="color: #3b2418">{{paymentDeadline}}</strong>
-      to confirm your reservation.
+      We regret to inform you that your booking with Sandy's Kitchenette has been
+      cancelled. Please refer to the details below for more information.
     </p>
+  </td>
+</tr>
+
+<!-- CANCELLATION REASON -->
+<tr>
+  <td style="padding: 16px 24px 0">
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="
+        background-color: #fffaf2;
+        border: 1px solid #eee5db;
+        border-radius: 6px;
+        table-layout: fixed;
+      "
+    >
+      <tr>
+        <td style="padding: 14px 16px">
+          <p
+            style="
+              margin: 0 0 7px;
+              font-size: 12px;
+              line-height: 17px;
+              font-weight: bold;
+              letter-spacing: 0.5px;
+              color: #7b5b46;
+            "
+          >
+            Reason for cancellation
+          </p>
+          {{#if reason}}
+          <p
+            style="
+              margin: 0;
+              font-size: 14px;
+              line-height: 21px;
+              color: #3b2418;
+              white-space: pre-line;
+              overflow-wrap: anywhere;
+              word-wrap: break-word;
+            "
+          >
+            {{~reason~}}
+          </p>
+          {{else}}
+          <p
+            style="
+              margin: 0;
+              font-size: 14px;
+              line-height: 21px;
+              color: #3b2418;
+            "
+          >
+            Please contact your booking coordinator for more information.
+          </p>
+          {{/if}}
+          {{#if cancelledAt}}
+          <p
+            style="
+              margin: 10px 0 0;
+              padding-top: 9px;
+              border-top: 1px solid #eee5db;
+              font-size: 12px;
+              line-height: 18px;
+              color: #7b5b46;
+            "
+          >
+            Cancelled on: {{cancelledAt}}
+          </p>
+          {{/if}}
+        </td>
+      </tr>
+    </table>
   </td>
 </tr>
 
@@ -112,57 +186,6 @@
         </td>
       </tr>
 
-      {{#if isBoth}}
-      <tr>
-        <td
-          style="
-            padding: 7px 0;
-            border-top: 1px solid #f3eee7;
-            font-size: 13px;
-            color: #7b5b46;
-          "
-        >
-          Catering date
-        </td>
-        <td
-          align="right"
-          style="
-            padding: 7px 0;
-            border-top: 1px solid #f3eee7;
-            font-size: 13px;
-            font-weight: bold;
-            color: #3b2418;
-          "
-        >
-          {{cateringDate}}
-        </td>
-      </tr>
-
-      <tr>
-        <td
-          style="
-            padding: 7px 0;
-            border-top: 1px solid #f3eee7;
-            font-size: 13px;
-            color: #7b5b46;
-          "
-        >
-          Venue date
-        </td>
-        <td
-          align="right"
-          style="
-            padding: 7px 0;
-            border-top: 1px solid #f3eee7;
-            font-size: 13px;
-            font-weight: bold;
-            color: #3b2418;
-          "
-        >
-          {{venueDate}}
-        </td>
-      </tr>
-      {{else}}
       <tr>
         <td
           style="
@@ -187,103 +210,72 @@
           {{eventDate}}
         </td>
       </tr>
-      {{/if}}
     </table>
   </td>
 </tr>
 
-<!-- PAYMENT SUMMARY -->
+{{#if hasRefund}}
+<!-- REFUND SUMMARY -->
 <tr>
   <td style="padding: 14px 24px 0">
-    <table
-      role="presentation"
-      width="100%"
-      cellpadding="0"
-      cellspacing="0"
-      style="background-color: #fffaf2; border: 1px solid #eee5db"
-    >
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #fffaf2; border: 1px solid #eee5db; table-layout: fixed">
+      <tr><td colspan="2" style="padding: 12px 14px 6px; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; color: #7b5b46">REFUND SUMMARY</td></tr>
       <tr>
-        <td
-          colspan="2"
-          style="
-            padding: 12px 14px 6px;
-            font-size: 12px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            color: #7b5b46;
-          "
-        >
-          PAYMENT SUMMARY
-        </td>
-      </tr>
-
+  <td style="padding: 9px 14px; border-top: 1px solid #eee5db; font-size: 13px; color: #7b5b46">Total amount paid</td>
+  <td align="right" style="padding: 9px 14px; border-top: 1px solid #eee5db; font-size: 13px; font-weight: bold; color: #3b2418; overflow-wrap: anywhere; word-wrap: break-word">{{totalPaid}}</td>
+</tr>
       <tr>
-        <td style="padding: 7px 14px; font-size: 13px; color: #7b5b46">
-          Total booking amount
-        </td>
-        <td
-          align="right"
-          style="padding: 7px 14px; font-size: 13px; color: #3b2418"
-        >
-          {{totalAmount}}
-        </td>
-      </tr>
-
-      <tr>
-        <td
-          style="
-            padding: 9px 14px 5px;
-            border-top: 1px solid #eee5db;
-            font-size: 13px;
-            font-weight: bold;
-            color: #3b2418;
-          "
-        >
-          Required down payment
-        </td>
-        <td
-          align="right"
-          style="
-            padding: 9px 14px 5px;
-            border-top: 1px solid #eee5db;
-            font-size: 20px;
-            font-weight: bold;
-            color: #c62828;
-          "
-        >
-          {{downPayment}}
-        </td>
-      </tr>
-
-      <tr>
-        <td style="padding: 3px 14px 12px; font-size: 13px; color: #7b5b46">
-          Payment deadline
-        </td>
-        <td
-          align="right"
-          style="
-            padding: 3px 14px 12px;
-            font-size: 13px;
-            font-weight: bold;
-            color: #3b2418;
-          "
-        >
-          {{paymentDeadline}}
-        </td>
-      </tr>
+  <td style="padding: 9px 14px; border-top: 1px solid #eee5db; font-size: 13px; color: #7b5b46">Refund amount</td>
+  <td align="right" style="padding: 9px 14px; border-top: 1px solid #eee5db; font-size: 20px; font-weight: bold; color: #2e7d32; overflow-wrap: anywhere; word-wrap: break-word">{{refundAmount}}</td>
+</tr>
     </table>
   </td>
 </tr>
-
-<!-- PAYMENT NOTICE -->
+{{#if includeAccount}}
+<!-- SAVED REFUND ACCOUNT -->
 <tr>
-  <td style="padding: 10px 24px 0">
-    <p style="margin: 0; font-size: 12px; line-height: 18px; color: #7b5b46">
-      <strong style="color: #3b2418">Down Payment Required:</strong>
-      Your booking will be confirmed once your down payment has been verified.
+  <td style="padding: 18px 24px 0">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #eee5db; table-layout: fixed">
+      <tr><td colspan="2" style="padding: 12px 14px 6px; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; color: #7b5b46">REFUND ACCOUNT DETAILS</td></tr>
+      {{#if refundMethod}}
+      <tr>
+  <td style="padding: 9px 14px; border-top: 1px solid #eee5db; font-size: 13px; color: #7b5b46">Bank / e-wallet</td>
+  <td align="right" style="padding: 9px 14px; border-top: 1px solid #eee5db; font-size: 13px; font-weight: bold; color: #3b2418; overflow-wrap: anywhere; word-wrap: break-word">{{refundMethod}}</td>
+</tr>
+      {{/if}}
+      <tr>
+  <td style="padding: 9px 14px; border-top: 1px solid #eee5db; font-size: 13px; color: #7b5b46">Account name</td>
+  <td align="right" style="padding: 9px 14px; border-top: 1px solid #eee5db; font-size: 13px; font-weight: bold; color: #3b2418; overflow-wrap: anywhere; word-wrap: break-word">{{accountName}}</td>
+</tr>
+      <tr>
+  <td style="padding: 9px 14px; border-top: 1px solid #eee5db; font-size: 13px; color: #7b5b46">Account / mobile number</td>
+  <td align="right" style="padding: 9px 14px; border-top: 1px solid #eee5db; font-size: 13px; font-weight: bold; color: #3b2418; overflow-wrap: anywhere; word-wrap: break-word">{{accountNumber}}</td>
+</tr>
+    </table>
+    <p style="margin: 14px 0 6px; font-size: 14px; line-height: 21px; font-weight: bold; color: #3b2418">
+      Refund Pending
+    </p>
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: #5a4537">
+      Your refund is pending processing and will be sent to the account listed
+      above. We will notify you once the refund has been completed.
     </p>
   </td>
 </tr>
+{{else}}
+<!-- REFUND ACCOUNT REQUIRED -->
+<tr>
+  <td style="padding: 14px 24px 0">
+    <p style="margin: 0 0 6px; font-size: 14px; line-height: 21px; font-weight: bold; color: #3b2418">
+      Refund Account Details Required
+    </p>
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: #5a4537">
+      To process your refund, please provide your GCash or bank account details
+      through your account.
+    </p>
+  </td>
+</tr>
+{{/if}}
+{{/if}}
 
 <!-- ACTION BUTTON -->
 <tr>
@@ -307,7 +299,7 @@
               text-decoration: none;
             "
           >
-            View Booking &amp; Pay
+            {{#if hasRefund}}{{#if includeAccount}}View Refund Details{{else}}Submit Refund Details{{/if}}{{else}}View Booking Details{{/if}}
           </a>
         </td>
       </tr>
@@ -321,7 +313,15 @@
         text-align: center;
       "
     >
-      You can complete your payment through your account.
+      {{#if hasRefund}}
+      {{#if includeAccount}}
+      Sign in to your account to view your refund status.
+      {{else}}
+      Sign in to your account to submit your refund details.
+      {{/if}}
+      {{else}}
+      Sign in to review your booking.
+      {{/if}}
     </p>
   </td>
 </tr>

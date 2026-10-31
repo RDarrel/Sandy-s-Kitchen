@@ -2,7 +2,13 @@ import { GET_REFUNDS } from "@/services/redux/slices/events/bookings";
 import { BROWSE as GET_PAYMENT_METHODS } from "@/services/redux/slices/events/paymentMethods";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { ArrowRight, Clock3, Loader2, TriangleAlert, Wallet } from "lucide-react";
+import {
+  ArrowRight,
+  Clock3,
+  Loader2,
+  TriangleAlert,
+  Wallet,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,9 +28,11 @@ import { Formatter, fullName } from "@/services/utilities";
 import RefundDetails from "./details";
 
 const PendingRefunds = () => {
-  const { refunds = [], isLoadingRefunds } = useSelector(
-    ({ bookings }) => bookings,
-  );
+  const {
+    refunds = [],
+    isLoadingRefunds,
+    calendar,
+  } = useSelector(({ bookings }) => bookings);
   const { collections: paymentMethods = [] } = useSelector(
     ({ paymentMethods }) => paymentMethods,
   );
@@ -47,9 +55,7 @@ const PendingRefunds = () => {
     dispatch(GET_PAYMENT_METHODS());
   }, [dispatch, loadRefunds]);
 
-  console.log("refunds", refunds);
-
-  const count = refunds.length;
+  const count = calendar.overview?.financial?.pendingRefundCount;
 
   return (
     <>
@@ -275,11 +281,16 @@ const PendingRefunds = () => {
                             {hasRefundAccount ? (
                               <>
                                 <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground">
-                                  <Wallet aria-hidden="true" className="size-3" />
+                                  <Wallet
+                                    aria-hidden="true"
+                                    className="size-3"
+                                  />
                                 </span>
                                 <div className="min-w-0">
                                   <span className="break-words font-medium text-foreground">
-                                    <span className="sr-only">Refund method: </span>
+                                    <span className="sr-only">
+                                      Refund method:{" "}
+                                    </span>
                                     {methodName || "Method unavailable"}
                                   </span>
                                   <span className="ml-2 inline-block text-muted-foreground tabular-nums">
@@ -293,7 +304,10 @@ const PendingRefunds = () => {
                             ) : (
                               <>
                                 <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                                  <Clock3 aria-hidden="true" className="size-3.5" />
+                                  <Clock3
+                                    aria-hidden="true"
+                                    className="size-3.5"
+                                  />
                                 </span>
                                 <p className="min-w-0 font-medium text-amber-700 dark:text-amber-400">
                                   Awaiting refund account details

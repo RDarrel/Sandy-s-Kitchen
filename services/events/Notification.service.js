@@ -164,11 +164,11 @@ const notifyCancelledBooking = async ({
   hasRefund = false,
   includeAccount = false,
 }) => {
-  const booking = await Booking.findOne({ _id: bookingId }).populate(
-    "customer",
-    "fullName",
-  );
+  const booking = await Booking.findOne({ _id: bookingId })
+    .populate("customer", "fullName")
+    .populate("cancellation.refund.method", "name");
   const { cancellation = {} } = booking;
+  const refund = cancellation?.refund;
   const type = `booking_cancelled`;
 
   await Notfication.create({
@@ -180,7 +180,11 @@ const notifyCancelledBooking = async ({
     ...formattedData(booking),
     totalPaid: formatCurrency(cancellation?.totalPaid),
     totalAmount: formatCurrency(booking?.pricing?.total),
-    refundAmount: formatCurrency(booking?.refund?.amount),
+    refundAmount: formatCurrency(refund?.amount),
+    refundMethod: refund?.method?.name,
+    accountName: refund?.accountName,
+    accountNumber: refund?.accountNumber,
+    cancelledAt: formatDate(cancellation?.cancelledAt),
     reason: cancellation?.reason,
     hasRefund,
     includeAccount,

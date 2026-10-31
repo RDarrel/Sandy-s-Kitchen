@@ -151,8 +151,7 @@ const Cancellation = ({ booking, onClose }) => {
       cancelledAt: new Date(),
       totalPaid,
       nonRefundableAmount,
-      hasRefund,
-      includeAccount,
+
       ...(hasRefund && {
         refund: {
           amount: refundAmount,
@@ -179,6 +178,8 @@ const Cancellation = ({ booking, onClose }) => {
             old: booking?.status,
             new: "cancelled",
           },
+          hasRefund,
+          includeAccount,
           totalValueChange: booking?.pricing?.total,
           amountReceived: booking?.pricing?.total - verifiedAmount,
         }),

@@ -995,11 +995,12 @@ export const reduxSlice = createSlice({
       .addCase(CANCEL_BUSINESS_BOOKING.fulfilled, (state, { payload }) => {
         const { data, statusTransaction } = payload;
         updateBookingStatus({ state, booking: data, statusTransaction });
-
+        console.log("data", data);
         if (
           data?.cancellation?.refund?.amount > 0 &&
           data?.cancellation?.refund?.status === "pending"
         ) {
+          console.log("hasRefund");
           const { overview } = state.calendar;
           const financial = { ...(overview?.financial ?? {}) };
 
