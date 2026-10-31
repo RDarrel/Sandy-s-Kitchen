@@ -28,6 +28,7 @@ const initialState = {
   isLoading: false,
   isLoadingSignin: false,
   isLoadingSigninWithGoogle: false,
+  isCheckingAuth: false,
   message: "",
 };
 
@@ -272,7 +273,7 @@ export const reduxSlice = createSlice({
       })
 
       .addCase(VALIDATEREFRESH.pending, (state) => {
-        state.isLoading = true;
+        state.isCheckingAuth = true;
         state.isSuccess = false;
         state.message = "";
       })
@@ -284,12 +285,12 @@ export const reduxSlice = createSlice({
         state.role = user?.role?.name;
 
         state.email = user?.email;
-        state.isLoading = false;
+        state.isCheckingAuth = false;
       })
       .addCase(VALIDATEREFRESH.rejected, (state, action) => {
         const { error } = action;
         state.message = error.message;
-        state.isLoading = false;
+        state.isCheckingAuth = false;
       })
 
       .addCase(UPLOAD.pending, (state) => {

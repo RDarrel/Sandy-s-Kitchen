@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { VALIDATEREFRESH } from "./services/redux/slices/persons/auth";
 import { useEffect } from "react";
 import { OrderReceipt } from "./components/shared/receipts";
@@ -23,13 +23,17 @@ import CateringDetails from "./pages/platforms/customer/events/catering/details"
 import VenueInquiry from "./pages/platforms/customer/events/venues/inquire";
 import VenueDetails from "./pages/platforms/customer/events/venues/details";
 import BookingCoordinator from "./pages/platforms/booking_coordinator";
+import AppLoader from "./components/shared/appLoader";
 
 export default function App() {
+  const { auth, isCheckingAuth } = useSelector(({ auth }) => auth);
   const dispatch = useDispatch();
-
   useEffect(() => {
     dispatch(VALIDATEREFRESH());
   }, [dispatch]);
+
+  if (isCheckingAuth) return <AppLoader />;
+
   return (
     <Routes>
       <Route element={<Website />}>
@@ -45,7 +49,7 @@ export default function App() {
       </Route>
       {/* <Route path="/authentication/:action" element={<Authentication />} /> */}
       <Route path="/platforms" element={<Platforms />}>
-        {RouteConfig()}
+        {RouteConfig(auth)}
         <Route
           path="/platforms/catering/inquire"
           element={<CateringInquiry />}

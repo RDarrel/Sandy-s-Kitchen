@@ -1,11 +1,8 @@
-import { useSelector } from "react-redux";
 import { Route } from "react-router-dom";
 import ACCESS from "./platforms/access";
 import { ADMIN_SYSTEM } from "./platforms/admininistrator/access";
 
-const RouteConfig = () => {
-  const { auth } = useSelector(({ auth }) => auth);
-
+const RouteConfig = (auth) => {
   const handleRoutes = () => {
     const routes =
       auth?.role === 1
