@@ -70,6 +70,7 @@ const send = async ({
   data = {},
 } = {}) => {
   try {
+    console.log("sendingg");
     const subject = getSubject(type, data?.bookingReference);
     const html = await renderEmail({
       type,

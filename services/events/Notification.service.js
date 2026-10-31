@@ -151,7 +151,7 @@ const notifyPayment = async ({ payment }) => {
     }),
   };
 
-  EmailService.send({
+  await EmailService.send({
     data: bookingData,
     type,
   });
