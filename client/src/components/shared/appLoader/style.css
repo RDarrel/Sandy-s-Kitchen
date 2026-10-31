@@ -16,8 +16,9 @@
       -webkit-background-clip: text;
       color: transparent;
       animation: app-loader-text-shimmer 2.25s ease-in-out infinite;
+      /* Start partway through the sweep so the highlight is visible on mount. */
+      animation-delay: -0.75s;
     }
-
   }
 }
 
