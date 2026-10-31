@@ -9,9 +9,128 @@
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sandy's Kitchenette</title>
+    <style>
+      body { margin: 0; }
+      #startup-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        --foreground: #3b2418;
+        --accent: #f6b81a;
+        box-sizing: border-box;
+        display: flex;
+        min-height: 100vh;
+        min-height: 100svh;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+        background: #fffaf2;
+        color: var(--foreground);
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        text-align: center;
+      }
+      #startup-loader[hidden] { display: none; }
+      #startup-loader * { box-sizing: border-box; }
+      #startup-loader .startup-content {
+        display: flex;
+        width: 100%;
+        max-width: 384px;
+        flex-direction: column;
+        align-items: center;
+      }
+      #startup-loader .startup-logo {
+        position: relative;
+        display: flex;
+        width: 112px;
+        height: 112px;
+        margin-bottom: 24px;
+        align-items: center;
+        justify-content: center;
+      }
+      #startup-loader .startup-ring,
+      #startup-loader .startup-track {
+        position: absolute;
+        inset: 0;
+        border: 1px solid #efd7bc;
+        border-radius: 50%;
+      }
+      #startup-loader .startup-ring {
+        border: 2px solid transparent;
+        border-top-color: #c62828;
+        border-right-color: var(--accent);
+      }
+      #startup-loader .startup-image {
+        display: flex;
+        width: 96px;
+        height: 96px;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        border: 1px solid #efd7bc;
+        border-radius: 50%;
+        background: #fffdf8;
+        box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+      }
+      #startup-loader img {
+        width: 80px;
+        height: 80px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      #startup-loader h1 {
+        margin: 0;
+        font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+        font-size: 24px;
+        font-weight: 600;
+        line-height: 1.333333;
+        letter-spacing: -0.025em;
+      }
+      #startup-loader p {
+        max-width: 320px;
+        margin: 12px 0 0;
+        color: #7b5b46;
+        font-size: 14px;
+        line-height: 24px;
+      }
+      @media (min-width: 640px) {
+        #startup-loader h1 { font-size: 30px; line-height: 1.2; }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        #startup-loader .startup-ring { animation: startup-spin 2.4s linear infinite; }
+        @supports ((background-clip: text) or (-webkit-background-clip: text)) {
+          #startup-loader h1 {
+            background-image: linear-gradient(110deg, var(--foreground) 40%, var(--accent) 50%, var(--foreground) 60%);
+            background-size: 300% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            animation: startup-shimmer 2.25s ease-in-out -0.75s infinite;
+          }
+        }
+      }
+      @keyframes startup-spin { to { transform: rotate(360deg); } }
+      @keyframes startup-shimmer {
+        from { background-position: 100% 50%; }
+        to { background-position: 0% 50%; }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root" hidden></div>
+      <main id="startup-loader">
+        <div class="startup-content" role="status" aria-live="polite" aria-atomic="true">
+          <div class="startup-logo">
+            <div class="startup-track" aria-hidden="true"></div>
+            <div class="startup-ring" aria-hidden="true"></div>
+            <div class="startup-image">
+              <img src="/src/assets/logos/kitchenette.jpg" alt="" width="80" height="80" fetchpriority="high" />
+            </div>
+          </div>
+          <h1>Sandy's Kitchenette</h1>
+          <p>Getting everything ready for you...</p>
+        </div>
+      </main>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

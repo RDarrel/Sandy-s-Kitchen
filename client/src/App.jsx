@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { VALIDATEREFRESH } from "./services/redux/slices/persons/auth";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { OrderReceipt } from "./components/shared/receipts";
 import HomePage from "./pages/website/home";
 import About from "./pages/website/about";
@@ -23,7 +23,6 @@ import CateringDetails from "./pages/platforms/customer/events/catering/details"
 import VenueInquiry from "./pages/platforms/customer/events/venues/inquire";
 import VenueDetails from "./pages/platforms/customer/events/venues/details";
 import BookingCoordinator from "./pages/platforms/booking_coordinator";
-import AppLoader from "./components/shared/appLoader";
 
 export default function App() {
   const { auth, isCheckingAuth } = useSelector(({ auth }) => auth);
@@ -32,7 +31,15 @@ export default function App() {
     dispatch(VALIDATEREFRESH());
   }, [dispatch]);
 
-  if (isCheckingAuth) return <AppLoader />;
+  useLayoutEffect(() => {
+    const loader = document.getElementById("startup-loader");
+    const root = document.getElementById("root");
+
+    if (loader) loader.hidden = !isCheckingAuth;
+    if (root) root.hidden = isCheckingAuth;
+  }, [isCheckingAuth]);
+
+  if (isCheckingAuth) return null;
 
   return (
     <Routes>

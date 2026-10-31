@@ -28,7 +28,7 @@ const initialState = {
   isLoading: false,
   isLoadingSignin: false,
   isLoadingSigninWithGoogle: false,
-  isCheckingAuth: false,
+  isCheckingAuth: true,
   message: "",
 };
 
