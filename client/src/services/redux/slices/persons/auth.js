@@ -99,9 +99,9 @@ export const CHANGE_PASSWORD = createAsyncThunk(
 
 export const VALIDATEREFRESH = createAsyncThunk(
   `${name}/validateRefresh`,
-  (_, thunkAPI) => {
+  async (_, thunkAPI) => {
     try {
-      return axioKit.validateRefresh();
+      return await axioKit.validateRefresh();
     } catch (error) {
       const message =
         (error.response &&
@@ -278,10 +278,10 @@ export const reduxSlice = createSlice({
         state.message = "";
       })
       .addCase(VALIDATEREFRESH.fulfilled, (state, action) => {
-        const { payload = {} } = action.payload;
+        const { payload = {} } = action.payload || {};
         const { user, information } = payload || {};
-        state.information = information;
-        state.auth = user;
+        state.information = information || {};
+        state.auth = user || {};
         state.role = user?.role?.name;
 
         state.email = user?.email;
@@ -289,7 +289,10 @@ export const reduxSlice = createSlice({
       })
       .addCase(VALIDATEREFRESH.rejected, (state, action) => {
         const { error } = action;
-        state.message = error.message;
+        state.message = action.payload || error.message;
+        state.auth = {};
+        state.information = {};
+        state.role = "";
         state.isCheckingAuth = false;
       })
 

@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
-import { cleanup, render } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 
 const authState = vi.hoisted(() => ({ auth: {}, isCheckingAuth: true }));
@@ -46,7 +46,22 @@ afterEach(() => {
   cleanup();
   document.body.innerHTML = "";
   authState.isCheckingAuth = true;
-  dispatch.mockClear();
+  dispatch.mockReset();
+});
+
+it("redirects a 401 result to sign-in without repeating the startup request", async () => {
+  dispatch.mockResolvedValue({ payload: { requiresSignIn: true } });
+  const Location = () => <span data-testid="location">{useLocation().pathname}</span>;
+  render(
+    <MemoryRouter initialEntries={["/about"]}>
+      <App />
+      <Location />
+    </MemoryRouter>,
+  );
+  await waitFor(() => {
+    expect(screen.getByTestId("location").textContent).toBe("/authentication/sign-in");
+  });
+  expect(dispatch).toHaveBeenCalledTimes(1);
 });
 
 it("keeps the HTML loader until auth settles and reveals the committed app", () => {

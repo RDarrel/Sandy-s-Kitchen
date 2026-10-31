@@ -1,7 +1,7 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { VALIDATEREFRESH } from "./services/redux/slices/persons/auth";
-import { useEffect, useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { OrderReceipt } from "./components/shared/receipts";
 import HomePage from "./pages/website/home";
 import About from "./pages/website/about";
@@ -27,8 +27,23 @@ import BookingCoordinator from "./pages/platforms/booking_coordinator";
 export default function App() {
   const { auth, isCheckingAuth } = useSelector(({ auth }) => auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
+
+  useLayoutEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
+
   useEffect(() => {
-    dispatch(VALIDATEREFRESH());
+    let active = true;
+    const checkSession = async () => {
+      const action = await dispatch(VALIDATEREFRESH());
+      if (active && action?.payload?.requiresSignIn) {
+        navigateRef.current("/authentication/sign-in", { replace: true });
+      }
+    };
+    checkSession();
+    return () => { active = false; };
   }, [dispatch]);
 
   useLayoutEffect(() => {
