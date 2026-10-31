@@ -1,5 +1,6 @@
 const Payment = require("../../models/events/Payment");
 const Booking = require("../../models/events/Booking");
+const NotificationService = require("../../services/events/Notification.service");
 exports.save = async (req, res) => {
   try {
     const created = await Payment.create(req.body);
@@ -47,6 +48,14 @@ exports.update = async (req, res) => {
       { path: "method", select: "name" },
       { path: "reviewedBy", select: "fullName" },
     ]);
+
+    if (willConfirmBooking) {
+      NotificationService.notifyConfirmedBooking({
+        payment: updated,
+        bookingId,
+      });
+    }
+
     res
       .status(201)
       .json({ data: updated, success: "Payment updated successfully." });

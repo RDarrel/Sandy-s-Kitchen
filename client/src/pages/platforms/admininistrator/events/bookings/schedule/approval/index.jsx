@@ -249,7 +249,6 @@ const Approval = ({
         ? buildBookingToUpdate(booking)
         : { _id: booking?._id }),
       status: !willUpdate ? mode : "update",
-      customerId: booking?.customer?._id,
       userId: auth?._id,
       totalValueChange: isApproval ? selected?.pricing?.total : 0,
       statusTransaction: {

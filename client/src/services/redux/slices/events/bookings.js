@@ -584,6 +584,13 @@ const updateCalendar = ({
       );
     }
 
+    if (newStatus === "approved") {
+      financial.balanceDue = Math.max(
+        0,
+        (financial.balanceDue ?? 0) + totalValueChange,
+      );
+    }
+
     if (newStatus === "cancelled") {
       financial.totalValue = Math.max(
         0,
