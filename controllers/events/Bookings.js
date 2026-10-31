@@ -190,17 +190,22 @@ exports.update = async (req, res) => {
 
       const booking =
         status === "setup"
-          ? await BookingService.confirmSetup({ bookingId: _id, user: userId })
+          ? await BookingService.confirmSetup({
+              bookingId: _id,
+              user: userId,
+            })
           : await BookingService.update({
               bookingToUpdate: req.body,
             });
 
-      runInBackground(
-        NotificationService.notifyBooking({
-          bookingId: _id,
-          statusTransaction,
-        }),
-      );
+      if ([1, 5].includes(res.locals.caller?.role)) {
+        runInBackground(
+          NotificationService.notifyBooking({
+            bookingId: _id,
+            statusTransaction,
+          }),
+        );
+      }
 
       return res.status(200).json({
         success: "Booking updated successfully.",
@@ -291,13 +296,15 @@ exports.cancel = async (req, res) => {
       cancellation: req.body.cancellation,
     });
 
-    runInBackground(
-      NotificationService.notifyCancelledBooking({
-        bookingId: req.body?._id,
-        hasRefund,
-        includeAccount,
-      }),
-    );
+    if ([1, 5].includes(res.locals.caller?.role)) {
+      runInBackground(
+        NotificationService.notifyCancelledBooking({
+          bookingId: req.body?._id,
+          hasRefund,
+          includeAccount,
+        }),
+      );
+    }
     res.status(200).json({
       data: { ...result, totalValueChange, amountReceived },
       statusTransaction,
@@ -342,6 +349,12 @@ exports.accountCorrection = async (req, res) => {
       bookingId: req.body?._id,
       correction: req.body.correction,
     });
+
+    runInBackground(
+      NotificationService.notifyRefundAccountCorrection({
+        bookingId: req.body?._id,
+      }),
+    );
     res.status(200).json({ data: correction });
   } catch (error) {
     console.log("error", error.message);

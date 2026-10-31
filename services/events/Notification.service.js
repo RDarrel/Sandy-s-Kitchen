@@ -196,9 +196,42 @@ const notifyCancelledBooking = async ({
   });
 };
 
+const notifyRefundAccountCorrection = async ({ bookingId }) => {
+  const booking = await Booking.findOne({ _id: bookingId })
+    .populate("customer", "fullName")
+    .populate("cancellation.refund.method", "name");
+  const { cancellation = {} } = booking;
+  const { accountCorrection } = cancellation?.refund;
+  const refund = cancellation?.refund;
+  const type = `refund_account_correction_required`;
+
+  await Notfication.create({
+    recipient: booking?.customer,
+    type,
+    reference: booking?.reference,
+  });
+  const bookingData = {
+    ...formattedData(booking),
+    totalPaid: formatCurrency(cancellation?.totalPaid),
+    totalAmount: formatCurrency(booking?.pricing?.total),
+    refundAmount: formatCurrency(refund?.amount),
+    refundMethod: refund?.method?.name,
+    accountName: refund?.accountName,
+    accountNumber: refund?.accountNumber,
+    requestedAt: formatDate(accountCorrection?.requestedAt),
+    reason: accountCorrection?.reason,
+  };
+
+  await EmailService.send({
+    data: bookingData,
+    type,
+  });
+};
+
 module.exports = {
   notifyBooking,
   notifyConfirmedBooking,
   notifyCancelledBooking,
   notifyPayment,
+  notifyRefundAccountCorrection,
 };

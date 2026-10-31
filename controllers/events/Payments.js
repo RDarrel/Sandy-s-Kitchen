@@ -50,16 +50,19 @@ exports.update = async (req, res) => {
       { path: "reviewedBy", select: "fullName" },
     ]);
 
-    runInBackground(
-      willConfirmBooking
-        ? NotificationService.notifyConfirmedBooking({
-            payment: updated,
-            bookingId,
-          })
-        : NotificationService.notifyPayment({
-            payment: updated,
-          }),
-    );
+    if ([1, 5].includes(res.locals.caller?.role)) {
+      runInBackground(
+        willConfirmBooking
+          ? NotificationService.notifyConfirmedBooking({
+              payment: updated,
+              bookingId,
+            })
+          : NotificationService.notifyPayment({
+              payment: updated,
+            }),
+      );
+    }
+
     res
       .status(201)
       .json({ data: updated, success: "Payment updated successfully." });

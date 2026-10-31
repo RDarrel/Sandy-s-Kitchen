@@ -21,6 +21,7 @@ const EMAIL_TEMPLATES = {
   booking_cancelled: "bookingCancelled.html",
   payment_verified: "paymentVerified.html",
   payment_voided: "paymentVoided.html",
+  refund_account_correction_required: "refundAccountCorrection.html",
 };
 
 const getSubject = (type, reference) => {
@@ -31,6 +32,7 @@ const getSubject = (type, reference) => {
     booking_cancelled: `Booking Cancelled – ${reference}`,
     payment_verified: `Payment Verified – ${reference}`,
     payment_voided: `Payment Not Verified – ${reference}`,
+    refund_account_correction_required: `Action Required: Refund Details Correction – ${reference}`,
   };
   return SUBJECTS[type];
 };
