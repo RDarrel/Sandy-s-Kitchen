@@ -1,7 +1,7 @@
 const Payment = require("../../models/events/Payment");
 const Booking = require("../../models/events/Booking");
 const NotificationService = require("../../services/events/Notification.service");
-const { waitUntil } = require("@vercel/functions");
+const runInBackground = require("../../utilities/runInBackground");
 exports.save = async (req, res) => {
   try {
     const created = await Payment.create(req.body);
