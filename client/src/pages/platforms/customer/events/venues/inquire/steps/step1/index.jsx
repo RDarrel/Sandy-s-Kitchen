@@ -198,6 +198,7 @@ const Step1 = ({
             setForm((prev) => ({
               ...prev,
               bookingType: value,
+              ...(value === "venue" && { catering: {} }),
             }));
           }}
           className="grid gap-2 sm:grid-cols-2"

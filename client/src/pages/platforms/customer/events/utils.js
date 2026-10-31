@@ -92,7 +92,7 @@ export const buildPayload = (
   };
   const _form = {
     ...form,
-    ...(["both", "catering"].includes(bookingType) && { catering }),
+    catering,
   };
 
   const payload = {

@@ -192,6 +192,8 @@ const Step1 = ({
                     },
                   },
                 }));
+              } else {
+                setForm((prev) => ({ ...prev, venue: {} }));
               }
               updateField("bookingType", value);
             }}

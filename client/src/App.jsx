@@ -43,7 +43,9 @@ export default function App() {
       }
     };
     checkSession();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [dispatch]);
 
   useLayoutEffect(() => {
