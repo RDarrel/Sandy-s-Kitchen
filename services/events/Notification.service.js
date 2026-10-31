@@ -123,7 +123,42 @@ const notifyConfirmedBooking = async ({ bookingId, payment }) => {
   });
 };
 
+const notifyPayment = async ({ payment }) => {
+  const booking = await Booking.findOne({ _id: payment?.booking }).populate(
+    "customer",
+    "fullName",
+  );
+
+  const { snapshot, status } = payment;
+  const { bookingTotal, verifiedSoFar = 0 } = snapshot;
+  const type = `payment_${status}`;
+
+  await Notfication.create({
+    recipient: booking?.customer,
+    type,
+    reference: booking?.reference,
+  });
+  const amount = status === "verified" ? payment?.amount : 0;
+  const balance = bookingTotal - Number(amount + verifiedSoFar);
+  const bookingData = {
+    ...formattedData(booking),
+    verifiedPayment: formatCurrency(payment?.amount),
+    totalAmount: formatCurrency(bookingTotal),
+    balance: formatCurrency(Math.max(0, balance)),
+    ...(status !== "verified" && {
+      reason: payment?.rejectionReason,
+      reviewedOn: formatDate(payment?.reviewedAt, true),
+    }),
+  };
+
+  EmailService.send({
+    data: bookingData,
+    type,
+  });
+};
+
 module.exports = {
   notifyBooking,
   notifyConfirmedBooking,
+  notifyPayment,
 };

@@ -1,0 +1,266 @@
+<!-- INTRO -->
+<tr>
+  <td style="padding: 22px 24px 0">
+    <h1
+      style="
+        margin: 0 0 6px;
+        font-family: Georgia, serif;
+        font-size: 22px;
+        line-height: 28px;
+        color: #3b2418;
+      "
+    >
+      Your Payment Has Been Verified
+    </h1>
+
+    <p
+      style="
+        margin: 0 0 14px;
+        font-size: 12px;
+        line-height: 18px;
+        color: #7b5b46;
+      "
+    >
+      Booking reference:
+      <strong style="color: #3b2418">{{bookingReference}}</strong>
+    </p>
+
+    <p
+      style="
+        margin: 0 0 5px;
+        font-size: 14px;
+        line-height: 21px;
+        color: #3b2418;
+      "
+    >
+      Hi <strong>{{customerName}}</strong>,
+    </p>
+
+    <p style="margin: 0; font-size: 14px; line-height: 21px; color: #5a4537">
+      Your payment has been verified and added to your booking's payment record.
+      Thank you for choosing Sandy's Kitchenette!
+    </p>
+  </td>
+</tr>
+
+<!-- BOOKING DETAILS -->
+<tr>
+  <td style="padding: 18px 24px 0">
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="border-top: 1px solid #eee5db"
+    >
+      <tr>
+        <td
+          colspan="2"
+          style="
+            padding: 12px 0 6px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            color: #7b5b46;
+          "
+        >
+          BOOKING DETAILS
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 7px 0; font-size: 13px; color: #7b5b46">
+          Event type
+        </td>
+        <td
+          align="right"
+          style="
+            padding: 7px 0;
+            font-size: 13px;
+            font-weight: bold;
+            color: #3b2418;
+          "
+        >
+          {{eventType}}
+        </td>
+      </tr>
+
+      <tr>
+        <td
+          style="
+            padding: 7px 0;
+            border-top: 1px solid #f3eee7;
+            font-size: 13px;
+            color: #7b5b46;
+          "
+        >
+          Booking type
+        </td>
+        <td
+          align="right"
+          style="
+            padding: 7px 0;
+            border-top: 1px solid #f3eee7;
+            font-size: 13px;
+            font-weight: bold;
+            color: #3b2418;
+          "
+        >
+          {{bookingType}}
+        </td>
+      </tr>
+
+      <tr>
+        <td
+          style="
+            padding: 7px 0;
+            border-top: 1px solid #f3eee7;
+            font-size: 13px;
+            color: #7b5b46;
+          "
+        >
+          Event date
+        </td>
+        <td
+          align="right"
+          style="
+            padding: 7px 0;
+            border-top: 1px solid #f3eee7;
+            font-size: 13px;
+            font-weight: bold;
+            color: #3b2418;
+          "
+        >
+          {{eventDate}}
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+
+<!-- PAYMENT SUMMARY -->
+{{#if verifiedPayment}}
+<tr>
+  <td style="padding: 14px 24px 0">
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="background-color: #fffaf2; border: 1px solid #eee5db"
+    >
+      <tr>
+        <td
+          colspan="2"
+          style="
+            padding: 12px 14px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            color: #7b5b46;
+          "
+        >
+          PAYMENT SUMMARY
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 7px 14px; font-size: 13px; color: #7b5b46">
+          Total booking amount
+        </td>
+        <td
+          align="right"
+          style="padding: 7px 14px; font-size: 13px; color: #3b2418"
+        >
+          {{totalAmount}}
+        </td>
+      </tr>
+
+      <tr>
+        <td
+          style="
+            padding: 9px 14px 5px;
+            border-top: 1px solid #eee5db;
+            font-size: 13px;
+            font-weight: bold;
+            color: #3b2418;
+          "
+        >
+          Payment verified
+        </td>
+        <td
+          align="right"
+          style="
+            padding: 9px 14px 5px;
+            border-top: 1px solid #eee5db;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2e7d32;
+          "
+        >
+          {{verifiedPayment}}
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 3px 14px 12px; font-size: 13px; color: #7b5b46">
+          Remaining balance
+        </td>
+        <td
+          align="right"
+          style="
+            padding: 3px 14px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #3b2418;
+          "
+        >
+          {{balance}}
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+
+{{/if}}
+
+<!-- ACTION BUTTON -->
+<tr>
+  <td align="center" style="padding: 18px 24px 0">
+    <table role="presentation" cellpadding="0" cellspacing="0">
+      <tr>
+        <td
+          align="center"
+          bgcolor="#c62828"
+          style="background-color: #c62828; border-radius: 5px"
+        >
+          <a
+            href="{{bookingUrl}}"
+            style="
+              display: inline-block;
+              padding: 12px 24px;
+              font-size: 14px;
+              line-height: 20px;
+              font-weight: bold;
+              color: #ffffff;
+              text-decoration: none;
+            "
+          >
+            View Payment Details
+          </a>
+        </td>
+      </tr>
+    </table>
+    <p
+      style="
+        margin: 8px 0 0;
+        font-size: 12px;
+        line-height: 18px;
+        color: #7b5b46;
+        text-align: center;
+      "
+    >
+      Sign in to your account to review your payment history.
+    </p>
+  </td>
+</tr>

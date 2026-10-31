@@ -18,6 +18,8 @@ const EMAIL_TEMPLATES = {
   booking_approved: "bookingApproved.html",
   booking_changes_requested: "bookingChangesRequested.html",
   booking_confirmed: "bookingConfirmed.html",
+  payment_verified: "paymentVerified.html",
+  payment_voided: "paymentVoided.html",
 };
 
 const getSubject = (type, reference) => {
@@ -25,6 +27,8 @@ const getSubject = (type, reference) => {
     booking_approved: `Booking Approved – ${reference}`,
     booking_changes_requested: `Action Required: Booking Changes – ${reference}`,
     booking_confirmed: `Booking Confirmed – ${reference}`,
+    payment_verified: `Payment Verified – ${reference}`,
+    payment_voided: `Payment Not Verified – ${reference}`,
   };
   return SUBJECTS[type];
 };

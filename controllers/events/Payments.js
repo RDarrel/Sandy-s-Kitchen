@@ -48,11 +48,14 @@ exports.update = async (req, res) => {
       { path: "method", select: "name" },
       { path: "reviewedBy", select: "fullName" },
     ]);
-
     if (willConfirmBooking) {
       NotificationService.notifyConfirmedBooking({
         payment: updated,
         bookingId,
+      });
+    } else {
+      NotificationService.notifyPayment({
+        payment: updated,
       });
     }
 
