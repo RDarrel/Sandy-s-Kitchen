@@ -60,7 +60,16 @@ const formattedData = (booking, status) => {
     baseData = {
       ...baseData,
       reason: history?.reason,
-      requestedOn: formatDate(history?.changedAt),
+      requestedOn: formatDate(history?.changedAt, true),
+    };
+  } else if (status === "rejected") {
+    const history = booking?.statusHistory.findLast(
+      ({ status }) => status === "rejected",
+    );
+    baseData = {
+      ...baseData,
+      reason: history?.reason,
+      rejectedOn: formatDate(history?.changedAt, true),
     };
   }
 
@@ -74,6 +83,7 @@ const notifyBooking = async ({ statusTransaction, bookingId }) => {
       "setup",
       "completed",
       "changes_requested",
+      "rejected",
     ].includes(statusTransaction?.new) &&
     statusTransaction?.new !== statusTransaction?.old
   ) {
@@ -184,7 +194,7 @@ const notifyCancelledBooking = async ({
     refundMethod: refund?.method?.name,
     accountName: refund?.accountName,
     accountNumber: refund?.accountNumber,
-    cancelledAt: formatDate(cancellation?.cancelledAt),
+    cancelledAt: formatDate(cancellation?.cancelledAt, true),
     reason: cancellation?.reason,
     hasRefund,
     includeAccount,
@@ -218,7 +228,7 @@ const notifyRefundAccountCorrection = async ({ bookingId }) => {
     refundMethod: refund?.method?.name,
     accountName: refund?.accountName,
     accountNumber: refund?.accountNumber,
-    requestedAt: formatDate(accountCorrection?.requestedAt),
+    requestedAt: formatDate(accountCorrection?.requestedAt, true),
     reason: accountCorrection?.reason,
   };
 
@@ -250,7 +260,7 @@ const notifyRefundCompleted = async ({ bookingId }) => {
     accountName: refund?.accountName,
     accountNumber: refund?.accountNumber,
     refundReference: refund?.reference,
-    refundedAt: formatDate(cancellation?.refund?.refundedAt),
+    refundedAt: formatDate(cancellation?.refund?.refundedAt, true),
   };
 
   await EmailService.send({
