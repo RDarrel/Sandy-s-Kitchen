@@ -22,6 +22,7 @@ const EMAIL_TEMPLATES = {
   payment_verified: "paymentVerified.html",
   payment_voided: "paymentVoided.html",
   refund_account_correction_required: "refundAccountCorrection.html",
+  refund_completed: "refundCompleted.html",
 };
 
 const getSubject = (type, reference) => {
@@ -33,6 +34,7 @@ const getSubject = (type, reference) => {
     payment_verified: `Payment Verified – ${reference}`,
     payment_voided: `Payment Not Verified – ${reference}`,
     refund_account_correction_required: `Action Required: Refund Details Correction – ${reference}`,
+    refund_completed: `Refund Completed – ${reference}`,
   };
   return SUBJECTS[type];
 };

@@ -40,7 +40,7 @@ const formattedData = (booking, status) => {
     bookingType: bookingTypeMap[booking?.bookingType],
     eventType: booking?.eventType,
     eventDate: formatDate(booking?.date),
-    bookingUrl: "https://sandys-kitchenette.vercel.app/",
+    bookingUrl: `https://sandys-kitchenette.vercel.app/platforms/my-bookings/${booking?.reference}`,
     facebookUrl: process.env.FACEBOOK_URL,
     instagramUrl: process.env.INSTAGRAM_URL,
     tiktokUrl: process.env.TIKTOK_URL,
@@ -228,10 +228,42 @@ const notifyRefundAccountCorrection = async ({ bookingId }) => {
   });
 };
 
+const notifyRefundCompleted = async ({ bookingId }) => {
+  const booking = await Booking.findOne({ _id: bookingId })
+    .populate("customer", "fullName")
+    .populate("cancellation.refund.method", "name");
+  const { cancellation = {} } = booking;
+  const refund = cancellation?.refund;
+  const type = `refund_completed`;
+
+  await Notfication.create({
+    recipient: booking?.customer,
+    type,
+    reference: booking?.reference,
+  });
+  const bookingData = {
+    ...formattedData(booking),
+    totalPaid: formatCurrency(cancellation?.totalPaid),
+    totalAmount: formatCurrency(booking?.pricing?.total),
+    refundAmount: formatCurrency(refund?.amount),
+    refundMethod: refund?.method?.name,
+    accountName: refund?.accountName,
+    accountNumber: refund?.accountNumber,
+    refundReference: refund?.reference,
+    refundedAt: formatDate(cancellation?.refund?.refundedAt),
+  };
+
+  await EmailService.send({
+    data: bookingData,
+    type,
+  });
+};
+
 module.exports = {
   notifyBooking,
   notifyConfirmedBooking,
   notifyCancelledBooking,
   notifyPayment,
   notifyRefundAccountCorrection,
+  notifyRefundCompleted,
 };

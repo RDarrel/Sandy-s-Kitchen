@@ -370,6 +370,11 @@ exports.processRefund = async (req, res) => {
       bookingId: req.body?._id,
       process: req.body.process,
     });
+    runInBackground(
+      NotificationService.notifyRefundCompleted({
+        bookingId: req.body?._id,
+      }),
+    );
     res.status(200).json({ data: processed });
   } catch (error) {
     console.log("error", error.message);
