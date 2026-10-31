@@ -89,7 +89,7 @@ const notifyBooking = async ({ statusTransaction, bookingId }) => {
   ) {
     const booking = await Booking.findOne({ _id: bookingId }).populate(
       "customer",
-      "fullName",
+      "fullName email",
     );
     const type = `booking_${statusTransaction?.new}`;
     await Notfication.create({
@@ -103,6 +103,7 @@ const notifyBooking = async ({ statusTransaction, bookingId }) => {
     await EmailService.send({
       data: formattedData(booking, statusTransaction?.new),
       type,
+      to: booking?.customer?.email,
     });
   }
 };
@@ -110,7 +111,7 @@ const notifyBooking = async ({ statusTransaction, bookingId }) => {
 const notifyConfirmedBooking = async ({ bookingId, payment }) => {
   const booking = await Booking.findOne({ _id: bookingId }).populate(
     "customer",
-    "fullName",
+    "fullName email",
   );
   const type = `booking_confirmed`;
 
@@ -132,13 +133,14 @@ const notifyConfirmedBooking = async ({ bookingId, payment }) => {
   await EmailService.send({
     data: bookingData,
     type,
+    to: booking?.customer?.email,
   });
 };
 
 const notifyPayment = async ({ payment }) => {
   const booking = await Booking.findOne({ _id: payment?.booking }).populate(
     "customer",
-    "fullName",
+    "fullName email",
   );
 
   const { snapshot, status } = payment;
@@ -166,6 +168,7 @@ const notifyPayment = async ({ payment }) => {
   await EmailService.send({
     data: bookingData,
     type,
+    to: booking?.customer?.email,
   });
 };
 
@@ -175,7 +178,7 @@ const notifyCancelledBooking = async ({
   includeAccount = false,
 }) => {
   const booking = await Booking.findOne({ _id: bookingId })
-    .populate("customer", "fullName")
+    .populate("customer", "fullName email")
     .populate("cancellation.refund.method", "name");
   const { cancellation = {} } = booking;
   const refund = cancellation?.refund;
@@ -203,12 +206,13 @@ const notifyCancelledBooking = async ({
   await EmailService.send({
     data: bookingData,
     type,
+    to: booking?.customer?.email,
   });
 };
 
 const notifyRefundAccountCorrection = async ({ bookingId }) => {
   const booking = await Booking.findOne({ _id: bookingId })
-    .populate("customer", "fullName")
+    .populate("customer", "fullName email")
     .populate("cancellation.refund.method", "name");
   const { cancellation = {} } = booking;
   const { accountCorrection } = cancellation?.refund;
@@ -235,12 +239,13 @@ const notifyRefundAccountCorrection = async ({ bookingId }) => {
   await EmailService.send({
     data: bookingData,
     type,
+    to: booking?.customer?.email,
   });
 };
 
 const notifyRefundCompleted = async ({ bookingId }) => {
   const booking = await Booking.findOne({ _id: bookingId })
-    .populate("customer", "fullName")
+    .populate("customer", "fullName email")
     .populate("cancellation.refund.method", "name");
   const { cancellation = {} } = booking;
   const refund = cancellation?.refund;
@@ -266,6 +271,7 @@ const notifyRefundCompleted = async ({ bookingId }) => {
   await EmailService.send({
     data: bookingData,
     type,
+    to: booking?.customer?.email,
   });
 };
 
