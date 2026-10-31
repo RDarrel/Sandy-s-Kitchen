@@ -89,6 +89,8 @@ const send = async ({
       })),
     ];
 
+    console.log("[EMAIL] Before sendMail");
+
     const result = await transporter.sendMail({
       from: `"${process.env.APP_NAME || "Sandy's Kitchenette"}" <${process.env.EMAIL_USER}>`,
       to,
@@ -97,6 +99,8 @@ const send = async ({
       text: data.preheader || subject,
       attachments,
     });
+
+    console.log("[EMAIL] After sendMail:", result.messageId);
 
     console.log("Email sent:", result.messageId);
 
