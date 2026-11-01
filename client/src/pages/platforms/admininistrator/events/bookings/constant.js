@@ -45,6 +45,7 @@ export const STATUS_DOTS = {
   setup: "bg-sky-500",
   completed: "bg-violet-500",
   cancelled: "bg-rose-500",
+  rejected: "bg-red-500",
 };
 
 export const STATUS_TEXT = {

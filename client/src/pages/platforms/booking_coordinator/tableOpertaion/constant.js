@@ -1,3 +1,4 @@
+import { Check, ClipboardCheck, Flag } from "lucide-react";
 export const STATUSES = [
   { value: "all", label: "All bookings" },
   { value: "pending", label: "Pending" },
@@ -31,4 +32,24 @@ export const SERVICE_LABEL = {
   catering: "Catering",
   venue: "Venue",
   both: "Venue + Catering",
+};
+
+export const OPERATIONAL_STATUSES = ["pending", "confirmed", "setup"];
+
+export const STATUS_ACTIONS = {
+  pending: {
+    label: "Approve booking",
+    icon: Check,
+    nextStatus: "approved",
+  },
+  confirmed: {
+    label: "Start setup",
+    icon: ClipboardCheck,
+    nextStatus: "setup",
+  },
+  setup: {
+    label: "Mark as completed",
+    icon: Flag,
+    nextStatus: "completed",
+  },
 };

@@ -9,7 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CalendarCheck2, CalendarDays, ChevronDown, LogOut, Table2 } from "lucide-react";
+import {
+  CalendarCheck2,
+  CalendarDays,
+  ChevronDown,
+  LogOut,
+  Table2,
+} from "lucide-react";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +23,11 @@ import SearchCustomer from "../admininistrator/events/bookings/calendar/header/s
 import PendingRefunds from "../admininistrator/events/bookings/calendar/header/pendingRefunds";
 
 // eslint-disable-next-line no-unused-vars -- Reserved for the commented SearchCustomer below.
-const CoordinatorTopbar = ({ searchProps, view = "calendar", onViewChange }) => {
+const CoordinatorTopbar = ({
+  searchProps,
+  view = "calendar",
+  onViewChange,
+}) => {
   const navigate = useNavigate();
   const { auth = {} } = useSelector(({ auth }) => auth);
 
@@ -105,8 +115,16 @@ const CoordinatorTopbar = ({ searchProps, view = "calendar", onViewChange }) => 
               }`}
             />
             {[
-              { value: "calendar", label: "Calendar", icon: <CalendarDays className="size-3.5" aria-hidden="true" /> },
-              { value: "table", label: "Table", icon: <Table2 className="size-3.5" aria-hidden="true" /> },
+              {
+                value: "calendar",
+                label: "Calendar",
+                icon: <CalendarDays className="size-3.5" aria-hidden="true" />,
+              },
+              {
+                value: "table",
+                label: "List",
+                icon: <Table2 className="size-3.5" aria-hidden="true" />,
+              },
             ].map(({ value, label, icon }) => (
               <button
                 key={value}

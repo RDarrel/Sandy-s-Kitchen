@@ -1,4 +1,4 @@
-import { ArrowDown, CalendarDays, LoaderCircle, Search } from "lucide-react";
+import { ArrowUp, CalendarDays, LoaderCircle, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -71,16 +71,19 @@ const Body = ({
             <TableHead aria-sort={ascending ? "ascending" : "descending"}>
               <button
                 type="button"
+                title={ascending
+                  ? "Earliest first. Click to show latest first."
+                  : "Latest first. Click to show earliest first."}
                 onClick={() => {
                   setAscending(!ascending);
                   setPage(1);
                 }}
-                className="flex cursor-pointer items-center gap-1.5 rounded hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                className="group flex cursor-pointer items-center gap-1.5 rounded hover:text-primary focus-visible:outline-2 focus-visible:outline-ring"
               >
                 Schedule
-                <ArrowDown
+                <ArrowUp
                   aria-hidden="true"
-                  className={`size-3 transition-transform ${ascending ? "" : "rotate-180"}`}
+                  className={`size-3.5 text-primary transition-transform duration-150 motion-reduce:transition-none ${ascending ? "" : "rotate-180"}`}
                 />
               </button>
             </TableHead>
