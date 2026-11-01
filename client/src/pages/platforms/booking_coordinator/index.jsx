@@ -2,13 +2,17 @@ import { Bookings } from "../admininistrator/events";
 import CoordinatorTopbar from "./topbar";
 import { useState } from "react";
 import TableOperation from "./tableOpertaion";
+import "./style.css";
 
 const BookingCoordinator = () => {
   const [view, setView] = useState("calendar");
   return (
     <div className="min-h-dvh overflow-x-clip bg-muted/25 text-foreground">
       <CoordinatorTopbar view={view} onViewChange={setView} />
-      <div hidden={view !== "calendar"}>
+      <div
+        hidden={view !== "calendar"}
+        className={view === "calendar" ? "coordinator-view-enter" : undefined}
+      >
       <Bookings
         hidePendingRefunds={true}
         className="mx-auto max-w-[1600px] px-4 pb-0 pt-2 sm:px-6"
@@ -17,7 +21,11 @@ const BookingCoordinator = () => {
         // )}
       />
       </div>
-      {view === "table" && <TableOperation />}
+      {view === "table" && (
+        <div className="coordinator-view-enter">
+          <TableOperation />
+        </div>
+      )}
     </div>
   );
 };
