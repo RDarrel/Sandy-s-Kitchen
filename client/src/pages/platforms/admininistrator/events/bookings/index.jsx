@@ -3,7 +3,7 @@ import Schedule from "./schedule";
 import Calendar from "./calendar";
 import { cn } from "@/lib/utils";
 
-function Bookings({ className, renderTopbar }) {
+function Bookings({ className, renderTopbar, hidePendingRefunds = false }) {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [bookingSearch, setBookingSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -41,6 +41,7 @@ function Bookings({ className, renderTopbar }) {
         {/* Calendar */}
         <div className="relative z-0 col-start-1 row-start-1 min-w-0">
           <Calendar
+          hidePendingRefunds={hidePendingRefunds}
           hideSearch={Boolean(renderTopbar)}
           selectedDate={selectedDate}
           selectDate={selectDate}

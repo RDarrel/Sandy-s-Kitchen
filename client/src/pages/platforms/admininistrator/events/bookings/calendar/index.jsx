@@ -12,6 +12,7 @@ import { isSameDay } from "date-fns";
 
 const Calendar = ({
   hideSearch = false,
+  hidePendingRefunds = false,
   selectedDate,
   selectDate,
   bookingSearchResults,
@@ -115,6 +116,7 @@ const Calendar = ({
       >
         <FrameHeader className="p-0">
           <Header
+            hidePendingRefunds={hidePendingRefunds}
             hideSearch={hideSearch}
             searchOpen={searchOpen}
             selectDate={selectDate}

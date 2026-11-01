@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Formatter, fullName } from "@/services/utilities";
 import RefundDetails from "./details";
 
-const PendingRefunds = () => {
+const PendingRefunds = ({ global = false, compact = false, roomy = false }) => {
   const {
     refunds = [],
     isLoadingRefunds,
@@ -55,7 +55,12 @@ const PendingRefunds = () => {
     dispatch(GET_PAYMENT_METHODS());
   }, [dispatch, loadRefunds]);
 
-  const count = calendar.overview?.financial?.pendingRefundCount;
+  const count = global
+    ? refunds.length
+    : calendar.overview?.financial?.pendingRefundCount;
+
+  // Keep an open dialog mounted when the last refund is processed.
+  if (global && count === 0 && !open) return null;
 
   return (
     <>
@@ -65,7 +70,7 @@ const PendingRefunds = () => {
             type="button"
             variant="outline"
             size="sm"
-            className="group h-9 gap-2 rounded-lg border-primary/20 bg-background py-1 pl-1 pr-2 text-foreground shadow-xs hover:border-primary/40 hover:bg-primary/5 hover:text-foreground"
+            className={`group gap-2 rounded-lg border-primary/20 bg-background py-1 text-foreground shadow-xs hover:border-primary/40 hover:bg-primary/5 hover:text-foreground ${roomy ? "h-10 pl-1.5 pr-3" : "h-9 pl-1 pr-2"}`}
             aria-label={
               isLoadingRefunds
                 ? "Loading pending refunds"
@@ -78,13 +83,13 @@ const PendingRefunds = () => {
               loadRefunds();
             }}
           >
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
-              <Wallet aria-hidden="true" className="size-3.5" />
+            <span className={`flex shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors group-hover:bg-primary/15 ${roomy ? "size-7" : "size-6"}`}>
+              <Wallet aria-hidden="true" className={roomy ? "size-4" : "size-3.5"} />
             </span>
-            <span className="text-xs font-medium">Pending Refunds</span>
+            <span className={`font-medium ${roomy ? "text-[13px]" : "text-xs"} ${compact ? "hidden sm:inline" : ""}`}>Pending Refunds</span>
             <span
               aria-hidden="true"
-              className="ml-1 flex h-5 min-w-5 items-center justify-center rounded-md bg-primary px-1.5 text-[10px] font-semibold leading-none text-primary-foreground tabular-nums"
+              className={`ml-1 flex items-center justify-center rounded-md bg-primary px-1.5 font-semibold leading-none text-primary-foreground tabular-nums ${roomy ? "h-6 min-w-6 text-xs" : "h-5 min-w-5 text-[10px]"}`}
             >
               {isLoadingRefunds ? (
                 <Loader2 className="size-3 animate-spin" />

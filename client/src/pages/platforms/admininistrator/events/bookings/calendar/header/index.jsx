@@ -21,6 +21,7 @@ import { Formatter } from "@/services/utilities";
 
 const Header = ({
   hideSearch = false,
+  hidePendingRefunds = false,
   searchOpen,
   setSearchOpen,
   bookingSearch,
@@ -76,7 +77,7 @@ const Header = ({
               <TooltipContent side="top">Search bookings</TooltipContent>
             </Tooltip>}
 
-            {overview?.financial?.pendingRefundCount > 0 && (
+            {!hidePendingRefunds && overview?.financial?.pendingRefundCount > 0 && (
               <>
                 <div
                   aria-hidden="true"

@@ -9,13 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CalendarCheck2, ChevronDown, LogOut } from "lucide-react";
+import { CalendarCheck2, CalendarDays, ChevronDown, LogOut, Table2 } from "lucide-react";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import SearchCustomer from "../admininistrator/events/bookings/calendar/header/search";
+import PendingRefunds from "../admininistrator/events/bookings/calendar/header/pendingRefunds";
 
-const CoordinatorTopbar = ({ searchProps }) => {
+// eslint-disable-next-line no-unused-vars -- Reserved for the commented SearchCustomer below.
+const CoordinatorTopbar = ({ searchProps, view = "calendar", onViewChange }) => {
   const navigate = useNavigate();
   const { auth = {} } = useSelector(({ auth }) => auth);
 
@@ -86,11 +88,46 @@ const CoordinatorTopbar = ({ searchProps }) => {
           </div>
         </div>
 
-        <div className="col-span-2 row-start-2 min-w-0 pb-1 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:pb-0">
+        {/* <div className="col-span-2 row-start-2 min-w-0 pb-1 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:pb-0">
           <SearchCustomer {...searchProps} variant="topbar" />
+        </div> */}
+
+        <div className="col-span-2 row-start-2 flex justify-center pb-1 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:pb-0">
+          <div
+            role="group"
+            aria-label="Booking view"
+            className="relative isolate grid w-[216px] grid-cols-2 rounded-full border border-border bg-muted p-1"
+          >
+            <span
+              aria-hidden="true"
+              className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-primary shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${
+                view === "table" ? "translate-x-full" : "translate-x-0"
+              }`}
+            />
+            {[
+              { value: "calendar", label: "Calendar", icon: <CalendarDays className="size-3.5" aria-hidden="true" /> },
+              { value: "table", label: "Table", icon: <Table2 className="size-3.5" aria-hidden="true" /> },
+            ].map(({ value, label, icon }) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={view === value}
+                onClick={() => onViewChange?.(value)}
+                className={`relative flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transition-none ${
+                  view === value
+                    ? "text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {icon}
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="col-start-2 row-start-1 flex shrink-0 items-center justify-self-end gap-3 sm:gap-5 lg:col-start-3">
+          <PendingRefunds global compact roomy />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -108,10 +145,17 @@ const CoordinatorTopbar = ({ searchProps }) => {
                   </AvatarFallback>
                 </Avatar>
                 <span className="hidden max-w-40 text-left sm:block">
-                  <span className="block truncate text-xs font-semibold">{displayName}</span>
-                  <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">Coordinator</span>
+                  <span className="block truncate text-xs font-semibold">
+                    {displayName}
+                  </span>
+                  <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">
+                    Coordinator
+                  </span>
                 </span>
-                <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                <ChevronDown
+                  className="size-3.5 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </Button>
             </DropdownMenuTrigger>
 
@@ -136,7 +180,10 @@ const CoordinatorTopbar = ({ searchProps }) => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-destructive focus:text-destructive"
+              >
                 <LogOut className="h-4 w-4" />
                 Log out
               </DropdownMenuItem>

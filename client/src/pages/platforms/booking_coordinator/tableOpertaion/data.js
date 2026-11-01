@@ -1,0 +1,11 @@
+﻿export const bookings = [
+  { id: "BK-26001", customer: "Maria Santos", email: "maria@example.com", event: "Isabella's 7th birthday", service: "Catering", location: "San Pablo City", date: "2026-11-07", time: "2:00 PM – 6:00 PM", guests: 80, status: "Confirmed", amount: 48000, paid: 24000 },
+  { id: "BK-26002", customer: "Jose Reyes", email: "jose@example.com", event: "Team appreciation dinner", service: "Venue", location: "Main function hall", date: "2026-11-10", time: "5:00 PM – 9:00 PM", guests: 120, status: "Pending", amount: 72000, paid: 0 },
+  { id: "BK-26003", customer: "Ana Cruz", email: "ana@example.com", event: "Cruz–Ramos wedding", service: "Catering", location: "Calauan, Laguna", date: "2026-11-14", time: "4:00 PM – 8:00 PM", guests: 150, status: "Approved", amount: 135000, paid: 35000, pendingPayment: 15000 },
+  { id: "BK-26004", customer: "Paolo Garcia", email: "paolo@example.com", event: "Garcia family reunion", service: "Venue", location: "Garden pavilion", date: "2026-11-18", time: "11:00 AM – 3:00 PM", guests: 60, status: "Confirmed", amount: 36000, paid: 36000 },
+  { id: "BK-26005", customer: "Sofia Mendoza", email: "sofia@example.com", event: "Sofia's debut celebration", service: "Catering", location: "Los Baños, Laguna", date: "2026-11-21", time: "6:00 PM – 10:00 PM", guests: 100, status: "Pending", amount: 85000, paid: 0, pendingPayment: 20000 },
+  { id: "BK-26006", customer: "Miguel Torres", email: "miguel@example.com", event: "Silver wedding anniversary", service: "Venue", location: "Main function hall", date: "2026-11-24", time: "5:00 PM – 9:00 PM", guests: 90, status: "Approved", amount: 63000, paid: 20000 },
+  { id: "BK-26007", customer: "Camille Flores", email: "camille@example.com", event: "Baby Lucas' christening", service: "Catering", location: "San Pablo City", date: "2026-11-28", time: "12:00 PM – 4:00 PM", guests: 50, status: "Confirmed", amount: 30000, paid: 30000 },
+  { id: "BK-26008", customer: "Elena Ramos", email: "elena@example.com", event: "Ramos family celebration", service: "Catering + Venue", location: "Garden pavilion", date: "2026-11-29", time: "4:00 PM - 8:00 PM", guests: 100, status: "Approved", amount: 95000, paid: 30000 },
+];
+
