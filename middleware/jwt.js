@@ -20,12 +20,6 @@ exports.validate = (req, res, proceed) => {
       message: "Authentication token is missing or invalid.",
     });
 
-  // if (!authorization.startsWith(process.env.JWT_HEADER))
-  //   return res.status(400).json({
-  //     error: "Invalid Token",
-  //     message: "The provided token is not in the correct format.",
-  //   });
-
   verifyToken(token)
     .then((response) =>
       Users.findById(response._id)

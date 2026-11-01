@@ -13,11 +13,7 @@ const validateRefresh = async () =>
     })
     .then(({ data }) => data)
     .catch((error) => {
-      const { status, data } = error.response ?? {};
-
-      if (status === 401 || status === 403) {
-        return { payload: {}, requiresSignIn: true };
-      }
+      const { data } = error.response ?? {};
 
       const message = data?.message || data?.error || error.message;
       throw new Error(message || "Unable to verify your session.");

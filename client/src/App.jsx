@@ -23,6 +23,7 @@ import CateringDetails from "./pages/platforms/customer/events/catering/details"
 import VenueInquiry from "./pages/platforms/customer/events/venues/inquire";
 import VenueDetails from "./pages/platforms/customer/events/venues/details";
 import BookingCoordinator from "./pages/platforms/booking_coordinator";
+import ProtectedRoute from "./components/shared/protectedRoute";
 
 export default function App() {
   const { auth, isCheckingAuth } = useSelector(({ auth }) => auth);
@@ -35,17 +36,7 @@ export default function App() {
   }, [navigate]);
 
   useEffect(() => {
-    let active = true;
-    const checkSession = async () => {
-      const action = await dispatch(VALIDATEREFRESH());
-      if (active && action?.payload?.requiresSignIn) {
-        navigateRef.current("/authentication/sign-in", { replace: true });
-      }
-    };
-    checkSession();
-    return () => {
-      active = false;
-    };
+    dispatch(VALIDATEREFRESH());
   }, [dispatch]);
 
   useLayoutEffect(() => {
@@ -55,8 +46,6 @@ export default function App() {
     if (loader) loader.hidden = !isCheckingAuth;
     if (root) root.hidden = isCheckingAuth;
   }, [isCheckingAuth]);
-
-  if (isCheckingAuth) return null;
 
   return (
     <Routes>
@@ -72,31 +61,33 @@ export default function App() {
         <Route path="sign-up" element={<SignUp />} />
       </Route>
       {/* <Route path="/authentication/:action" element={<Authentication />} /> */}
-      <Route path="/platforms" element={<Platforms />}>
-        {RouteConfig(auth)}
-        <Route
-          path="/platforms/catering/inquire"
-          element={<CateringInquiry />}
-        />
-        <Route
-          path="/platforms/catering/details"
-          element={<CateringDetails />}
-        />
-        <Route path="/platforms/venues/inquire" element={<VenueInquiry />} />
-        <Route path="/platforms/venues/details" element={<VenueDetails />} />
-        <Route
-          path="/platforms/my-bookings/:reference"
-          element={<BookingDetails />}
-        />
-        <Route
-          path="/platforms/my-bookings/:reference/payment"
-          element={<Payment />}
-        />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/platforms" element={<Platforms />}>
+          {RouteConfig(auth)}
+          <Route
+            path="/platforms/catering/inquire"
+            element={<CateringInquiry />}
+          />
+          <Route
+            path="/platforms/catering/details"
+            element={<CateringDetails />}
+          />
+          <Route path="/platforms/venues/inquire" element={<VenueInquiry />} />
+          <Route path="/platforms/venues/details" element={<VenueDetails />} />
+          <Route
+            path="/platforms/my-bookings/:reference"
+            element={<BookingDetails />}
+          />
+          <Route
+            path="/platforms/my-bookings/:reference/payment"
+            element={<Payment />}
+          />
 
-        <Route path="*" element={<h2>Not Found</h2>} />
+          <Route path="*" element={<h2>Not Found</h2>} />
+        </Route>
+        <Route path="cashier" element={<Cashier />} />
+        <Route path="coordinator" element={<BookingCoordinator />} />
       </Route>
-      <Route path="cashier" element={<Cashier />} />
-      <Route path="coordinator" element={<BookingCoordinator />} />
       <Route path="receipts/order" element={<OrderReceipt />} />
       <Route path="*" element={<h2>Not Found</h2>} />
     </Routes>

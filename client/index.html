@@ -10,7 +10,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sandy's Kitchenette</title>
     <style>
-      body { margin: 0; }
+      body {
+        margin: 0;
+      }
       #startup-loader {
         position: fixed;
         inset: 0;
@@ -29,8 +31,12 @@
         font-family: ui-sans-serif, system-ui, sans-serif;
         text-align: center;
       }
-      #startup-loader[hidden] { display: none; }
-      #startup-loader * { box-sizing: border-box; }
+      #startup-loader[hidden] {
+        display: none;
+      }
+      #startup-loader * {
+        box-sizing: border-box;
+      }
       #startup-loader .startup-content {
         display: flex;
         width: 100%;
@@ -80,7 +86,8 @@
       }
       #startup-loader h1 {
         margin: 0;
-        font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+        font-family:
+          ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
         font-size: 24px;
         font-weight: 600;
         line-height: 1.333333;
@@ -93,14 +100,27 @@
         font-size: 14px;
         line-height: 24px;
       }
+      .receipt-page #startup-loader {
+        display: none !important;
+      }
       @media (min-width: 640px) {
-        #startup-loader h1 { font-size: 30px; line-height: 1.2; }
+        #startup-loader h1 {
+          font-size: 30px;
+          line-height: 1.2;
+        }
       }
       @media (prefers-reduced-motion: no-preference) {
-        #startup-loader .startup-ring { animation: startup-spin 2.4s linear infinite; }
+        #startup-loader .startup-ring {
+          animation: startup-spin 2.4s linear infinite;
+        }
         @supports ((background-clip: text) or (-webkit-background-clip: text)) {
           #startup-loader h1 {
-            background-image: linear-gradient(110deg, var(--foreground) 40%, var(--accent) 50%, var(--foreground) 60%);
+            background-image: linear-gradient(
+              110deg,
+              var(--foreground) 40%,
+              var(--accent) 50%,
+              var(--foreground) 60%
+            );
             background-size: 300% 100%;
             background-clip: text;
             -webkit-background-clip: text;
@@ -109,28 +129,47 @@
           }
         }
       }
-      @keyframes startup-spin { to { transform: rotate(360deg); } }
+      @keyframes startup-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
       @keyframes startup-shimmer {
-        from { background-position: 100% 50%; }
-        to { background-position: 0% 50%; }
+        from {
+          background-position: 100% 50%;
+        }
+        to {
+          background-position: 0% 50%;
+        }
       }
     </style>
   </head>
   <body>
     <div id="root" hidden></div>
-      <main id="startup-loader">
-        <div class="startup-content" role="status" aria-live="polite" aria-atomic="true">
-          <div class="startup-logo">
-            <div class="startup-track" aria-hidden="true"></div>
-            <div class="startup-ring" aria-hidden="true"></div>
-            <div class="startup-image">
-              <img src="/src/assets/logos/kitchenette.jpg" alt="" width="80" height="80" fetchpriority="high" />
-            </div>
+    <main id="startup-loader">
+      <div
+        class="startup-content"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <div class="startup-logo">
+          <div class="startup-track" aria-hidden="true"></div>
+          <div class="startup-ring" aria-hidden="true"></div>
+          <div class="startup-image">
+            <img
+              src="/src/assets/logos/kitchenette.jpg"
+              alt=""
+              width="80"
+              height="80"
+              fetchpriority="high"
+            />
           </div>
-          <h1>Sandy's Kitchenette</h1>
-          <p>Getting everything ready for you...</p>
         </div>
-      </main>
+        <h1>Sandy's Kitchenette</h1>
+        <p>Getting everything ready for you...</p>
+      </div>
+    </main>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
