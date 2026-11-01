@@ -1,8 +1,4 @@
-import {
-  ArrowDown,
-  CalendarDays,
-  Search,
-} from "lucide-react";
+import { ArrowDown, CalendarDays, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -34,6 +30,8 @@ const Body = ({
   setAscending,
   resetFilters,
   page,
+  pageSize,
+  setPageSize,
   isLoading,
 }) => {
   const { bookings } = useSelector(({ bookings }) => bookings);
@@ -115,29 +113,32 @@ const Body = ({
               <CalendarDays className="size-5" />
             )}
           </span>
+
           <p className="text-base font-semibold text-foreground">
             {isLoading
               ? "Loading bookings..."
               : error
                 ? "Unable to load bookings"
                 : hasFilters
-                  ? "No matching bookings"
+                  ? "No matching bookings found"
                   : status !== "all"
                     ? `No ${getStatusLabel(status).toLowerCase()} bookings`
-                    : "No bookings yet"}
+                    : "No bookings available"}
           </p>
+
           <p className="mt-1.5 max-w-xs text-sm leading-6 text-muted-foreground">
             {isLoading
-              ? "Please wait while we load your bookings."
+              ? "Please wait while we retrieve the booking records."
               : error
-                ? error
+                ? "We couldn't retrieve the booking records. Please try again."
                 : hasFilters
-                  ? "Try a different search or adjust your filters."
+                  ? "Try adjusting your search or filters."
                   : status !== "all"
-                    ? "Bookings with this status will appear here."
-                    : "Reservations will appear here once customers submit their bookings."}
+                    ? "There are no bookings with this status at the moment."
+                    : "Booking records will appear here once they are submitted."}
           </p>
-          {!isLoading && hasFilters && (
+
+          {!isLoading && !error && hasFilters && (
             <Button
               variant="outline"
               size="sm"
@@ -151,6 +152,8 @@ const Body = ({
       )}
       <Pagination
         page={page}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
         setPage={setPage}
         error={error}
         isLoading={isLoading}

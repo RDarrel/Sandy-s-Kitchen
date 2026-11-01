@@ -72,7 +72,7 @@ const CoordinatorTopbar = ({ searchProps, view = "calendar", onViewChange }) => 
   };
 
   return (
-    <header className="sticky inset-x-0 top-0 z-30 border-b border-border/70 bg-background/95 backdrop-blur-md">
+    <header className="sticky inset-x-0 top-0 z-30 mb-[5px] border-b border-border/70 bg-background/95 backdrop-blur-md">
       <div className="mx-auto grid min-h-16 w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-2 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,480px)_minmax(0,1fr)] lg:gap-x-8">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">

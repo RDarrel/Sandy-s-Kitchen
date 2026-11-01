@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+﻿import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -57,14 +57,14 @@ it("shows loading instead of cached rows until the current request settles", asy
   expect(screen.getByRole("region", { name: "Booking table" })).toHaveAttribute("aria-busy", "true");
   expect(screen.queryByText("CACHED")).not.toBeInTheDocument();
   expect(screen.getByRole("status")).toHaveTextContent("Loading bookings...");
-  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
-  expect(screen.queryByText("No bookings yet")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Go to next page" })).toBeDisabled();
+  expect(screen.queryByText("No bookings available")).not.toBeInTheDocument();
   await startRequest();
   await act(async () => { request.resolve(result("CURRENT")); });
   expect(screen.getByText("CURRENT")).toBeInTheDocument();
   expect(screen.getByRole("region", { name: "Booking table" })).toHaveAttribute("aria-busy", "false");
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Go to next page" })).toBeEnabled();
 });
 
 it("keeps loading and ignores stale results when a previous request finishes", async () => {
@@ -90,10 +90,10 @@ it("shows a fetch error and stops loading without displaying cached rows", async
   mount();
   await startRequest();
   await act(async () => { request.reject(new Error("Connection failed")); });
-  expect(screen.getByRole("alert")).toHaveTextContent("Connection failed");
+  expect(screen.getByRole("alert")).toHaveTextContent("Unable to load bookings");
   expect(screen.queryByText("CACHED")).not.toBeInTheDocument();
   expect(screen.getByRole("region", { name: "Booking table" })).toHaveAttribute("aria-busy", "false");
-  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Go to next page" })).toBeDisabled();
 });
 
 it("shows the empty state only after an empty response arrives", async () => {
@@ -102,6 +102,23 @@ it("shows the empty state only after an empty response arrives", async () => {
   mount();
   await startRequest();
   await act(async () => { request.resolve(result()); });
-  expect(screen.getByRole("status")).toHaveTextContent("No bookings yet");
+  expect(screen.getByRole("status")).toHaveTextContent("No bookings available");
   expect(screen.queryByText("Loading bookings...")).not.toBeInTheDocument();
 });
+
+it("requests the selected row limit and resets to the first page", async () => {
+  fetchBookings.mockResolvedValue(result("CURRENT"));
+  mount();
+  await startRequest();
+  fireEvent.click(screen.getByRole("button", { name: "Go to next page" }));
+  await startRequest();
+  expect(fetchBookings).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2, limit: 5 }));
+  fireEvent.keyDown(screen.getByRole("button", { name: "Rows per page: 5" }), { key: "Enter" });
+  fireEvent.click(screen.getByRole("menuitem", { name: "25" }));
+  expect(screen.getByRole("button", { name: "Rows per page: 25" })).toBeDisabled();
+  await startRequest();
+  expect(fetchBookings).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1, limit: 25 }));
+  expect(screen.getByRole("button", { name: "Rows per page: 25" })).toHaveTextContent("25");
+  expect(screen.getByRole("button", { name: "Go to previous page" })).toBeDisabled();
+});
+

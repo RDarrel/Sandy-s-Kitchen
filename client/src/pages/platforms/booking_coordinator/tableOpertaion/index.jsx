@@ -4,8 +4,6 @@ import { BOOKINGS, COUNTS } from "@/services/redux/slices/events/bookings";
 import Tabs from "./tabs";
 import Body from "./body";
 
-const pageSize = 5;
-
 export default function TableOperation() {
   const dispatch = useDispatch();
   const [error, setError] = useState("");
@@ -14,6 +12,7 @@ export default function TableOperation() {
   const [service, setService] = useState("All services");
   const [payment, setPayment] = useState("all");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
   const [ascending, setAscending] = useState(true);
   const [, setSelected] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,7 +60,7 @@ export default function TableOperation() {
       // Prevent superseded thunks from replacing the rows in Redux.
       request?.abort();
     };
-  }, [dispatch, status, query, service, payment, ascending, page]);
+  }, [dispatch, status, query, service, payment, ascending, page, pageSize]);
 
   useEffect(() => {
     dispatch(COUNTS());
@@ -94,6 +93,8 @@ export default function TableOperation() {
           ascending={ascending}
           error={error}
           page={page}
+          pageSize={pageSize}
+          setPageSize={setPageSize}
           isLoading={isLoading}
           setService={setService}
           setQuery={setQuery}

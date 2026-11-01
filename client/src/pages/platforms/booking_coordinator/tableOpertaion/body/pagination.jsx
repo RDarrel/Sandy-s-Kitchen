@@ -1,77 +1,106 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Rows from "@/components/shared/pagination/rows";
 import { useSelector } from "react-redux";
 
-const pageSize = 5;
-
-const Pagination = ({ page, setPage, error, isLoading }) => {
+const Pagination = ({
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  error,
+  isLoading,
+}) => {
   const { pagination, bookings } = useSelector(({ bookings }) => bookings);
   const total = error ? 0 : (pagination.total ?? 0);
-  const pageCount = Math.max(1, pagination.totalPages ?? 0);
-  const currentPage = page;
-  const visible = isLoading || error ? [] : bookings;
-  const firstPageNumber = Math.max(1, Math.min(currentPage - 2, pageCount - 4));
-  const pageNumbers = Array.from(
-    { length: Math.min(5, pageCount) },
-    (_, index) => firstPageNumber + index,
-  );
+  const pageCount = Math.max(1, error ? 0 : (pagination.totalPages ?? 0));
+  const shown =
+    error || !bookings.length
+      ? 0
+      : Math.min((page - 1) * pageSize + bookings.length, total);
+  const disabled = isLoading || Boolean(error);
+
   return (
-    <div className="flex flex-col items-center justify-between gap-3 border-t border-border bg-muted/20 px-4 py-3 sm:flex-row">
-      <p className="text-[13px] text-muted-foreground">
-        {isLoading ? "Loading bookings..." : (
-          <>
-        Showing{" "}
-        <span className="font-semibold text-foreground tabular-nums">
-          {visible.length ? (currentPage - 1) * pageSize + 1 : 0}–
-          {visible.length ? (currentPage - 1) * pageSize + visible.length : 0}
-        </span>{" "}
-        of{" "}
-        <span className="font-semibold text-foreground tabular-nums">
-          {total}
-        </span>{" "}
-        bookings
-          </>
-        )}
-      </p>
-      <nav
-        aria-label="Booking pagination"
-        className="flex items-center gap-1.5"
-      >
-        <Button
-          variant="outline"
-          size="sm"
-          className="mr-1 h-8 gap-1 rounded-md border-border bg-card px-2.5 text-xs shadow-none hover:bg-secondary/40 disabled:opacity-40"
-          disabled={isLoading || Boolean(error) || currentPage === 1}
-          onClick={() => setPage(currentPage - 1)}
-        >
-          <ChevronLeft aria-hidden="true" className="size-3.5" />
-          Previous
-        </Button>
-        {pageNumbers.map((pageNumber) => (
-          <Button
-            key={pageNumber}
-            variant="ghost"
-            size="icon"
-            aria-label={`Go to page ${pageNumber}`}
-            aria-current={currentPage === pageNumber ? "page" : undefined}
-            onClick={() => setPage(pageNumber)}
-            disabled={isLoading || Boolean(error)}
-            className={`size-8 rounded-md text-sm font-medium tabular-nums ${currentPage === pageNumber ? "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 hover:text-primary-foreground" : "text-muted-foreground hover:bg-secondary/50 hover:text-secondary-foreground"}`}
+    <div className="@container w-full min-w-0 border-t border-border/70 px-4 py-3">
+      <div className="flex min-w-0 flex-col gap-3 @min-[640px]:flex-row @min-[640px]:items-center @min-[640px]:gap-5">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <p className="min-w-0 text-xs text-muted-foreground sm:text-sm">
+            {isLoading
+              ? "Loading booking records..."
+              : `${shown} out of ${total} ${total === 1 ? "booking" : "bookings"}`}
+          </p>
+          <fieldset
+            disabled={isLoading}
+            className="min-w-0 border-0 p-0 disabled:opacity-50"
           >
-            {pageNumber}
-          </Button>
-        ))}
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-1 h-8 gap-1 rounded-md border-border bg-card px-2.5 text-xs shadow-none hover:bg-secondary/40 disabled:opacity-40"
-          disabled={isLoading || Boolean(error) || currentPage >= pageCount}
-          onClick={() => setPage(currentPage + 1)}
+            <Rows
+              maxPage={pageSize}
+              setMaxPage={(size) => {
+                setPageSize(size);
+                setPage(1);
+              }}
+            />
+          </fieldset>
+        </div>
+        <nav
+          aria-label="Booking pagination"
+          className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 @min-[640px]:shrink-0"
         >
-          Next
-          <ChevronRight aria-hidden="true" className="size-3.5" />
-        </Button>
-      </nav>
+          <p
+            className="whitespace-nowrap text-xs font-medium text-muted-foreground sm:text-sm"
+            aria-live="polite"
+          >
+            Page {page} of {pageCount}
+          </p>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="outline"
+              aria-label="Go to first page"
+              disabled={disabled || page === 1}
+              onClick={() => setPage(1)}
+            >
+              <ChevronsLeft />
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="outline"
+              aria-label="Go to previous page"
+              disabled={disabled || page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              <ChevronLeft />
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="outline"
+              aria-label="Go to next page"
+              disabled={disabled || page >= pageCount}
+              onClick={() => setPage(page + 1)}
+            >
+              <ChevronRight />
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="outline"
+              aria-label="Go to last page"
+              disabled={disabled || page >= pageCount}
+              onClick={() => setPage(pageCount)}
+            >
+              <ChevronsRight />
+            </Button>
+          </div>
+        </nav>
+      </div>
     </div>
   );
 };

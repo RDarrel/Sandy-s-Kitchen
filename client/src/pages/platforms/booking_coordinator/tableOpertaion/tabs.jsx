@@ -1,5 +1,6 @@
 import { useSelector } from "react-redux";
 import { STATUSES } from "./constant";
+import { STATUS_DOTS } from "../../admininistrator/events/bookings/constant";
 
 const Tabs = ({ status, setStatus = () => {}, setPage = () => {} }) => {
   const { counts } = useSelector(({ bookings }) => bookings);
@@ -25,6 +26,10 @@ const Tabs = ({ status, setStatus = () => {}, setPage = () => {} }) => {
                 }}
                 className={`relative inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-t-lg border px-3.5 text-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-ring motion-reduce:transition-none ${active ? "border-primary/40 border-b-card bg-card font-semibold text-primary" : "border-transparent font-medium text-muted-foreground hover:text-primary"}`}
               >
+                <span
+                  aria-hidden="true"
+                  className={`size-1.5 shrink-0 rounded-full ${STATUS_DOTS[value] || "bg-primary"}`}
+                />
                 {label}
                 {count > 0 && (
                   <span

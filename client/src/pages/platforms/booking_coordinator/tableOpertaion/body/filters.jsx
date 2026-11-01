@@ -109,7 +109,7 @@ const Filters = ({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        {hasFilters && (
+        {/* {hasFilters && (
           <Button
             variant="ghost"
             size="icon"
@@ -118,7 +118,7 @@ const Filters = ({
           >
             <X className="size-3.5" />
           </Button>
-        )}
+        )} */}
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

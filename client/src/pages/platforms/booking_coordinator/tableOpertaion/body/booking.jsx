@@ -27,10 +27,20 @@ const Booking = ({ booking, setSelected }) => {
           year: "numeric",
         })
       : "Not scheduled";
-  const scheduleDate = (schedule) =>
-    schedule.endDate && schedule.endDate !== schedule.date
-      ? `${dateLabel(schedule.date)} – ${dateLabel(schedule.endDate)}`
-      : dateLabel(schedule.date);
+  const scheduleDate = (schedule) => {
+    const { date, endDate } = schedule;
+    if (!date || !endDate || endDate === date) return dateLabel(date);
+
+    if (date.slice(0, 7) === endDate.slice(0, 7)) {
+      const start = new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+      return `${start} – ${Number(endDate.slice(8, 10))}, ${date.slice(0, 4)}`;
+    }
+
+    return `${dateLabel(date)} – ${dateLabel(endDate)}`;
+  };
   return (
     <TableRow className="border-border/60 hover:bg-muted/20">
       <TableCell>
