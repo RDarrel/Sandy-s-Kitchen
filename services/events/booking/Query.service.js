@@ -526,9 +526,27 @@ const getBookings = async ({
   });
 
   const [result] = await Booking.aggregate(pipeline);
+
   const total = result?.total?.[0]?.count ?? 0;
   const totalPages = Math.ceil(total / pageSize);
-  const populatedBookings = await Booking.populate(result?.bookings ?? [], [
+
+  const validPage = Math.min(currentPage, Math.max(1, totalPages));
+
+  let paginatedBookings = result?.bookings ?? [];
+  // Refetch only if the requested page is invalid
+  if (validPage !== currentPage) {
+    console.log("refetech");
+    const correctedPipeline = [
+      ...pipeline.slice(0, -1),
+      { $sort: { date: direction, _id: direction } },
+      { $skip: (validPage - 1) * pageSize },
+      { $limit: pageSize },
+    ];
+
+    paginatedBookings = await Booking.aggregate(correctedPipeline);
+  }
+
+  const populatedBookings = await Booking.populate(paginatedBookings, [
     { path: "customer", select: "fullName" },
     { path: "catering.item", select: "name description" },
     { path: "venue.item", select: "name description address" },
@@ -537,6 +555,7 @@ const getBookings = async ({
     { path: "catering.mainDishes.menu" },
     { path: "catering.sideDishes.menu" },
   ]);
+
   await Payment.populate(
     populatedBookings.flatMap(({ payments }) => payments),
     [
@@ -548,7 +567,7 @@ const getBookings = async ({
   return {
     bookings,
     pagination: {
-      page: currentPage,
+      page: validPage,
       limit: pageSize,
       total,
       totalPages,
