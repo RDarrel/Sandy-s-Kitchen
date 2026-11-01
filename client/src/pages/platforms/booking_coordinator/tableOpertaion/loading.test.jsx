@@ -76,7 +76,8 @@ it("keeps loading and ignores stale results when a previous request finishes", a
   fireEvent.change(screen.getByRole("textbox", { name: "Search bookings" }), { target: { value: "new" } });
   await startRequest();
   await act(async () => { oldRequest.resolve(result("OLD")); });
-  expect(screen.getByRole("status")).toHaveTextContent("Loading bookings...");
+  expect(screen.getByRole("status")).toHaveTextContent("Searching bookings...");
+  expect(screen.getByRole("status")).toHaveTextContent("Finding bookings that match your search.");
   expect(store.getState().bookings.bookings[0].reference).toBe("CACHED");
   expect(screen.queryByText("OLD")).not.toBeInTheDocument();
   await act(async () => { currentRequest.resolve(result("NEW")); });
@@ -104,6 +105,24 @@ it("shows the empty state only after an empty response arrives", async () => {
   await act(async () => { request.resolve(result()); });
   expect(screen.getByRole("status")).toHaveTextContent("No bookings available");
   expect(screen.queryByText("Loading bookings...")).not.toBeInTheDocument();
+});
+
+it("shows sorting copy even when a search filter is active", async () => {
+  fetchBookings.mockResolvedValue(result("CURRENT"));
+  mount();
+  await startRequest();
+  fireEvent.change(screen.getByRole("textbox", { name: "Search bookings" }), { target: { value: "Ana" } });
+  await startRequest();
+  const request = deferred();
+  fetchBookings.mockReturnValue(request.promise);
+  fireEvent.click(screen.getByRole("button", { name: "Schedule" }));
+  expect(screen.getByRole("status")).toHaveTextContent("Sorting bookings...");
+  expect(screen.getByRole("status")).toHaveTextContent("Updating the booking list.");
+  await startRequest();
+  expect(fetchBookings).toHaveBeenLastCalledWith(expect.objectContaining({ sortOrder: "desc", search: "Ana" }));
+  await act(async () => { request.resolve(result("SORTED")); });
+  expect(screen.getByText("SORTED")).toBeInTheDocument();
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
 });
 
 it("requests the selected row limit and resets to the first page", async () => {

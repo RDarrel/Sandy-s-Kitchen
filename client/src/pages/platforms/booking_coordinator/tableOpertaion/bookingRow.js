@@ -98,5 +98,7 @@ export function toBookingRow(booking) {
     amount: Number(booking.pricing?.total || 0),
     paid: sumPayments("verified"),
     pendingPayment: sumPayments("pending"),
+    downpaymentDue: booking?.terms?.requiredDeposit,
+    balance: Number(booking.pricing?.total || 0) - sumPayments("verified"),
   };
 }

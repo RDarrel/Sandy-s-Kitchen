@@ -1,4 +1,4 @@
-import { Check, Eye, MoreHorizontal, Pencil, Wallet, X } from "lucide-react";
+import { Ban, Check, Eye, MoreHorizontal, Pencil, Wallet } from "lucide-react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
@@ -124,12 +124,12 @@ const Booking = ({ booking, setSelected }) => {
           className={`mt-1 text-xs leading-4 ${booking.pendingPayment ? "text-amber-700 dark:text-amber-400" : booking.paid >= booking.amount ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}
         >
           {booking.pendingPayment
-            ? "Pending verification"
+            ? "Payment awaiting verification"
             : booking.paid >= booking.amount
               ? "Fully paid"
               : booking.paid
-                ? `${money(booking.paid)} paid`
-                : "Unpaid"}
+                ? `${money(booking.balance)} balance`
+                : `${money(booking.downpaymentDue)} down payment due`}
         </p>
       </TableCell>
       <TableCell>
@@ -181,15 +181,15 @@ const Booking = ({ booking, setSelected }) => {
               <Pencil className="size-4" />
               Edit booking
             </DropdownMenuItem>
-            {booking.status === "Pending" && (
-              <DropdownMenuItem
-                disabled
-                className="gap-2.5 rounded-md py-2 text-sm"
-              >
-                <Check className="size-4" />
-                Approve booking
-              </DropdownMenuItem>
-            )}
+            {/* {booking.status === "Pending" && ( */}
+            <DropdownMenuItem
+              disabled
+              className="gap-2.5 rounded-md py-2 text-sm"
+            >
+              <Check className="size-4" />
+              Approve booking
+            </DropdownMenuItem>
+            {/* )} */}
             {(booking.pendingPayment > 0 || booking.paid < booking.amount) && (
               <>
                 <DropdownMenuSeparator />
@@ -225,7 +225,7 @@ const Booking = ({ booking, setSelected }) => {
               disabled
               className="gap-2.5 rounded-md py-2 text-sm text-destructive"
             >
-              <X className="size-4" />
+              <Ban className="size-4" />
               Cancel booking
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -23,7 +23,7 @@ export const PAYMENT_OPTIONS = [
   },
   {
     value: "unpaid",
-    label: "Unpaid",
+    label: "Awaiting down payment",
   },
 ];
 

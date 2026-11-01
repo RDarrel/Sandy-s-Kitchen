@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { BOOKINGS, COUNTS } from "@/services/redux/slices/events/bookings";
 import Tabs from "./tabs";
 import Body from "./body";
+import { useRef } from "react";
 
 export default function TableOperation() {
   const dispatch = useDispatch();
@@ -14,6 +15,8 @@ export default function TableOperation() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [ascending, setAscending] = useState(true);
+  const previousAscending = useRef(ascending);
+  const [isSorting, setIsSorting] = useState(false);
   const [, setSelected] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -21,6 +24,8 @@ export default function TableOperation() {
     let active = true;
     let request;
     setIsLoading(true);
+    setIsSorting(previousAscending.current !== ascending);
+    previousAscending.current = ascending;
     setError("");
     // Ignore superseded requests so slow responses cannot replace newer filters.
     const timer = setTimeout(() => {
@@ -96,6 +101,7 @@ export default function TableOperation() {
           pageSize={pageSize}
           setPageSize={setPageSize}
           isLoading={isLoading}
+          isSorting={isSorting}
           setService={setService}
           setQuery={setQuery}
           setPayment={setPayment}

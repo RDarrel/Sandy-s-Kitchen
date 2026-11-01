@@ -19,6 +19,9 @@ import {
 import { PAYMENT_OPTIONS } from "../constant";
 import { getPaymentLabel, getStatusLabel } from "../utils";
 
+const filterChoiceClassName =
+  "cursor-pointer rounded-md py-2 text-sm data-[state=checked]:bg-primary/5 data-[state=checked]:text-primary";
+
 const Filters = ({
   query,
   service,
@@ -99,7 +102,7 @@ const Filters = ({
                     <DropdownMenuRadioItem
                       key={option}
                       value={option}
-                      className="cursor-pointer rounded-md py-2 text-sm data-[state=checked]:bg-primary/5 data-[state=checked]:text-primary"
+                      className={filterChoiceClassName}
                     >
                       {option}
                     </DropdownMenuRadioItem>
@@ -131,8 +134,8 @@ const Filters = ({
             <ChevronDown aria-hidden="true" className="size-3.5 opacity-60" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64 rounded-lg">
-          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+        <DropdownMenuContent align="end" className="w-64 rounded-lg p-1.5">
+          <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
             Payment · {getStatusLabel(status)}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
@@ -147,7 +150,7 @@ const Filters = ({
               <DropdownMenuRadioItem
                 key={option.value}
                 value={option.value}
-                className="cursor-pointer py-2 text-sm"
+                className={filterChoiceClassName}
               >
                 {option.label}
               </DropdownMenuRadioItem>

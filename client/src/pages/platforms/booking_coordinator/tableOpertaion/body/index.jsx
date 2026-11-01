@@ -1,4 +1,4 @@
-import { ArrowDown, CalendarDays, Search } from "lucide-react";
+import { ArrowDown, CalendarDays, LoaderCircle, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -33,13 +33,15 @@ const Body = ({
   pageSize,
   setPageSize,
   isLoading,
+  isSorting = false,
 }) => {
   const { bookings } = useSelector(({ bookings }) => bookings);
+  const isSearching = Boolean(query?.trim());
 
   const visible = isLoading || error ? [] : bookings.map(toBookingRow);
   return (
     <div
-      className={`relative z-0 -mt-px min-w-0 overflow-hidden rounded-b-xl rounded-tr-xl border border-primary/40 bg-card shadow-xs ${status === "all" ? "rounded-tl-none" : "rounded-tl-xl"}`}
+      className={`relative z-0 -mt-px min-w-0 overflow-hidden rounded-b-xl rounded-tr-xl border border-primary/40 bg-card shadow-xs transition-[border-top-left-radius] duration-0 motion-reduce:transition-none ${status === "all" ? "rounded-tl-none delay-250" : "rounded-tl-xl delay-0"}`}
     >
       <Filters
         query={query}
@@ -107,7 +109,9 @@ const Body = ({
             aria-hidden="true"
             className="mb-4 flex size-12 items-center justify-center rounded-xl border border-border bg-muted/40 text-muted-foreground"
           >
-            {hasFilters ? (
+            {isLoading ? (
+              <LoaderCircle className="size-5 animate-spin text-primary motion-reduce:animate-none" />
+            ) : hasFilters ? (
               <Search className="size-5" />
             ) : (
               <CalendarDays className="size-5" />
@@ -116,7 +120,11 @@ const Body = ({
 
           <p className="text-base font-semibold text-foreground">
             {isLoading
-              ? "Loading bookings..."
+              ? isSorting
+                ? "Sorting bookings..."
+                : isSearching
+                  ? "Searching bookings..."
+                  : "Loading bookings..."
               : error
                 ? "Unable to load bookings"
                 : hasFilters
@@ -126,9 +134,13 @@ const Body = ({
                     : "No bookings available"}
           </p>
 
-          <p className="mt-1.5 max-w-xs text-sm leading-6 text-muted-foreground">
+          <p className="mt-1.5 max-w-full text-sm leading-6 text-muted-foreground sm:whitespace-nowrap">
             {isLoading
-              ? "Please wait while we retrieve the booking records."
+              ? isSorting
+                ? "Updating the booking list."
+                : isSearching
+                  ? "Finding bookings that match your search."
+                  : "Please wait while we retrieve the booking records."
               : error
                 ? "We couldn't retrieve the booking records. Please try again."
                 : hasFilters
