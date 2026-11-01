@@ -16,6 +16,8 @@ const router = require("express").Router(),
     accountCorrection,
     cancelledBookings,
     processRefund,
+    bookings,
+    counts,
   } = require("../../controllers/events/Bookings"),
   { validate } = require("../../middleware/jwt");
 
@@ -27,6 +29,8 @@ router
   .get("/schedule", validate, schedule)
   .get("/cancelled-collections", validate, cancelledBookings)
   .get("/search", validate, search)
+  .get("/bookings", validate, bookings)
+  .get("/counts", validate, counts)
 
   .get("/:reference/details", validate, bookingDetails)
   .get("/:reference/payment", validate, paymentDetails)

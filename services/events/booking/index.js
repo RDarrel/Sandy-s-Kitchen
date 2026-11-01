@@ -14,6 +14,8 @@ module.exports = {
   accountCorrection: Mutation.accountCorrection,
   getEquipmentAvailability: Equipment.getEquipmentAvailability,
   getMyBookings: Query.getMyBookings,
+  getBookings: Query.getBookings,
+  getCounts: Query.getCounts,
   getBookingDetails: Query.getBookingDetails,
   getPaymentDetails: Query.getPaymentDetails,
   getVenueConflicts: Query.getVenueConflicts,

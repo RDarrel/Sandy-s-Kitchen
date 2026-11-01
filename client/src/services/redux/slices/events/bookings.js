@@ -5,6 +5,7 @@ const url = "events/bookings";
 
 const initialState = {
   collections: [],
+  bookings: [],
   refunds: [],
   cancelledBookings: [],
   schedule: {},
@@ -16,6 +17,22 @@ const initialState = {
       monthly: [],
       totalCount: 0,
     },
+  },
+  counts: {
+    all: 0,
+    pending: 0,
+    approved: 0,
+    confirmed: 0,
+    setup: 0,
+    completed: 0,
+  },
+  pagination: {
+    page: 1,
+    limit: 5,
+    total: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
   },
   filtered: [],
   venueConflicts: [],
@@ -36,6 +53,8 @@ const initialState = {
   isLoadingVenueConflicts: false,
   isLoadingRefunds: false,
   isLoadingCancelledBookings: false,
+  isLoadingBookings: false,
+  isLoadingCounts: false,
   isLoadingSearch: false,
   message: "",
 };
@@ -357,6 +376,36 @@ export const MY_BOOKINGS = createAsyncThunk(
     }
   },
 );
+export const BOOKINGS = createAsyncThunk(
+  `${url}/bookings`,
+  (query, thunkAPI) => {
+    try {
+      return axioKit.universal(`${url}/bookings`, query);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        error.toString();
+
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
+export const COUNTS = createAsyncThunk(`${url}/counts`, (thunkAPI) => {
+  try {
+    return axioKit.universal(`${url}/counts`);
+  } catch (error) {
+    const message =
+      (error.response && error.response.data && error.response.data.message) ||
+      error.message ||
+      error.toString();
+
+    return thunkAPI.rejectWithValue(message);
+  }
+});
 
 export const SEARCH = createAsyncThunk(`${url}/search`, (query, thunkAPI) => {
   try {
@@ -1128,6 +1177,42 @@ export const reduxSlice = createSlice({
         const { error } = action;
         state.message = error.message;
         state.formSubmitted = false;
+      })
+      .addCase(BOOKINGS.pending, (state) => {
+        state.isLoadingBookings = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(BOOKINGS.fulfilled, (state, action) => {
+        const { success, data } = action.payload;
+        const { bookings, pagination } = data;
+        state.bookings = bookings;
+        state.pagination = pagination;
+        state.isLoadingBookings = false;
+        state.message = success;
+        state.isSuccess = true;
+      })
+      .addCase(BOOKINGS.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingBookings = false;
+      })
+      .addCase(COUNTS.pending, (state) => {
+        state.isLoadingCounts = true;
+        state.isSuccess = false;
+        state.message = "";
+      })
+      .addCase(COUNTS.fulfilled, (state, action) => {
+        const { success, data } = action.payload;
+        state.counts = data;
+        state.isLoadingCounts = false;
+        state.message = success;
+        state.isSuccess = true;
+      })
+      .addCase(COUNTS.rejected, (state, action) => {
+        const { error } = action;
+        state.message = error.message;
+        state.isLoadingCounts = false;
       });
   },
 });

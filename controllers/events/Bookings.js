@@ -383,3 +383,27 @@ exports.processRefund = async (req, res) => {
       .json({ message: "Failed to fetch refund list. Please try again" });
   }
 };
+
+exports.bookings = async (req, res) => {
+  try {
+    const data = await BookingService.getBookings(req.query);
+    res.status(200).json({ data: data });
+  } catch (error) {
+    console.log("error", error.message);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch bookings list. Please try again" });
+  }
+};
+
+exports.counts = async (req, res) => {
+  try {
+    const data = await BookingService.getCounts();
+    res.status(200).json({ data: data });
+  } catch (error) {
+    console.log("error", error.message);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch counts list. Please try again" });
+  }
+};
