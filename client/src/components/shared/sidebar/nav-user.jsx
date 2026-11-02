@@ -37,7 +37,7 @@ export function NavUser() {
       .then(() => {
         document.body.style.pointerEvents = "";
         localStorage.clear();
-        navigate("/");
+        navigate("/authentication/sign-in");
       });
   };
 
