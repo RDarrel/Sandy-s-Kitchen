@@ -16,11 +16,9 @@ const attachRecipesToDishes = async (bookings) => {
       }),
     ).values(),
   ];
-
   if (!menus.length) return bookings;
 
   const menusWithRecipes = await attachRecipes(menus);
-
   //attach menu to new mapmay ne
 
   menusWithRecipes.forEach((menu) => menusMap.set(String(menu?._id), menu));

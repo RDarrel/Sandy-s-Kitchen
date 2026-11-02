@@ -34,6 +34,7 @@ const Body = ({
   setPageSize,
   isLoading,
   isSorting = false,
+  handleAction,
 }) => {
   const { bookings } = useSelector(({ bookings }) => bookings);
   const isSearching = Boolean(query?.trim());
@@ -71,9 +72,11 @@ const Body = ({
             <TableHead aria-sort={ascending ? "ascending" : "descending"}>
               <button
                 type="button"
-                title={ascending
-                  ? "Earliest first. Click to show latest first."
-                  : "Latest first. Click to show earliest first."}
+                title={
+                  ascending
+                    ? "Earliest first. Click to show latest first."
+                    : "Latest first. Click to show earliest first."
+                }
                 onClick={() => {
                   setAscending(!ascending);
                   setPage(1);
@@ -99,6 +102,7 @@ const Body = ({
               booking={booking}
               key={booking?._id}
               setSelected={setSelected}
+              handleAction={handleAction}
             />
           ))}
         </TableBody>

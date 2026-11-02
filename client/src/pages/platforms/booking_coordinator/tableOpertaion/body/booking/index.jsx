@@ -16,6 +16,7 @@ const dateLabel = (value) =>
         year: "numeric",
       })
     : "Not scheduled";
+
 const scheduleDate = (schedule) => {
   const { date, endDate } = schedule;
   if (!date || !endDate || endDate === date) return dateLabel(date);
@@ -31,7 +32,7 @@ const scheduleDate = (schedule) => {
   return `${dateLabel(date)} – ${dateLabel(endDate)}`;
 };
 
-const Booking = ({ booking, setSelected }) => {
+const Booking = ({ booking, setSelected, handleAction }) => {
   return (
     <TableRow className="border-border/60 hover:bg-muted/20">
       <TableCell>
@@ -89,25 +90,25 @@ const Booking = ({ booking, setSelected }) => {
           <TooltipProvider delayDuration={150}>
             <div className="ml-auto grid w-max grid-cols-[auto_auto] items-baseline gap-x-3 gap-y-1">
               {booking.serviceSchedules.map((schedule) => (
-                  <Tooltip key={schedule.service}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        aria-label={`${schedule.service}: ${schedule.guests} guests`}
-                        className="col-span-2 grid cursor-help grid-cols-subgrid items-baseline gap-x-3 rounded focus-visible:outline-2 focus-visible:outline-ring"
-                      >
-                        <span className="text-left text-xs leading-4 text-muted-foreground">
-                          {schedule.service === "Catering" ? "C" : "V"}
-                        </span>
-                        <span className="text-right font-medium tabular-nums">
-                          {schedule.guests}
-                        </span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left">
-                      {schedule.service}: {schedule.guests} guests
-                    </TooltipContent>
-                  </Tooltip>
+                <Tooltip key={schedule.service}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={`${schedule.service}: ${schedule.guests} guests`}
+                      className="col-span-2 grid cursor-help grid-cols-subgrid items-baseline gap-x-3 rounded focus-visible:outline-2 focus-visible:outline-ring"
+                    >
+                      <span className="text-left text-xs leading-4 text-muted-foreground">
+                        {schedule.service === "Catering" ? "C" : "V"}
+                      </span>
+                      <span className="text-right font-medium tabular-nums">
+                        {schedule.guests}
+                      </span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                    {schedule.service}: {schedule.guests} guests
+                  </TooltipContent>
+                </Tooltip>
               ))}
             </div>
           </TooltipProvider>
@@ -141,7 +142,7 @@ const Booking = ({ booking, setSelected }) => {
         </span>
       </TableCell>
       <TableCell className="text-right">
-        <Actions booking={booking} />
+        <Actions booking={booking} handleAction={handleAction} />
       </TableCell>
     </TableRow>
   );

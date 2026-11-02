@@ -11,6 +11,8 @@ const initialState = {
   schedule: {},
   equipmentAvailability: {},
   search: "",
+  activeStatus: "",
+  isCalendarView: true,
   calendar: {
     days: [],
     overview: {
@@ -420,23 +422,60 @@ export const SEARCH = createAsyncThunk(`${url}/search`, (query, thunkAPI) => {
   }
 });
 
+const updateCounts = (state, statusTransaction) => {
+  const { new: newStatus, old: oldStatus } = statusTransaction;
+
+  if (newStatus === "update") return;
+
+  state.counts[oldStatus] = Math.max(
+    0,
+    Number(state.counts[oldStatus] ?? 0) - 1,
+  );
+
+  state.counts[newStatus] = Math.max(
+    0,
+    Number(state.counts[newStatus] ?? 0) + 1,
+  );
+};
+
 const updateSchedule = (state, statusTransaction, booking) => {
   const { payments = [], statusHistory = [], terms = null } = booking;
   const schedule = { ...state.schedule };
-  const oldCollections = [...(schedule?.[statusTransaction?.old] ?? [])];
 
+  const bookings = state.isCalendarView
+    ? schedule?.[statusTransaction?.old]
+    : state.bookings;
+
+  const oldCollections = [...(bookings ?? [])];
   const index = oldCollections.findIndex(({ _id }) => _id === booking?._id);
 
   if (index === -1) return;
 
+  const isUpdating = statusTransaction?.new === "update";
+
   const toRemoveBooking = { ...oldCollections[index] };
 
-  if (statusTransaction?.new === "update") {
-    oldCollections[index] = {
-      ...oldCollections[index],
-      ...(booking?.catering && { catering: booking?.catering }),
-      ...(booking?.venue && { venue: booking?.venue }),
-    };
+  const updatedBooking = {
+    ...toRemoveBooking,
+    ...(!isUpdating && { status: statusTransaction?.new }),
+    ...(booking?.catering && { catering: booking?.catering }),
+    ...(booking?.venue && { venue: booking?.venue }),
+    ...(payments?.length > 0 && { payments }),
+    ...(statusHistory?.length > 0 && { statusHistory }),
+    ...(terms && { terms }),
+  };
+
+  const isAllBookingsListView =
+    !state.isCalendarView && state.activeStatus === "all";
+
+  if (
+    isUpdating ||
+    (isAllBookingsListView &&
+      !["rejected", "cancelled", "changes_requested"].includes(
+        statusTransaction?.new,
+      ))
+  ) {
+    oldCollections[index] = updatedBooking;
   } else {
     oldCollections.splice(index, 1);
   }
@@ -447,28 +486,28 @@ const updateSchedule = (state, statusTransaction, booking) => {
     schedule[statusTransaction.old] = oldCollections;
   }
 
-  const updatedBooking = {
-    ...toRemoveBooking,
-    status: statusTransaction.new,
-    ...(statusTransaction.new === "approved" && {
-      ...(booking?.venue?.inclusions?.length > 0 && {
-        event: {
-          ...toRemoveBooking?.event,
-          inclusions: booking?.event?.inclusions,
-        },
-      }),
+  // const updatedBooking = {
+  //   ...toRemoveBooking,
+  //   status: statusTransaction.new,
+  //   ...(statusTransaction.new === "approved" && {
+  //     ...(booking?.venue?.inclusions?.length > 0 && {
+  //       event: {
+  //         ...toRemoveBooking?.event,
+  //         inclusions: booking?.event?.inclusions,
+  //       },
+  //     }),
 
-      ...(booking?.catering?.inclusions?.length > 0 && {
-        catering: {
-          ...toRemoveBooking?.catering,
-          inclusions: booking?.catering?.inclusions,
-        },
-      }),
-    }),
-    ...(payments?.length > 0 && { payments }),
-    ...(statusHistory?.length > 0 && { statusHistory }),
-    ...(terms && { terms }),
-  };
+  //     ...(booking?.catering?.inclusions?.length > 0 && {
+  //       catering: {
+  //         ...toRemoveBooking?.catering,
+  //         inclusions: booking?.catering?.inclusions,
+  //       },
+  //     }),
+  //   }),
+  //   ...(payments?.length > 0 && { payments }),
+  //   ...(statusHistory?.length > 0 && { statusHistory }),
+  //   ...(terms && { terms }),
+  // };
 
   state.schedule = {
     ...schedule,
@@ -482,6 +521,10 @@ const updateSchedule = (state, statusTransaction, booking) => {
     }),
   };
 
+  if (!state.isCalendarView) {
+    state.bookings = oldCollections;
+    updateCounts(state, statusTransaction);
+  }
   return toRemoveBooking;
 };
 
@@ -694,8 +737,11 @@ export const reduxSlice = createSlice({
   reducers: {
     UPDATE_PAYMENT: (state, { payload }) => {
       const { bookingStatus, data, amountReceived = 0 } = payload;
+      const bookings = state.isCalendarView
+        ? state.schedule[bookingStatus]
+        : state.bookings;
 
-      const collections = [...(state.schedule[bookingStatus] || [])];
+      const collections = [...(bookings ?? [])];
       const index = collections.findIndex(({ _id }) => _id === data?.booking);
 
       if (index < 0) return;
@@ -733,6 +779,10 @@ export const reduxSlice = createSlice({
         ...state.schedule,
         [bookingStatus]: collections,
       };
+
+      if (!state.isCalendarView) {
+        state.bookings = collections;
+      }
     },
 
     CONFIRM_BOOKING: (state, { payload }) => {
@@ -788,6 +838,7 @@ export const reduxSlice = createSlice({
         const { data } = action.payload;
         state.calendar = data;
         state.isLoadingCalendar = false;
+        state.isCalendarView = true;
       })
       .addCase(CALENDAR.rejected, (state, action) => {
         const { error } = action;
@@ -1044,12 +1095,10 @@ export const reduxSlice = createSlice({
       .addCase(CANCEL_BUSINESS_BOOKING.fulfilled, (state, { payload }) => {
         const { data, statusTransaction } = payload;
         updateBookingStatus({ state, booking: data, statusTransaction });
-        console.log("data", data);
         if (
           data?.cancellation?.refund?.amount > 0 &&
           data?.cancellation?.refund?.status === "pending"
         ) {
-          console.log("hasRefund");
           const { overview } = state.calendar;
           const financial = { ...(overview?.financial ?? {}) };
 
@@ -1063,7 +1112,7 @@ export const reduxSlice = createSlice({
             0,
             (financial?.pendingRefundCount ?? 0) + 1,
           );
-
+          state.refunds.push({});
           state.calendar = {
             ...state.calendar,
             overview: {
@@ -1156,7 +1205,6 @@ export const reduxSlice = createSlice({
         const { data } = payload;
         const refunds = [...(state.refunds ?? [])];
         const index = refunds.findIndex(({ _id }) => _id === data?._id);
-        console.log("index", index);
         if (index > -1) {
           refunds[index] = {
             ...refunds[index],
@@ -1185,8 +1233,10 @@ export const reduxSlice = createSlice({
       })
       .addCase(BOOKINGS.fulfilled, (state, action) => {
         const { success, data } = action.payload;
-        const { bookings, pagination } = data;
+        const { bookings, pagination, status } = data;
+        state.isCalendarView = false;
         state.bookings = bookings;
+        state.activeStatus = status;
         state.pagination = pagination;
         state.isLoadingBookings = false;
         state.message = success;

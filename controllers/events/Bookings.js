@@ -308,6 +308,7 @@ exports.cancel = async (req, res) => {
     res.status(200).json({
       data: { ...result, totalValueChange, amountReceived },
       statusTransaction,
+      hasRefund,
     });
   } catch (error) {
     console.log("error", error.message);

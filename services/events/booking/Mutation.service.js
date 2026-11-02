@@ -72,7 +72,7 @@ const update = async ({ bookingToUpdate }) => {
   return bookingWithRecipes[0];
 };
 
-const cancel = async ({ role, bookingId, cancellation }) => {
+const cancel = async ({ bookingId, cancellation }) => {
   const updated = await Booking.findByIdAndUpdate(
     bookingId,
     {

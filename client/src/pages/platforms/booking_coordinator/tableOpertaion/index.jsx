@@ -1,12 +1,19 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { BOOKINGS, COUNTS } from "@/services/redux/slices/events/bookings";
 import Tabs from "./tabs";
 import Body from "./body";
 import { useRef } from "react";
+import Approval from "../../admininistrator/events/bookings/schedule/approval";
+import ReviewPayment from "../../admininistrator/events/bookings/schedule/reviewPayment";
+import RecordPayment from "../../admininistrator/events/bookings/schedule/recordPayment";
+import {
+  CancelConfirmation,
+  CompletedConfirmation,
+  RejectionConfirmation,
+} from "../../admininistrator/events/bookings/schedule/confirmation";
 
 export default function TableOperation() {
-  const dispatch = useDispatch();
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -14,11 +21,22 @@ export default function TableOperation() {
   const [payment, setPayment] = useState("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
-  const [ascending, setAscending] = useState(true);
+  const [ascending, setAscending] = useState(false);
   const previousAscending = useRef(ascending);
   const [isSorting, setIsSorting] = useState(false);
-  const [, setSelected] = useState(null);
+  const [selected, setSelected] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [approvalModalMode, setApprovalModalMode] = useState("approve");
+  const [schedModal, setSchedModal] = useState({
+    approved: false,
+    reviewPayment: false,
+    view: false,
+    recordPayment: false,
+    completed: false,
+    reject: false,
+    cancel: false,
+  });
+  const dispatch = useDispatch();
 
   useEffect(() => {
     let active = true;
@@ -47,6 +65,9 @@ export default function TableOperation() {
       );
       request
         .unwrap()
+        .then(({ data }) => {
+          setPage(data?.pagination?.page);
+        })
         .catch((reason) => {
           if (!active) return;
           setError(
@@ -70,6 +91,17 @@ export default function TableOperation() {
   useEffect(() => {
     dispatch(COUNTS());
   }, [dispatch]);
+
+  const handleAction = useCallback((booking, _action) => {
+    const approvalModalActions = ["view", "update", "setup"];
+    const action = approvalModalActions.includes(_action)
+      ? "approved"
+      : _action;
+    setSchedModal((prev) => ({ ...prev, [action]: !prev[action] }));
+    setSelected(booking);
+
+    setApprovalModalMode(_action);
+  }, []);
 
   const hasFilters = Boolean(
     query || service !== "All services" || payment !== "all",
@@ -109,8 +141,44 @@ export default function TableOperation() {
           setSelected={setSelected}
           setAscending={setAscending}
           resetFilters={resetFilters}
+          handleAction={handleAction}
         />
       </div>
+      <Approval
+        isOpen={schedModal?.approved}
+        setIsOpen={() => handleAction({}, "approved")}
+        selected={selected}
+        mode={approvalModalMode}
+      />
+      <ReviewPayment
+        isOpen={schedModal?.reviewPayment}
+        setIsOpen={() => handleAction({}, "reviewPayment")}
+        selected={selected}
+      />
+      <RecordPayment
+        isOpen={schedModal?.recordPayment}
+        setIsOpen={() => handleAction({}, "recordPayment")}
+        selected={selected}
+      />
+      <CompletedConfirmation
+        isOpen={schedModal?.completed}
+        setIsOpen={() => handleAction({}, "completed")}
+        selected={selected}
+      />
+      <RejectionConfirmation
+        isOpen={schedModal.reject}
+        setIsOpen={(open) =>
+          setSchedModal((prev) => ({ ...prev, reject: open }))
+        }
+        selected={selected}
+      />
+      <CancelConfirmation
+        isOpen={schedModal.cancel}
+        setIsOpen={(open) =>
+          setSchedModal((prev) => ({ ...prev, cancel: open }))
+        }
+        selected={selected}
+      />
     </section>
   );
 }

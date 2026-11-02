@@ -83,10 +83,19 @@ const PendingRefunds = ({ global = false, compact = false, roomy = false }) => {
               loadRefunds();
             }}
           >
-            <span className={`flex shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors group-hover:bg-primary/15 ${roomy ? "size-7" : "size-6"}`}>
-              <Wallet aria-hidden="true" className={roomy ? "size-4" : "size-3.5"} />
+            <span
+              className={`flex shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors group-hover:bg-primary/15 ${roomy ? "size-7" : "size-6"}`}
+            >
+              <Wallet
+                aria-hidden="true"
+                className={roomy ? "size-4" : "size-3.5"}
+              />
             </span>
-            <span className={`font-medium ${roomy ? "text-[13px]" : "text-xs"} ${compact ? "hidden sm:inline" : ""}`}>Pending Refunds</span>
+            <span
+              className={`font-medium ${roomy ? "text-[13px]" : "text-xs"} ${compact ? "hidden sm:inline" : ""}`}
+            >
+              Pending Refunds
+            </span>
             <span
               aria-hidden="true"
               className={`ml-1 flex items-center justify-center rounded-md bg-primary px-1.5 font-semibold leading-none text-primary-foreground tabular-nums ${roomy ? "h-6 min-w-6 text-xs" : "h-5 min-w-5 text-[10px]"}`}
@@ -194,11 +203,11 @@ const PendingRefunds = ({ global = false, compact = false, roomy = false }) => {
                     </p>
                   </div>
                 ) : (
-                  refunds.map((booking) => {
+                  refunds.map((booking = {}) => {
                     const { refund, cancelledAt, initiatedBy } =
-                      booking.cancellation;
+                      booking?.cancellation || {};
                     const hasRefundAccount = Boolean(
-                      booking.cancellation?.refund?.accountProvidedBy,
+                      booking?.cancellation?.refund?.accountProvidedBy,
                     );
                     const cancelledByLabel =
                       initiatedBy === "customer"
@@ -207,19 +216,19 @@ const PendingRefunds = ({ global = false, compact = false, roomy = false }) => {
                           ? "Business"
                           : "Not available";
                     const needsCorrection =
-                      refund.accountCorrection?.required === true;
-                    const methodId = refund.method?._id ?? refund.method;
+                      refund?.accountCorrection?.required === true;
+                    const methodId = refund?.method?._id ?? refund?.method;
                     const methodName =
-                      refund.method?.name ||
-                      paymentMethods.find(({ _id }) => _id === methodId)?.name;
+                      refund?.method?.name ||
+                      paymentMethods?.find(({ _id }) => _id === methodId)?.name;
                     const accountNumber = String(
-                      refund.accountNumber ?? "",
+                      refund?.accountNumber ?? "",
                     ).replace(/\s/g, "");
                     const maskedNumber =
                       accountNumber.length > 4
-                        ? `•••• ${accountNumber.slice(-4)}`
+                        ? `•••• ${accountNumber?.slice(-4)}`
                         : accountNumber
-                          ? "•".repeat(accountNumber.length)
+                          ? "•".repeat(accountNumber?.length)
                           : "Not available";
                     const hasDate =
                       cancelledAt &&
@@ -227,14 +236,14 @@ const PendingRefunds = ({ global = false, compact = false, roomy = false }) => {
 
                     return (
                       <article
-                        key={booking._id}
+                        key={booking?._id}
                         className="group overflow-hidden rounded-lg border border-border bg-background transition-colors hover:border-primary/30"
                       >
                         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 p-3">
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                               <h3 className="break-words text-sm font-semibold leading-5">
-                                {booking.eventType || "Event booking"}
+                                {booking?.eventType || "Event booking"}
                               </h3>
                               {needsCorrection && (
                                 <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium leading-4 text-destructive">
@@ -248,14 +257,14 @@ const PendingRefunds = ({ global = false, compact = false, roomy = false }) => {
                             </div>
                             <p className="mt-1 break-words text-sm font-medium leading-5 text-foreground/80">
                               <span className="sr-only">Customer: </span>
-                              {booking.customer?.fullName
-                                ? fullName(booking.customer.fullName)
+                              {booking?.customer?.fullName
+                                ? fullName(booking?.customer?.fullName)
                                 : "Customer unavailable"}
                             </p>
                             <p className="mt-0.5 break-words text-xs leading-5 text-muted-foreground">
-                              {booking.reference}
+                              {booking?.reference}
                               {hasDate &&
-                                `${booking.reference ? " · " : ""}Cancelled ${Formatter.date(cancelledAt, true)}`}
+                                `${booking?.reference ? " · " : ""}Cancelled ${Formatter.date(cancelledAt, true)}`}
                             </p>
                             <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs leading-5 text-muted-foreground">
                               Cancelled by:
@@ -276,7 +285,7 @@ const PendingRefunds = ({ global = false, compact = false, roomy = false }) => {
                               Refund amount
                             </p>
                             <p className="mt-0.5 text-lg font-semibold leading-6 tracking-tight text-primary tabular-nums">
-                              {Formatter.amount(refund.amount)}
+                              {Formatter.amount(refund?.amount)}
                             </p>
                           </div>
                         </div>

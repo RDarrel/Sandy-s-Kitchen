@@ -81,14 +81,6 @@ const RecordPayment = ({ isOpen, setIsOpen, selected = {} }) => {
 
   const willBeFullyPaid = hasValidPreview && remainingAfterPayment === 0;
 
-  const handleReset = () => {
-    setForm({
-      method: "",
-      amount: suggestedAmount > 0 ? String(suggestedAmount) : "",
-      notes: "",
-    });
-  };
-
   const handleSubmit = (event) => {
     event.preventDefault();
     const willConfirmBooking = selected?.status === "approved";

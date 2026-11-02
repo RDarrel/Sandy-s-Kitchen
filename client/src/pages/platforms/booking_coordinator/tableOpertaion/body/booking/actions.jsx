@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { OPERATIONAL_STATUSES, STATUS_ACTIONS } from "../../constant";
 
-const Actions = ({ booking }) => {
+const Actions = ({ booking, handleAction }) => {
   const { record } = booking;
   const status = record?.status;
   const action = STATUS_ACTIONS[record?.status];
@@ -33,6 +33,7 @@ const Actions = ({ booking }) => {
       <Button
         variant="outline"
         size="icon"
+        onClick={() => handleAction(booking?.record, "view")}
         className="size-8 rounded-md border-border bg-card text-muted-foreground  y"
       >
         <Eye />
@@ -63,7 +64,7 @@ const Actions = ({ booking }) => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={() => setSelected(booking)}
+          onClick={() => handleAction(booking?.record, "view")}
           className="cursor-pointer gap-2.5 rounded-md py-2 text-sm"
         >
           <Eye className="size-4 text-muted-foreground" />
@@ -72,57 +73,73 @@ const Actions = ({ booking }) => {
 
         {OPERATIONAL_STATUSES.includes(status) && (
           <>
-            <DropdownMenuItem className="gap-2.5 rounded-md py-2 text-sm">
+            <DropdownMenuItem
+              className="gap-2.5 rounded-md py-2 text-sm"
+              onClick={() => handleAction(booking?.record, action?.nextStatus)}
+            >
               <ActionIcon className="size-4" />
               {action?.label}
             </DropdownMenuItem>
           </>
         )}
 
-        {booking.status === "pending" && (
-          <DropdownMenuItem className="gap-2.5 rounded-md py-2 text-sm text-destructive">
+        {status === "pending" && (
+          <DropdownMenuItem
+            className="gap-2.5 rounded-md py-2 text-sm text-destructive"
+            onClick={() => handleAction(booking?.record, "reject")}
+          >
             <XCircle className="size-4" />
             Reject booking
           </DropdownMenuItem>
         )}
 
         {["approved", "confirmed"].includes(status) && (
-          <DropdownMenuItem className="gap-2.5 rounded-md py-2 text-sm">
+          <DropdownMenuItem
+            className="gap-2.5 rounded-md py-2 text-sm"
+            onClick={() => handleAction(booking?.record, "update")}
+          >
             <Pencil className="size-4" />
             Edit booking
           </DropdownMenuItem>
         )}
-        {(booking.pendingPayment > 0 || booking.paid < booking.amount) && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-              Payments
-            </DropdownMenuLabel>
-            {booking.pendingPayment > 0 && (
-              <DropdownMenuItem
-                // onSelect={() => setPaymentReview(booking)}
-                className="cursor-pointer gap-2.5 rounded-md py-2 text-sm font-medium text-primary focus:bg-primary/5 focus:text-primary"
-              >
-                <Wallet className="size-4" />
-                Review payment
-                <span
-                  aria-hidden="true"
-                  className="ml-auto size-1.5 rounded-full bg-accent"
-                />
-              </DropdownMenuItem>
-            )}
-            {booking.paid < booking.amount && (
-              <DropdownMenuItem className="gap-2.5 rounded-md py-2 text-sm">
-                <Wallet className="size-4" />
-                Record a payment
-              </DropdownMenuItem>
-            )}
-          </>
-        )}
+        {(booking.pendingPayment > 0 || booking.paid < booking.amount) &&
+          ["approved", "confirmed", "setup", "completed"].includes(status) && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                Payments
+              </DropdownMenuLabel>
+              {booking.pendingPayment > 0 && (
+                <DropdownMenuItem
+                  onClick={() => handleAction(booking?.record, "reviewPayment")}
+                  className="cursor-pointer gap-2.5 rounded-md py-2 text-sm font-medium text-primary focus:bg-primary/5 focus:text-primary"
+                >
+                  <Wallet className="size-4" />
+                  Review payment
+                  <span
+                    aria-hidden="true"
+                    className="ml-auto size-1.5 rounded-full bg-accent"
+                  />
+                </DropdownMenuItem>
+              )}
+              {booking.paid < booking.amount && (
+                <DropdownMenuItem
+                  className="gap-2.5 rounded-md py-2 text-sm"
+                  onClick={() => handleAction(booking?.record, "recordPayment")}
+                >
+                  <Wallet className="size-4" />
+                  Record a payment
+                </DropdownMenuItem>
+              )}
+            </>
+          )}
         {["approved", "confirmed"].includes(status) && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2.5 rounded-md py-2 text-sm text-destructive">
+            <DropdownMenuItem
+              onClick={() => handleAction(booking?.record, "cancel")}
+              className="gap-2.5 rounded-md py-2 text-sm text-destructive"
+            >
               <Ban className="size-4" />
               Cancel booking
             </DropdownMenuItem>

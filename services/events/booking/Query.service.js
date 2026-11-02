@@ -535,7 +535,6 @@ const getBookings = async ({
   let paginatedBookings = result?.bookings ?? [];
   // Refetch only if the requested page is invalid
   if (validPage !== currentPage) {
-    console.log("refetech");
     const correctedPipeline = [
       ...pipeline.slice(0, -1),
       { $sort: { date: direction, _id: direction } },
@@ -547,25 +546,36 @@ const getBookings = async ({
   }
 
   const populatedBookings = await Booking.populate(paginatedBookings, [
-    { path: "customer", select: "fullName" },
-    { path: "catering.item", select: "name description" },
-    { path: "venue.item", select: "name description address" },
-    { path: "catering.inclusions.item" },
-    { path: "venue.inclusions.item" },
-    { path: "catering.mainDishes.menu" },
-    { path: "catering.sideDishes.menu" },
+    { path: "customer", select: "fullName", options: { lean: true } },
+    {
+      path: "catering.item",
+      select: "name description",
+      options: { lean: true },
+    },
+    {
+      path: "venue.item",
+      select: "name description address",
+      options: { lean: true },
+    },
+    { path: "catering.inclusions.item", options: { lean: true } },
+    { path: "venue.inclusions.item", options: { lean: true } },
+    { path: "catering.mainDishes.menu", options: { lean: true } },
+    { path: "catering.sideDishes.menu", options: { lean: true } },
   ]);
 
   await Payment.populate(
     populatedBookings.flatMap(({ payments }) => payments),
     [
-      { path: "method", select: "name" },
-      { path: "reviewedBy", select: "fullName" },
+      { path: "method", select: "name", options: { lean: true } },
+      { path: "reviewedBy", select: "fullName", options: { lean: true } },
     ],
   );
+
   const bookings = await attachRecipesToDishes(populatedBookings);
+
   return {
     bookings,
+    status,
     pagination: {
       page: validPage,
       limit: pageSize,
@@ -600,7 +610,6 @@ const getCounts = async () => {
     counts[_id] = count;
   }
 
-  counts.all = statuses.reduce((total, status) => total + counts[status], 0);
   return counts;
 };
 
