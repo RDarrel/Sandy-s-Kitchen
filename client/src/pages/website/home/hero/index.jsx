@@ -9,7 +9,9 @@ import bg4 from "../../../../assets/backgrounds/bg4.png";
 import "swiper/css";
 import "./style.css";
 import "swiper/css/effect-fade";
+import { useNavigate } from "react-router-dom";
 const Hero = () => {
+  const navigate = useNavigate();
   const subtitleLines = [
     "Plan your next celebration with ease.",
     "Book catering appointments and reserve our venue",
@@ -72,11 +74,17 @@ const Hero = () => {
           </p>
 
           <div className="hero__actions">
-            <Button className="hero__action hero__action--catering">
+            <Button
+              className="hero__action hero__action--catering"
+              onClick={() => navigate("/catering")}
+            >
               <CalendarCheck />
               Book Catering
             </Button>
-            <Button className="hero__action hero__action--venue">
+            <Button
+              className="hero__action hero__action--venue"
+              onClick={() => navigate("/venue")}
+            >
               <MapPin />
               Reserve Venue
             </Button>

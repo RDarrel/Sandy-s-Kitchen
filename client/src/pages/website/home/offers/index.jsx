@@ -4,8 +4,10 @@ import cateringImage from "../../../../assets/about/catering.jpg";
 import foodImage from "../../../../assets/about/food.jpg";
 import venueImage from "../../../../assets/about/venue.jpg";
 import "./style.css";
+import { useNavigate } from "react-router-dom";
 
 const Offers = () => {
+  const navigate = useNavigate();
   const offers = [
     {
       icon: <CalendarCheck />,
@@ -15,6 +17,17 @@ const Offers = () => {
       text: "Food trays and event packages prepared for birthdays, weddings, meetings, and family celebrations.",
       action: "Book Catering",
       featured: true,
+      link: "/catering",
+    },
+
+    {
+      icon: <MapPin />,
+      image: venueImage,
+      title: "Venue Reservation",
+      label: "Private Gatherings",
+      text: "A cozy space for simple celebrations and special occasions.",
+      action: "Reserve Venue",
+      link: "/venue",
     },
     {
       icon: <Utensils />,
@@ -23,14 +36,7 @@ const Offers = () => {
       label: "Daily Favorites",
       text: "Comforting meals served fresh for everyday cravings and family dining.",
       action: "View Dining",
-    },
-    {
-      icon: <MapPin />,
-      image: venueImage,
-      title: "Venue Reservation",
-      label: "Private Gatherings",
-      text: "A cozy space for simple celebrations and special occasions.",
-      action: "Reserve Venue",
+      hasAction: false,
     },
   ];
 
@@ -51,7 +57,17 @@ const Offers = () => {
 
         <div className="offers__grid">
           {offers.map(
-            ({ icon, image, title, label, text, action, featured }) => (
+            ({
+              icon,
+              image,
+              title,
+              label,
+              text,
+              action,
+              featured,
+              hasAction = true,
+              link,
+            }) => (
               <article
                 className={`offers__card${featured ? " offers__card--featured" : ""}`}
                 key={title}
@@ -66,12 +82,15 @@ const Offers = () => {
                   </div>
                   <h3>{title}</h3>
                   <p>{text}</p>
-                  <Button
-                    className="offers__button"
-                    variant={featured ? "default" : "outline"}
-                  >
-                    {action}
-                  </Button>
+                  {hasAction && (
+                    <Button
+                      onClick={() => navigate(link)}
+                      className="offers__button"
+                      variant={featured ? "default" : "outline"}
+                    >
+                      {action}
+                    </Button>
+                  )}
                 </div>
               </article>
             ),
