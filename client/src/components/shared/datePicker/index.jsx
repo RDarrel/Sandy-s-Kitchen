@@ -207,13 +207,11 @@ const DatePicker = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className={cn(
-            "max-w-[calc(100vw-1rem)] overflow-x-auto overflow-y-hidden p-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-            "w-auto",
-          )}
+          className="w-auto max-w-[calc(100vw-1.5rem)] overflow-x-auto overflow-y-hidden p-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           align={align}
+          collisionPadding={12}
         >
-          <div className={cn(showTimeOnly ? "w-max" : "min-w-max")}>
+          <div className={cn("max-w-[calc(100vw-1.5rem)]", showTimeOnly ? "w-max" : "w-fit min-w-max")}>
             <div
               className={cn(
                 "flex items-start",
