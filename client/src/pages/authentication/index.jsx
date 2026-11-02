@@ -117,13 +117,14 @@ const Authentication = () => {
           onFocusCapture={() => setIsFormFocused(true)}
           onBlurCapture={() => setIsFormFocused(false)}
         >
-          <div className={`auth-form-panel${isSignUp ? " auth-form-panel--signup" : ""}`}>
+          <div
+            className={`auth-form-panel${isSignUp ? " auth-form-panel--signup" : ""}`}
+          >
             <Outlet />
             <p className="auth-legal-notice">
               By continuing, you agree to our{" "}
               <Link to="/terms-and-conditions">Terms and Conditions</Link> and
-              acknowledge our{" "}
-              <Link to="/privacy-cookie-policy">Privacy Policy</Link>.
+              acknowledge our <Link to="/privacy-policy">Privacy Policy</Link>.
             </p>
           </div>
         </div>
