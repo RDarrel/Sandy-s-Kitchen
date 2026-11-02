@@ -13,6 +13,7 @@ import Website from "./pages/website";
 import Dining from "./pages/website/dining";
 import Catering from "./pages/website/catering";
 import Venue from "./pages/website/venue";
+import LegalPage from "./pages/website/legal";
 import Login from "./pages/authentication/login";
 import SignUp from "./pages/authentication/sign-up";
 import "./App.css";
@@ -55,6 +56,14 @@ export default function App() {
         <Route path="/catering" element={<Catering />} />
         <Route path="/venue" element={<Venue />} />
         <Route path="/about" element={<About />} />
+        <Route
+          path="/terms-and-conditions"
+          element={<LegalPage documentKey="terms" />}
+        />
+        <Route
+          path="/privacy-policy"
+          element={<LegalPage documentKey="privacy" />}
+        />
       </Route>
       <Route path="authentication" element={<Authentication />}>
         <Route path="sign-in" element={<Login />} />

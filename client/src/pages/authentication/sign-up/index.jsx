@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -77,7 +77,7 @@ export default function Signup() {
   };
   return (
     <form onSubmit={handleSignUp} className="w-full max-w-md">
-      <FieldGroup className="flex flex-col gap-6 ">
+      <FieldGroup className="flex flex-col gap-4">
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Sign up for an account</h1>
           <p className="text-sm text-balance text-muted-foreground">
@@ -129,13 +129,17 @@ export default function Signup() {
             />
           </Field>
         </div>
-        <FieldDescription className="font-semibold text-destructive -mt-4 mb-4 ">
-          {passWarning}
-        </FieldDescription>
-        <small className="text-xs text-muted-foreground -mt-5">
-          A strong password must contain lowercase and UPPERCASE letters,
-          numbers and character symbols.
-        </small>
+        <div className="flex flex-col gap-1">
+          {passWarning && (
+            <FieldDescription role="alert" className="font-semibold text-destructive">
+              {passWarning}
+            </FieldDescription>
+          )}
+          <small className="text-xs text-muted-foreground">
+            A strong password must contain lowercase and UPPERCASE letters,
+            numbers and character symbols.
+          </small>
+        </div>
         <Field>
           <Button
             type="submit"

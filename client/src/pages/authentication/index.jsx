@@ -5,9 +5,11 @@ import BG2 from "../../assets/backgrounds/bg2.png";
 import BG3 from "../../assets/backgrounds/bg3.png";
 import BG4 from "../../assets/backgrounds/bg4.png";
 import "./index.css";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 
 const Authentication = () => {
+  const { pathname } = useLocation();
+  const isSignUp = pathname.endsWith("/sign-up");
   const slides = useMemo(
     () => [
       {
@@ -115,7 +117,15 @@ const Authentication = () => {
           onFocusCapture={() => setIsFormFocused(true)}
           onBlurCapture={() => setIsFormFocused(false)}
         >
-          <Outlet />
+          <div className={`auth-form-panel${isSignUp ? " auth-form-panel--signup" : ""}`}>
+            <Outlet />
+            <p className="auth-legal-notice">
+              By continuing, you agree to our{" "}
+              <Link to="/terms-and-conditions">Terms and Conditions</Link> and
+              acknowledge our{" "}
+              <Link to="/privacy-cookie-policy">Privacy Policy</Link>.
+            </p>
+          </div>
         </div>
       </div>
 

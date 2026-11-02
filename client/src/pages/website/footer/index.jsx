@@ -1,23 +1,24 @@
+import { Link } from "react-router-dom";
+import { legalDocuments } from "../legal/documents";
 import logo from "../../../assets/logos/kitchenette.jpg";
 import "./style.css";
 
 const Footer = () => {
-  const legalLinks = [
-    "Terms and conditions",
-    "Privacy & Cookie policy",
-    "Reservation agreement",
+  const quickLinks = [
+    { label: "Home", to: "/" },
+    { label: "Catering", to: "/catering" },
+    { label: "Venue", to: "/venue" },
+    { label: "About", to: "/about" },
   ];
-
   const socialLinks = ["Facebook", "Instagram"];
 
   return (
     <footer className="footer">
       <div className="footer__inner">
-        <div className="footer__company">
+        <div className="footer__company footer__group">
+          <h3>Company</h3>
           <img src={logo} alt="Sandy's Kitchenette" className="footer__logo" />
-
           <div className="footer__group">
-            <h3>Company</h3>
             <p>Sandy's Kitchenette</p>
             <p>Comfort food, catering, and venue reservations</p>
             <p>Book your next celebration with us</p>
@@ -25,22 +26,33 @@ const Footer = () => {
         </div>
 
         <div className="footer__links">
-          <div className="footer__group">
-            <h3>Legal</h3>
-            {legalLinks.map((link) => (
-              <a href="#footer" key={link}>
-                {link}
-              </a>
+          <nav className="footer__group" aria-labelledby="footer-quick-links">
+            <h3 id="footer-quick-links">Quick Links</h3>
+            {quickLinks.map(({ label, to }) => (
+              <Link to={to} key={to}>
+                {label}
+              </Link>
             ))}
-          </div>
+          </nav>
 
-          <div className="footer__group">
-            <h3>Socials</h3>
-            {socialLinks.map((link) => (
-              <a href="#footer" key={link}>
-                {link}
-              </a>
-            ))}
+          <div className="footer__resources">
+            <div className="footer__group">
+              <h3>Legal</h3>
+              {Object.values(legalDocuments).map(({ title, path }) => (
+                <Link to={path} key={path}>
+                  {title}
+                </Link>
+              ))}
+            </div>
+
+            <div className="footer__group">
+              <h3>Socials</h3>
+              {socialLinks.map((link) => (
+                <a href="#footer" key={link}>
+                  {link}
+                </a>
+              ))}
+            </div>
           </div>
         </div>
 

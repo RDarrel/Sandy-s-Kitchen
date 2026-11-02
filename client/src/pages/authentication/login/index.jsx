@@ -118,16 +118,16 @@ export default function LoginForm({ className }) {
             Continue with Google{" "}
             <Spinner formSubmitted={isLoadingSigninWithGoogle} />
           </Button>
-          <FieldDescription className="text-center">
-            Don&apos;t have an account?{" "}
-            <Link
-              to="/authentication/sign-up"
-              className="underline underline-offset-4"
-            >
-              Sign up
-            </Link>
-          </FieldDescription>
         </Field>
+        <FieldDescription className="text-center">
+          Don&apos;t have an account?{" "}
+          <Link
+            to="/authentication/sign-up"
+            className="underline underline-offset-4"
+          >
+            Sign up
+          </Link>
+        </FieldDescription>
       </FieldGroup>
     </form>
   );
