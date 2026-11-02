@@ -117,6 +117,7 @@ const Navbar = () => {
 
           <div className="navbar__mobile-actions">
             <Button
+              className="text-foreground"
               variant="outline"
               onClick={() => navigate("/authentication/sign-up")}
             >
