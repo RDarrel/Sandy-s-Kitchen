@@ -51,8 +51,8 @@ const confirmSetup = async ({ bookingId, user }) => {
     booking.status = "setup";
 
     await booking.save({ session });
-
-    return booking;
+    const { catering, venue, customer, ...data } = booking.toObject();
+    return data;
   });
 };
 
