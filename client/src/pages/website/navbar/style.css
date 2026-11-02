@@ -395,8 +395,10 @@
   color: var(--muted-foreground);
 }
 
-.navbar__mobile-link:hover {
-  background: var(--muted);
+@media (hover: hover) and (pointer: fine) {
+  .navbar__mobile-link:hover {
+    background: var(--muted);
+  }
 }
 
 .navbar__mobile-link:focus-visible {
