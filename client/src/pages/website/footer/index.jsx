@@ -8,7 +8,7 @@ const Footer = () => {
     { label: "Home", to: "/" },
     { label: "Catering", to: "/catering" },
     { label: "Venue", to: "/venue" },
-    { label: "About", to: "/about" },
+    { label: "About Us", to: "/about" },
   ];
   const socialLinks = ["Facebook", "Instagram"];
 

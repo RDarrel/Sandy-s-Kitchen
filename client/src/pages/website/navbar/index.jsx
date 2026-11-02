@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../../assets/logos/kitchenette.jpg";
 import "./style.css";
 
 const navItems = [
-  { label: "Home", to: "/" },
+  { label: "Home", to: "/", description: "Discover Sandy's Kitchenette" },
   // { label: "Dining", to: "/dining" },
-  { label: "Catering", to: "/catering" },
-  { label: "Venue", to: "/venue" },
-  { label: "About", to: "/about" },
+  { label: "Catering", to: "/catering", description: "Explore packages for your event" },
+  { label: "Venue", to: "/venue", description: "Find a space for your celebration" },
+  { label: "About Us", mobileLabel: "About Us", to: "/about", description: "Our story and where to find us" },
 ];
 
 const Navbar = () => {
@@ -20,6 +20,32 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const isHomePage = pathname === "/";
   const isInnerPage = !isHomePage;
+  const navbarRef = useRef(null);
+  const menuButtonRef = useRef(null);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handlePointerDown = (event) => {
+      if (!navbarRef.current?.contains(event.target)) setIsMenuOpen(false);
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    const handleResize = () => {
+      if (window.innerWidth > 860) setIsMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [isMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,12 +68,15 @@ const Navbar = () => {
 
   return (
     <nav
+      ref={navbarRef}
       className={`navbar${isHomePage && isScrolled ? " navbar--scrolled" : ""}${
         isInnerPage ? " navbar--inner" : ""
       }${isMenuOpen ? " navbar--menu-open" : ""}`}
     >
       <div className="navbar__content">
         <button
+          ref={menuButtonRef}
+          aria-controls="website-mobile-menu"
           aria-expanded={isMenuOpen}
           aria-label={
             isMenuOpen ? "Close navigation menu" : "Open navigation menu"
@@ -97,7 +126,11 @@ const Navbar = () => {
           Login
         </Button>
 
-        <div className="navbar__mobile-menu">
+        <div
+          id="website-mobile-menu"
+          className="navbar__mobile-menu"
+          inert={!isMenuOpen}
+        >
           <div className="navbar__mobile-links">
             {navItems.map((item) => (
               <NavLink
@@ -109,16 +142,21 @@ const Navbar = () => {
                 end={item.to === "/"}
                 key={item.to}
                 to={item.to}
+                onClick={() => setIsMenuOpen(false)}
               >
-                {item.label}
+                <span className="navbar__mobile-link-copy">
+                  <span>{item.mobileLabel || item.label}</span>
+                  <small>{item.description}</small>
+                </span>
+                <ArrowUpRight aria-hidden="true" />
               </NavLink>
             ))}
           </div>
 
           <div className="navbar__mobile-actions">
+            <p>New to Sandy&apos;s?</p>
             <Button
-              className="text-foreground"
-              variant="outline"
+              className="navbar__mobile-signup"
               onClick={() => navigate("/authentication/sign-up")}
             >
               Sign-up
