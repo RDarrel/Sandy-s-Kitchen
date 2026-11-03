@@ -45,12 +45,13 @@ const Stock = {
 
   formatQuantity: (amount, unit, normalizeUnit = false) => {
     const qty = Number(amount) || 0;
+    const absQty = Math.abs(qty);
 
-    if (unit === "g" && (qty >= 1000 || normalizeUnit)) {
+    if (unit === "g" && (absQty >= 1000 || normalizeUnit)) {
       return `${Number((qty / 1000).toFixed(2))} Kg`;
     }
 
-    if (unit === "ml" && (qty >= 1000 || normalizeUnit)) {
+    if (unit === "ml" && (absQty >= 1000 || normalizeUnit)) {
       return `${Number((qty / 1000).toFixed(2))} L`;
     }
 
