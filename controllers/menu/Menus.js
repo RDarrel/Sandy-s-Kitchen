@@ -418,8 +418,21 @@ exports.browse = async (req, res) => {
       menus = await Menu.find({
         ...ACTIVE_FILTER,
         ...(station === "catering" && {
-          // type: { $in: ["prepared", "resell"] },
           type: "prepared",
+          availableFor: {
+            $in: ["catering", "both", null],
+          },
+        }),
+        ...(station === "cashier" && {
+          $or: [
+            { type: { $ne: "prepared" } },
+            {
+              type: "prepared",
+              availableFor: {
+                $in: ["dine_in", "both", null],
+              },
+            },
+          ],
         }),
       })
         .sort({ createdAt: -1 })

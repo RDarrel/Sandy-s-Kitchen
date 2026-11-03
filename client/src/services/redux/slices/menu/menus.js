@@ -1,11 +1,18 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+} from "@reduxjs/toolkit";
 import { axioKit } from "../../../utilities";
 
 const url = "menu/menus";
 
 const getIsAvailable = (item) => Boolean(item?.isAvailable ?? item?.isPublish);
 
-const applyFilters = (collections, { category, availability, search }) => {
+const applyFilters = (
+  collections,
+  { category, availability, availableFor = "all", search },
+) => {
   const byCategory =
     category === "all"
       ? collections
@@ -19,7 +26,23 @@ const applyFilters = (collections, { category, availability, search }) => {
           return availability === "available" ? isAvailable : !isAvailable;
         });
 
-  const cluster = byAvailability;
+  const cluster =
+    availableFor === "all"
+      ? byAvailability
+      : byAvailability.filter((item) => {
+          const { type } = item;
+
+          // Non-prepared items are Dine-in only
+          if (type !== "prepared") {
+            return availableFor === "dine_in";
+          }
+
+          const itemAvailableFor = item.availableFor || "both";
+
+          return (
+            itemAvailableFor === availableFor || itemAvailableFor === "both"
+          );
+        });
   const filtered = !search
     ? cluster
     : cluster.filter((item) => {
@@ -29,10 +52,31 @@ const applyFilters = (collections, { category, availability, search }) => {
   return { cluster, filtered };
 };
 
+export const selectMenuCategoryCounts = createSelector(
+  [
+    ({ menus }) => menus.collections,
+    ({ menus }) => menus.availableFor,
+    ({ menus }) => menus.availability,
+  ],
+  (collections, availableFor, availability) => {
+    const { cluster } = applyFilters(collections, {
+      category: "all",
+      availableFor,
+      availability,
+      search: "",
+    });
+    return cluster.reduce((counts, item) => {
+      counts[item.category] = (counts[item.category] || 0) + 1;
+      return counts;
+    }, {});
+  },
+);
+
 const initialState = {
   collections: [],
   category: "all",
   availability: "all",
+  availableFor: "all",
   search: "",
   cluster: [],
   filtered: [],
@@ -127,6 +171,7 @@ export const reduxSlice = createSlice({
       const { cluster, filtered } = applyFilters(state.collections, {
         category: state.category,
         availability: state.availability,
+        availableFor: state.availableFor,
         search: state.search,
       });
 
@@ -140,16 +185,24 @@ export const reduxSlice = createSlice({
       const { cluster, filtered } = applyFilters(state.collections, {
         category: state.category,
         availability: state.availability,
+        availableFor: state.availableFor,
         search: state.search,
       });
 
       state.cluster = cluster;
       state.filtered = filtered;
     },
+    FilterBY_AVAILABLE_FOR: (state, { payload }) => {
+      state.availableFor = payload || "all";
+      const { cluster, filtered } = applyFilters(state.collections, state);
+      state.cluster = cluster;
+      state.filtered = filtered;
+    },
     SetNEW_MENU: (state, { payload }) => {
       state.collections.unshift(payload);
-      state.filtered.unshift(payload);
-      state.cluster.unshift(payload);
+      const { cluster, filtered } = applyFilters(state.collections, state);
+      state.cluster = cluster;
+      state.filtered = filtered;
     },
     SetUPDATED_MENU: (state, { payload }) => {
       const updateCollections = (collections) => {
@@ -159,8 +212,9 @@ export const reduxSlice = createSlice({
         }
       };
       updateCollections(state.collections);
-      updateCollections(state.cluster);
-      updateCollections(state.filtered);
+      const { cluster, filtered } = applyFilters(state.collections, state);
+      state.cluster = cluster;
+      state.filtered = filtered;
     },
     SetDELETED_MENU: (state, { payload }) => {
       const removeFromCollections = (collections) => {
@@ -197,6 +251,7 @@ export const reduxSlice = createSlice({
       const { filtered } = applyFilters(state.collections, {
         category: state.category,
         availability: state.availability,
+        availableFor: state.availableFor,
         search: state.search,
       });
 
@@ -228,6 +283,7 @@ export const reduxSlice = createSlice({
         const { cluster, filtered } = applyFilters(state.collections, {
           category: state.category,
           availability: state.availability,
+          availableFor: state.availableFor,
           search: state.search,
         });
 
@@ -328,6 +384,7 @@ export const {
   SetDELETED_MENU,
   FilterBY_CATEGORY,
   FilterBY_AVAILABILITY,
+  FilterBY_AVAILABLE_FOR,
   SetFILTERED,
   SEARCH,
 } = reduxSlice.actions;

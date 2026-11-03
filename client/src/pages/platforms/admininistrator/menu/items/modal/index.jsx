@@ -62,11 +62,12 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { cn } from "@/lib/utils";
 
 const AVAILABLE_FOR = [
   { value: "dine_in", label: "Dine-in" },
   { value: "catering", label: "Catering" },
-  { value: "both", label: "Dine-in + Catering" },
+  { value: "both", label: "Dine-in & Catering" },
 ];
 
 const Modal = () => {
@@ -516,6 +517,8 @@ const Modal = () => {
     selected?._id,
   );
 
+  const isRecipeBased = form?.type === "prepared";
+
   return (
     <Dialog open={showModal} onOpenChange={toggle}>
       <DialogContent
@@ -555,7 +558,12 @@ const Modal = () => {
         <form onSubmit={handleSubmit}>
           <div className="space-y-5 ">
             {isFullEdit && (
-              <section className="grid gap-4 md:grid-cols-3">
+              <section
+                className={cn(
+                  "grid gap-4 ",
+                  isRecipeBased ? "md:grid-cols-3" : "md:grid-cols-2",
+                )}
+              >
                 <div className="space-y-2">
                   <Label htmlFor="item-category">Category</Label>
                   <Select
@@ -599,29 +607,31 @@ const Modal = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="item-type">Available For</Label>
-                  <Select
-                    value={form.availableFor || "both"}
-                    onValueChange={(value) =>
-                      handleChange("availableFor", value)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Available For</SelectLabel>
-                        {AVAILABLE_FOR.map(({ value, label }) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {isRecipeBased && (
+                  <div className="space-y-2">
+                    <Label htmlFor="item-type">Available For</Label>
+                    <Select
+                      value={form.availableFor || "both"}
+                      onValueChange={(value) =>
+                        handleChange("availableFor", value)
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Available For</SelectLabel>
+                          {AVAILABLE_FOR.map(({ value, label }) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </section>
             )}
 
