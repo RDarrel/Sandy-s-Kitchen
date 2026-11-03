@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import Payment from "./payment";
 const dateLabel = (value) =>
   value
     ? new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
@@ -117,20 +118,7 @@ const Booking = ({ booking, setSelected, handleAction }) => {
         )}
       </TableCell>
       <TableCell className="text-right">
-        <p className="font-semibold tabular-nums">
-          {Formatter.amount(booking.amount)}
-        </p>
-        <p
-          className={`mt-1 text-xs leading-4 ${booking.pendingPayment ? "text-amber-700 dark:text-amber-400" : booking.paid >= booking.amount ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}
-        >
-          {booking.pendingPayment
-            ? "Payment awaiting verification"
-            : booking.paid >= booking.amount
-              ? "Fully paid"
-              : booking.paid
-                ? `${Formatter.amount(booking.balance)} balance`
-                : `${Formatter.amount(booking.downpaymentDue)} down payment due`}
-        </p>
+        <Payment booking={booking} />
       </TableCell>
       <TableCell>
         <span className="inline-flex items-center gap-2 rounded-md border border-border/60 bg-background/60 px-2 py-1 text-xs font-medium leading-4">

@@ -31,7 +31,7 @@ const TermsSummary = ({ terms }) => {
 
           <Term
             label="Cancellation deadline"
-            value={Formatter.date(terms.cancellationDeadline)}
+            value={Formatter.date(terms.cancellationDeadline, true)}
           />
         </div>
       ) : (
