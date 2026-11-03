@@ -8,9 +8,22 @@ import "./style.css";
 const navItems = [
   { label: "Home", to: "/", description: "Discover Sandy's Kitchenette" },
   // { label: "Dining", to: "/dining" },
-  { label: "Catering", to: "/catering", description: "Explore packages for your event" },
-  { label: "Venue", to: "/venue", description: "Find a space for your celebration" },
-  { label: "About Us", mobileLabel: "About Us", to: "/about", description: "Our story and where to find us" },
+  {
+    label: "Catering",
+    to: "/catering",
+    description: "Explore packages for your event",
+  },
+  {
+    label: "Venue",
+    to: "/venue",
+    description: "Find a space for your celebration",
+  },
+  {
+    label: "About Us",
+    mobileLabel: "About Us",
+    to: "/about",
+    description: "Our story and where to find us",
+  },
 ];
 
 const Navbar = () => {

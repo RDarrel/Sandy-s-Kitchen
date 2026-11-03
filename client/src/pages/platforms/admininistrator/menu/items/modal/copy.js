@@ -1,5 +1,6 @@
 export const initialForm = {
   name: "",
+  availableFor: "both",
   category: "",
   price: "",
   type: "prepared",

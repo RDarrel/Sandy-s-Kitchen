@@ -63,6 +63,12 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 
+const AVAILABLE_FOR = [
+  { value: "dine_in", label: "Dine-in" },
+  { value: "catering", label: "Catering" },
+  { value: "both", label: "Dine-in + Catering" },
+];
+
 const Modal = () => {
   const { token } = useSelector(({ auth }) => auth);
   const {
@@ -549,7 +555,7 @@ const Modal = () => {
         <form onSubmit={handleSubmit}>
           <div className="space-y-5 ">
             {isFullEdit && (
-              <section className="grid gap-4 md:grid-cols-2">
+              <section className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="item-category">Category</Label>
                   <Select
@@ -587,6 +593,29 @@ const Modal = () => {
                             {capitalize(
                               type === "prepared" ? "Recipe-Based" : type,
                             )}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="item-type">Available For</Label>
+                  <Select
+                    value={form.availableFor || "both"}
+                    onValueChange={(value) =>
+                      handleChange("availableFor", value)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Available For</SelectLabel>
+                        {AVAILABLE_FOR.map(({ value, label }) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
                           </SelectItem>
                         ))}
                       </SelectGroup>

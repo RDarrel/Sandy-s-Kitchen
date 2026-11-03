@@ -182,7 +182,7 @@ const MenuItemCard = ({
           <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3">
             <div className="min-w-0">
               <h2 className="truncate text-xl font-bold text-white">
-                {item?.name}
+                {capitalize(item?.name)}
               </h2>
             </div>
 

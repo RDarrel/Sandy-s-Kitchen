@@ -76,6 +76,7 @@ const buildMenuPayload = (
     price: Number(body.price) || 0,
     description: body.description || "",
     type,
+    availableFor: body?.availableFor,
     category: body.category,
     recipeYield: body.recipeYield || 1,
     hasRecipe: type === "prepared" ? normalizedIngredients.length > 0 : false,
@@ -463,7 +464,7 @@ exports.update = async (req, res) => {
       _id,
       buildMenuPayload(req.body, normalizedIngredients, normalizedBundleItems),
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       },
     ).lean();

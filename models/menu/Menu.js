@@ -22,6 +22,14 @@ const modelSchema = new mongoose.Schema(
       },
       default: "prepared",
     },
+    availableFor: {
+      type: String,
+      enum: {
+        values: ["catering", "dine_in", "both"],
+        message: "{VALUE} is not supported",
+      },
+      default: "both",
+    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "MenuCategory",
