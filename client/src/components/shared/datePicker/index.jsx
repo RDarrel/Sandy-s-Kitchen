@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import useResponsiveLayout from "./useResponsiveLayout";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -174,6 +175,8 @@ const DatePicker = ({
   }, [min, max, hideCalendarOnSameDay]);
 
   const showTimeOnly = withTime && isSameDate;
+  const responsiveDateTime = withTime && !isRange && !showTimeOnly;
+  const responsiveLayout = useResponsiveLayout(responsiveDateTime);
 
   return (
     <div className="relative">
@@ -207,11 +210,20 @@ const DatePicker = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-auto max-w-[calc(100vw-1.5rem)] overflow-x-auto overflow-y-hidden p-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className={cn(
+            "w-auto max-w-[calc(100vw-1.5rem)] overflow-x-auto overflow-y-hidden p-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            responsiveDateTime && "max-sm:w-[calc(100vw-1rem)] max-sm:max-w-[calc(100vw-1rem)] max-sm:max-h-[var(--radix-popover-content-available-height)] max-sm:overflow-y-auto",
+          )}
           align={align}
-          collisionPadding={12}
+          collisionPadding={responsiveDateTime ? 8 : 12}
         >
-          <div className={cn("max-w-[calc(100vw-1.5rem)]", showTimeOnly ? "w-max" : "w-fit min-w-max")}>
+          <div
+            {...responsiveLayout}
+            className={cn(
+            "max-w-[calc(100vw-1.5rem)]",
+            showTimeOnly ? "w-max" : "w-fit min-w-max",
+            responsiveDateTime && "max-sm:max-w-none",
+          )}>
             <div
               className={cn(
                 "flex items-start",
@@ -222,6 +234,7 @@ const DatePicker = ({
                 calendarMonths.map((defaultMonth, index) => (
                   <Calendar
                     key={`${mode}-${captionLayout}-${index}`}
+                    className={responsiveDateTime ? "max-sm:min-w-[13.75rem] max-sm:flex-[1.25] max-sm:[&_.rdp-months]:w-full max-sm:[&_.rdp-day]:flex-1 max-sm:[&_.rdp-weekday]:flex-1" : undefined}
                     mode={mode}
                     selected={date}
                     defaultMonth={defaultMonth}
@@ -273,8 +286,9 @@ const DatePicker = ({
               {withTime && (
                 <div
                   className={cn(
-                    "flex items-stretch justify-center self-stretch px-3 sm:px-4",
+                    "flex items-stretch justify-center self-stretch px-4",
                     showTimeOnly ? "py-2" : "border-s",
+                    responsiveDateTime && "max-sm:flex-1 max-sm:px-2 max-sm:[&>div]:w-full",
                   )}
                 >
                   <TimePicker
@@ -289,8 +303,11 @@ const DatePicker = ({
                       isTimeDisabled(date, time, min, max)
                     }
                   >
-                    <TimePickerPanel className="h-full [--time-picker-rows:7] max-sm:[--time-picker-option-height:calc(var(--spacing)*6)]">
-                      <TimePickerColumns className="h-full [&_[data-slot=time-picker-column]]:h-full max-sm:[&_[data-slot=time-picker-column-label]]:px-1 max-sm:[&_[data-slot=time-picker-column-label]]:text-[0.7rem] max-sm:[&_[data-slot=time-picker-column-list]]:px-1 max-sm:[&_[data-slot=time-picker-column]]:min-w-11 max-sm:[&_[data-slot=time-picker-option]]:text-xs" />
+                    <TimePickerPanel className={cn("h-full [--time-picker-rows:7]", responsiveDateTime && "max-sm:w-full")}>
+                      <TimePickerColumns className={cn(
+                        "h-full [&_[data-slot=time-picker-column]]:h-full",
+                        responsiveDateTime && "max-sm:[&_[data-slot=time-picker-column]]:min-w-13",
+                      )} />
                     </TimePickerPanel>
                   </TimePicker>
                 </div>
