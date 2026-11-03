@@ -213,6 +213,10 @@ const Header = () => {
   );
 
   const categoryCounts = useSelector(selectMenuCategoryCounts);
+  const sortedCategories = [...categories].sort(
+    (first, second) =>
+      (categoryCounts[second._id] || 0) - (categoryCounts[first._id] || 0),
+  );
 
   return (
     <div className="w-full max-w-full min-w-0 overflow-x-hidden rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-4">
@@ -388,7 +392,7 @@ const Header = () => {
                         }`}
                       />
                     ))
-                : [{ _id: "all", name: "All" }, ...categories].map(
+                : [{ _id: "all", name: "All" }, ...sortedCategories].map(
                     (category) => {
                       const isActive = actCategory === category?._id;
                       const categoryCount = categoryCounts[category?._id];
