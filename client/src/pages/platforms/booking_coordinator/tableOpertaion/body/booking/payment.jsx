@@ -59,13 +59,15 @@ const Description = ({ booking }) => {
     <p
       className={`mt-1 text-xs leading-4 ${booking.pendingPayment ? "text-amber-700 dark:text-amber-400" : booking.paid >= booking.amount ? "text-teal-700 dark:text-teal-400" : "text-muted-foreground"}`}
     >
-      {booking.pendingPayment
-        ? "Payment awaiting verification"
-        : booking.paid >= booking.amount
-          ? "Fully paid"
-          : booking.paid
-            ? `${Formatter.amount(booking.balance)} balance`
-            : `${Formatter.amount(booking.downpaymentDue)} down payment due`}
+      {status === "pending"
+        ? "Awaiting approval"
+        : booking.pendingPayment
+          ? "Payment awaiting verification"
+          : booking.paid >= booking.amount
+            ? "Fully paid"
+            : booking.paid
+              ? `${Formatter.amount(booking.balance)} balance`
+              : `${Formatter.amount(booking.downpaymentDue)} down payment due`}
     </p>
   );
 };
