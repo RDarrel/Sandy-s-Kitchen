@@ -1,5 +1,7 @@
 ﻿import { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { isAfter, parseISO, startOfDay } from "date-fns";
+
 import { BOOKINGS, COUNTS } from "@/services/redux/slices/events/bookings";
 import Tabs from "./tabs";
 import Body from "./body";
@@ -12,6 +14,7 @@ import {
   CompletedConfirmation,
   RejectionConfirmation,
 } from "../../admininistrator/events/bookings/schedule/confirmation";
+import SetupConfirmation from "../../admininistrator/events/bookings/schedule/confirmation/setup";
 
 export default function TableOperation() {
   const [error, setError] = useState("");
@@ -92,16 +95,36 @@ export default function TableOperation() {
     dispatch(COUNTS());
   }, [dispatch]);
 
-  const handleAction = useCallback((booking, _action) => {
-    const approvalModalActions = ["view", "update", "setup"];
-    const action = approvalModalActions.includes(_action)
-      ? "approved"
-      : _action;
-    setSchedModal((prev) => ({ ...prev, [action]: !prev[action] }));
-    setSelected(booking);
+  const handleAction = useCallback(
+    (booking, _action, setupConfirmed = false) => {
+      if (_action === "setup" && !setupConfirmed) {
+        const isFutureBooking = isAfter(
+          startOfDay(parseISO(booking.date)),
+          startOfDay(new Date()),
+        );
 
-    setApprovalModalMode(_action);
-  }, []);
+        if (isFutureBooking) {
+          setSelected(booking);
+          setSchedModal((prev) => ({ ...prev, setupConfirmation: true }));
+          return;
+        }
+      }
+
+      const approvalModalActions = ["view", "update", "setup"];
+      const action = approvalModalActions.includes(_action)
+        ? "approved"
+        : _action;
+      setSchedModal((prev) => ({
+        ...prev,
+        setupConfirmation: false,
+        [action]: !prev[action],
+      }));
+      setSelected(booking);
+
+      setApprovalModalMode(_action);
+    },
+    [],
+  );
 
   const hasFilters = Boolean(
     query || service !== "All services" || payment !== "all",
@@ -144,6 +167,14 @@ export default function TableOperation() {
           handleAction={handleAction}
         />
       </div>
+      <SetupConfirmation
+        isOpen={schedModal.setupConfirmation}
+        setIsOpen={(open) =>
+          setSchedModal((prev) => ({ ...prev, setupConfirmation: open }))
+        }
+        selected={selected}
+        onConfirm={() => handleAction(selected, "setup", true)}
+      />
       <Approval
         isOpen={schedModal?.approved}
         setIsOpen={() => handleAction({}, "approved")}

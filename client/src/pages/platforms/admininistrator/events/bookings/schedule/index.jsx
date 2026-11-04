@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { format } from "date-fns";
+import { format, isAfter, parseISO, startOfDay } from "date-fns";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { STATUS_DOTS, STATUS_LABELS, STATUS_ORDER } from "../constant";
@@ -22,6 +22,7 @@ import RecordPayment from "./recordPayment";
 import grabCursor from "./cursors/grab.svg";
 import grabbingCursor from "./cursors/grabbing.svg";
 import useHorizontalDrag from "./useHorizontalDrag";
+import SetupConfirmation from "./confirmation/setup";
 
 import {
   CompletedConfirmation,
@@ -58,6 +59,7 @@ const Schedule = ({
     completed: false,
     reject: false,
     cancel: false,
+    setupConfirmation: false,
   });
   const [selected, setSelected] = useState({});
   const [activeHighlightId, setActiveHighlightId] = useState(null);
@@ -94,7 +96,11 @@ const Schedule = ({
   }, [activeStatus, schedule]);
 
   useHorizontalDrag(scheduleBodyRef, isExpanded && !isLoading);
-  useHorizontalDrag(statusFiltersRef, !isExpanded && !isLoading && count > 0, true);
+  useHorizontalDrag(
+    statusFiltersRef,
+    !isExpanded && !isLoading && count > 0,
+    true,
+  );
 
   const populatedStatuses = Object.keys(schedule).filter(
     (status) => schedule[status]?.length > 0,
@@ -120,7 +126,9 @@ const Schedule = ({
       const bodyBounds = body.getBoundingClientRect();
       body.scrollTo({
         left:
-          body.scrollLeft + columnBounds.left - bodyBounds.left -
+          body.scrollLeft +
+          columnBounds.left -
+          bodyBounds.left -
           (body.clientWidth - columnBounds.width) / 2,
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
           ? "instant"
@@ -161,16 +169,36 @@ const Schedule = ({
     setActiveStatus("all");
   }, [selectedDate]);
 
-  const handleAction = useCallback((booking, _action) => {
-    const approvalModalActions = ["view", "update", "setup"];
-    const action = approvalModalActions.includes(_action)
-      ? "approved"
-      : _action;
-    setSchedModal((prev) => ({ ...prev, [action]: !prev[action] }));
-    setSelected(booking);
+  const handleAction = useCallback(
+    (booking, _action, setupConfirmed = false) => {
+      if (_action === "setup" && !setupConfirmed) {
+        const isFutureBooking = isAfter(
+          startOfDay(parseISO(booking.date)),
+          startOfDay(new Date()),
+        );
 
-    setApprovalModalMode(_action);
-  }, []);
+        if (isFutureBooking) {
+          setSelected(booking);
+          setSchedModal((prev) => ({ ...prev, setupConfirmation: true }));
+          return;
+        }
+      }
+
+      const approvalModalActions = ["view", "update", "setup"];
+      const action = approvalModalActions.includes(_action)
+        ? "approved"
+        : _action;
+      setSchedModal((prev) => ({
+        ...prev,
+        setupConfirmation: false,
+        [action]: !prev[action],
+      }));
+      setSelected(booking);
+
+      setApprovalModalMode(_action);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (isLoading || !highlightedBookingId) return undefined;
@@ -244,29 +272,31 @@ const Schedule = ({
             </div>
 
             {count > 0 && (
-            <div className="flex shrink-0 items-center gap-1">
-              <span className="rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                {count} booking
-                {count !== 1 ? "s" : ""}
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className={`h-6 w-6 rounded-md text-muted-foreground hover:text-foreground [&_svg]:size-3.5 ${
-                  isExpanded ? "bg-muted text-foreground" : ""
-                }`}
-                onClick={() => {
-                  setActiveStatus("all");
-                  onToggleExpand();
-                }}
-                aria-label={isExpanded ? "Collapse schedule" : "Expand schedule"}
-                aria-pressed={isExpanded}
-                title={isExpanded ? "Collapse schedule" : "Expand schedule"}
-              >
-                {isExpanded ? <Minimize2 /> : <Maximize2 />}
-              </Button>
-            </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <span className="rounded-full border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  {count} booking
+                  {count !== 1 ? "s" : ""}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className={`h-6 w-6 rounded-md text-muted-foreground hover:text-foreground [&_svg]:size-3.5 ${
+                    isExpanded ? "bg-muted text-foreground" : ""
+                  }`}
+                  onClick={() => {
+                    setActiveStatus("all");
+                    onToggleExpand();
+                  }}
+                  aria-label={
+                    isExpanded ? "Collapse schedule" : "Expand schedule"
+                  }
+                  aria-pressed={isExpanded}
+                  title={isExpanded ? "Collapse schedule" : "Expand schedule"}
+                >
+                  {isExpanded ? <Minimize2 /> : <Maximize2 />}
+                </Button>
+              </div>
             )}
           </div>
 
@@ -382,6 +412,14 @@ const Schedule = ({
         </CardContent>
       </Card>
 
+      <SetupConfirmation
+        isOpen={schedModal.setupConfirmation}
+        setIsOpen={(open) =>
+          setSchedModal((prev) => ({ ...prev, setupConfirmation: open }))
+        }
+        selected={selected}
+        onConfirm={() => handleAction(selected, "setup", true)}
+      />
       <Approval
         isOpen={schedModal?.approved}
         setIsOpen={() => handleAction({}, "approved")}
