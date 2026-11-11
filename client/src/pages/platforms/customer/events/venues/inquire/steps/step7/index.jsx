@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import Header from "../header";
 import { useSelector } from "react-redux";
 import Spinner from "@/components/shared/spinner";
+import { createElement } from "react";
+import { PolicyAgreement } from "../../../../bookingPolicy";
+import useBookingPolicy from "../../../../bookingPolicy/useBookingPolicy";
 
 const formatTimeRange = (start, end) => {
   if (!start || !end) return "";
@@ -70,6 +73,7 @@ const Step7 = ({
   handleSubmit = () => {},
 }) => {
   const { formSubmitted } = useSelector(({ bookings }) => bookings);
+  const policyState = useBookingPolicy();
   const cateringTime = form?.catering?.time;
   const venueTime = form?.venue?.time;
 
@@ -249,10 +253,15 @@ const Step7 = ({
             </div>
           </div>
 
+          <PolicyAgreement state={policyState} disabled={formSubmitted} />
+
           <Button
             type="button"
             className="mt-4 h-9 w-full gap-1.5 text-xs"
-            onClick={handleSubmit}
+            onClick={() => {
+              if (!formSubmitted && policyState.validateAgreement()) handleSubmit();
+            }}
+            disabled={formSubmitted}
           >
             {isUpdating ? "Submit Changes" : "Send Inquiry"}
             {formSubmitted ? (
@@ -277,7 +286,7 @@ const ReviewCard = ({ title, icon: Icon, items = [] }) => {
   return (
     <div className="overflow-hidden rounded-lg border">
       <div className="flex items-center gap-2 border-b bg-muted/20 px-3 py-2">
-        <Icon className="size-3.5 text-primary" />
+        {createElement(Icon, { className: "size-3.5 text-primary" })}
 
         <h3 className="text-xs font-semibold">{title}</h3>
       </div>

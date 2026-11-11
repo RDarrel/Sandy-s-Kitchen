@@ -1,6 +1,18 @@
-import { Clock3 } from "lucide-react";
+import { Clock3, FileText } from "lucide-react";
 import { FramedCard, FrameTitle } from "../components";
 import { Formatter } from "@/services/utilities";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import BookingPolicy from "../../../events/bookingPolicy";
 
 const TermsSummary = ({ terms }) => {
   return (
@@ -35,19 +47,39 @@ const TermsSummary = ({ terms }) => {
           />
         </div>
       ) : (
-        <div className="px-4 py-5 text-center">
-          <div className="mx-auto flex size-8 items-center justify-center rounded-full bg-muted">
-            <Clock3 className="size-3.5 text-muted-foreground" />
-          </div>
-
-          <p className="mt-2 text-xs font-medium">Terms not available yet</p>
-
-          <p className="mx-auto mt-0.5 max-w-[220px] text-[10px] leading-4 text-muted-foreground">
-            Booking terms will be available after your booking has been
-            approved.
+        <div className="p-3">
+          <p className="text-xs leading-5 text-muted-foreground">
+            Your payment amounts and deadlines will appear after approval.
+            You can review the booking policy below.
           </p>
         </div>
       )}
+      <div className="border-t p-3">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button type="button" variant="outline" size="sm" className="h-8 w-full gap-2 text-xs">
+              <FileText className="size-3.5" />
+              View booking policy
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="flex max-h-[85dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
+            <DialogHeader className="border-b px-4 py-3 pr-10">
+              <DialogTitle className="text-base">Booking policy</DialogTitle>
+              <DialogDescription className="text-xs">
+                Review the payment and cancellation policies for your booking.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="min-h-0 overflow-y-auto p-4">
+              <BookingPolicy terms={terms} />
+            </div>
+            <DialogFooter className="border-t bg-muted/10 px-4 py-3">
+              <DialogClose asChild>
+                <Button type="button" variant="outline">Close</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </FramedCard>
   );
 };
