@@ -89,16 +89,40 @@ const InventoryBody = ({
     return (filtered || [])
       .map((item, index) => ({ item, index }))
       .sort((a, b) => {
-        const aKey = String(a?.item?.stockStatus || "")
+        // Expiration priority
+        const aExpirationRank = a.item.expired?.value
+          ? 0
+          : a.item.expiringSoon?.value
+            ? 1
+            : 2;
+
+        const bExpirationRank = b.item.expired?.value
+          ? 0
+          : b.item.expiringSoon?.value
+            ? 1
+            : 2;
+
+        if (aExpirationRank !== bExpirationRank) {
+          return aExpirationRank - bExpirationRank;
+        }
+
+        // Existing stock status sorting
+        const aKey = String(a.item.stockStatus || "")
           .trim()
           .toLowerCase();
-        const bKey = String(b?.item?.stockStatus || "")
+
+        const bKey = String(b.item.stockStatus || "")
           .trim()
           .toLowerCase();
+
         const aRank = rank[aKey] ?? 99;
         const bRank = rank[bKey] ?? 99;
 
-        if (aRank !== bRank) return aRank - bRank;
+        if (aRank !== bRank) {
+          return aRank - bRank;
+        }
+
+        // Preserve original order
         return a.index - b.index;
       })
       .map(({ item }) => item);
@@ -127,6 +151,7 @@ const InventoryBody = ({
                   {sortedFiltered.length ? (
                     handlePagination(sortedFiltered, page, maxPage).map(
                       (item) => {
+                        const { stockDisplay, expiringSoon, expired } = item;
                         return (
                           <TableRow key={item._id}>
                             <TableCell className="whitespace-normal">
@@ -166,32 +191,48 @@ const InventoryBody = ({
                               </TableCell>
                             )}
                             <TableCell>
-                              <p className="font-medium tabular-nums text-foreground">
-                                {Stock.format(item?.stockDisplay?.current || 0)}
-                                <span className="text-xs text-muted-foreground ml-1">
-                                  {Stock.getUnit(item.measurement)}
-                                </span>
-                              </p>
+                              {stockDisplay?.current > 0 ? (
+                                <p className="font-medium tabular-nums text-foreground">
+                                  {Stock.format(
+                                    item?.stockDisplay?.current || 0,
+                                  )}
+                                  <span className="text-xs text-muted-foreground ml-1">
+                                    {Stock.getUnit(item.measurement)}
+                                  </span>
+                                </p>
+                              ) : (
+                                <p>-</p>
+                              )}
 
                               <p className="text-xs text-muted-foreground">
                                 {capitalize(item?.stockStatus)}
                               </p>
                             </TableCell>
                             <TableCell className="font-medium text-foreground">
-                              <p className="font-medium tabular-nums text-foreground">
-                                {Stock.format(item?.expiringSoon?.display || 0)}
-                                <span className="text-xs text-muted-foreground ml-1">
-                                  {Stock.getUnit(item.measurement)}
-                                </span>
-                              </p>
+                              {expiringSoon?.display > 0 ? (
+                                <p className="font-medium tabular-nums text-foreground">
+                                  {Stock.format(
+                                    item?.expiringSoon?.display || 0,
+                                  )}
+                                  <span className="text-xs text-muted-foreground ml-1">
+                                    {Stock.getUnit(item.measurement)}
+                                  </span>
+                                </p>
+                              ) : (
+                                <p>-</p>
+                              )}
                             </TableCell>
                             <TableCell className="font-medium text-foreground">
-                              <p className="font-medium tabular-nums text-foreground">
-                                {Stock.format(item?.expired?.display || 0)}
-                                <span className="text-xs text-muted-foreground ml-1">
-                                  {Stock.getUnit(item.measurement)}
-                                </span>
-                              </p>
+                              {expired?.display > 0 ? (
+                                <p className="font-medium tabular-nums text-foreground">
+                                  {Stock.format(item?.expired?.display || 0)}
+                                  <span className="text-xs text-muted-foreground ml-1">
+                                    {Stock.getUnit(item.measurement)}
+                                  </span>
+                                </p>
+                              ) : (
+                                <p>-</p>
+                              )}
                             </TableCell>
 
                             <TableCell>

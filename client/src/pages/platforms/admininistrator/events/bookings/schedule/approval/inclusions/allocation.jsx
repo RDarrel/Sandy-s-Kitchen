@@ -23,7 +23,6 @@ const Allocation = memo(
     const needsInput = requiresResourceInput(inclusion);
     const isEquipment = inclusion?.model === "Equipment";
     const amount = Number(resourceAvailability[`${source}Allocation`] || 0);
-
     const hasAvailabilityRecord =
       "available" in resourceAvailability ||
       serviceType in resourceAvailability;

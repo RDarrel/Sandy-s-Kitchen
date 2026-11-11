@@ -55,7 +55,6 @@ const Item = ({ item, isSelected, toggleItem = () => {} }) => {
 
   const hasProjectionBreakdown =
     Object.keys(item?.dailyProjection ?? {}).length > 0;
-
   return (
     <TableRow
       key={item._id}

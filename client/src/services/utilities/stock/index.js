@@ -47,16 +47,30 @@ const Stock = {
     const qty = Number(amount) || 0;
     const absQty = Math.abs(qty);
 
-    if (unit === "g" && (absQty >= 1000 || normalizeUnit)) {
-      return `${Number((qty / 1000).toFixed(2))} Kg`;
-    }
+    // if (unit === "g" && (absQty >= 1000 || normalizeUnit)) {
+    //   // return `${Number((qty / 1000).toFixed(2))} Kg`;
+    //   return `${Math.ceil(qty / 1000)} Kg`;
+    // }
 
-    if (unit === "ml" && (absQty >= 1000 || normalizeUnit)) {
-      return `${Number((qty / 1000).toFixed(2))} L`;
+    // if (unit === "ml" && (absQty >= 1000 || normalizeUnit)) {
+    //   // return `${Number((qty / 1000).toFixed(2))} L`;
+    //   return `${Math.ceil(qty / 1000)} L`;
+    // }
+
+    if (["ml", "g"].includes(unit) && (absQty >= 1000 || normalizeUnit)) {
+      // return `${Number((qty / 1000).toFixed(2))} L`;
+      const unitMap = {
+        g: "Kg",
+        ml: "L",
+      };
+      return `${Math.ceil(qty / 1000)} ${unitMap[unit]}`;
     }
 
     if (unit === "g" || unit === "ml") {
-      return `${Number(qty.toFixed(2))} ${formattedUnitMap[unit] || unit}`;
+      const baseUnit = formattedUnitMap[unit] || unit;
+      const baseValue = Math.ceil(qty);
+      // return `${Number(qty.toFixed(2))} ${formattedUnitMap[unit] || unit}`;
+      return `${baseValue} ${baseUnit}`;
     }
 
     return `${Math.round(qty)} ${formattedUnitMap[unit] || unit}`;

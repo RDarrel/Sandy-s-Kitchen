@@ -4,11 +4,9 @@ const inclusionSchema = new mongoose.Schema(
   {
     item: {
       type: mongoose.Schema.Types.ObjectId,
-
       refPath: function (doc, path) {
         return path.replace(/\.item$/, ".model");
       },
-
       required: true,
     },
 
