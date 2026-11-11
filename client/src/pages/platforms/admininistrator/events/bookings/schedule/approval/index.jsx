@@ -48,6 +48,7 @@ import RequestChanges from "./requestChanges";
 import WarningMsg from "./warningMsg";
 import FinancialDetails from "./financialDetails";
 import Summary from "./summary";
+import ApprovalNotes from "./notes";
 
 const Approval = ({
   isOpen,
@@ -257,6 +258,7 @@ const Approval = ({
           hasPayment && isApproval ? "confirmed" : willUpdate ? "update" : mode,
       },
       amountReceived: hasPayment && isApproval ? alreadyPaidAmount : 0,
+      ...(isApproval && { approvalNotes: (booking?.approvalNotes || "").trim() }),
       ...(hasPayment && isApproval && { status: "confirmed" }),
     };
 
@@ -611,6 +613,19 @@ const Approval = ({
                   />
 
                   {mode === "approved" && <Estimate booking={booking} />}
+                  {mode === "approved" && (
+                    <ApprovalNotes
+                      value={booking?.approvalNotes || ""}
+                      onChange={(approvalNotes) =>
+                        setBooking((prev) => ({ ...prev, approvalNotes }))
+                      }
+                      disabled={formSubmitted}
+                    />
+                  )}
+                  {["view", "setup", "update"].includes(mode) &&
+                    booking?.approvalNotes?.trim() && (
+                      <ApprovalNotes value={booking.approvalNotes} readOnly />
+                    )}
                 </div>
               </div>
 

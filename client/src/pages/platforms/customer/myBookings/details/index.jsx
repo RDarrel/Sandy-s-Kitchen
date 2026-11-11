@@ -30,6 +30,7 @@ import CateringDetails from "./service/catering";
 import VenueDetails from "./service/venue";
 import CustomerInformation, { ContactSkeleton } from "./customerInformation";
 import NotesAndRequests from "./notes";
+import TeamNotes from "./teamNotes";
 import NotFound from "./notFound";
 import { BROWSE } from "@/services/redux/slices/events/paymentMethods";
 
@@ -83,6 +84,8 @@ const BookingDetails = () => {
           action={action}
         />
 
+        <TeamNotes booking={booking} />
+
         <PaymentSummary booking={booking} payment={payment} action={action} />
 
         <ReservationOverview services={services} />
@@ -122,6 +125,8 @@ const BookingDetails = () => {
             date={date}
             action={action}
           />
+
+          <TeamNotes booking={booking} />
 
           <ReservationOverview services={services} />
 

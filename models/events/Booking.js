@@ -537,6 +537,11 @@ const bookingSchema = new mongoose.Schema(
       trim: true,
     },
 
+    approvalNotes: {
+      type: String,
+      trim: true,
+    },
+
     deletedAt: {
       type: Date,
       default: null,

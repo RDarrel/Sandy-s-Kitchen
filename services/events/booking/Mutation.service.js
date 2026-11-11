@@ -57,6 +57,10 @@ const update = async ({ bookingToUpdate }) => {
     booking.statusHistory = bookingToUpdate.statusHistory;
   }
 
+  if (typeof bookingToUpdate.approvalNotes === "string") {
+    booking.approvalNotes = bookingToUpdate.approvalNotes.trim();
+  }
+
   await booking.save();
 
   await booking.populate([
