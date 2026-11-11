@@ -8,15 +8,12 @@ const TeamNotes = ({ booking }) => {
 
   return (
     <Section
-      title="Notes from our team"
-      description="Reminders and arrangements for your booking."
+      title="Booking remarks"
       icon={MessageSquareText}
     >
-      <div className="rounded-md border border-primary/15 bg-primary/5 px-3 py-2.5">
-        <p className="whitespace-pre-wrap break-words text-xs leading-5">
-          {notes}
-        </p>
-      </div>
+      <p className="whitespace-pre-wrap break-words text-xs leading-5">
+        {notes}
+      </p>
     </Section>
   );
 };
