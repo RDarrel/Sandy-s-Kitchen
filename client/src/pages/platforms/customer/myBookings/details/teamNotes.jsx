@@ -8,7 +8,7 @@ const TeamNotes = ({ booking }) => {
 
   return (
     <Section
-      title="Booking remarks"
+      title="Notes from our team"
       icon={MessageSquareText}
     >
       <p className="whitespace-pre-wrap break-words text-xs leading-5">
