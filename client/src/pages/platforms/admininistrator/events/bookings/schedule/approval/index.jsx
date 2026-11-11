@@ -104,16 +104,14 @@ const Approval = ({
 
   useEffect(() => {
     if (!isLoadingEquipAvailability && isOpen && selected?._id) {
-      console.log("mode", mode);
       let _availability = { ...availability };
-      if (["update", "approved", "approve"].includes(mode)) {
+      if (["update", "approved"].includes(mode)) {
         //ATTACH AMOUNT OF EQUIPMENT
 
-        console.log("running includion default");
         const { catering, venue } = selected;
         const attachAmount = (source, items, pax) => {
           const equipments = items?.filter(
-            ({ amount, model }) => model === "Equipment" && amount,
+            ({ model }) => model === "Equipment",
           );
 
           equipments?.forEach((element) => {
@@ -135,7 +133,6 @@ const Approval = ({
         attachAmount("catering", catering?.inclusions, catering?.pax);
         attachAmount("venue", venue?.inclusions, venue?.pax);
       }
-      console.log("_avaikavbility", _availability);
       setEquipAvailability(_availability);
     }
   }, [availability, isLoadingEquipAvailability, isOpen, selected, mode]);
